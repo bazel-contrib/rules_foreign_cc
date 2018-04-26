@@ -1,0 +1,8 @@
+---
+platforms:
+  ubuntu1604:
+    build_targets:
+    - "//examples/..."
+  macos:
+    build_targets:
+    - "//examples/..."
