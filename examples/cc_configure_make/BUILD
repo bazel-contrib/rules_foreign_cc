@@ -1,14 +1,13 @@
-load("//cc_configure_make:def.bzl", "cc_configure_make")
+load("//cc_configure_make:cc_configure_make.bzl", "cc_configure_make_tmp_macros")
 
-cc_configure_make(
+cc_configure_make_tmp_macros(
     name = "libevent",
-    src = "@libevent//:all",
+    srcs = "@libevent//:all",
     configure_flags = [
         "--enable-shared=no",
         "--disable-libevent-regress",
         "--disable-openssl",
     ],
-    out_lib_path = "lib/libevent.a",
 )
 
 cc_binary(
