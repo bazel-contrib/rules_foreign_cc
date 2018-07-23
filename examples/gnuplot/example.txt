@@ -1,0 +1,5 @@
+set grid front
+set title "Filled sinus and cosinus curves"
+set terminal png
+set output 'image.png'
+plot 2+sin(x)**2 with filledcurve x1, cos(x)**2 with filledcurve x1

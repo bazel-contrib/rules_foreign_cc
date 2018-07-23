@@ -169,6 +169,8 @@ void on_accept(int fd, short ev, void *arg) {
 }
 
 int main(int argc, char **argv) {
+  printf("Started Listening...");
+
   int listen_fd;
   struct sockaddr_in listen_addr;
   int reuseaddr_on = 1;
