@@ -1,7 +1,17 @@
 workspace(name = "rules_foreign_cc")
-# These repositories are used in the BUILD files in examples/, which are also used in CI.
 
 all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
+
+new_http_archive(
+      name = "bazel_skylib",
+      urls = [
+          "https://github.com/bazelbuild/bazel-skylib/archive/0.5.0.tar.gz",
+      ],
+      strip_prefix= "bazel-skylib-0.5.0",
+      sha256 = "b5f6abe419da897b7901f90cbab08af958b97a8f3575b0d3dd062ac7ce78541f",
+      type = "tar.gz",
+      build_file_content = all_content,
+  )
 
 new_http_archive(
     name = "libevent",
