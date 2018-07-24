@@ -274,9 +274,11 @@ def join_flags_string(flags_dict):
 
 def detect_root(ctx):
   root = ctx.attr.lib_source.label.workspace_root
-  if not root or len(root) == 0:
-    for file in ctx.attr.lib_source.files:
-      root = file.path
-      print(root)
-      break
+  sources = ctx.attr.lib_source.files
+  if (not root or len(root) == 0) and len(sources) > 0:
+    root = ""
+    # find topmost directory
+    for file in sources:
+      if len(root) == 0 or len(root) > len(file.path):
+        root = file.path
   return root
