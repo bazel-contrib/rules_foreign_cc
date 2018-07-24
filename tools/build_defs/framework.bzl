@@ -77,6 +77,7 @@ def cc_external_rule_impl(ctx, configure_name, configure_script):
   return [DefaultInfo(files = depset(direct = out_files.declared_outputs)),
             OutputGroupInfo(gen_dir = depset([out_files.wrapper]),
                             bin_dir = depset([out_files.out_bin_dir]),
+#                            include_dir = depset([out_files.out_include_dir]),
                             out_binary_files = depset(out_files.out_binary_files),
                             pkg_config_dir = out_files.out_pkg_dir or []),
             cc_common.create_cc_skylark_info(ctx=ctx),
@@ -213,7 +214,7 @@ def _define_inputs(ctx, outputs):
         link_opts = link_opts,
         tools_files = tools_files,
         pkg_configs = pkg_configs,
-        declared_inputs = depset(ctx.attr.lib_source.files) + libs + tools_files + pkg_configs + ctx.attr.additional_inputs
+        declared_inputs = depset(ctx.attr.lib_source.files) + libs + tools_files + pkg_configs + ctx.attr.additional_inputs + deps_compilation.headers
     ),
     struct(
       compilation_info = out_compilation_info,

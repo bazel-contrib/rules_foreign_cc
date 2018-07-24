@@ -48,7 +48,7 @@ function path() {
 # $3 replace target
 function replace_in_files() {
   if [ -d "$1" ]; then
-    find $1 -type f,l -print -exec sed -i 's@'"$2"'@'"$3"'@g' ';'
+    find $1 -type f,l -print -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
   fi
 }
 
@@ -58,9 +58,12 @@ function replace_in_files() {
 function copy_to_dir() {
   local target="$2"
   mkdir -p ${target}
+
   if [[ -d $1 ]]; then
     cp -r $1/** ${target}
   elif [[ -f $1 ]]; then
+    cp $1 ${target}
+  elif [[ -L $1 ]]; then
     cp $1 ${target}
   else
     echo "Can not copy $1"
