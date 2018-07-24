@@ -101,24 +101,36 @@ def _list(item):
   return []
 
 def _copy_deps_and_tools(files):
-  list = ["mkdir -p " + cmd for cmd in
-      ["$EXT_BUILD_DEPS/lib", "$EXT_BUILD_DEPS/include", "$EXT_BUILD_DEPS/lib/pkgconfig"]]
   groups = {
       "lib": files.libs,
       "include": files.headers,
       "lib/pkgconfig": files.pkg_configs,
       "bin": files.tools_files,
   }
+  list = []
   for key in groups.keys():
-    for file in groups[key]:
+    group_files = groups[key]
+    if len(group_files) == 0:
+      continue
+
+    list += ["mkdir -p $EXT_BUILD_DEPS/" + key]
+    paths_to_copy = []
+    for file in group_files:
       if (type(file) == "string"):
-        list += ["copy_to_dir $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS/{}".format(file, key)]
+        paths_to_copy += [file]
       else:
-        list += ["copy_to_dir $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS/{}".format(file.path, key)]
+        paths_to_copy += [file.path]
+
+    # include directories would be mentioned both in headers and system_includes sections, avoid duplication
+    paths_to_copy = collections.uniq(paths_to_copy)
+
+    for path in paths_to_copy:
+      list += ["copy_to_dir $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS/{}".format(path, key)]
 
   list += ["define_absolute_paths $EXT_BUILD_ROOT/bin $EXT_BUILD_ROOT/bin"]
   list += ["path $EXT_BUILD_ROOT/bin"]
   list += ["export PKG_CONFIG_PATH=$EXT_BUILD_ROOT/lib/pkgconfig"]
+
   return list
 
 def _check_file_name(var, name):

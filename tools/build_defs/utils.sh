@@ -60,9 +60,9 @@ function copy_to_dir() {
   mkdir -p ${target}
 
   if [[ -d $1 ]]; then
-    cp -r $1/** ${target}
+    find $1 -type f,l -print -exec ln -s -t ${target} {} ';'
   elif [[ -f $1 ]]; then
-    cp $1 ${target}
+    ln -s -t ${target} $1
   elif [[ -L $1 ]]; then
     cp $1 ${target}
   else
@@ -71,7 +71,7 @@ function copy_to_dir() {
 }
 
 # Copy all files from source directory to target directory (create the target directory if needed),
-# and add target paths on to path todo with bin?
+# and add target paths on to path
 # $1 source directory
 # $2 target directory
 function copy_and_add_to_path() {
