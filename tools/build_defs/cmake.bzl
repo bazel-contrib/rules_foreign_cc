@@ -1,15 +1,16 @@
-load("//tools/build_defs:framework.bzl", "cc_external_rule_impl", "detect_root", "CC_EXTERNAL_RULE_ATTRIBUTES")
+load("//tools/build_defs:framework.bzl", "cc_external_rule_impl", "detect_root",
+   "CC_EXTERNAL_RULE_ATTRIBUTES", "create_attrs")
 
 def _cmake_external(ctx):
   options = " ".join(ctx.attr.cmake_options)
   root = detect_root(ctx)
   cmake_string = "cmake -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_ROOT\" -DCMAKE_INSTALL_PREFIX=$INSTALLDIR {} $EXT_BUILD_ROOT/{}".format(options, root)
 
-  return cc_external_rule_impl(
-      ctx,
-      configure_name = 'CMake',
-      configure_script = cmake_string
-  )
+  attrs = create_attrs(ctx.attr,
+                       configure_name = 'CMake',
+                       configure_script = cmake_string)
+
+  return cc_external_rule_impl(ctx, attrs)
 
 def _attrs():
   attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)

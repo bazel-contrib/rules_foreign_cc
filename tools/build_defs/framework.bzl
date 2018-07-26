@@ -35,7 +35,20 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
       "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
 }
 
-def cc_external_rule_impl(ctx, configure_name, configure_script):
+def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
+  dict = {}
+  for key in CC_EXTERNAL_RULE_ATTRIBUTES:
+    if not key.startswith("_") and hasattr(attr_struct, key):
+      dict[key] = getattr(attr_struct, key)
+
+  dict["configure_name"] = configure_name
+  dict["configure_script"] = configure_script
+
+  for arg in kwargs:
+    dict[arg] = kwargs[arg]
+  return struct(**dict)
+
+def cc_external_rule_impl(ctx, attrs):
   lib_name = _value(ctx.attr.lib_name, ctx.attr.name)
   outputs = _define_outputs(ctx, lib_name)
   inputs = _define_inputs(ctx, outputs)
@@ -56,7 +69,7 @@ def cc_external_rule_impl(ctx, configure_name, configure_script):
     "mkdir -p $INSTALLDIR",
     "echo_vars INSTALLDIR EXT_BUILD_DEPS EXT_BUILD_ROOT PATH",
     "pushd $TMPDIR",
-    configure_script,
+    attrs.configure_script,
     "\n".join(ctx.attr.make_commands),
     _value(ctx.attr.postfix_script, ""),
     "replace_absolute_paths $INSTALLDIR $INSTALLDIR",
@@ -66,7 +79,7 @@ def cc_external_rule_impl(ctx, configure_name, configure_script):
   script_text = '\n'.join(script_lines)
 
   ctx.actions.run_shell(
-          mnemonic="Cc" + configure_name.capitalize() + "MakeRule",
+          mnemonic="Cc" + attrs.configure_name.capitalize() + "MakeRule",
           inputs = inputs.declared_inputs,
           outputs = outputs.declared_outputs,
           tools = ctx.attr._utils.files,
