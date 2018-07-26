@@ -3,7 +3,7 @@
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
-LibrariesToLinkInfo = provider(
+LibrariesToLink = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
     fields = dict(
      static_library = "Static library file, optional",
@@ -180,11 +180,6 @@ def _build_cc_link_params(
             "dynamic_mode_params_for_executable": no_static_no_shared}
 
 def targets_windows(ctx, cc_toolchain):
-    """ Returns true if build is targeting Windows
-    Args:
-        ctx - rule context
-        cc_toolchain - optional - Cc toolchain
-    """
     toolchain = cc_toolchain if cc_toolchain else find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
         cc_toolchain = toolchain,
@@ -198,12 +193,6 @@ def targets_windows(ctx, cc_toolchain):
     )
 
 def create_linking_info(ctx, user_link_flags, files):
-    """ Creates CcLinkingInfo for the passed user link options and libraries.
-    Args:
-        ctx - rule context
-        user_link_flags - (list of strings) link optins, provided by user
-        files - (LibrariesToLink) provider with the library files
-    """
     cc_toolchain = find_cpp_toolchain(ctx)
     for_windows = targets_windows(ctx, cc_toolchain)
 
@@ -223,4 +212,5 @@ def create_linking_info(ctx, user_link_flags, files):
 
     link_params = _build_cc_link_params(ctx, user_link_flags, **artifacts)
 
-    return CcLinkingInfo(**link_params)
+    cc_linking_info = CcLinkingInfo(**link_params)
+    return cc_linking_info
