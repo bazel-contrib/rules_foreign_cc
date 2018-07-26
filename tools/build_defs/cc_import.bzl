@@ -114,7 +114,9 @@ def _build_libraries_to_link_and_runtime_artifact(ctx, files, cc_toolchain, targ
     else:
         dynamic_library_for_linking = shared_library
 
-    return (static_library, dynamic_library_for_linking, runtime_artifact)
+    return {"static_library": static_library,
+            "dynamic_library": dynamic_library_for_linking,
+            "runtime_artifact": runtime_artifact}
 
 def _build_cc_link_params(
         ctx,
@@ -167,7 +169,10 @@ def _build_cc_link_params(
             libraries_to_link = _to_depset(static_library),
         )
 
-    return (static_shared, static_no_shared, no_static_shared, no_static_no_shared)
+    return {"static_mode_params_for_dynamic_library": static_shared,
+            "static_mode_params_for_executable": static_no_shared,
+            "dynamic_mode_params_for_dynamic_library": no_static_shared,
+            "dynamic_mode_params_for_executable": no_static_no_shared}
 
 def create_linking_info(ctx, files):
     cc_toolchain = find_cpp_toolchain(ctx)
@@ -189,28 +194,14 @@ def create_linking_info(ctx, files):
         targets_windows,
     )
 
-    (
-        static_library,
-        dynamic_library,
-        runtime_artifact,
-    ) = _build_libraries_to_link_and_runtime_artifact(
+    artifacts = _build_libraries_to_link_and_runtime_artifact(
         ctx,
         files,
         cc_toolchain,
         targets_windows,
     )
 
-    (static_shared, static_no_shared, no_static_shared, no_static_no_shared) = _build_cc_link_params(
-        ctx,
-        static_library,
-        dynamic_library,
-        runtime_artifact,
-    )
+    link_params = _build_cc_link_params(ctx, **artifacts)
 
-    cc_linking_info = CcLinkingInfo(
-        static_mode_params_for_dynamic_library = static_shared,
-        static_mode_params_for_executable = static_no_shared,
-        dynamic_mode_params_for_dynamic_library = no_static_shared,
-        dynamic_mode_params_for_executable = no_static_no_shared,
-    )
+    cc_linking_info = CcLinkingInfo(**link_params)
     return cc_linking_info
