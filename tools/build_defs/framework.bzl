@@ -50,8 +50,9 @@ def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
 
 def cc_external_rule_impl(ctx, attrs):
   lib_name = _value(ctx.attr.lib_name, ctx.attr.name)
+
+  inputs = _define_inputs(ctx)
   outputs = _define_outputs(ctx, lib_name)
-  inputs = _define_inputs(ctx, outputs)
   out_cc_info = _define_out_cc_info(ctx, inputs, outputs)
 
   shell_utils = ctx.attr._utils.files.to_list()[0].path
@@ -157,7 +158,7 @@ def _check_file_name(var, name):
     fail("{} should be alphanumeric.".format(name.capitalize()))
 
 _Outputs = provider(
-    doc = "Structure to keep different kinds of the external build outputs",
+    doc = "Provider to keep different kinds of the external build output files and directories",
     fields = dict(
         installdir = "Directory, where the library or binary is installed",
         out_include_dir = "Directory with header files (relative to install directory)",
@@ -209,7 +210,24 @@ def _define_outputs(ctx, lib_name):
     declared_outputs = declared_outputs,
   )
 
-def _define_inputs(ctx, outputs):
+_InputFiles = provider(
+    doc = """Provider to keep different kinds of input files, directories,
+and C/C++ compilation and linking info from dependencies""",
+    fields = dict(
+        headers = "Include directories to be used for compilation",
+        libs = "Library files to be used for building",
+        link_opts = "Link options to be passed [transitively] in resulting CcLinkingInfo",
+        tools_files = """Files and directories with tools needed for configuration/building
+to be copied into the bin folder, which is added to the PATH""",
+        pkg_configs = """pkgconfig files to be copied to the pkg_config folder,
+PKG_CONFIG_PATH is assigned to that folder""",
+        deps_compilation_info = "Merged CcCompilationInfo from deps attribute",
+        deps_linking_info = "Merged CcLinkingInfo from deps attribute",
+        declared_inputs = "All files and directories that must be declared as action inputs"
+    )
+)
+
+def _define_inputs(ctx):
   pkg_configs = []
   compilation_infos = []
   linking_infos = []
@@ -241,7 +259,7 @@ def _define_inputs(ctx, outputs):
   (libs, link_opts) = _collect_libs_and_flags(deps_linking)
   headers = [] + deps_compilation.system_includes.to_list()
 
-  return struct(
+  return _InputFiles(
         headers = headers,
         libs = libs,
         # todo do we pass link opts to cmake or to make????
@@ -250,7 +268,8 @@ def _define_inputs(ctx, outputs):
         pkg_configs = pkg_configs,
         deps_compilation_info = deps_compilation,
         deps_linking_info = deps_linking,
-        declared_inputs = depset(ctx.attr.lib_source.files) + libs + tools_files + pkg_configs + ctx.attr.additional_inputs + deps_compilation.headers
+        declared_inputs = depset(ctx.attr.lib_source.files) + libs + tools_files + pkg_configs +
+         ctx.attr.additional_inputs + deps_compilation.headers
 )
 
 def _define_out_cc_info(ctx, inputs, outputs):
