@@ -326,9 +326,9 @@ def join_flags_string(flags_dict):
   return " ".join([key + "=\"" + flags_dict[key] + "\""
     for key in flags_dict.keys() if len(flags_dict[key]) > 0])
 
-def detect_root(ctx):
-  root = ctx.attr.lib_source.label.workspace_root
-  sources = ctx.attr.lib_source.files
+def detect_root(source):
+  root = source.label.workspace_root
+  sources = source.files
   if (not root or len(root) == 0) and len(sources) > 0:
     root = ""
     # find topmost directory
