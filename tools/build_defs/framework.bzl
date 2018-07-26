@@ -20,6 +20,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
       "out_bin_dir": attr.string(mandatory = False, default = "bin"),
       #
       "alwayslink": attr.bool(mandatory = False, default = False),
+      "linkopts": attr.string_list(mandatory = False, default = []),
       "static_library": attr.string(mandatory = False),
       "shared_library": attr.string(mandatory = False),
       "interface_library": attr.string(mandatory = False),
@@ -49,11 +50,11 @@ def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
   return struct(**dict)
 
 def cc_external_rule_impl(ctx, attrs):
-  lib_name = _value(ctx.attr.lib_name, ctx.attr.name)
+  lib_name = _value(attrs.lib_name, ctx.attr.name)
 
-  inputs = _define_inputs(ctx)
-  outputs = _define_outputs(ctx, lib_name)
-  out_cc_info = _define_out_cc_info(ctx, inputs, outputs)
+  inputs = _define_inputs(attrs)
+  outputs = _define_outputs(ctx, attrs, lib_name)
+  out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
   shell_utils = ctx.attr._utils.files.to_list()[0].path
 
@@ -71,8 +72,8 @@ def cc_external_rule_impl(ctx, attrs):
     "echo_vars INSTALLDIR EXT_BUILD_DEPS EXT_BUILD_ROOT PATH",
     "pushd $TMPDIR",
     attrs.configure_script,
-    "\n".join(ctx.attr.make_commands),
-    _value(ctx.attr.postfix_script, ""),
+    "\n".join(attrs.make_commands),
+    _value(attrs.postfix_script, ""),
     "replace_absolute_paths $INSTALLDIR $INSTALLDIR",
     "popd",
   ]
@@ -171,29 +172,29 @@ _Outputs = provider(
     )
 )
 
-def _define_outputs(ctx, lib_name):
-  if (ctx.attr.static_library == None and ctx.attr.dynamic_library == None and ctx.attr.interface_library == None and len(ctx.attr.binaries_names) == 0):
+def _define_outputs(ctx, attrs, lib_name):
+  if (attrs.static_library == None and attrs.dynamic_library == None and attrs.interface_library == None and len(attrs.binaries_names) == 0):
     fail("One of \"out_lib_name\" or \"out_bin_name\" attributes must be provided.")
 
   _check_file_name(lib_name, "Library name")
 
   out_binary_files = []
-  for file in ctx.attr.binaries_names:
-    out_binary_files += [_declare_out(ctx, lib_name, ctx.attr.out_bin_dir, file)]
+  for file in attrs.binaries_names:
+    out_binary_files += [_declare_out(ctx, lib_name, attrs.out_bin_dir, file)]
 
   out_pkg_dir = None
-  if ctx.attr.out_pkg_config_dir:
-    out_pkg_dir = ctx.actions.declare_file("/".join([lib_name, ctx.attr.out_pkg_config_dir]))
+  if attrs.out_pkg_config_dir:
+    out_pkg_dir = ctx.actions.declare_file("/".join([lib_name, attrs.out_pkg_config_dir]))
 
   installdir = ctx.actions.declare_directory(lib_name)
-  out_include_dir = ctx.actions.declare_directory(lib_name + "/" + ctx.attr.out_include_dir)
-  out_bin_dir = ctx.actions.declare_directory(lib_name + "/" + ctx.attr.out_bin_dir)
-  out_lib_dir = ctx.actions.declare_directory(lib_name + "/" + ctx.attr.out_lib_dir)
+  out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
+  out_bin_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_bin_dir)
+  out_lib_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_lib_dir)
 
   libraries = LibrariesToLink(
-                static_library = _declare_out(ctx, lib_name, out_lib_dir, ctx.attr.static_library),
-                shared_library = _declare_out(ctx, lib_name, out_lib_dir, ctx.attr.shared_library),
-                interface_library = _declare_out(ctx, lib_name, out_lib_dir, ctx.attr.interface_library),
+                static_library = _declare_out(ctx, lib_name, out_lib_dir, attrs.static_library),
+                shared_library = _declare_out(ctx, lib_name, out_lib_dir, attrs.shared_library),
+                interface_library = _declare_out(ctx, lib_name, out_lib_dir, attrs.interface_library),
               )
   declared_outputs = [installdir, out_include_dir, out_bin_dir, out_lib_dir] + out_binary_files
   declared_outputs += _list(out_pkg_dir) + _list(libraries.static_library)
@@ -216,7 +217,7 @@ and C/C++ compilation and linking info from dependencies""",
     fields = dict(
         headers = "Include directories to be used for compilation",
         libs = "Library files to be used for building",
-        link_opts = "Link options to be passed [transitively] in resulting CcLinkingInfo",
+        deps_linkopts = "Link options from deps to be passed to resulting CcLinkingInfo",
         tools_files = """Files and directories with tools needed for configuration/building
 to be copied into the bin folder, which is added to the PATH""",
         pkg_configs = """pkgconfig files to be copied to the pkg_config folder,
@@ -227,12 +228,12 @@ PKG_CONFIG_PATH is assigned to that folder""",
     )
 )
 
-def _define_inputs(ctx):
+def _define_inputs(attrs):
   pkg_configs = []
   compilation_infos = []
   linking_infos = []
 
-  for dep in ctx.attr.deps:
+  for dep in attrs.deps:
     compilation_infos += [dep[CcCompilationInfo]]
     linking_infos += [dep[CcLinkingInfo]]
 
@@ -243,43 +244,43 @@ def _define_inputs(ctx):
 
   tools_roots = []
   tools_files = []
-  for tool in ctx.attr.tools_deps:
+  for tool in attrs.tools_deps:
     tool_root = detect_root(tool)
     tools_roots += [tool_root]
     for file_list in tool.files.to_list():
       tools_files += _list(file_list)
 
-  for tool in ctx.attr.additional_tools:
+  for tool in attrs.additional_tools:
     for file_list in tool.files.to_list():
       tools_files += _list(file_list)
 
   deps_compilation = cc_common.merge_cc_compilation_infos(cc_compilation_infos = compilation_infos)
   deps_linking = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos)
 
-  (libs, link_opts) = _collect_libs_and_flags(deps_linking)
+  (libs, linkopts) = _collect_libs_and_flags(deps_linking)
   headers = [] + deps_compilation.system_includes.to_list()
 
   return _InputFiles(
         headers = headers,
         libs = libs,
-        # todo do we pass link opts to cmake or to make????
-        link_opts = link_opts,
+        deps_linkopts = linkopts,
         tools_files = tools_roots,
         pkg_configs = pkg_configs,
         deps_compilation_info = deps_compilation,
         deps_linking_info = deps_linking,
-        declared_inputs = depset(ctx.attr.lib_source.files) + libs + tools_files + pkg_configs +
-         ctx.attr.additional_inputs + deps_compilation.headers
+        declared_inputs = depset(attrs.lib_source.files) + libs + tools_files + pkg_configs +
+         attrs.additional_inputs + deps_compilation.headers
 )
 
-def _define_out_cc_info(ctx, inputs, outputs):
+def _define_out_cc_info(ctx, attrs, inputs, outputs):
   compilation_info = CcCompilationInfo(headers = depset([outputs.out_include_dir]),
                                        system_includes = depset([outputs.out_include_dir.path]),
-                                       defines = depset(ctx.attr.defines))
+                                       defines = depset(attrs.defines))
   out_compilation_info = cc_common.merge_cc_compilation_infos(
       cc_compilation_infos = [inputs.deps_compilation_info, compilation_info])
 
-  linking_info = create_linking_info(ctx, outputs.libraries)
+  linkopts = depset(direct = attrs.linkopts, transitive = inputs.deps_linkopts)
+  linking_info = create_linking_info(ctx, linkopts, outputs.libraries)
   out_linking_info = cc_common.merge_cc_linking_infos(
       cc_linking_infos = [inputs.deps_linking_info, linking_info])
 
@@ -290,7 +291,7 @@ def _define_out_cc_info(ctx, inputs, outputs):
 
 def _collect_libs_and_flags(cc_linking):
   libs = []
-  link_opts = []
+  linkopts = []
 
   for params in [cc_linking.static_mode_params_for_dynamic_library,
                                    cc_linking.static_mode_params_for_executable,
@@ -298,9 +299,9 @@ def _collect_libs_and_flags(cc_linking):
                                    cc_linking.dynamic_mode_params_for_executable]:
     libs += [lib.artifact() for lib in params.libraries_to_link.to_list()]
     libs += params.dynamic_libraries_for_runtime.to_list()
-    link_opts = params.linkopts.to_list()
+    linkopts = params.linkopts.to_list()
 
-  return (collections.uniq(libs), collections.uniq(link_opts))
+  return (collections.uniq(libs), collections.uniq(linkopts))
 
 def _declare_out(ctx, lib_name, dir, file):
   if file:

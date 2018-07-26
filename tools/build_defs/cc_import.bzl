@@ -120,6 +120,7 @@ def _build_libraries_to_link_and_runtime_artifact(ctx, files, cc_toolchain, targ
 
 def _build_cc_link_params(
         ctx,
+        user_link_flags,
         static_library,
         dynamic_library,
         runtime_artifact):
@@ -128,6 +129,7 @@ def _build_cc_link_params(
     if static_library != None:
         static_shared = cc_common.create_cc_link_params(
             ctx = ctx,
+            user_link_flags = user_link_flags,
             libraries_to_link = _to_depset(static_library),
         )
         static_no_shared = cc_common.create_cc_link_params(
@@ -137,6 +139,7 @@ def _build_cc_link_params(
     else:
         static_shared = cc_common.create_cc_link_params(
             ctx = ctx,
+            user_link_flags = user_link_flags,
             libraries_to_link = _to_depset(dynamic_library),
             dynamic_libraries_for_runtime = _to_depset(runtime_artifact),
         )
@@ -151,6 +154,7 @@ def _build_cc_link_params(
     if dynamic_library != None:
         no_static_shared = cc_common.create_cc_link_params(
             ctx = ctx,
+            user_link_flags = user_link_flags,
             libraries_to_link = _to_depset(dynamic_library),
             dynamic_libraries_for_runtime = _to_depset(runtime_artifact),
         )
@@ -162,6 +166,7 @@ def _build_cc_link_params(
     else:
         no_static_shared = cc_common.create_cc_link_params(
             ctx = ctx,
+            user_link_flags = user_link_flags,
             libraries_to_link = _to_depset(static_library),
         )
         no_static_no_shared = cc_common.create_cc_link_params(
@@ -174,7 +179,7 @@ def _build_cc_link_params(
             "dynamic_mode_params_for_dynamic_library": no_static_shared,
             "dynamic_mode_params_for_executable": no_static_no_shared}
 
-def create_linking_info(ctx, files):
+def create_linking_info(ctx, user_link_flags, files):
     cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
         cc_toolchain = cc_toolchain,
@@ -201,7 +206,7 @@ def create_linking_info(ctx, files):
         targets_windows,
     )
 
-    link_params = _build_cc_link_params(ctx, **artifacts)
+    link_params = _build_cc_link_params(ctx, user_link_flags, **artifacts)
 
     cc_linking_info = CcLinkingInfo(**link_params)
     return cc_linking_info
