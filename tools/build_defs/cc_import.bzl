@@ -1,7 +1,15 @@
-"""Modified cc_import script; to be merged with cc_import?
+""" Defines create_linking_info, which wraps passed libraries into CcLinkingInfo
 """
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+
+LibrariesToLink = provider(
+    doc = "Libraries to be wrapped into CcLinkingInfo",
+    fields = dict(
+     static_library = "Static library file, optional",
+     shared_library = "Dynamic library file, optional",
+     interface_library = "Interface library file, optional",
+))
 
 def _to_list(element):
     if element == None:

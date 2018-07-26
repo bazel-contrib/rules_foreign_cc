@@ -1,7 +1,7 @@
 load("@bazel_skylib//lib:collections.bzl", "collections")
-load("//tools/build_defs:cc_import.bzl", "create_linking_info")
+load("//tools/build_defs:cc_import.bzl", "create_linking_info", "LibrariesToLink")
 
-CC_EXTERNAL_RULE_ATTRIBUTES = dict({
+CC_EXTERNAL_RULE_ATTRIBUTES = {
       "lib_name": attr.string(mandatory = False),
       "lib_source": attr.label(mandatory = True, allow_files = True),
       "defines": attr.string_list(mandatory = False, default = []),
@@ -33,12 +33,13 @@ CC_EXTERNAL_RULE_ATTRIBUTES = dict({
           cfg = "target"
       ),
       "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
-})
+}
 
 def cc_external_rule_impl(ctx, configure_name, configure_script):
   lib_name = _value(ctx.attr.lib_name, ctx.attr.name)
-  out_files = _define_outputs(ctx, lib_name)
-  (configure_params, cc_info) = _define_inputs(ctx, out_files)
+  outputs = _define_outputs(ctx, lib_name)
+  inputs = _define_inputs(ctx, outputs)
+  out_cc_info = _define_out_cc_info(ctx, inputs, outputs)
 
   shell_utils = ctx.attr._utils.files.to_list()[0].path
 
@@ -49,9 +50,9 @@ def cc_external_rule_impl(ctx, configure_name, configure_script):
     "echo \"Building external library '{}'\"".format(lib_name),
     "TMPDIR=$(mktemp -d)",
     "EXT_BUILD_DEPS=$(mktemp -d --tmpdir=$EXT_BUILD_ROOT)",
-    "\n".join(_copy_deps_and_tools(configure_params)),
+    "\n".join(_copy_deps_and_tools(inputs)),
     "trap \"{ rm -rf $TMPDIR; }\" EXIT",
-    "INSTALLDIR=$EXT_BUILD_ROOT/" + out_files.wrapper.path,
+    "INSTALLDIR=$EXT_BUILD_ROOT/" + outputs.installdir.path,
     "mkdir -p $INSTALLDIR",
     "echo_vars INSTALLDIR EXT_BUILD_DEPS EXT_BUILD_ROOT PATH",
     "pushd $TMPDIR",
@@ -66,23 +67,22 @@ def cc_external_rule_impl(ctx, configure_name, configure_script):
 
   ctx.actions.run_shell(
           mnemonic="Cc" + configure_name.capitalize() + "MakeRule",
-          inputs = configure_params.declared_inputs,
-          outputs = out_files.declared_outputs,
+          inputs = inputs.declared_inputs,
+          outputs = outputs.declared_outputs,
           tools = ctx.attr._utils.files,
           use_default_shell_env=True,
           command = script_text,
           execution_requirements = {"block-network": ""}
       )
 
-  return [DefaultInfo(files = depset(direct = out_files.declared_outputs)),
-            OutputGroupInfo(gen_dir = depset([out_files.wrapper]),
-                            bin_dir = depset([out_files.out_bin_dir]),
-#                            include_dir = depset([out_files.out_include_dir]),
-                            out_binary_files = depset(out_files.out_binary_files),
-                            pkg_config_dir = out_files.out_pkg_dir or []),
+  return [DefaultInfo(files = depset(direct = outputs.declared_outputs)),
+            OutputGroupInfo(gen_dir = depset([outputs.installdir]),
+                            bin_dir = depset([outputs.out_bin_dir]),
+                            out_binary_files = depset(outputs.out_binary_files),
+                            pkg_config_dir = outputs.out_pkg_dir or []),
             cc_common.create_cc_skylark_info(ctx=ctx),
-            cc_info.compilation_info,
-            cc_info.linking_info,
+            out_cc_info.compilation_info,
+            out_cc_info.linking_info,
 ]
 
 def _value(value, default_value):
@@ -143,6 +143,20 @@ def _check_file_name(var, name):
   if (not var.isalnum()):
     fail("{} should be alphanumeric.".format(name.capitalize()))
 
+_Outputs = provider(
+    doc = "Structure to keep different kinds of the external build outputs",
+    fields = dict(
+        installdir = "Directory, where the library or binary is installed",
+        out_include_dir = "Directory with header files (relative to install directory)",
+        out_bin_dir = "Directory with binary files (relative to install directory)",
+        out_lib_dir = "Directory with library files (relative to install directory)",
+        out_pkg_dir = "Directory with pkgconfig files (relative to install directory)",
+        out_binary_files = "Binary files, which will be created by the action",
+        libraries = "Library files, which will be created by the action",
+        declared_outputs = "All output files and directories of the action",
+    )
+)
+
 def _define_outputs(ctx, lib_name):
   if (ctx.attr.static_library == None and ctx.attr.dynamic_library == None and ctx.attr.interface_library == None and len(ctx.attr.binaries_names) == 0):
     fail("One of \"out_lib_name\" or \"out_bin_name\" attributes must be provided.")
@@ -157,22 +171,22 @@ def _define_outputs(ctx, lib_name):
   if ctx.attr.out_pkg_config_dir:
     out_pkg_dir = ctx.actions.declare_file("/".join([lib_name, ctx.attr.out_pkg_config_dir]))
 
-  wrapper = ctx.actions.declare_directory(lib_name)
+  installdir = ctx.actions.declare_directory(lib_name)
   out_include_dir = ctx.actions.declare_directory(lib_name + "/" + ctx.attr.out_include_dir)
   out_bin_dir = ctx.actions.declare_directory(lib_name + "/" + ctx.attr.out_bin_dir)
   out_lib_dir = ctx.actions.declare_directory(lib_name + "/" + ctx.attr.out_lib_dir)
 
-  libraries = struct(
+  libraries = LibrariesToLink(
                 static_library = _declare_out(ctx, lib_name, out_lib_dir, ctx.attr.static_library),
                 shared_library = _declare_out(ctx, lib_name, out_lib_dir, ctx.attr.shared_library),
                 interface_library = _declare_out(ctx, lib_name, out_lib_dir, ctx.attr.interface_library),
               )
-  declared_outputs = [wrapper, out_include_dir, out_bin_dir, out_lib_dir] + out_binary_files
+  declared_outputs = [installdir, out_include_dir, out_bin_dir, out_lib_dir] + out_binary_files
   declared_outputs += _list(out_pkg_dir) + _list(libraries.static_library)
   declared_outputs += _list(libraries.shared_library) + _list(libraries.interface_library)
 
-  return struct(
-    wrapper = wrapper,
+  return _Outputs(
+    installdir = installdir,
     out_include_dir = out_include_dir,
     out_bin_dir = out_bin_dir,
     out_lib_dir = out_lib_dir,
@@ -209,33 +223,38 @@ def _define_inputs(ctx, outputs):
       tools_files += _list(file_list)
 
   deps_compilation = cc_common.merge_cc_compilation_infos(cc_compilation_infos = compilation_infos)
-  compilation_info = CcCompilationInfo(headers = depset([outputs.out_include_dir]), system_includes = depset([outputs.out_include_dir.path]), defines = depset(ctx.attr.defines))
-  out_compilation_info = cc_common.merge_cc_compilation_infos(cc_compilation_infos = [deps_compilation, compilation_info])
-
   deps_linking = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos)
-  out_lib_dir = ctx.attr.out_lib_dir
-  linking_info = create_linking_info(ctx, outputs.libraries)
-  out_linking_info = cc_common.merge_cc_linking_infos(cc_linking_infos = [deps_linking, linking_info])
 
   (libs, link_opts) = _collect_libs_and_flags(deps_linking)
-
   headers = [] + deps_compilation.system_includes.to_list()
 
-  return (
-    struct(
+  return struct(
         headers = headers,
         libs = libs,
         # todo do we pass link opts to cmake or to make????
         link_opts = link_opts,
         tools_files = tools_roots,
         pkg_configs = pkg_configs,
+        deps_compilation_info = deps_compilation,
+        deps_linking_info = deps_linking,
         declared_inputs = depset(ctx.attr.lib_source.files) + libs + tools_files + pkg_configs + ctx.attr.additional_inputs + deps_compilation.headers
-    ),
-    struct(
+)
+
+def _define_out_cc_info(ctx, inputs, outputs):
+  compilation_info = CcCompilationInfo(headers = depset([outputs.out_include_dir]),
+                                       system_includes = depset([outputs.out_include_dir.path]),
+                                       defines = depset(ctx.attr.defines))
+  out_compilation_info = cc_common.merge_cc_compilation_infos(
+      cc_compilation_infos = [inputs.deps_compilation_info, compilation_info])
+
+  linking_info = create_linking_info(ctx, outputs.libraries)
+  out_linking_info = cc_common.merge_cc_linking_infos(
+      cc_linking_infos = [inputs.deps_linking_info, linking_info])
+
+  return struct(
       compilation_info = out_compilation_info,
       linking_info = out_linking_info
-    )
-)
+  )
 
 def _collect_libs_and_flags(cc_linking):
   libs = []
