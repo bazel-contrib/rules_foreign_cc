@@ -48,19 +48,32 @@ function path() {
 # $3 replace target
 function replace_in_files() {
   if [ -d "$1" ]; then
-    find $1 -type f,l -print -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
+    find $1 -type f,l -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
   fi
 }
 
-# Copy all files from source directory to target directory (create the target directory if needed)
+# Symlink contents of the directory to target directory (create the target directory if needed)
+# $1 source directory, immediate children of which are symlinked
+# $2 target directory
+function symlink_dir_contents_to_dir() {
+  local children=$(find $1 -maxdepth 1)
+  local target="$2"
+  mkdir -p ${target}
+  for child in $children; do
+    symlink_to_dir $child ${target}
+  done
+}
+
+# Symlink all files from source directory to target directory (create the target directory if needed)
+# NB symlinks from the source directory are copied
 # $1 source directory
 # $2 target directory
-function copy_to_dir() {
+function symlink_to_dir() {
   local target="$2"
   mkdir -p ${target}
 
   if [[ -d $1 ]]; then
-    find $1 -type f,l -print -exec ln -s -t ${target} {} ';'
+    ln -s -t ${target} $1
   elif [[ -f $1 ]]; then
     ln -s -t ${target} $1
   elif [[ -L $1 ]]; then

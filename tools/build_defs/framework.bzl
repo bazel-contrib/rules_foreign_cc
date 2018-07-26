@@ -53,7 +53,7 @@ def cc_external_rule_impl(ctx, configure_name, configure_script):
     "trap \"{ rm -rf $TMPDIR; }\" EXIT",
     "INSTALLDIR=$EXT_BUILD_ROOT/" + out_files.wrapper.path,
     "mkdir -p $INSTALLDIR",
-    "echo_vars INSTALLDIR EXT_BUILD_DEPS EXT_BUILD_ROOT",
+    "echo_vars INSTALLDIR EXT_BUILD_DEPS EXT_BUILD_ROOT PATH",
     "pushd $TMPDIR",
     configure_script,
     "\n".join(ctx.attr.make_commands),
@@ -96,40 +96,41 @@ def _depset(item):
   return depset([item])
 
 def _list(item):
+  if type(item) == list:
+    return item
   if item:
     return [item]
   return []
 
 def _copy_deps_and_tools(files):
-  groups = {
-      "lib": files.libs,
-      "include": files.headers,
-      "lib/pkgconfig": files.pkg_configs,
-      "bin": files.tools_files,
-  }
   list = []
-  for key in groups.keys():
-    group_files = groups[key]
-    if len(group_files) == 0:
-      continue
-
-    list += ["mkdir -p $EXT_BUILD_DEPS/" + key]
-    paths_to_copy = []
-    for file in group_files:
-      if (type(file) == "string"):
-        paths_to_copy += [file]
-      else:
-        paths_to_copy += [file.path]
-
-    # include directories would be mentioned both in headers and system_includes sections, avoid duplication
-    paths_to_copy = collections.uniq(paths_to_copy)
-
-    for path in paths_to_copy:
-      list += ["copy_to_dir $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS/{}".format(path, key)]
+  list += _symlink_to_dir("lib", files.libs, False)
+  list += _symlink_to_dir("include", files.headers, True)
+  list += _symlink_to_dir("lib/pkgconfig", files.pkg_configs, False)
+  list += _symlink_to_dir("bin", files.tools_files, False)
 
   list += ["define_absolute_paths $EXT_BUILD_ROOT/bin $EXT_BUILD_ROOT/bin"]
-  list += ["path $EXT_BUILD_ROOT/bin"]
+  list += ["if [ -d $EXT_BUILD_DEPS/bin ]; then"]
+  list += ["  tools=$(find $EXT_BUILD_DEPS/bin -type d,l -maxdepth 1)"]
+  list += ["  for tool in $tools; do export PATH=$PATH:$tool; done"]
+  list += ["fi"]
+  list += ["path $EXT_BUILD_DEPS/bin"]
   list += ["export PKG_CONFIG_PATH=$EXT_BUILD_ROOT/lib/pkgconfig"]
+
+  return list
+
+def _symlink_to_dir(dir_name, files_list, link_children):
+  if len(files_list) == 0:
+    return []
+  list = ["mkdir -p $EXT_BUILD_DEPS/" + dir_name]
+
+  paths_list = []
+  for file in files_list:
+    paths_list += [file if type(file) == "string" else file.path]
+
+  link_function = "symlink_dir_contents_to_dir" if link_children else "symlink_to_dir"
+  for path in paths_list:
+    list += ["{} $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS/{}".format(link_function, path, dir_name)]
 
   return list
 
@@ -195,11 +196,17 @@ def _define_inputs(ctx, outputs):
       # or do we want to be able to produce several files?
       pkg_configs += provider.pkg_config_dir.to_list()
 
+  tools_roots = []
   tools_files = []
   for tool in ctx.attr.tools_deps:
+    tool_root = detect_root(tool)
+    tools_roots += [tool_root]
     for file_list in tool.files.to_list():
-      tools_files += file_list
-  tools_files += ctx.attr.additional_tools
+      tools_files += _list(file_list)
+
+  for tool in ctx.attr.additional_tools:
+    for file_list in tool.files.to_list():
+      tools_files += _list(file_list)
 
   deps_compilation = cc_common.merge_cc_compilation_infos(cc_compilation_infos = compilation_infos)
   compilation_info = CcCompilationInfo(headers = depset([outputs.out_include_dir]), system_includes = depset([outputs.out_include_dir.path]), defines = depset(ctx.attr.defines))
@@ -212,11 +219,7 @@ def _define_inputs(ctx, outputs):
 
   (libs, link_opts) = _collect_libs_and_flags(deps_linking)
 
-  headers = []
-  for header in deps_compilation.headers:
-    headers += [header]
-  for header in deps_compilation.system_includes:
-    headers += [header]
+  headers = [] + deps_compilation.system_includes.to_list()
 
   return (
     struct(
@@ -224,7 +227,7 @@ def _define_inputs(ctx, outputs):
         libs = libs,
         # todo do we pass link opts to cmake or to make????
         link_opts = link_opts,
-        tools_files = tools_files,
+        tools_files = tools_roots,
         pkg_configs = pkg_configs,
         declared_inputs = depset(ctx.attr.lib_source.files) + libs + tools_files + pkg_configs + ctx.attr.additional_inputs + deps_compilation.headers
     ),
