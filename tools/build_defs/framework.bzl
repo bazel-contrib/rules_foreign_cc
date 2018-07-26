@@ -1,41 +1,97 @@
-load("@bazel_skylib//lib:collections.bzl", "collections")
-load("//tools/build_defs:cc_import.bzl", "create_linking_info", "LibrariesToLink")
+""" Contains definitions for creation of external C/C++ build rules (for building external libraries
+ with CMake, configure/make, autotools)
+"""
 
+load("@bazel_skylib//lib:collections.bzl", "collections")
+load("//tools/build_defs:cc_linking_util.bzl", "create_linking_info", "LibrariesToLink",
+  "targets_windows")
+
+""" Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
+ Many of the attributes have default values.
+
+ Typically, the concrete external library rule will use this structure to create the attributes
+ description dict. See cmake.bzl as an example.
+"""
 CC_EXTERNAL_RULE_ATTRIBUTES = {
+      # Library name. Defines the name of the install directory and the name of the static library,
+      # if no output files parameters are defined (any of static_library, shared_library,
+      # interface_library, binaries_names)
+      # Optional. If not defined, defaults to the target's name.
       "lib_name": attr.string(mandatory = False),
+      # Label with source code to build. Typically a filegroup for the source of remote repository.
+      # Mandatory.
       "lib_source": attr.label(mandatory = True, allow_files = True),
+      # Optional compilation definitions to be passed to the dependencies of this library.
+      # They are NOT passed to the compiler, you should duplicate them in the configuration options.
       "defines": attr.string_list(mandatory = False, default = []),
       #
+      # Optional additional inputs to be declared as needed for the shell script action.
+      # Not used by the shell script part in cc_external_rule_impl.
       "additional_inputs": attr.label_list(mandatory = False, allow_files = True, default = []),
+      # Optional additional tools needed for the building.
+      # Not used by the shell script part in cc_external_rule_impl.
       "additional_tools": attr.label_list(mandatory = False, allow_files = True, default = []),
       #
+      # Optional part of the shell script to be added after the make commands
       "postfix_script": attr.string(mandatory = False),
+      # Optinal make commands, defaults to ["make", "make install"]
       "make_commands": attr.string_list(mandatory = False, default = ["make", "make install"]),
       #
+      # Optional dependencies to be copied into the directory structure.
+      # Typically those directly required for the external building of the library/binaries.
+      # (i.e. those that the external buidl system will be looking for and paths to which are
+      # provided by the calling rule)
       "deps": attr.label_list(mandatory = False, allow_files = True, default = []),
+      # Optional tools to be copied into the directory structure.
+      # Similar to deps, those directly required for the external building of the library/binaries.
       "tools_deps": attr.label_list(mandatory = False, allow_files = True, default = []),
       #
+      # Optional name of the output subdirectory with the header files, defaults to 'include'.
       "out_include_dir": attr.string(mandatory = False, default = "include"),
+      # Optional name of the output subdirectory with the library files, defaults to 'lib'.
       "out_lib_dir": attr.string(mandatory = False, default = "lib"),
+      # Optional name of the output subdirectory with the binary files, defaults to 'bin'.
       "out_bin_dir": attr.string(mandatory = False, default = "bin"),
       #
+      # Optional. if true, link all the object files from the static library,
+      # even if they are not used.
       "alwayslink": attr.bool(mandatory = False, default = False),
+      # Optional link options to be passed up to the dependencies of this library
       "linkopts": attr.string_list(mandatory = False, default = []),
+      #
+      # Output files names parameters. If any of them is defined, only these files are passed to
+      # Bazel providers.
+      # if no of them is defined, default lib_name.a/lib_name.lib static library is assumed.
+      #
+      # Optional name of the resulting static library.
       "static_library": attr.string(mandatory = False),
+      # Optional name of the resulting shared library.
       "shared_library": attr.string(mandatory = False),
+      # Optional name of the resulting interface library.
       "interface_library": attr.string(mandatory = False),
+      # Optional name of the resulting binaries.
       "binaries_names": attr.string_list(mandatory = False, default = []),
       #
+      # Optional name of the output subdirectory with pkgconfig files.
       "out_pkg_config_dir": attr.string(mandatory = False),
+      # link to the shell utilities used by the shell script in cc_external_rule_impl.
       "_utils": attr.label(
           default = Label("//tools/build_defs:utils.sh"),
           allow_single_file = True,
           executable = True,
           cfg = "target"
       ),
+      # we need to declare this attribute to access cc_toolchain
       "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
 }
 
+""" Function for adding/modifying context attributes struct (originally from ctx.attr),
+ provided by user, to be passed to the cc_external_rule_impl function as a struct.
+
+ Copies a struct 'attr_struct' values (with attributes from CC_EXTERNAL_RULE_ATTRIBUTES)
+ to the resulting struct, adding or replacing attributes passed in 'configure_name',
+ 'configure_script', and '**kwargs' parameters.
+"""
 def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
   dict = {}
   for key in CC_EXTERNAL_RULE_ATTRIBUTES:
@@ -49,6 +105,46 @@ def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
     dict[arg] = kwargs[arg]
   return struct(**dict)
 
+""" Framework function for performing external C/C++ building.
+
+ To be used to build external libraries or/and binaries with CMake, configure/make, autotools etc.,
+ and use results in Bazel.
+ It is possible to use it to build a group of external libraries, that depend on each other or on
+ Bazel library, and pass nessesary tools.
+
+ Accepts the actual commands for build configuration/execution in attrs.
+
+ Creates and runs a shell script, which:
+
+ 1) prepares directory structure with sources, dependencies, and tools symlinked into subdirectories
+  of the execroot directory. Adds tools into PATH.
+ 2) defines the correct absolute paths in tools with the script paths, see 7
+ 3) defines the following environment variables:
+      EXT_BUILD_ROOT: execroot directory
+      EXT_BUILD_DEPS: subdirectory of execroot, which contains the following subdirectories:
+        include - here the include directories are symlinked
+        lib - here the library files are symlinked
+        lib/pkgconfig - here the pkgconfig files are symlinked
+        bin - here the tools are copied
+      INSTALLDIR: subdirectory of the execroot (named by the lib_name), where the library/binary
+      will be installed
+
+      These variables should be used by the calling rule to refer to the created directory structure.
+ 4) calls 'attrs.configure_script'
+ 5) calls 'attrs.make_commands'
+ 6) calls 'attrs.postfix_script'
+ 7) replaces absolute paths in possibly created scripts with a placeholder value
+
+ Please see cmake.bzl for example usage.
+
+ Args:
+   ctx: calling rule context
+   attrs: struct with fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there), and
+     two mandatory fields:
+     configure_name: name of the configuration tool, to be used in action mnemonic
+     configure_script: actual configuration script
+   All other fields are ignored.
+"""
 def cc_external_rule_impl(ctx, attrs):
   lib_name = _value(attrs.lib_name, ctx.attr.name)
 
@@ -64,9 +160,10 @@ def cc_external_rule_impl(ctx, attrs):
     "source " + shell_utils,
     "echo \"Building external library '{}'\"".format(lib_name),
     "TMPDIR=$(mktemp -d)",
+    "trap \"{ rm -rf $TMPDIR; }\" EXIT",
     "EXT_BUILD_DEPS=$(mktemp -d --tmpdir=$EXT_BUILD_ROOT)",
     "\n".join(_copy_deps_and_tools(inputs)),
-    "trap \"{ rm -rf $TMPDIR; }\" EXIT",
+    "define_absolute_paths $EXT_BUILD_ROOT/bin $EXT_BUILD_ROOT/bin",
     "INSTALLDIR=$EXT_BUILD_ROOT/" + outputs.installdir.path,
     "mkdir -p $INSTALLDIR",
     "echo_vars INSTALLDIR EXT_BUILD_DEPS EXT_BUILD_ROOT PATH",
@@ -124,7 +221,6 @@ def _copy_deps_and_tools(files):
   list += _symlink_to_dir("lib/pkgconfig", files.pkg_configs, False)
   list += _symlink_to_dir("bin", files.tools_files, False)
 
-  list += ["define_absolute_paths $EXT_BUILD_ROOT/bin $EXT_BUILD_ROOT/bin"]
   list += ["if [ -d $EXT_BUILD_DEPS/bin ]; then"]
   list += ["  tools=$(find $EXT_BUILD_DEPS/bin -type d,l -maxdepth 1)"]
   list += ["  for tool in $tools; do export PATH=$PATH:$tool; done"]
@@ -173,8 +269,14 @@ _Outputs = provider(
 )
 
 def _define_outputs(ctx, attrs, lib_name):
-  if (attrs.static_library == None and attrs.dynamic_library == None and attrs.interface_library == None and len(attrs.binaries_names) == 0):
-    fail("One of \"out_lib_name\" or \"out_bin_name\" attributes must be provided.")
+  static_library = "*"
+  if (not (hasattr(attrs, "static_library") and len(attrs.static_library) > 0) and
+        not (hasattr(attrs, "shared_library") and len(attrs.shared_library) > 0) and
+        not (hasattr(attrs, "interface_library") and len(attrs.interface_library) > 0) and
+        len(attrs.binaries_names) == 0):
+    static_library = lib_name + (".lib" if targets_windows(ctx, None) else ".a")
+  else:
+    static_library = attrs.static_library
 
   _check_file_name(lib_name, "Library name")
 
@@ -192,7 +294,7 @@ def _define_outputs(ctx, attrs, lib_name):
   out_lib_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_lib_dir)
 
   libraries = LibrariesToLink(
-                static_library = _declare_out(ctx, lib_name, out_lib_dir, attrs.static_library),
+                static_library = _declare_out(ctx, lib_name, out_lib_dir, static_library),
                 shared_library = _declare_out(ctx, lib_name, out_lib_dir, attrs.shared_library),
                 interface_library = _declare_out(ctx, lib_name, out_lib_dir, attrs.interface_library),
               )
@@ -210,6 +312,11 @@ def _define_outputs(ctx, attrs, lib_name):
     libraries = libraries,
     declared_outputs = declared_outputs,
   )
+
+def _declare_out(ctx, lib_name, dir, file):
+  if file:
+    return ctx.actions.declare_file("/".join([lib_name, dir.basename, file]))
+  return None
 
 _InputFiles = provider(
     doc = """Provider to keep different kinds of input files, directories,
@@ -303,30 +410,15 @@ def _collect_libs_and_flags(cc_linking):
 
   return (collections.uniq(libs), collections.uniq(linkopts))
 
-def _declare_out(ctx, lib_name, dir, file):
-  if file:
-    return ctx.actions.declare_file("/".join([lib_name, dir.basename, file]))
-  return None
+"""Detects the path to the topmost directory of the 'source' outputs.
+To be used with external build systems to point to the source code/tools directories.
 
-# public!
-def define_flags(ctx):
-  cpp_fragment = ctx.fragments.cpp
-  compiler_options = [] # todo from toolchain provider
-
-  return {
-    "CFLAGS": _strings_into_flags(compiler_options + cpp_fragment.c_options, " "),
-    "CXXFLAGS": _strings_into_flags(compiler_options + cpp_fragment.cxx_options(ctx.features), " "),
-    "LDFLAGS": "-L$EXT_BUILD_DEPS/lib",
-    "CPPFLAGS": "-I$EXT_BUILD_DEPS/include",
-  }
-
-def _strings_into_flags(list, separator):
-  return separator.join([elem for elem in list])
-
-def join_flags_string(flags_dict):
-  return " ".join([key + "=\"" + flags_dict[key] + "\""
-    for key in flags_dict.keys() if len(flags_dict[key]) > 0])
-
+If the target groups the sources of the external dependency, the workspace root is used,
+and no other checks are performed (i.e. it is assumed that the whole contents of the external
+dependency is used).
+Otherwise, for the "usual" targets, target's files are iterated and the path with the least length
+is selected.
+"""
 def detect_root(source):
   root = source.label.workspace_root
   sources = source.files

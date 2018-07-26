@@ -179,31 +179,35 @@ def _build_cc_link_params(
             "dynamic_mode_params_for_dynamic_library": no_static_shared,
             "dynamic_mode_params_for_executable": no_static_no_shared}
 
-def create_linking_info(ctx, user_link_flags, files):
-    cc_toolchain = find_cpp_toolchain(ctx)
+def targets_windows(ctx, cc_toolchain):
+    toolchain = cc_toolchain if cc_toolchain else find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
-        cc_toolchain = cc_toolchain,
+        cc_toolchain = toolchain,
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
 
-    targets_windows = cc_common.is_enabled(
+    return cc_common.is_enabled(
         feature_configuration = feature_configuration,
         feature_name = "targets_windows",
     )
+
+def create_linking_info(ctx, user_link_flags, files):
+    cc_toolchain = find_cpp_toolchain(ctx)
+    for_windows = targets_windows(ctx, cc_toolchain)
 
     _perform_error_checks(
         False,
         files.shared_library,
         files.interface_library,
-        targets_windows,
+        for_windows,
     )
 
     artifacts = _build_libraries_to_link_and_runtime_artifact(
         ctx,
         files,
         cc_toolchain,
-        targets_windows,
+        for_windows,
     )
 
     link_params = _build_cc_link_params(ctx, user_link_flags, **artifacts)

@@ -1,9 +1,8 @@
 load("//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(
-    name = "zlib",
+    name = "libz",
     lib_source = "@zlib//:all",
-    static_library = "libz.a",
 )
 
 cmake_external(
@@ -11,7 +10,7 @@ cmake_external(
     lib_source = "@libpng//:all",
     out_include_dir = "include/libpng16",
     static_library = "libpng16.a",
-    deps = [":zlib"],
+    deps = [":libz"],
 )
 
 cc_binary(
@@ -21,12 +20,12 @@ cc_binary(
     data = ["bazel-icon-transparent.png"],
     deps = [
         ":libpng",
-        ":zlib",
+        ":libz",
     ],
 )
 
 cc_binary(
     name = "test_zlib",
     srcs = ["zlib-example.cpp"],
-    deps = ["zlib"],
+    deps = ["libz"],
 )
