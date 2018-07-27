@@ -365,7 +365,9 @@ def _define_inputs(attrs):
   deps_linking = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos)
 
   (libs, linkopts) = _collect_libs_and_flags(deps_linking)
-  headers = [] + deps_compilation.system_includes.to_list()
+  headers = []
+  for cc_info in compilation_infos:
+    headers += _get_headers(cc_info)
 
   return _InputFiles(
         headers = headers,
@@ -378,6 +380,20 @@ def _define_inputs(attrs):
         declared_inputs = depset(attrs.lib_source.files) + libs + tools_files + pkg_configs +
          attrs.additional_inputs + deps_compilation.headers
 )
+
+def _get_headers(compilation_info):
+  include_dirs = collections.uniq(compilation_info.system_includes.to_list())
+  headers = []
+  for header in compilation_info.headers:
+    path = header.path
+    included = False
+    for dir in include_dirs:
+      if path.startswith(dir):
+        included = True
+        break
+    if not included:
+      headers += [header]
+  return headers + include_dirs
 
 def _define_out_cc_info(ctx, attrs, inputs, outputs):
   compilation_info = CcCompilationInfo(headers = depset([outputs.out_include_dir]),
