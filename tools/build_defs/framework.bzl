@@ -402,7 +402,7 @@ def _define_out_cc_info(ctx, attrs, inputs, outputs):
   out_compilation_info = cc_common.merge_cc_compilation_infos(
       cc_compilation_infos = [inputs.deps_compilation_info, compilation_info])
 
-  linkopts = depset(direct = attrs.linkopts, transitive = inputs.deps_linkopts)
+  linkopts = depset(direct = attrs.linkopts, transitive = [depset(inputs.deps_linkopts)])
   linking_info = create_linking_info(ctx, linkopts, outputs.libraries)
   out_linking_info = cc_common.merge_cc_linking_infos(
       cc_linking_infos = [inputs.deps_linking_info, linking_info])
