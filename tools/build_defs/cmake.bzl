@@ -1,3 +1,6 @@
+""" Defines the rule for building external library with CMake
+"""
+
 load("//tools/build_defs:framework.bzl", "cc_external_rule_impl", "detect_root",
    "CC_EXTERNAL_RULE_ATTRIBUTES", "create_attrs")
 
@@ -17,6 +20,11 @@ def _attrs():
   attrs["cmake_options"] = attr.string_list(mandatory = False, default = [])
   return attrs
 
+""" Rule for building external library with CMake
+ Attributes:
+   cmake_options - (list of strings) options to be passed to the cmake call
+ Other attributes are documented in framework.bzl:CC_EXTERNAL_RULE_ATTRIBUTES
+"""
 cmake_external = rule(
     attrs = _attrs(),
     fragments = ["cpp"],

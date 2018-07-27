@@ -85,14 +85,14 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
       "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
 }
 
-""" Function for adding/modifying context attributes struct (originally from ctx.attr),
- provided by user, to be passed to the cc_external_rule_impl function as a struct.
-
- Copies a struct 'attr_struct' values (with attributes from CC_EXTERNAL_RULE_ATTRIBUTES)
- to the resulting struct, adding or replacing attributes passed in 'configure_name',
- 'configure_script', and '**kwargs' parameters.
-"""
 def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
+  """ Function for adding/modifying context attributes struct (originally from ctx.attr),
+   provided by user, to be passed to the cc_external_rule_impl function as a struct.
+
+   Copies a struct 'attr_struct' values (with attributes from CC_EXTERNAL_RULE_ATTRIBUTES)
+   to the resulting struct, adding or replacing attributes passed in 'configure_name',
+   'configure_script', and '**kwargs' parameters.
+  """
   dict = {}
   for key in CC_EXTERNAL_RULE_ATTRIBUTES:
     if not key.startswith("_") and hasattr(attr_struct, key):
@@ -105,21 +105,22 @@ def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
     dict[arg] = kwargs[arg]
   return struct(**dict)
 
-""" Framework function for performing external C/C++ building.
+def cc_external_rule_impl(ctx, attrs):
+  """ Framework function for performing external C/C++ building.
 
- To be used to build external libraries or/and binaries with CMake, configure/make, autotools etc.,
- and use results in Bazel.
- It is possible to use it to build a group of external libraries, that depend on each other or on
- Bazel library, and pass nessesary tools.
+   To be used to build external libraries or/and binaries with CMake, configure/make, autotools etc.,
+   and use results in Bazel.
+   It is possible to use it to build a group of external libraries, that depend on each other or on
+   Bazel library, and pass nessesary tools.
 
- Accepts the actual commands for build configuration/execution in attrs.
+   Accepts the actual commands for build configuration/execution in attrs.
 
- Creates and runs a shell script, which:
+   Creates and runs a shell script, which:
 
- 1) prepares directory structure with sources, dependencies, and tools symlinked into subdirectories
-  of the execroot directory. Adds tools into PATH.
- 2) defines the correct absolute paths in tools with the script paths, see 7
- 3) defines the following environment variables:
+   1) prepares directory structure with sources, dependencies, and tools symlinked into subdirectories
+    of the execroot directory. Adds tools into PATH.
+   2) defines the correct absolute paths in tools with the script paths, see 7
+   3) defines the following environment variables:
       EXT_BUILD_ROOT: execroot directory
       EXT_BUILD_DEPS: subdirectory of execroot, which contains the following subdirectories:
         include - here the include directories are symlinked
@@ -130,22 +131,21 @@ def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
       will be installed
 
       These variables should be used by the calling rule to refer to the created directory structure.
- 4) calls 'attrs.configure_script'
- 5) calls 'attrs.make_commands'
- 6) calls 'attrs.postfix_script'
- 7) replaces absolute paths in possibly created scripts with a placeholder value
+   4) calls 'attrs.configure_script'
+   5) calls 'attrs.make_commands'
+   6) calls 'attrs.postfix_script'
+   7) replaces absolute paths in possibly created scripts with a placeholder value
 
- Please see cmake.bzl for example usage.
+   Please see cmake.bzl for example usage.
 
- Args:
-   ctx: calling rule context
-   attrs: struct with fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there), and
-     two mandatory fields:
-     configure_name: name of the configuration tool, to be used in action mnemonic
-     configure_script: actual configuration script
-   All other fields are ignored.
-"""
-def cc_external_rule_impl(ctx, attrs):
+   Args:
+     ctx: calling rule context
+     attrs: struct with fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there), and
+       two mandatory fields:
+       configure_name: name of the configuration tool, to be used in action mnemonic
+       configure_script: actual configuration script
+     All other fields are ignored.
+  """
   lib_name = _value(attrs.lib_name, ctx.attr.name)
 
   inputs = _define_inputs(attrs)
@@ -410,16 +410,16 @@ def _collect_libs_and_flags(cc_linking):
 
   return (collections.uniq(libs), collections.uniq(linkopts))
 
-"""Detects the path to the topmost directory of the 'source' outputs.
-To be used with external build systems to point to the source code/tools directories.
-
-If the target groups the sources of the external dependency, the workspace root is used,
-and no other checks are performed (i.e. it is assumed that the whole contents of the external
-dependency is used).
-Otherwise, for the "usual" targets, target's files are iterated and the path with the least length
-is selected.
-"""
 def detect_root(source):
+  """Detects the path to the topmost directory of the 'source' outputs.
+  To be used with external build systems to point to the source code/tools directories.
+
+  If the target groups the sources of the external dependency, the workspace root is used,
+  and no other checks are performed (i.e. it is assumed that the whole contents of the external
+  dependency is used).
+  Otherwise, for the "usual" targets, target's files are iterated and the path with the least length
+  is selected.
+  """
   root = source.label.workspace_root
   sources = source.files
   if (not root or len(root) == 0) and len(sources) > 0:
