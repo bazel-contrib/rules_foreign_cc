@@ -17,7 +17,7 @@ def _cmake_external(ctx):
 
 def _attrs():
   attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
-  attrs["cmake_options"] = attr.string_list(mandatory = False, default = [])
+  attrs.update({"cmake_options": attr.string_list(mandatory = False, default = [])})
   return attrs
 
 """ Rule for building external library with CMake

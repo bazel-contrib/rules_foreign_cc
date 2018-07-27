@@ -3,7 +3,7 @@
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
-LibrariesToLink = provider(
+LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
     fields = dict(
      static_library = "Static library file, optional",

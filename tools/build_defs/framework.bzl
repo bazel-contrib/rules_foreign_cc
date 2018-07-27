@@ -3,7 +3,7 @@
 """
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
-load("//tools/build_defs:cc_linking_util.bzl", "create_linking_info", "LibrariesToLink",
+load("//tools/build_defs:cc_linking_util.bzl", "create_linking_info", "LibrariesToLinkInfo",
   "targets_windows")
 
 """ Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
@@ -293,7 +293,7 @@ def _define_outputs(ctx, attrs, lib_name):
   out_bin_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_bin_dir)
   out_lib_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_lib_dir)
 
-  libraries = LibrariesToLink(
+  libraries = LibrariesToLinkInfo(
                 static_library = _declare_out(ctx, lib_name, out_lib_dir, static_library),
                 shared_library = _declare_out(ctx, lib_name, out_lib_dir, attrs.shared_library),
                 interface_library = _declare_out(ctx, lib_name, out_lib_dir, attrs.interface_library),
