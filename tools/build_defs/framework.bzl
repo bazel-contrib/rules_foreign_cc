@@ -249,8 +249,9 @@ def _check_file_name(var, name):
 
   if (not var[0:1].isalpha()):
     fail("{} should start with a letter.".format(name.capitalize()))
-  if (not var.isalnum()):
-    fail("{} should be alphanumeric.".format(name.capitalize()))
+  for letter in var:
+    if not letter.isalnum() and letter != '_':
+      fail("{} should be alphanumeric or '_'.".format(name.capitalize()))
 
 _Outputs = provider(
     doc = "Provider to keep different kinds of the external build output files and directories",
