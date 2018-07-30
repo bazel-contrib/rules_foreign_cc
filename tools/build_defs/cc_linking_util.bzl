@@ -6,40 +6,39 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
     fields = dict(
-     static_library = "Static library file, optional",
-     shared_library = "Dynamic library file, optional",
-     interface_library = "Interface library file, optional",
+     static_libraries = "Static library files, optional",
+     shared_libraries = "Dynamic library files, optional",
+     interface_libraries = "Interface library files, optional",
 ))
 
 def _to_list(element):
     if element == None:
-        return []
+      return []
     else:
-        return [element]
+      return [element]
 
 def _to_depset(element):
     if element == None:
-        return depset()
-    else:
-        return depset([element])
+      return depset()
+    return depset(element)
 
 def _perform_error_checks(
         system_provided,
-        shared_library_artifact,
-        interface_library_artifact,
+        shared_library_artifacts,
+        interface_library_artifacts,
         targets_windows):
     # If the shared library will be provided by system during runtime, users are not supposed to
     # specify shared_library.
-    if system_provided and shared_library_artifact != None:
+    if system_provided and shared_library_artifacts != None:
         fail("'shared_library' shouldn't be specified when 'system_provided' is true")
 
     # If a shared library won't be provided by system during runtime and we are linking the shared
     # library through interface library, the shared library must be specified.
-    if (not system_provided and shared_library_artifact == None and
-        interface_library_artifact != None):
+    if (not system_provided and shared_library_artifacts == None and
+        interface_library_artifacts != None):
         fail("'shared_library' should be specified when 'system_provided' is false")
 
-    if targets_windows and shared_library_artifact != None:
+    if targets_windows and shared_library_artifacts != None:
         fail("'interface library' must be specified when using cc_import for " +
              "shared library on Windows")
 
@@ -93,85 +92,87 @@ def _build_interface_library_to_link(ctx, library, cc_toolchain, targets_windows
             library = library,
         )
 
+# we could possibly take a decision about linking interface/shared library beased on each library name
+# (usefull for the case when multiple output targets are provided)
 def _build_libraries_to_link_and_runtime_artifact(ctx, files, cc_toolchain, targets_windows):
-    static_library = None
-    if files.static_library != None:
-        static_library = _build_static_library_to_link(ctx, files.static_library)
+    static_libraries = [_build_static_library_to_link(ctx, lib) for lib in (files.static_libraries or [])]
 
-    shared_library = None
-    runtime_artifact = None
-    if files.shared_library != None:
-        shared_library = _build_shared_library_to_link(ctx, files.shared_library, cc_toolchain, targets_windows)
-        runtime_artifact = shared_library.artifact()
+    shared_libraries = []
+    runtime_artifacts = []
+    if files.shared_libraries != None:
+      for lib in files.shared_libraries:
+        shared_library += _build_shared_library_to_link(ctx, lib, cc_toolchain, targets_windows)
+        runtime_artifact += shared_library.artifact()
 
-    interface_library = None
-    if files.interface_library != None:
-        interface_library = _build_interface_library_to_link(ctx, files.interface_library, cc_toolchain, targets_windows)
+    interface_libraries = []
+    if files.interface_libraries != None:
+      for lib in files.interface_libraries:
+        interface_libraries += _build_interface_library_to_link(ctx, lib, cc_toolchain, targets_windows)
 
-    dynamic_library_for_linking = None
-    if interface_library != None:
-        dynamic_library_for_linking = interface_library
+    dynamic_libraries_for_linking = None
+    if len(interface_libraries) > 0:
+        dynamic_libraries_for_linking = interface_libraries
     else:
-        dynamic_library_for_linking = shared_library
+        dynamic_libraries_for_linking = shared_libraries
 
-    return {"static_library": static_library,
-            "dynamic_library": dynamic_library_for_linking,
-            "runtime_artifact": runtime_artifact}
+    return {"static_libraries": static_libraries,
+            "dynamic_libraries": dynamic_libraries_for_linking,
+            "runtime_artifacts": runtime_artifacts}
 
 def _build_cc_link_params(
         ctx,
         user_link_flags,
-        static_library,
-        dynamic_library,
-        runtime_artifact):
+        static_libraries,
+        dynamic_libraries,
+        runtime_artifacts):
     static_shared = None
     static_no_shared = None
-    if static_library != None:
+    if static_libraries != None and len(static_libraries) > 0:
         static_shared = cc_common.create_cc_link_params(
             ctx = ctx,
             user_link_flags = user_link_flags,
-            libraries_to_link = _to_depset(static_library),
+            libraries_to_link = _to_depset(static_libraries),
         )
         static_no_shared = cc_common.create_cc_link_params(
             ctx = ctx,
-            libraries_to_link = _to_depset(static_library),
+            libraries_to_link = _to_depset(static_libraries),
         )
     else:
         static_shared = cc_common.create_cc_link_params(
             ctx = ctx,
             user_link_flags = user_link_flags,
-            libraries_to_link = _to_depset(dynamic_library),
-            dynamic_libraries_for_runtime = _to_depset(runtime_artifact),
+            libraries_to_link = _to_depset(dynamic_libraries),
+            dynamic_libraries_for_runtime = _to_depset(runtime_artifacts),
         )
         static_no_shared = cc_common.create_cc_link_params(
             ctx = ctx,
-            libraries_to_link = _to_depset(dynamic_library),
-            dynamic_libraries_for_runtime = _to_depset(runtime_artifact),
+            libraries_to_link = _to_depset(dynamic_libraries),
+            dynamic_libraries_for_runtime = _to_depset(runtime_artifacts),
         )
 
     no_static_shared = None
     no_static_no_shared = None
-    if dynamic_library != None:
+    if dynamic_libraries != None and len(dynamic_libraries) > 0:
         no_static_shared = cc_common.create_cc_link_params(
             ctx = ctx,
             user_link_flags = user_link_flags,
-            libraries_to_link = _to_depset(dynamic_library),
-            dynamic_libraries_for_runtime = _to_depset(runtime_artifact),
+            libraries_to_link = _to_depset(dynamic_libraries),
+            dynamic_libraries_for_runtime = _to_depset(runtime_artifacts),
         )
         no_static_no_shared = cc_common.create_cc_link_params(
             ctx = ctx,
-            libraries_to_link = _to_depset(dynamic_library),
-            dynamic_libraries_for_runtime = _to_depset(runtime_artifact),
+            libraries_to_link = _to_depset(dynamic_libraries),
+            dynamic_libraries_for_runtime = _to_depset(runtime_artifacts),
         )
     else:
         no_static_shared = cc_common.create_cc_link_params(
             ctx = ctx,
             user_link_flags = user_link_flags,
-            libraries_to_link = _to_depset(static_library),
+            libraries_to_link = _to_depset(static_libraries),
         )
         no_static_no_shared = cc_common.create_cc_link_params(
             ctx = ctx,
-            libraries_to_link = _to_depset(static_library),
+            libraries_to_link = _to_depset(static_libraries),
         )
 
     return {"static_mode_params_for_dynamic_library": static_shared,
@@ -209,8 +210,8 @@ def create_linking_info(ctx, user_link_flags, files):
 
     _perform_error_checks(
         False,
-        files.shared_library,
-        files.interface_library,
+        files.shared_libraries,
+        files.interface_libraries,
         for_windows,
     )
 
