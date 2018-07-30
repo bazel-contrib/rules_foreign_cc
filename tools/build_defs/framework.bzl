@@ -14,8 +14,8 @@ load("//tools/build_defs:cc_linking_util.bzl", "create_linking_info", "Libraries
 """
 CC_EXTERNAL_RULE_ATTRIBUTES = {
       # Library name. Defines the name of the install directory and the name of the static library,
-      # if no output files parameters are defined (any of static_library, shared_library,
-      # interface_library, binaries_names)
+      # if no output files parameters are defined (any of static_libraries, shared_libraries,
+      # interface_libraries, binaries_names)
       # Optional. If not defined, defaults to the target's name.
       "lib_name": attr.string(mandatory = False),
       # Label with source code to build. Typically a filegroup for the source of remote repository.
@@ -63,14 +63,14 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
       # Bazel providers.
       # if no of them is defined, default lib_name.a/lib_name.lib static library is assumed.
       #
-      # Optional name of the resulting static library.
-      "static_library": attr.string(mandatory = False),
-      # Optional name of the resulting shared library.
-      "shared_library": attr.string(mandatory = False),
-      # Optional name of the resulting interface library.
-      "interface_library": attr.string(mandatory = False),
-      # Optional name of the resulting binaries.
-      "binaries_names": attr.string_list(mandatory = False, default = []),
+      # Optional names of the resulting static libraries.
+      "static_libraries": attr.string_list(mandatory = False),
+      # Optional names of the resulting shared libraries.
+      "shared_libraries": attr.string_list(mandatory = False),
+      # Optional names of the resulting interface libraries.
+      "interface_libraries": attr.string_list(mandatory = False),
+      # Optional names of the resulting binaries.
+      "binaries": attr.string_list(mandatory = False),
       #
       # Optional name of the output subdirectory with pkgconfig files.
       "out_pkg_config_dir": attr.string(mandatory = False),
@@ -208,8 +208,6 @@ def _depset(item):
   return depset([item])
 
 def _list(item):
-  if type(item) == list:
-    return item
   if item:
     return [item]
   return []
@@ -269,19 +267,19 @@ _Outputs = provider(
 )
 
 def _define_outputs(ctx, attrs, lib_name):
-  static_library = "*"
-  if (not (hasattr(attrs, "static_library") and len(attrs.static_library) > 0) and
-        not (hasattr(attrs, "shared_library") and len(attrs.shared_library) > 0) and
-        not (hasattr(attrs, "interface_library") and len(attrs.interface_library) > 0) and
-        len(attrs.binaries_names) == 0):
-    static_library = lib_name + (".lib" if targets_windows(ctx, None) else ".a")
+  static_libraries = []
+  if (not (hasattr(attrs, "static_libraries") and len(attrs.static_libraries) > 0) and
+        not (hasattr(attrs, "shared_libraries") and len(attrs.shared_libraries) > 0) and
+        not (hasattr(attrs, "interface_libraries") and len(attrs.interface_libraries) > 0) and
+        not (hasattr(attrs, "binaries") and len(attrs.binaries) > 0)):
+    static_libraries = [lib_name + (".lib" if targets_windows(ctx, None) else ".a")]
   else:
-    static_library = attrs.static_library
+    static_libraries = attrs.static_libraries
 
   _check_file_name(lib_name, "Library name")
 
   out_binary_files = []
-  for file in attrs.binaries_names:
+  for file in attrs.binaries:
     out_binary_files += [_declare_out(ctx, lib_name, attrs.out_bin_dir, file)]
 
   out_pkg_dir = None
@@ -294,13 +292,13 @@ def _define_outputs(ctx, attrs, lib_name):
   out_lib_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_lib_dir)
 
   libraries = LibrariesToLinkInfo(
-                static_library = _declare_out(ctx, lib_name, out_lib_dir, static_library),
-                shared_library = _declare_out(ctx, lib_name, out_lib_dir, attrs.shared_library),
-                interface_library = _declare_out(ctx, lib_name, out_lib_dir, attrs.interface_library),
+                static_libraries = _declare_out(ctx, lib_name, out_lib_dir, static_libraries),
+                shared_libraries = _declare_out(ctx, lib_name, out_lib_dir, attrs.shared_libraries),
+                interface_libraries = _declare_out(ctx, lib_name, out_lib_dir, attrs.interface_libraries),
               )
   declared_outputs = [installdir, out_include_dir, out_bin_dir, out_lib_dir] + out_binary_files
-  declared_outputs += _list(out_pkg_dir) + _list(libraries.static_library)
-  declared_outputs += _list(libraries.shared_library) + _list(libraries.interface_library)
+  declared_outputs += _list(out_pkg_dir) + libraries.static_libraries
+  declared_outputs += libraries.shared_libraries + libraries.interface_libraries
 
   return _Outputs(
     installdir = installdir,
@@ -313,10 +311,10 @@ def _define_outputs(ctx, attrs, lib_name):
     declared_outputs = declared_outputs,
   )
 
-def _declare_out(ctx, lib_name, dir, file):
-  if file:
-    return ctx.actions.declare_file("/".join([lib_name, dir.basename, file]))
-  return None
+def _declare_out(ctx, lib_name, dir, files):
+  if files and len(files) > 0:
+    return [ctx.actions.declare_file("/".join([lib_name, dir.basename, file])) for file in files]
+  return []
 
 _InputFiles = provider(
     doc = """Provider to keep different kinds of input files, directories,
