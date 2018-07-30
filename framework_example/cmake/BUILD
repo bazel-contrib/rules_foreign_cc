@@ -9,7 +9,7 @@ cmake_external(
     name = "libpng",
     lib_source = "@libpng//:all",
     out_include_dir = "include/libpng16",
-    static_library = "libpng16.a",
+    static_libraries = ["libpng16.a"],
     deps = [":libz"],
 )
 
