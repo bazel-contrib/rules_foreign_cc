@@ -14,7 +14,7 @@ LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
     fields = dict(
      static_libraries = "Static library files, optional",
-     shared_libraries = "Dynamic library files, optional",
+     shared_libraries = "Shared library files, optional",
      interface_libraries = "Interface library files, optional",
 ))
 
@@ -24,7 +24,6 @@ CxxToolsInfo = provider(
         cc = "C compiler",
         cxx = "C++ compiler",
         cxx_linker_shared = "C++ linker to link shared library",
-        cxx_linker_static = 'C++ linker to link static library',
         cxx_linker_executable = 'C++ linker to link executable'
     )
 )
@@ -274,9 +273,6 @@ def getToolsInfo(ctx):
       cxx_linker_shared = cc_common.get_tool_for_action(
                                 feature_configuration = feature_configuration,
                                 action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME),
-      cxx_linker_static = cc_common.get_tool_for_action(
-                                feature_configuration = feature_configuration,
-                                action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME),
       cxx_linker_executable = cc_common.get_tool_for_action(
                                 feature_configuration = feature_configuration,
                                 action_name = CPP_LINK_EXECUTABLE_ACTION_NAME),
@@ -290,34 +286,52 @@ def getFlagsInfo(ctx):
     unsupported_features = ctx.disabled_features,
   )
   copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else depset()
-  variables = cc_common.create_compile_variables(
-      feature_configuration = feature_configuration,
-      cc_toolchain = cc_toolchain,
-      user_compile_flags = copts)
 
   return CxxFlagsInfo(
       cc = cc_common.get_memory_inefficient_command_line(
           feature_configuration = feature_configuration,
           action_name = C_COMPILE_ACTION_NAME,
-          variables = variables),
-      cxx = cc_common.get_memory_inefficient_command_line(
-                      feature_configuration = feature_configuration,
-                      action_name = CPP_COMPILE_ACTION_NAME,
-                      variables = variables),
-      cxx_linker_shared = cc_common.get_memory_inefficient_command_line(
+          variables = cc_common.create_compile_variables(
                             feature_configuration = feature_configuration,
-                            action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
-                            variables = variables),
+                            cc_toolchain = cc_toolchain,
+                            user_compile_flags = copts)),
+      cxx = cc_common.get_memory_inefficient_command_line(
+                          feature_configuration = feature_configuration,
+                          action_name = CPP_COMPILE_ACTION_NAME,
+                          variables = cc_common.create_compile_variables(
+                                feature_configuration = feature_configuration,
+                                cc_toolchain = cc_toolchain,
+                                user_compile_flags = copts,
+                                add_legacy_cxx_options = True)),
+      cxx_linker_shared = cc_common.get_memory_inefficient_command_line(
+                         feature_configuration = feature_configuration,
+                         action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+                         variables = cc_common.create_link_variables(
+                                cc_toolchain = cc_toolchain,
+                                feature_configuration = feature_configuration,
+                                is_using_linker = True,
+                                is_linking_dynamic_library = True)),
       cxx_linker_static = cc_common.get_memory_inefficient_command_line(
-                             feature_configuration = feature_configuration,
-                             action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
-                             variables = variables),
+                         feature_configuration = feature_configuration,
+                         action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
+                         variables = cc_common.create_link_variables(
+                                cc_toolchain = cc_toolchain,
+                                feature_configuration = feature_configuration,
+                                is_using_linker = False,
+                                is_linking_dynamic_library = False)),
       cxx_linker_executable = cc_common.get_memory_inefficient_command_line(
-                             feature_configuration = feature_configuration,
-                             action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
-                             variables = variables),
+                         feature_configuration = feature_configuration,
+                         action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+                         variables = cc_common.create_link_variables(
+                                cc_toolchain = cc_toolchain,
+                                feature_configuration = feature_configuration,
+                                is_using_linker = True,
+                                is_linking_dynamic_library = False)),
       assemble = cc_common.get_memory_inefficient_command_line(
-                           feature_configuration = feature_configuration,
-                           action_name = ASSEMBLE_ACTION_NAME,
-                           variables = variables)
+                         feature_configuration = feature_configuration,
+                         action_name = ASSEMBLE_ACTION_NAME,
+                         variables = cc_common.create_compile_variables(
+                                feature_configuration = feature_configuration,
+                                cc_toolchain = cc_toolchain,
+                                user_compile_flags = copts))
   )
