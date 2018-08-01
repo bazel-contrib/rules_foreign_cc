@@ -156,15 +156,15 @@ def cc_external_rule_impl(ctx, attrs):
 
   script_lines = [
     "set -e",
-    "EXT_BUILD_ROOT=$(pwd)",
+    "export EXT_BUILD_ROOT=$(pwd)",
     "source " + shell_utils,
     "echo \"Building external library '{}'\"".format(lib_name),
     "TMPDIR=$(mktemp -d)",
     "trap \"{ rm -rf $TMPDIR; }\" EXIT",
-    "EXT_BUILD_DEPS=$(mktemp -d --tmpdir=$EXT_BUILD_ROOT)",
+    "export EXT_BUILD_DEPS=$(mktemp -d --tmpdir=$EXT_BUILD_ROOT)",
     "\n".join(_copy_deps_and_tools(inputs)),
     "define_absolute_paths $EXT_BUILD_ROOT/bin $EXT_BUILD_ROOT/bin",
-    "INSTALLDIR=$EXT_BUILD_ROOT/" + outputs.installdir.path,
+    "export INSTALLDIR=$EXT_BUILD_ROOT/" + outputs.installdir.path,
     "mkdir -p $INSTALLDIR",
     "echo_vars INSTALLDIR EXT_BUILD_DEPS EXT_BUILD_ROOT PATH",
     "pushd $TMPDIR",
