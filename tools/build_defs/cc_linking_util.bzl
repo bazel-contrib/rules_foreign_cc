@@ -2,21 +2,24 @@
 """
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-load('@bazel_tools//tools/build_defs/cc:action_names.bzl',
-            'C_COMPILE_ACTION_NAME',
-            'CPP_COMPILE_ACTION_NAME',
-            'ASSEMBLE_ACTION_NAME',
-            'CPP_LINK_EXECUTABLE_ACTION_NAME',
-            'CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME',
-            'CPP_LINK_STATIC_LIBRARY_ACTION_NAME',)
+load(
+    "@bazel_tools//tools/build_defs/cc:action_names.bzl",
+    "ASSEMBLE_ACTION_NAME",
+    "CPP_COMPILE_ACTION_NAME",
+    "CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME",
+    "CPP_LINK_EXECUTABLE_ACTION_NAME",
+    "CPP_LINK_STATIC_LIBRARY_ACTION_NAME",
+    "C_COMPILE_ACTION_NAME",
+)
 
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
     fields = dict(
-     static_libraries = "Static library files, optional",
-     shared_libraries = "Shared library files, optional",
-     interface_libraries = "Interface library files, optional",
-))
+        static_libraries = "Static library files, optional",
+        shared_libraries = "Shared library files, optional",
+        interface_libraries = "Interface library files, optional",
+    ),
+)
 
 CxxToolsInfo = provider(
     doc = "Paths to the C/C++ tools, taken from the toolchain",
@@ -24,8 +27,8 @@ CxxToolsInfo = provider(
         cc = "C compiler",
         cxx = "C++ compiler",
         cxx_linker_shared = "C++ linker to link shared library",
-        cxx_linker_executable = 'C++ linker to link executable'
-    )
+        cxx_linker_executable = "C++ linker to link executable",
+    ),
 )
 
 CxxFlagsInfo = provider(
@@ -34,21 +37,21 @@ CxxFlagsInfo = provider(
         cc = "C compiler flags",
         cxx = "C++ compiler flags",
         cxx_linker_shared = "C++ linker flags when linking shared library",
-        cxx_linker_static = 'C++ linker flags when linking static library',
-        cxx_linker_executable = 'C++ linker flags when linking executable',
-        assemble = "Assemble flags"
-    )
+        cxx_linker_static = "C++ linker flags when linking static library",
+        cxx_linker_executable = "C++ linker flags when linking executable",
+        assemble = "Assemble flags",
+    ),
 )
 
 def _to_list(element):
     if element == None:
-      return []
+        return []
     else:
-      return [element]
+        return [element]
 
 def _to_depset(element):
     if element == None:
-      return depset()
+        return depset()
     return depset(element)
 
 def _perform_error_checks(
@@ -129,14 +132,14 @@ def _build_libraries_to_link_and_runtime_artifact(ctx, files, cc_toolchain, targ
     shared_libraries = []
     runtime_artifacts = []
     if files.shared_libraries != None:
-      for lib in files.shared_libraries:
-        shared_library += _build_shared_library_to_link(ctx, lib, cc_toolchain, targets_windows)
-        runtime_artifact += shared_library.artifact()
+        for lib in files.shared_libraries:
+            shared_library += _build_shared_library_to_link(ctx, lib, cc_toolchain, targets_windows)
+            runtime_artifact += shared_library.artifact()
 
     interface_libraries = []
     if files.interface_libraries != None:
-      for lib in files.interface_libraries:
-        interface_libraries += _build_interface_library_to_link(ctx, lib, cc_toolchain, targets_windows)
+        for lib in files.interface_libraries:
+            interface_libraries += _build_interface_library_to_link(ctx, lib, cc_toolchain, targets_windows)
 
     dynamic_libraries_for_linking = None
     if len(interface_libraries) > 0:
@@ -144,9 +147,11 @@ def _build_libraries_to_link_and_runtime_artifact(ctx, files, cc_toolchain, targ
     else:
         dynamic_libraries_for_linking = shared_libraries
 
-    return {"static_libraries": static_libraries,
-            "dynamic_libraries": dynamic_libraries_for_linking,
-            "runtime_artifacts": runtime_artifacts}
+    return {
+        "static_libraries": static_libraries,
+        "dynamic_libraries": dynamic_libraries_for_linking,
+        "runtime_artifacts": runtime_artifacts,
+    }
 
 def _build_cc_link_params(
         ctx,
@@ -204,10 +209,12 @@ def _build_cc_link_params(
             libraries_to_link = _to_depset(static_libraries),
         )
 
-    return {"static_mode_params_for_dynamic_library": static_shared,
-            "static_mode_params_for_executable": static_no_shared,
-            "dynamic_mode_params_for_dynamic_library": no_static_shared,
-            "dynamic_mode_params_for_executable": no_static_no_shared}
+    return {
+        "static_mode_params_for_dynamic_library": static_shared,
+        "static_mode_params_for_executable": static_no_shared,
+        "dynamic_mode_params_for_dynamic_library": no_static_shared,
+        "dynamic_mode_params_for_executable": no_static_no_shared,
+    }
 
 def targets_windows(ctx, cc_toolchain):
     """ Returns true if build is targeting Windows
@@ -256,82 +263,135 @@ def create_linking_info(ctx, user_link_flags, files):
     return CcLinkingInfo(**link_params)
 
 def getToolsInfo(ctx):
-  cc_toolchain = find_cpp_toolchain(ctx)
-  feature_configuration = cc_common.configure_features(
-    cc_toolchain = cc_toolchain,
-    requested_features = ctx.features,
-    unsupported_features = ctx.disabled_features,
-  )
+    """ Takes information about tools paths from cc_toolchain, returns CxxToolsInfo
+    Args:
+        ctx - rule context
+    """
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
 
-  return CxxToolsInfo(
-      cc = cc_common.get_tool_for_action(
-          feature_configuration = feature_configuration,
-          action_name = C_COMPILE_ACTION_NAME),
-      cxx = cc_common.get_tool_for_action(
-          feature_configuration = feature_configuration,
-          action_name = CPP_COMPILE_ACTION_NAME),
-      cxx_linker_shared = cc_common.get_tool_for_action(
-                                feature_configuration = feature_configuration,
-                                action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME),
-      cxx_linker_executable = cc_common.get_tool_for_action(
-                                feature_configuration = feature_configuration,
-                                action_name = CPP_LINK_EXECUTABLE_ACTION_NAME),
-  )
+    return CxxToolsInfo(
+        cc = cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = C_COMPILE_ACTION_NAME,
+        ),
+        cxx = cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = CPP_COMPILE_ACTION_NAME,
+        ),
+        cxx_linker_shared = cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+        ),
+        cxx_linker_executable = cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+        ),
+    )
 
 def getFlagsInfo(ctx):
-  cc_toolchain = find_cpp_toolchain(ctx)
-  feature_configuration = cc_common.configure_features(
-    cc_toolchain = cc_toolchain,
-    requested_features = ctx.features,
-    unsupported_features = ctx.disabled_features,
-  )
-  copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else depset()
+    """ Takes information about flags from cc_toolchain, returns CxxFlagsInfo
+    Args:
+        ctx - rule context
+    """
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else depset()
 
-  return CxxFlagsInfo(
-      cc = cc_common.get_memory_inefficient_command_line(
-          feature_configuration = feature_configuration,
-          action_name = C_COMPILE_ACTION_NAME,
-          variables = cc_common.create_compile_variables(
-                            feature_configuration = feature_configuration,
-                            cc_toolchain = cc_toolchain,
-                            user_compile_flags = copts)),
-      cxx = cc_common.get_memory_inefficient_command_line(
-                          feature_configuration = feature_configuration,
-                          action_name = CPP_COMPILE_ACTION_NAME,
-                          variables = cc_common.create_compile_variables(
-                                feature_configuration = feature_configuration,
-                                cc_toolchain = cc_toolchain,
-                                user_compile_flags = copts,
-                                add_legacy_cxx_options = True)),
-      cxx_linker_shared = cc_common.get_memory_inefficient_command_line(
-                         feature_configuration = feature_configuration,
-                         action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
-                         variables = cc_common.create_link_variables(
-                                cc_toolchain = cc_toolchain,
-                                feature_configuration = feature_configuration,
-                                is_using_linker = True,
-                                is_linking_dynamic_library = True)),
-      cxx_linker_static = cc_common.get_memory_inefficient_command_line(
-                         feature_configuration = feature_configuration,
-                         action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
-                         variables = cc_common.create_link_variables(
-                                cc_toolchain = cc_toolchain,
-                                feature_configuration = feature_configuration,
-                                is_using_linker = False,
-                                is_linking_dynamic_library = False)),
-      cxx_linker_executable = cc_common.get_memory_inefficient_command_line(
-                         feature_configuration = feature_configuration,
-                         action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
-                         variables = cc_common.create_link_variables(
-                                cc_toolchain = cc_toolchain,
-                                feature_configuration = feature_configuration,
-                                is_using_linker = True,
-                                is_linking_dynamic_library = False)),
-      assemble = cc_common.get_memory_inefficient_command_line(
-                         feature_configuration = feature_configuration,
-                         action_name = ASSEMBLE_ACTION_NAME,
-                         variables = cc_common.create_compile_variables(
-                                feature_configuration = feature_configuration,
-                                cc_toolchain = cc_toolchain,
-                                user_compile_flags = copts))
-  )
+    return CxxFlagsInfo(
+        cc = cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = C_COMPILE_ACTION_NAME,
+            variables = cc_common.create_compile_variables(
+                feature_configuration = feature_configuration,
+                cc_toolchain = cc_toolchain,
+                user_compile_flags = copts,
+            ),
+        ),
+        cxx = cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = CPP_COMPILE_ACTION_NAME,
+            variables = cc_common.create_compile_variables(
+                feature_configuration = feature_configuration,
+                cc_toolchain = cc_toolchain,
+                user_compile_flags = copts,
+                add_legacy_cxx_options = True,
+            ),
+        ),
+        cxx_linker_shared = cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+            variables = cc_common.create_link_variables(
+                cc_toolchain = cc_toolchain,
+                feature_configuration = feature_configuration,
+                is_using_linker = True,
+                is_linking_dynamic_library = True,
+            ),
+        ),
+        cxx_linker_static = cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
+            variables = cc_common.create_link_variables(
+                cc_toolchain = cc_toolchain,
+                feature_configuration = feature_configuration,
+                is_using_linker = False,
+                is_linking_dynamic_library = False,
+            ),
+        ),
+        cxx_linker_executable = cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+            variables = cc_common.create_link_variables(
+                cc_toolchain = cc_toolchain,
+                feature_configuration = feature_configuration,
+                is_using_linker = True,
+                is_linking_dynamic_library = False,
+            ),
+        ),
+        assemble = cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = ASSEMBLE_ACTION_NAME,
+            variables = cc_common.create_compile_variables(
+                feature_configuration = feature_configuration,
+                cc_toolchain = cc_toolchain,
+                user_compile_flags = copts,
+            ),
+        ),
+    )
+
+def absolutize_path_in_str(ctx, text, root_str):
+    """ Replaces relative paths in [the middle of] 'text', prepending them with 'root_str'.
+    If there is nothing to replace, returns the 'text'.
+
+    We only will replace relative paths starting with either 'external/' or '<top-package-name>/',
+    because we only want to point with absolute paths to external repositories or inside our
+    current workspace. (And also to limit the possibility of error with such not exact replacing.)
+
+    Args:
+        ctx - rule context (to determine the top package name)
+        text - the text to do replacement in
+        root_str - the text to prepend to the found relative path
+    """
+    package = ctx.label.package
+    if package.find("/") > 0:
+        (package, separator, tail) = package.partition("/")
+
+    new_text = _prefix(text, "external/", root_str)
+    if new_text == text:
+        new_text = _prefix(text, package + "/", root_str)
+
+    return new_text
+
+def _prefix(text, from_str, prefix):
+    (before, middle, after) = text.partition(from_str)
+    if not middle or before.endswith("/"):
+        return text
+    return before + prefix + middle + after
