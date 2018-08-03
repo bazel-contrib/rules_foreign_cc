@@ -2,18 +2,19 @@ load("//tools/build_defs:cmake.bzl", "cmake_external")
 load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
 
 cmake_external(
-    name = "libz",
+    name = "libhello",
     additional_tools = [
-        "@androidsdk//:files",
         "@androidndk//:files",
     ],
-    lib_source = "@zlib//:all",
+    lib_source = "//framework_example/cmake_hello_world_lib:srcs",
 )
 
 cc_library(
-    name = "test_zlib",
-    srcs = ["zlib-example.cpp"],
-    deps = ["libz"],
+    name = "hello_lib_usage_example",
+    srcs = ["hello_lib-example.cpp"],
+    linkstatic = True,
+    deps = [":libhello"],
+    alwayslink = True,
 )
 
 android_library(
@@ -23,7 +24,7 @@ android_library(
     manifest = "LibraryManifest.xml",
     resource_files = glob(["res/**/*"]),
     deps = [
-        ":test_zlib",
+        ":hello_lib_usage_example",
         gmaven_artifact("com.android.support:appcompat-v7:aar:26.1.0"),
         gmaven_artifact("com.android.support.constraint:constraint-layout:aar:1.1.2"),
     ],
