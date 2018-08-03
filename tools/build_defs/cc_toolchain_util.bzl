@@ -26,7 +26,7 @@ CxxToolsInfo = provider(
     fields = dict(
         cc = "C compiler",
         cxx = "C++ compiler",
-        cxx_linker_shared = "C++ linker to link shared library",
+        cxx_linker_static = "C++ linker to link static library",
         cxx_linker_executable = "C++ linker to link executable",
     ),
 )
@@ -283,9 +283,9 @@ def getToolsInfo(ctx):
             feature_configuration = feature_configuration,
             action_name = CPP_COMPILE_ACTION_NAME,
         ),
-        cxx_linker_shared = cc_common.get_tool_for_action(
+        cxx_linker_static = cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
-            action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+            action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
         ),
         cxx_linker_executable = cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,

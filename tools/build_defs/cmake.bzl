@@ -8,7 +8,7 @@ load(
     "create_attrs",
     "detect_root",
 )
-load("//tools/build_defs:cc_linking_util.bzl", "absolutize_path_in_str", "getFlagsInfo", "getToolsInfo")
+load("//tools/build_defs:cc_toolchain_util.bzl", "absolutize_path_in_str", "getFlagsInfo", "getToolsInfo")
 
 def _cmake_external(ctx):
     options = " ".join(ctx.attr.cmake_options)
@@ -52,20 +52,15 @@ def _get_toolchain_variables(ctx, tools, flags):
 
 def _get_toolchain_options(ctx, tools, flags):
     options = []
-    if tools.cxx_linker_shared:
-        # https://github.com/Kitware/CMake/blob/master/Modules/CMakeCXXInformation.cmake
-        rule_string = " ".join([
-            "{}",
-            "<CMAKE_SHARED_LIBRARY_CXX_FLAGS>",
-            "<LANGUAGE_COMPILE_FLAGS>",
-            "<LINK_FLAGS>",
-            "<CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS>",
-            "<SONAME_FLAG><TARGET_SONAME>",
-            "-o <TARGET>",
-            "<OBJECTS>",
-            "<LINK_LIBRARIES>",
-        ]).format(absolutize_path_in_str(ctx, tools.cxx_linker_shared, "$EXT_BUILD_ROOT/"))
-        options += _option(ctx, "CMAKE_CXX_CREATE_SHARED_LIBRARY", [rule_string])
+    if tools.cxx_linker_static:
+        options += _option(ctx, "CMAKE_AR", [tools.cxx_linker_static])
+
+    # this does not work by some reason
+    #        options += _option(ctx, "CMAKE_CXX_CREATE_STATIC_LIBRARY", ["<CMAKE_AR> <LINK_FLAGS> qc <TARGET> <OBJECTS>"])
+    #        options += _option(ctx, "CMAKE_CXX_ARCHIVE_CREATE", ["<CMAKE_AR> <LINK_FLAGS> qc <TARGET> <OBJECTS>"])
+    #        options += _option(ctx, "CMAKE_CXX_ARCHIVE_APPEND", ["<CMAKE_AR> <LINK_FLAGS> qc <TARGET> <OBJECTS>"])
+    #        options += _option(ctx, "CMAKE_CXX_ARCHIVE_FINISH", ["<CMAKE_RANLIB> <TARGET>"])
+
     if tools.cxx_linker_executable:
         # https://github.com/Kitware/CMake/blob/master/Modules/CMakeCXXInformation.cmake
         rule_string = " ".join([
@@ -79,8 +74,9 @@ def _get_toolchain_options(ctx, tools, flags):
         ]).format(absolutize_path_in_str(ctx, tools.cxx_linker_executable, "$EXT_BUILD_ROOT/"))
         options += _option(ctx, "CMAKE_CXX_LINK_EXECUTABLE", [rule_string])
 
-    if flags.cxx_linker_static:
-        options += _option(ctx, "CMAKE_STATIC_LINKER_FLAGS", flags.cxx_linker_static)
+    # commented out for now, because http://cmake.3232098.n2.nabble.com/CMake-incorrectly-passes-linker-flags-to-ar-td7592436.html
+    #    if flags.cxx_linker_static:
+    #        options += _option(ctx, "CMAKE_STATIC_LINKER_FLAGS", flags.cxx_linker_static)
     if flags.cxx_linker_shared:
         options += _option(ctx, "CMAKE_SHARED_LINKER_FLAGS", flags.cxx_linker_shared)
     if flags.cxx_linker_executable:
