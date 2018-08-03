@@ -25,7 +25,7 @@ cc_binary(
 )
 
 cc_binary(
-    name = "test_zlib",
+    name = "zlib_usage_example",
     srcs = ["zlib-example.cpp"],
-    deps = ["libz"],
+    deps = [":libz"],
 )
