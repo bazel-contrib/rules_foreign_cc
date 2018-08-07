@@ -8,13 +8,12 @@ Rules for building C/C++ projects using foreign build systems inside Bazel proje
 
 ## ./configure && make
 
-**NOTE**: this requires building Bazel from head after https://github.com/bazelbuild/bazel/commit/4ba162ee5bfaae996ab3db9e6d47e669efb010a3
+**NOTE**: this requires building Bazel from head after https://github.com/bazelbuild/bazel/commit/6d4cc4c910a92c9de664ef99b7b2c3681f8d9cf1
 
 It also requires passing Bazel the following flag:
 ```
---experimental_cc_skylark_api_enabled_packages=/usr/local/google/home/ichern/rules_foreign_cc/tools/build_defs/framework.bzl,/usr/local/google/home/ichern/rules_foreign_cc/tools/build_defs/cc_toolchain_util.bzl,/usr/local/google/home/ichern/rules_foreign_cc/tools/build_defs/framework.bzl,tools/build_defs
+--experimental_cc_skylark_api_enabled_packages=tools/build_defs
 ```
-(The flag value is long because of a bug, going to be corrected to be --experimental_cc_skylark_api_enabled_packages=tools/build_defs)
 
 ## building CMake projects:
 
