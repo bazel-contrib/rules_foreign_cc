@@ -11,6 +11,7 @@ cmake_external(
     out_include_dir = "include/libpng16",
     static_libraries = ["libpng16.a"],
     deps = [":libz"],
+    postfix_script = "echo \"POST\""
 )
 
 cc_binary(

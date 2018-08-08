@@ -17,20 +17,26 @@ def _cmake_external(ctx):
     tools = getToolsInfo(ctx)
     flags = getFlagsInfo(ctx)
 
+    install_prefix = ctx.attr.install_prefix
+    install_prefix = install_prefix if install_prefix else ctx.attr.lib_name
+    install_prefix = install_prefix if install_prefix else ctx.attr.name
+
     cmake_string = " ".join([
         " ".join(_get_toolchain_variables(ctx, tools, flags)),
         " cmake",
         " ".join(_get_toolchain_options(ctx, tools, flags)),
         "-DCMAKE_PREFIX_PATH=\"$EXT_BUILD_ROOT\"",
-        "-DCMAKE_INSTALL_PREFIX=$INSTALLDIR",
+        "-DCMAKE_INSTALL_PREFIX=\"{}\"".format(install_prefix),
         options,
         "$EXT_BUILD_ROOT/" + root,
     ])
+    copy_results = "copy_dir_contents_to_dir $TMPDIR/{} $INSTALLDIR".format(install_prefix)
 
     attrs = create_attrs(
         ctx.attr,
         configure_name = "CMake",
         configure_script = cmake_string,
+        postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
     )
 
     return cc_external_rule_impl(ctx, attrs)
@@ -95,7 +101,12 @@ def _join_flags_list(ctx, flags):
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
-    attrs.update({"cmake_options": attr.string_list(mandatory = False, default = [])})
+    attrs.update({
+        # Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX
+        "install_prefix": attr.string(mandatory = False),
+        # Other CMake options
+        "cmake_options": attr.string_list(mandatory = False, default = []),
+    })
     return attrs
 
 """ Rule for building external library with CMake

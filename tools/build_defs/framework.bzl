@@ -163,7 +163,7 @@ def cc_external_rule_impl(ctx, attrs):
         "export EXT_BUILD_ROOT=$(pwd)",
         "source " + shell_utils,
         "echo \"Building external library '{}'\"".format(lib_name),
-        "TMPDIR=$(mktemp -d)",
+        "export TMPDIR=$(mktemp -d)",
         "trap \"{ rm -rf $TMPDIR; }\" EXIT",
         "export EXT_BUILD_DEPS=$(mktemp -d --tmpdir=$EXT_BUILD_ROOT)",
         "\n".join(_copy_deps_and_tools(inputs)),
