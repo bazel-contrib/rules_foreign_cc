@@ -52,6 +52,18 @@ function replace_in_files() {
   fi
 }
 
+# copies contents of the directory to target directory (create the target directory if needed)
+# $1 source directory, immediate children of which are copied
+# $2 target directory
+function copy_dir_contents_to_dir() {
+  local children=$(find $1 -maxdepth 1)
+  local target="$2"
+  mkdir -p ${target}
+  for child in $children; do
+    cp -R $child ${target}
+  done
+}
+
 # Symlink contents of the directory to target directory (create the target directory if needed)
 # $1 source directory, immediate children of which are symlinked
 # $2 target directory
