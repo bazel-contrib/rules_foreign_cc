@@ -15,10 +15,8 @@ cmake_external(
 )
 
 cc_binary(
-    name = "libpng_test",
-    srcs = ["libpng_test.cpp"],
-    args = ["$(location bazel-icon-transparent.png) out.png"],
-    data = ["bazel-icon-transparent.png"],
+    name = "libpng_usage_example",
+    srcs = ["libpng_usage_example.cpp"],
     deps = [
         ":libpng",
         ":libz",
@@ -29,4 +27,19 @@ cc_binary(
     name = "zlib_usage_example",
     srcs = ["zlib-example.cpp"],
     deps = [":libz"],
+)
+
+sh_test(
+    name = "test_zlib",
+    srcs = ["test_zlib.sh"],
+    data = [":zlib_usage_example"],
+    visibility = ["//:__pkg__"]
+)
+
+sh_test(
+    name = "test_libpng",
+    srcs = ["test_libpng.sh"],
+    data = [":libpng_usage_example", "bazel-icon-transparent.png",],
+    args = ["$(location bazel-icon-transparent.png) out.png"],
+    visibility = ["//:__pkg__"]
 )

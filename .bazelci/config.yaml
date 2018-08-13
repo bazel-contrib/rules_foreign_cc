@@ -1,8 +1,11 @@
 ---
 platforms:
+  ubuntu1804:
+    build_targets:
+    - "//examples:tests"
   ubuntu1604:
     build_targets:
-    - "//examples/..."
+    - "//examples:tests"
   macos:
     build_targets:
-    - "//examples/..."
+    - "//examples:tests"
