@@ -12,7 +12,7 @@ Rules for building C/C++ projects using foreign build systems inside Bazel proje
 
 It also requires passing Bazel the following flag:
 ```
---experimental_cc_skylark_api_enabled_packages=tools/build_defs
+--experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs
 ```
 
 ## building CMake projects:
@@ -32,6 +32,22 @@ It also requires passing Bazel the following flag:
 In `WORKSPACE`, put
 
 ```python
+# -- Load CMake rule definition and its dependencies
+http_archive(
+    name = "rules_foreign_cc",
+    strip_prefix = "rules_foreign_cc-master",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
+)
+
+load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies()
+
+# -- Load the library
+
+# Group the sources of the library so that CMake rule have access to it
+all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
+
 new_http_archive(
     name = "zlib",
     build_file_content = all_content,
@@ -50,9 +66,11 @@ load("//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(
     name = "libz",
+    # Here we are referencing the library sources
     lib_source = "@zlib//:all",
 )
 
+# Example to show that zlib was actually build
 cc_binary(
     name = "zlib_usage_example",
     srcs = ["zlib-example.cpp"],
@@ -63,7 +81,13 @@ cc_binary(
 then build as usual:
 
 ```bash
-$ devbazel build //:libevent_echosrv1
+$ devbazel build //examples:zlib_usage_example
+```
+
+run to see that the zlib library was actually build and the example code can use it:
+ 
+```bash
+$ devbazel run //examples:zlib_usage_example
 ```
 
 **cmake_external arguments:**
