@@ -29,33 +29,24 @@ png_bytep *row_pointers;
 
 void read_png_file(char *filename) {
   FILE *fp = fopen(filename, "rb");
-  printf("read the file");
 
   png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   if(!png) {
-    printf("Not a png");
     abort();
   }
-  printf("Is a png...");
 
   png_infop info = png_create_info_struct(png);
   if(!info) {
-    printf("No info...");
     abort();
   }
-  printf("Found info...");
 
   if(setjmp(png_jmpbuf(png))) {
     abort();
   }
-  printf("set jmp...");
 
   png_init_io(png, fp);
-  printf("init io...");
 
   png_read_info(png, info);
-  printf("read info...");
-//  abort();
 
   width      = png_get_image_width(png, info);
   height     = png_get_image_height(png, info);
@@ -157,21 +148,12 @@ void process_png_file() {
 }
 
 int main(int argc, char *argv[]) {
-  printf("Starting...");
   if(argc != 3) {
-    printf("Not enough arguments...");
     abort();
   }
 
-try {
-  printf("Reading...");
   read_png_file(argv[1]);
-} catch (std::exception& e) {
-    std::cerr << "Exception catched : " << e.what() << std::endl;
-}
-printf("Processing...");
   process_png_file();
-printf("\nWriting... %s", argv[2]);
   write_png_file(argv[2]);
 
   return 0;

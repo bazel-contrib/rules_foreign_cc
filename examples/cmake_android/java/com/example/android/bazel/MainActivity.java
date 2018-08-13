@@ -1,4 +1,4 @@
-package framework_example.cmake_android.java.com.example.android.bazel;
+package examples.cmake_android.java.com.example.android.bazel;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
