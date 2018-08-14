@@ -180,6 +180,7 @@ def cc_external_rule_impl(ctx, attrs):
     ]
 
     script_text = "\n".join(script_lines)
+    print("script text: " + script_text)
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
@@ -255,11 +256,11 @@ def _check_file_name(var, name):
         fail("{} can not be empty string.".format(name.capitalize()))
 
     if (not var[0:1].isalpha()):
-      fail("{} should start with a letter.".format(name.capitalize()))
+        fail("{} should start with a letter.".format(name.capitalize()))
     for index in range(1, len(var) - 1):
-      letter = var[index]
-      if not letter.isalnum() and letter != '_':
-        fail("{} should be alphanumeric or '_'.".format(name.capitalize()))
+        letter = var[index]
+        if not letter.isalnum() and letter != "_":
+            fail("{} should be alphanumeric or '_'.".format(name.capitalize()))
 
 _Outputs = provider(
     doc = "Provider to keep different kinds of the external build output files and directories",
