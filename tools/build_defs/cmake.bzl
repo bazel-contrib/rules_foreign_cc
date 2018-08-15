@@ -10,6 +10,22 @@ load(
 )
 load("//tools/build_defs:cc_toolchain_util.bzl", "absolutize_path_in_str", "getFlagsInfo", "getToolsInfo")
 
+CMAKE_TOOLCHAIN_ENV_VARS = [
+    "CC",
+    "CXX",
+    "CFLAGS",
+    "CXXFLAGS",
+    "CXXFLAGS",
+    "ASMFLAGS",
+]
+
+CMAKE_TOOLCHAIN_OPTIONS = [
+    "CMAKE_AR",
+    "CMAKE_CXX_LINK_EXECUTABLE",
+    "CMAKE_SHARED_LINKER_FLAGS",
+    "CMAKE_EXE_LINKER_FLAGS",
+]
+
 def _cmake_external(ctx):
     options = " ".join(ctx.attr.cmake_options)
     root = detect_root(ctx.attr.lib_source)
@@ -42,24 +58,30 @@ def _cmake_external(ctx):
     return cc_external_rule_impl(ctx, attrs)
 
 def _get_toolchain_variables(ctx, tools, flags):
-    vars = []
+    vars = {}
 
     if tools.cc:
-        vars += _env_var(ctx, "CC", [tools.cc])
+        vars["CC"] = [tools.cc]
     if tools.cxx:
-        vars += _env_var(ctx, "CXX", [tools.cxx])
+        vars["CXX"] = [tools.cxx]
     if flags.cc:
-        vars += _env_var(ctx, "CFLAGS", flags.cc)
+        vars["CFLAGS"] = flags.cc
     if flags.cc:
-        vars += _env_var(ctx, "CXXFLAGS", flags.cxx)
+        vars["CXXFLAGS"] = flags.cxx
     if flags.assemble:
-        vars += _env_var(ctx, "ASMFLAGS", flags.assemble)
-    return vars
+        vars["ASMFLAGS"] = flags.assemble
+
+    string_list = []
+    for key in ctx.attr.cmake_variable_from_toolchain:
+        value = vars[key]
+        if value:
+            string_list += _env_var(ctx, key, value)
+    return string_list
 
 def _get_toolchain_options(ctx, tools, flags):
-    options = []
+    options = {}
     if tools.cxx_linker_static:
-        options += _option(ctx, "CMAKE_AR", [tools.cxx_linker_static])
+        options["CMAKE_AR"] = [tools.cxx_linker_static]
 
     # this does not work by some reason
     #        options += _option(ctx, "CMAKE_CXX_CREATE_STATIC_LIBRARY", ["<CMAKE_AR> <LINK_FLAGS> qc <TARGET> <OBJECTS>"])
@@ -78,17 +100,22 @@ def _get_toolchain_options(ctx, tools, flags):
             "-o <TARGET>",
             "<LINK_LIBRARIES>",
         ]).format(absolutize_path_in_str(ctx, tools.cxx_linker_executable, "$EXT_BUILD_ROOT/"))
-        options += _option(ctx, "CMAKE_CXX_LINK_EXECUTABLE", [rule_string])
+        options["CMAKE_CXX_LINK_EXECUTABLE"] = [rule_string]
 
     # commented out for now, because http://cmake.3232098.n2.nabble.com/CMake-incorrectly-passes-linker-flags-to-ar-td7592436.html
     #    if flags.cxx_linker_static:
     #        options += _option(ctx, "CMAKE_STATIC_LINKER_FLAGS", flags.cxx_linker_static)
     if flags.cxx_linker_shared:
-        options += _option(ctx, "CMAKE_SHARED_LINKER_FLAGS", flags.cxx_linker_shared)
+        options["CMAKE_SHARED_LINKER_FLAGS"] = flags.cxx_linker_shared
     if flags.cxx_linker_executable:
-        options += _option(ctx, "CMAKE_EXE_LINKER_FLAGS", flags.cxx_linker_executable)
+        options["CMAKE_EXE_LINKER_FLAGS"] = flags.cxx_linker_executable
 
-    return options
+    string_list = []
+    for key in ctx.attr.cmake_options_from_toolchain:
+        value = options[key]
+        if value:
+            string_list += _option(ctx, key, value)
+    return string_list
 
 def _env_var(ctx, cmake_option, flags):
     return ["{}=\"{}\"".format(cmake_option, _join_flags_list(ctx, flags))]
@@ -106,6 +133,12 @@ def _attrs():
         "install_prefix": attr.string(mandatory = False),
         # Other CMake options
         "cmake_options": attr.string_list(mandatory = False, default = []),
+        # The list of environment variables to be set from Bazel C/C++ toolchain,
+        # should be subset of CMAKE_TOOLCHAIN_ENV_VARS, default CMAKE_TOOLCHAIN_ENV_VARS
+        "cmake_variable_from_toolchain": attr.string_list(mandatory = False, default = CMAKE_TOOLCHAIN_ENV_VARS),
+        # The list of CMake options to be set from Bazel C/C++ toolchain,
+        # should be subset of CMAKE_TOOLCHAIN_OPTIONS, default CMAKE_TOOLCHAIN_OPTIONS
+        "cmake_options_from_toolchain": attr.string_list(mandatory = False, default = CMAKE_TOOLCHAIN_OPTIONS),
     })
     return attrs
 
