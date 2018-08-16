@@ -16,15 +16,14 @@ def _cmake_external(ctx):
 
     tools = getToolsInfo(ctx)
     flags = getFlagsInfo(ctx)
+    cache_entries = _join_cache_options(ctx, _get_toolchain_entries(ctx, tools, flags), ctx.attr.cache_entries)
 
-    install_prefix = ctx.attr.install_prefix
-    install_prefix = install_prefix if install_prefix else ctx.attr.lib_name
-    install_prefix = install_prefix if install_prefix else ctx.attr.name
+    install_prefix = _get_install_prefix(ctx)
 
     cmake_string = " ".join([
         " ".join(_get_toolchain_variables(ctx, tools, flags)),
         " cmake",
-        " ".join(_get_toolchain_options(ctx, tools, flags)),
+        " ".join(cache_entries),
         "-DCMAKE_PREFIX_PATH=\"$EXT_BUILD_ROOT\"",
         "-DCMAKE_INSTALL_PREFIX=\"{}\"".format(install_prefix),
         options,
@@ -41,6 +40,13 @@ def _cmake_external(ctx):
 
     return cc_external_rule_impl(ctx, attrs)
 
+def _get_install_prefix(ctx):
+    if ctx.attr.install_prefix:
+        return ctx.attr.install_prefix
+    if ctx.attr.lib_name:
+        return ctx.attr.lib_name
+    return ctx.attr.name
+
 def _get_toolchain_variables(ctx, tools, flags):
     vars = []
 
@@ -56,10 +62,10 @@ def _get_toolchain_variables(ctx, tools, flags):
         vars += _env_var(ctx, "ASMFLAGS", flags.assemble)
     return vars
 
-def _get_toolchain_options(ctx, tools, flags):
-    options = []
+def _get_toolchain_entries(ctx, tools, flags):
+    options = {}
     if tools.cxx_linker_static:
-        options += _option(ctx, "CMAKE_AR", [tools.cxx_linker_static])
+        options["CMAKE_AR"] = [tools.cxx_linker_static]
 
     # this does not work by some reason
     #        options += _option(ctx, "CMAKE_CXX_CREATE_STATIC_LIBRARY", ["<CMAKE_AR> <LINK_FLAGS> qc <TARGET> <OBJECTS>"])
@@ -78,23 +84,32 @@ def _get_toolchain_options(ctx, tools, flags):
             "-o <TARGET>",
             "<LINK_LIBRARIES>",
         ]).format(absolutize_path_in_str(ctx, tools.cxx_linker_executable, "$EXT_BUILD_ROOT/"))
-        options += _option(ctx, "CMAKE_CXX_LINK_EXECUTABLE", [rule_string])
+        options["CMAKE_CXX_LINK_EXECUTABLE"] = [rule_string]
 
     # commented out for now, because http://cmake.3232098.n2.nabble.com/CMake-incorrectly-passes-linker-flags-to-ar-td7592436.html
     #    if flags.cxx_linker_static:
     #        options += _option(ctx, "CMAKE_STATIC_LINKER_FLAGS", flags.cxx_linker_static)
     if flags.cxx_linker_shared:
-        options += _option(ctx, "CMAKE_SHARED_LINKER_FLAGS", flags.cxx_linker_shared)
+        options["CMAKE_SHARED_LINKER_FLAGS"] = flags.cxx_linker_shared
     if flags.cxx_linker_executable:
-        options += _option(ctx, "CMAKE_EXE_LINKER_FLAGS", flags.cxx_linker_executable)
+        options["CMAKE_EXE_LINKER_FLAGS"] = flags.cxx_linker_executable
 
     return options
+
+def _join_cache_options(ctx, toolchain_entries, user_entries):
+    cache_entries = dict(toolchain_entries)
+
+    for key in user_entries:
+        existing = cache_entries[key] or []
+        cache_entries[key] = existing + [user_entries[key]]
+
+    return [_option(ctx, key, cache_entries[key]) for key in cache_entries]
 
 def _env_var(ctx, cmake_option, flags):
     return ["{}=\"{}\"".format(cmake_option, _join_flags_list(ctx, flags))]
 
 def _option(ctx, cmake_option, flags):
-    return ["-D{}=\"{}\"".format(cmake_option, _join_flags_list(ctx, flags))]
+    return "-D{}=\"{}\"".format(cmake_option, _join_flags_list(ctx, flags))
 
 def _join_flags_list(ctx, flags):
     return " ".join([absolutize_path_in_str(ctx, flag, "$EXT_BUILD_ROOT/") for flag in flags])
@@ -104,6 +119,10 @@ def _attrs():
     attrs.update({
         # Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX
         "install_prefix": attr.string(mandatory = False),
+        # CMake cache entries to initialize (they will be passed with -Dkey=value)
+        # Values, defined by the toolchain, will be joined with the values, passed here.
+        # (Toolchain values come first)
+        "cache_entries": attr.string_dict(mandatory = False, default = {}),
         # Other CMake options
         "cmake_options": attr.string_list(mandatory = False, default = []),
     })
