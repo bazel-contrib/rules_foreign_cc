@@ -228,7 +228,7 @@ def _copy_deps_and_tools(files):
     list += _symlink_to_dir("bin", files.tools_files, False)
 
     list += ["if [ -d $EXT_BUILD_DEPS/bin ]; then"]
-    list += ["  tools=$(find $EXT_BUILD_DEPS/bin -type d,l -maxdepth 1)"]
+    list += ["  tools=$(find $EXT_BUILD_DEPS/bin -type d -type l -maxdepth 1)"]
     list += ["  for tool in $tools; do export PATH=$PATH:$tool; done"]
     list += ["fi"]
     list += ["path $EXT_BUILD_DEPS/bin"]
