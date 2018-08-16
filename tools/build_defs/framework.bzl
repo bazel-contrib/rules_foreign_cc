@@ -184,7 +184,7 @@ def cc_external_rule_impl(ctx, attrs):
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
-        inputs = inputs.declared_inputs,
+        inputs = depset(inputs.declared_inputs) + ctx.attr._cc_toolchain.files,
         outputs = outputs.declared_outputs,
         tools = ctx.attr._utils.files,
         use_default_shell_env = True,
