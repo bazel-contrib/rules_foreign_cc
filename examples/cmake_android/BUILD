@@ -3,9 +3,6 @@ load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
 
 cmake_external(
     name = "libhello",
-    additional_tools = [
-        "@androidndk//:files",
-    ],
     lib_source = "//examples/cmake_hello_world_lib:srcs",
 )
 
