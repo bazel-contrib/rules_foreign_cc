@@ -48,19 +48,27 @@ def _get_install_prefix(ctx):
     return ctx.attr.name
 
 def _get_toolchain_variables(ctx, tools, flags):
-    vars = []
+    vars = {}
 
     if tools.cc:
-        vars += _env_var(ctx, "CC", [tools.cc])
+        vars["CC"] = [tools.cc]
     if tools.cxx:
-        vars += _env_var(ctx, "CXX", [tools.cxx])
+        vars["CXX"] = [tools.cxx]
+        print("TOOLS_CXX: " + tools.cxx + " and " + str(vars["CXX"]))
     if flags.cc:
-        vars += _env_var(ctx, "CFLAGS", flags.cc)
+        vars["CFLAGS"] = flags.cc
     if flags.cc:
-        vars += _env_var(ctx, "CXXFLAGS", flags.cxx)
+        vars["CXXFLAGS"] = flags.cxx
     if flags.assemble:
-        vars += _env_var(ctx, "ASMFLAGS", flags.assemble)
-    return vars
+        vars["ASMFLAGS"] = flags.assemble
+
+    for key in ctx.attr.env_vars:
+        existing = []
+        if vars[key]:
+            existing = vars[key]
+        vars[key] = existing + [ctx.attr.env_vars[key]]
+
+    return [_env_var(ctx, key, vars[key]) for key in vars]
 
 def _get_toolchain_entries(ctx, tools, flags):
     options = {}
@@ -101,14 +109,14 @@ def _join_cache_options(ctx, toolchain_entries, user_entries):
 
     for key in user_entries:
         existing = []
-        if hasattr(cache_entries, key):
+        if cache_entries[key]:
             existing = cache_entries[key]
         cache_entries[key] = existing + [user_entries[key]]
 
     return [_option(ctx, key, cache_entries[key]) for key in cache_entries]
 
 def _env_var(ctx, cmake_option, flags):
-    return ["{}=\"{}\"".format(cmake_option, _join_flags_list(ctx, flags))]
+    return "{}=\"{}\"".format(cmake_option, _join_flags_list(ctx, flags))
 
 def _option(ctx, cmake_option, flags):
     return "-D{}=\"{}\"".format(cmake_option, _join_flags_list(ctx, flags))
@@ -125,6 +133,9 @@ def _attrs():
         # Values, defined by the toolchain, will be joined with the values, passed here.
         # (Toolchain values come first)
         "cache_entries": attr.string_dict(mandatory = False, default = {}),
+        # CMake environment variable values to join with toolchain-defined.
+        # For example, additional CXXFLAGS.
+        "env_vars": attr.string_dict(mandatory = False, default = {}),
         # Other CMake options
         "cmake_options": attr.string_list(mandatory = False, default = []),
     })
