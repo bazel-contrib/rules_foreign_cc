@@ -70,3 +70,23 @@ http_archive(
 load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
 
 gmaven_rules()
+
+new_http_archive(
+    name = "pybind11",
+    build_file_content = all_content,
+    strip_prefix = "pybind11-2.2.3",
+    url = "https://github.com/pybind/pybind11/archive/v2.2.3.tar.gz",
+)
+
+new_http_archive(
+    name = "pytest",
+    build_file_content = all_content,
+    strip_prefix = "pytest-3.7.1",
+    url = "https://github.com/pytest-dev/pytest/archive/3.7.1.tar.gz",
+)
+
+new_local_repository(
+    name = "python_headers",
+    build_file_content = all_content,
+    path = "/usr/include/python2.7",
+)

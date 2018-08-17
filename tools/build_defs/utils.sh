@@ -68,9 +68,13 @@ function copy_dir_contents_to_dir() {
 # $1 source directory, immediate children of which are symlinked
 # $2 target directory
 function symlink_dir_contents_to_dir() {
-  local children=$(find $1 -maxdepth 1 -mindepth 1)
   local target="$2"
   mkdir -p ${target}
+  if [[ -f $1 ]]; then
+    symlink_to_dir $1 ${target}
+    return 0
+  fi
+  local children=$(find $1 -maxdepth 1 -mindepth 1)
   for child in $children; do
     symlink_to_dir $child ${target}
   done
