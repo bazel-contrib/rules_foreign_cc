@@ -56,7 +56,7 @@ function replace_in_files() {
 # $1 source directory, immediate children of which are copied
 # $2 target directory
 function copy_dir_contents_to_dir() {
-  local children=$(find $1 -maxdepth 1)
+  local children=$(find $1 -maxdepth 1 -mindepth 1)
   local target="$2"
   mkdir -p ${target}
   for child in $children; do
@@ -68,7 +68,7 @@ function copy_dir_contents_to_dir() {
 # $1 source directory, immediate children of which are symlinked
 # $2 target directory
 function symlink_dir_contents_to_dir() {
-  local children=$(find $1 -maxdepth 1)
+  local children=$(find $1 -maxdepth 1 -mindepth 1)
   local target="$2"
   mkdir -p ${target}
   for child in $children; do
