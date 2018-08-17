@@ -100,7 +100,9 @@ def _join_cache_options(ctx, toolchain_entries, user_entries):
     cache_entries = dict(toolchain_entries)
 
     for key in user_entries:
-        existing = cache_entries[key] or []
+        existing = []
+        if hasattr(cache_entries, key):
+            existing = cache_entries[key]
         cache_entries[key] = existing + [user_entries[key]]
 
     return [_option(ctx, key, cache_entries[key]) for key in cache_entries]
