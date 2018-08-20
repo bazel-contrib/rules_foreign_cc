@@ -97,3 +97,13 @@ new_http_archive(
     strip_prefix = "pybind11-2.2.3",
     url = "https://github.com/pybind/pybind11/archive/v2.2.3.tar.gz",
 )
+
+new_http_archive(
+    name = "ninja_build",
+    build_file_content = all_content,
+    sha256 = "86b8700c3d0880c2b44c2ff67ce42774aaf8c28cbf57725cb881569288c1c6f4",
+    strip_prefix = "ninja-1.8.2",
+    urls = [
+        "https://github.com/ninja-build/ninja/archive/v1.8.2.tar.gz",
+    ],
+)
