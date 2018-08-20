@@ -24,7 +24,7 @@ def _cmake_external(ctx):
         " ".join(_get_toolchain_variables(ctx, tools, flags)),
         " cmake",
         " ".join(cache_entries),
-        "-DCMAKE_PREFIX_PATH=\"$EXT_BUILD_ROOT\"",
+        "-DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\"",
         "-DCMAKE_INSTALL_PREFIX=\"{}\"".format(install_prefix),
         options,
         "$EXT_BUILD_ROOT/" + root,

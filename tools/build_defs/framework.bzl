@@ -78,8 +78,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     # Flag variable to indicate that the library produces only headers
     "headers_only": attr.bool(mandatory = False, default = False),
     #
-    # Optional name of the output subdirectory with pkgconfig files.
-    "out_pkg_config_dir": attr.string(mandatory = False),
     # link to the shell utilities used by the shell script in cc_external_rule_impl.
     "_utils": attr.label(
         default = Label("//tools/build_defs:utils.sh"),
@@ -200,7 +198,6 @@ def cc_external_rule_impl(ctx, attrs):
             gen_dir = depset([outputs.installdir]),
             bin_dir = depset([outputs.out_bin_dir]),
             out_binary_files = depset(outputs.out_binary_files),
-            pkg_config_dir = outputs.out_pkg_dir or [],
         ),
         cc_common.create_cc_skylark_info(ctx = ctx),
         out_cc_info.compilation_info,
@@ -226,15 +223,16 @@ def _copy_deps_and_tools(files):
     list = []
     list += _symlink_to_dir("lib", files.libs, False)
     list += _symlink_to_dir("include", files.headers, True)
-    list += _symlink_to_dir("lib/pkgconfig", files.pkg_configs, False)
     list += _symlink_to_dir("bin", files.tools_files, False)
+
+    for ext_dir in files.ext_build_dirs:
+        list += ["symlink_to_dir $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS".format(_file_path(ext_dir))]
 
     list += ["if [ -d $EXT_BUILD_DEPS/bin ]; then"]
     list += ["  tools=$(find $EXT_BUILD_DEPS/bin -type d -type l -maxdepth 1)"]
     list += ["  for tool in $tools; do export PATH=$PATH:$tool; done"]
     list += ["fi"]
     list += ["path $EXT_BUILD_DEPS/bin"]
-    list += ["export PKG_CONFIG_PATH=$EXT_BUILD_ROOT/lib/pkgconfig"]
 
     return list
 
@@ -245,13 +243,16 @@ def _symlink_to_dir(dir_name, files_list, link_children):
 
     paths_list = []
     for file in files_list:
-        paths_list += [file if type(file) == "string" else file.path]
+        paths_list += [_file_path(file)]
 
     link_function = "symlink_contents_to_dir" if link_children else "symlink_to_dir"
     for path in paths_list:
         list += ["{} $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS/{}".format(link_function, path, dir_name)]
 
     return list
+
+def _file_path(file):
+    return file if type(file) == "string" else file.path
 
 def _check_file_name(var, name):
     if (len(var) == 0):
@@ -271,7 +272,6 @@ _Outputs = provider(
         out_include_dir = "Directory with header files (relative to install directory)",
         out_bin_dir = "Directory with binary files (relative to install directory)",
         out_lib_dir = "Directory with library files (relative to install directory)",
-        out_pkg_dir = "Directory with pkgconfig files (relative to install directory)",
         out_binary_files = "Binary files, which will be created by the action",
         libraries = "Library files, which will be created by the action",
         declared_outputs = "All output files and directories of the action",
@@ -295,10 +295,6 @@ def _define_outputs(ctx, attrs, lib_name):
     for file in attrs.binaries:
         out_binary_files += [_declare_out(ctx, lib_name, attrs.out_bin_dir, file)]
 
-    out_pkg_dir = None
-    if attrs.out_pkg_config_dir:
-        out_pkg_dir = ctx.actions.declare_file("/".join([lib_name, attrs.out_pkg_config_dir]))
-
     installdir = ctx.actions.declare_directory(lib_name)
     out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
     out_bin_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_bin_dir)
@@ -310,7 +306,7 @@ def _define_outputs(ctx, attrs, lib_name):
         interface_libraries = _declare_out(ctx, lib_name, out_lib_dir, attrs.interface_libraries),
     )
     declared_outputs = [installdir, out_include_dir, out_bin_dir, out_lib_dir] + out_binary_files
-    declared_outputs += _list(out_pkg_dir) + libraries.static_libraries
+    declared_outputs += libraries.static_libraries
     declared_outputs += libraries.shared_libraries + libraries.interface_libraries
 
     return _Outputs(
@@ -318,7 +314,6 @@ def _define_outputs(ctx, attrs, lib_name):
         out_include_dir = out_include_dir,
         out_bin_dir = out_bin_dir,
         out_lib_dir = out_lib_dir,
-        out_pkg_dir = out_pkg_dir,
         out_binary_files = out_binary_files,
         libraries = libraries,
         declared_outputs = declared_outputs,
@@ -333,13 +328,14 @@ _InputFiles = provider(
     doc = """Provider to keep different kinds of input files, directories,
 and C/C++ compilation and linking info from dependencies""",
     fields = dict(
-        headers = "Include directories to be used for compilation",
-        libs = "Library files to be used for building",
+        headers = """Include directories to be used for compilation.
+Will be copied into $EXT_BUILD_DEPS/include.""",
+        libs = "Library files to be used for building. Will be copied into $EXT_BUILD_DEPS/lib.",
         deps_linkopts = "Link options from deps to be passed to resulting CcLinkingInfo",
         tools_files = """Files and directories with tools needed for configuration/building
 to be copied into the bin folder, which is added to the PATH""",
-        pkg_configs = """pkgconfig files to be copied to the pkg_config folder,
-PKG_CONFIG_PATH is assigned to that folder""",
+        ext_build_dirs = """Directories with libraries, built by framework function.
+This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents.""",
         deps_compilation_info = "Merged CcCompilationInfo from deps attribute",
         deps_linking_info = "Merged CcLinkingInfo from deps attribute",
         declared_inputs = "All files and directories that must be declared as action inputs",
@@ -347,18 +343,25 @@ PKG_CONFIG_PATH is assigned to that folder""",
 )
 
 def _define_inputs(attrs):
-    pkg_configs = []
-    compilation_infos = []
-    linking_infos = []
+    compilation_infos_ext = []
+    linking_infos_ext = []
+    compilation_infos_bazel = []
+    linking_infos_bazel = []
+    # This framework function-built libraries: copy result directories under
+    # $EXT_BUILD_DEPS/lib-name
+    ext_build_dirs = []
 
     for dep in attrs.deps:
-        compilation_infos += [dep[CcCompilationInfo]]
-        linking_infos += [dep[CcLinkingInfo]]
-
         provider = dep[OutputGroupInfo]
-        if provider and hasattr(provider, "pkg_config_dir"):
-            # or do we want to be able to produce several files?
-            pkg_configs += provider.pkg_config_dir.to_list()
+        ext_built = provider and hasattr(provider, "gen_dir")
+
+        if ext_built:
+            ext_build_dirs += provider.gen_dir.to_list()
+            compilation_infos_ext += [dep[CcCompilationInfo]]
+            linking_infos_ext += [dep[CcLinkingInfo]]
+        else:
+            compilation_infos_bazel += [dep[CcCompilationInfo]]
+            linking_infos_bazel += [dep[CcLinkingInfo]]
 
     tools_roots = []
     tools_files = []
@@ -372,24 +375,30 @@ def _define_inputs(attrs):
         for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
-    deps_compilation = cc_common.merge_cc_compilation_infos(cc_compilation_infos = compilation_infos)
-    deps_linking = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos)
+    # For Bazel-built libraries: copy headers and libs.
+    headers = [_get_headers(cc_info) for cc_info in compilation_infos_bazel]
+    deps_linking_bazel = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos_bazel)
+    libs = _collect_libs(deps_linking_bazel)
 
-    (libs, linkopts) = _collect_libs_and_flags(deps_linking)
-    headers = []
-    for cc_info in compilation_infos:
-        headers += _get_headers(cc_info)
+    # These variables are needed for correct C/C++ providers constraction,
+    # they should contain all libraries and include directories.
+    deps_compilation = cc_common.merge_cc_compilation_infos(cc_compilation_infos = compilation_infos_ext + compilation_infos_bazel)
+    deps_linking = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos_ext + [deps_linking_bazel])
+
+    # Pass flags up the dependency chain for all types of libraries;
+    # flags are passed uniformly for Bazel-built and external libraries
+    linkopts = _collect_flags(deps_linking)
 
     return _InputFiles(
         headers = headers,
         libs = libs,
         deps_linkopts = linkopts,
         tools_files = tools_roots,
-        pkg_configs = pkg_configs,
         deps_compilation_info = deps_compilation,
         deps_linking_info = deps_linking,
-        declared_inputs = depset(attrs.lib_source.files) + libs + tools_files + pkg_configs +
-                          attrs.additional_inputs + deps_compilation.headers,
+        ext_build_dirs = ext_build_dirs,
+        declared_inputs = depset(attrs.lib_source.files) + libs + tools_files +
+                          attrs.additional_inputs + deps_compilation.headers + ext_build_dirs,
     )
 
 def _get_headers(compilation_info):
@@ -427,21 +436,26 @@ def _define_out_cc_info(ctx, attrs, inputs, outputs):
         linking_info = out_linking_info,
     )
 
-def _collect_libs_and_flags(cc_linking):
-    libs = []
-    linkopts = []
+def _extract_link_params(cc_linking):
+    return [
+       cc_linking.static_mode_params_for_dynamic_library,
+       cc_linking.static_mode_params_for_executable,
+       cc_linking.dynamic_mode_params_for_dynamic_library,
+       cc_linking.dynamic_mode_params_for_executable,
+    ]
 
-    for params in [
-        cc_linking.static_mode_params_for_dynamic_library,
-        cc_linking.static_mode_params_for_executable,
-        cc_linking.dynamic_mode_params_for_dynamic_library,
-        cc_linking.dynamic_mode_params_for_executable,
-    ]:
+def _collect_libs(cc_linking):
+    libs = []
+    for params in _extract_link_params(cc_linking):
         libs += [lib.artifact() for lib in params.libraries_to_link.to_list()]
         libs += params.dynamic_libraries_for_runtime.to_list()
-        linkopts = params.linkopts.to_list()
+    return collections.uniq(libs)
 
-    return (collections.uniq(libs), collections.uniq(linkopts))
+def _collect_flags(cc_linking):
+    linkopts = []
+    for params in _extract_link_params(cc_linking):
+        linkopts = params.linkopts.to_list()
+    return collections.uniq(linkopts)
 
 def detect_root(source):
     """Detects the path to the topmost directory of the 'source' outputs.
