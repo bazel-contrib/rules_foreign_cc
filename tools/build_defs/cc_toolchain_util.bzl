@@ -133,13 +133,14 @@ def _build_libraries_to_link_and_runtime_artifact(ctx, files, cc_toolchain, targ
     runtime_artifacts = []
     if files.shared_libraries != None:
         for lib in files.shared_libraries:
-            shared_library += _build_shared_library_to_link(ctx, lib, cc_toolchain, targets_windows)
-            runtime_artifact += shared_library.artifact()
+            shared_library = _build_shared_library_to_link(ctx, lib, cc_toolchain, targets_windows)
+            shared_libraries += [shared_library]
+            runtime_artifacts += [shared_library.artifact()]
 
     interface_libraries = []
     if files.interface_libraries != None:
         for lib in files.interface_libraries:
-            interface_libraries += _build_interface_library_to_link(ctx, lib, cc_toolchain, targets_windows)
+            interface_libraries += [_build_interface_library_to_link(ctx, lib, cc_toolchain, targets_windows)]
 
     dynamic_libraries_for_linking = None
     if len(interface_libraries) > 0:
