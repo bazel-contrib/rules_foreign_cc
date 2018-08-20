@@ -245,7 +245,7 @@ def _symlink_to_dir(dir_name, files_list, link_children):
     for file in files_list:
         paths_list += [file if type(file) == "string" else file.path]
 
-    link_function = "symlink_dir_contents_to_dir" if link_children else "symlink_to_dir"
+    link_function = "symlink_contents_to_dir" if link_children else "symlink_to_dir"
     for path in paths_list:
         list += ["{} $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS/{}".format(link_function, path, dir_name)]
 
