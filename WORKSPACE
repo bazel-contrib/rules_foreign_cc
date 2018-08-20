@@ -70,3 +70,23 @@ http_archive(
 load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
 
 gmaven_rules()
+
+new_http_archive(
+    name = "freetype",
+    build_file_content = all_content,
+    sha256 = "e6ffba3c8cef93f557d1f767d7bc3dee860ac7a3aaff588a521e081bc36f4c8a",
+    strip_prefix = "freetype-2.9",
+    urls = [
+        "https://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2",
+    ],
+)
+
+new_http_archive(
+    name = "libgd",
+    build_file_content = all_content,
+    sha256 = "8c302ccbf467faec732f0741a859eef4ecae22fea2d2ab87467be940842bde51",
+    strip_prefix = "libgd-2.2.5",
+    urls = [
+        "https://github.com/libgd/libgd/releases/download/gd-2.2.5/libgd-2.2.5.tar.xz",
+    ],
+)
