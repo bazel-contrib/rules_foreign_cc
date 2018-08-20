@@ -42,10 +42,15 @@ def _cmake_external(ctx):
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:
-        return ctx.attr.install_prefix
+        prefix = ctx.attr.install_prefix
+        # If not in sandbox, or after the build, the value can be absolute.
+        # So if the user passed the absolute value, do not touch it.
+        if (prefix.startswith("/")):
+            return prefix
+        return prefix if prefix.startswith("./") else "./" + prefix
     if ctx.attr.lib_name:
-        return ctx.attr.lib_name
-    return ctx.attr.name
+        return "./" + ctx.attr.lib_name
+    return "./" + ctx.attr.name
 
 def _get_toolchain_variables(ctx, tools, flags):
     vars = {}
