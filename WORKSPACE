@@ -90,3 +90,10 @@ new_http_archive(
         "https://github.com/libgd/libgd/releases/download/gd-2.2.5/libgd-2.2.5.tar.xz",
     ],
 )
+
+new_http_archive(
+    name = "pybind11",
+    build_file_content = all_content,
+    strip_prefix = "pybind11-2.2.3",
+    url = "https://github.com/pybind/pybind11/archive/v2.2.3.tar.gz",
+)
