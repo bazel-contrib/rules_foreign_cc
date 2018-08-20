@@ -75,6 +75,8 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "interface_libraries": attr.string_list(mandatory = False),
     # Optional names of the resulting binaries.
     "binaries": attr.string_list(mandatory = False),
+    # Flag variable to indicate that the library produces only headers
+    "headers_only": attr.bool(mandatory = False, default = False),
     #
     # Optional name of the output subdirectory with pkgconfig files.
     "out_pkg_config_dir": attr.string(mandatory = False),
@@ -278,13 +280,14 @@ _Outputs = provider(
 
 def _define_outputs(ctx, attrs, lib_name):
     static_libraries = []
-    if (not (hasattr(attrs, "static_libraries") and len(attrs.static_libraries) > 0) and
-        not (hasattr(attrs, "shared_libraries") and len(attrs.shared_libraries) > 0) and
-        not (hasattr(attrs, "interface_libraries") and len(attrs.interface_libraries) > 0) and
-        not (hasattr(attrs, "binaries") and len(attrs.binaries) > 0)):
-        static_libraries = [lib_name + (".lib" if targets_windows(ctx, None) else ".a")]
-    else:
-        static_libraries = attrs.static_libraries
+    if not hasattr(attrs, "headers_only") or not attrs.headers_only:
+        if (not (hasattr(attrs, "static_libraries") and len(attrs.static_libraries) > 0) and
+            not (hasattr(attrs, "shared_libraries") and len(attrs.shared_libraries) > 0) and
+            not (hasattr(attrs, "interface_libraries") and len(attrs.interface_libraries) > 0) and
+            not (hasattr(attrs, "binaries") and len(attrs.binaries) > 0)):
+            static_libraries = [lib_name + (".lib" if targets_windows(ctx, None) else ".a")]
+        else:
+            static_libraries = attrs.static_libraries
 
     _check_file_name(lib_name, "Library name")
 
