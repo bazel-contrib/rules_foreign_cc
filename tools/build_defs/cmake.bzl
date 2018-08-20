@@ -64,7 +64,7 @@ def _get_toolchain_variables(ctx, tools, flags):
 
     for key in ctx.attr.env_vars:
         existing = []
-        if vars[key]:
+        if vars.get(key, None):
             existing = vars[key]
         vars[key] = existing + [ctx.attr.env_vars[key]]
 
@@ -109,7 +109,7 @@ def _join_cache_options(ctx, toolchain_entries, user_entries):
 
     for key in user_entries:
         existing = []
-        if cache_entries[key]:
+        if cache_entries.get(key, None):
             existing = cache_entries[key]
         cache_entries[key] = existing + [user_entries[key]]
 
