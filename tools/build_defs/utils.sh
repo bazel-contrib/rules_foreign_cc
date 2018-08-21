@@ -48,7 +48,7 @@ function path() {
 # $3 replace target
 function replace_in_files() {
   if [ -d "$1" ]; then
-    find $1 -type f -type l -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
+    find $1 -type f -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
   fi
 }
 
