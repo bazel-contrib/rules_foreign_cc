@@ -223,14 +223,22 @@ def _copy_deps_and_tools(files):
     list = []
     list += _symlink_to_dir("lib", files.libs, False)
     list += _symlink_to_dir("include", files.headers, True)
+
     list += _symlink_to_dir("bin", files.tools_files, False)
 
     for ext_dir in files.ext_build_dirs:
         list += ["symlink_to_dir $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS".format(_file_path(ext_dir))]
 
     list += ["if [ -d $EXT_BUILD_DEPS/bin ]; then"]
-    list += ["  tools=$(find $EXT_BUILD_DEPS/bin -type d -type l -maxdepth 1)"]
-    list += ["  for tool in $tools; do export PATH=$PATH:$tool; done"]
+    list += ["  echo \"BIN EXISTS\""]
+
+    list += ["  tools=$(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)"]
+    list += ["  for tool in $tools;"]
+    list += ["  do"]
+    list += ["    if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then"]
+    list += ["      export PATH=$PATH:$tool"]
+    list += ["    fi"]
+    list += ["  done"]
     list += ["fi"]
     list += ["path $EXT_BUILD_DEPS/bin"]
 
@@ -347,6 +355,7 @@ def _define_inputs(attrs):
     linking_infos_ext = []
     compilation_infos_bazel = []
     linking_infos_bazel = []
+
     # This framework function-built libraries: copy result directories under
     # $EXT_BUILD_DEPS/lib-name
     ext_build_dirs = []
@@ -438,10 +447,10 @@ def _define_out_cc_info(ctx, attrs, inputs, outputs):
 
 def _extract_link_params(cc_linking):
     return [
-       cc_linking.static_mode_params_for_dynamic_library,
-       cc_linking.static_mode_params_for_executable,
-       cc_linking.dynamic_mode_params_for_dynamic_library,
-       cc_linking.dynamic_mode_params_for_executable,
+        cc_linking.static_mode_params_for_dynamic_library,
+        cc_linking.static_mode_params_for_executable,
+        cc_linking.dynamic_mode_params_for_dynamic_library,
+        cc_linking.dynamic_mode_params_for_executable,
     ]
 
 def _collect_libs(cc_linking):
@@ -469,17 +478,37 @@ def detect_root(source):
     """
     root = source.label.workspace_root
     sources = source.files
-    if (not root or len(root) == 0) and len(sources) > 0:
-        root = ""
+    if (root and len(root) > 0) or len(sources) == 0:
+        return root
 
-        # find topmost directory
-        for file in sources:
-            if len(root) == 0 or len(root) > len(file.path):
-                root = file.path
-    else:
+    root = ""
+    level = -1
+    num_at_level = 0
+
+    # find topmost directory
+    for file in sources:
+        file_level = _get_level(file.path)
+        if level == -1 or level > file_level:
+            root = file.path
+            level = file_level
+            num_at_level = 1
+        elif level == file_level:
+            num_at_level += 1
+
+    if num_at_level == 1:
         return root
 
     (before, sep, after) = root.rpartition("/")
     if before and sep and after:
         return before
     return root
+
+def _get_level(path):
+    normalized = path
+    for i in range(len(path)):
+        new_normalized = normalized.replace("//", "/")
+        if len(new_normalized) == len(normalized):
+            break
+        normalized = new_normalized
+
+    return normalized.count("/")
