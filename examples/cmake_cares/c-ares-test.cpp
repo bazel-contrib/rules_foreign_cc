@@ -1,5 +1,3 @@
-// The code is adopted from https://github.com/c-ares/c-ares/blob/master/test/ares-test-parse.cc
-// for testing purposes
 #include "ares.h"
 
 #include <iostream>
