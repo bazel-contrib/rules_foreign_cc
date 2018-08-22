@@ -6,9 +6,13 @@ load(
     "CC_EXTERNAL_RULE_ATTRIBUTES",
     "cc_external_rule_impl",
     "create_attrs",
+)
+load(
+    "//tools/build_defs:detect_root.bzl",
     "detect_root",
 )
 load("//tools/build_defs:cc_toolchain_util.bzl", "absolutize_path_in_str", "getFlagsInfo", "getToolsInfo")
+load("@foreign_cc_platform_utils//:cmake_globals.bzl", "CMAKE_COMMAND", "CMAKE_DEPS")
 
 def _cmake_external(ctx):
     options = " ".join(ctx.attr.cmake_options)
@@ -22,7 +26,7 @@ def _cmake_external(ctx):
 
     cmake_string = " ".join([
         " ".join(_get_toolchain_variables(ctx, tools, flags)),
-        " cmake",
+        " " + CMAKE_COMMAND,
         " ".join(cache_entries),
         "-DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\"",
         "-DCMAKE_INSTALL_PREFIX=\"{}\"".format(install_prefix),
@@ -31,11 +35,13 @@ def _cmake_external(ctx):
     ])
     copy_results = "copy_dir_contents_to_dir $TMPDIR/{} $INSTALLDIR".format(install_prefix)
 
+    tools_deps = ctx.attr.tools_deps + [ctx.attr._cmake_dep]
     attrs = create_attrs(
         ctx.attr,
         configure_name = "CMake",
         configure_script = cmake_string,
         postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
+        tools_deps = tools_deps,
     )
 
     return cc_external_rule_impl(ctx, attrs)
@@ -143,6 +149,12 @@ def _attrs():
         "env_vars": attr.string_dict(mandatory = False, default = {}),
         # Other CMake options
         "cmake_options": attr.string_list(mandatory = False, default = []),
+        "_cmake_dep": attr.label(
+            default = "@foreign_cc_platform_utils//:cmake",
+            cfg = "target",
+            allow_files = True,
+            #            allow_single_file = True,
+        ),
     })
     return attrs
 

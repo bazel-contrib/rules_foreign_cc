@@ -3,5 +3,7 @@ exports_files(
         "utils.sh",
         "cmake.bzl",
         "framework.bzl",
+        "ninja_build.bzl",
+        "cmake_build.bzl",
     ],
 )

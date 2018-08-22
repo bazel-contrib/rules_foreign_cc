@@ -131,3 +131,12 @@ http_archive(
         "https://github.com/nghttp2/nghttp2/archive/e5b3f9addd49bca27e2f99c5c65a564eb5c0cf6d.tar.gz",
     ],
 )
+
+http_archive(
+    name = "cmake",
+    build_file_content = all_content,
+    strip_prefix = "CMake-3.12.1",
+    urls = [
+        "https://github.com/Kitware/CMake/archive/v3.12.1.tar.gz",
+    ],
+)
