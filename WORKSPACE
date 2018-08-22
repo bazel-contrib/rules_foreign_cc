@@ -119,3 +119,15 @@ http_archive(
         "https://github.com/c-ares/c-ares/archive/cares-1_14_0.tar.gz",
     ],
 )
+
+http_archive(
+    name = "nghttp2",
+    build_file_content = all_content,
+    patch_args = ["-p1"],
+    patch_cmds = ["find . -name '*.sh' -exec sed -i.orig '1s|#!/usr/bin/env sh\$|/bin/sh\$|' {} +"],
+    patches = ["//:nghttp2.patch"],
+    strip_prefix = "nghttp2-e5b3f9addd49bca27e2f99c5c65a564eb5c0cf6d",
+    urls = [
+        "https://github.com/nghttp2/nghttp2/archive/e5b3f9addd49bca27e2f99c5c65a564eb5c0cf6d.tar.gz",
+    ],
+)

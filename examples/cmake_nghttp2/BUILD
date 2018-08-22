@@ -7,24 +7,24 @@ ninja_tool(
 )
 
 cmake_external(
-    name = "cares",
+    name = "nghttp2",
     cache_entries = {
-        "CARES_SHARED": "no",
-        "CARES_STATIC": "on",
+        "ENABLE_STATIC_LIB": "on",
+        "ENABLE_LIB_ONLY": "on",
     },
     cmake_options = ["-GNinja"],
-    lib_source = "@cares//:all",
+    lib_source = "@nghttp2//:all",
     make_commands = [
         "ninja",
         "ninja install",
     ],
-    static_libraries = ["libcares.a"],
+    static_libraries = ["libnghttp2.a"],
     tools_deps = [":ninjatool"],
 )
 
 cc_test(
-    name = "test_c_ares",
-    srcs = ["c-ares-test.cpp"],
+    name = "test_nghttp2",
+    srcs = ["nghttp2-test.cpp"],
     visibility = ["//:__pkg__"],
-    deps = [":cares"],
+    deps = [":nghttp2"],
 )
