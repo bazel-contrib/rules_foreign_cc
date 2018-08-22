@@ -13,7 +13,7 @@ def _ninja_tool(ctx):
     ])
 
     ctx.actions.run_shell(
-        mnemonic = "BootsrapNinja",
+        mnemonic = "BootstrapNinja",
         inputs = ctx.attr.ninja_srcs.files,
         outputs = [ninja],
         tools = [],
