@@ -4,16 +4,18 @@ load("//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies()
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
 
-new_http_archive(
+http_archive(
     name = "libevent",
     build_file_content = all_content,
     strip_prefix = "libevent-2.1.8-stable",
     urls = ["https://github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz"],
 )
 
-new_http_archive(
+http_archive(
     name = "zlib",
     build_file_content = all_content,
     sha256 = "4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066",
@@ -23,7 +25,7 @@ new_http_archive(
     ],
 )
 
-new_http_archive(
+http_archive(
     name = "libpng",
     build_file_content = all_content,
     sha256 = "2f1e960d92ce3b3abd03d06dfec9637dfbd22febf107a536b44f7a47c60659f6",
@@ -33,7 +35,7 @@ new_http_archive(
     ],
 )
 
-new_http_archive(
+http_archive(
     name = "org_linaro_components_toolchain_gcc_5_3_1",
     build_file = "framework_example/cmake_cross/compilers/linaro_linux_gcc_5.3.1.BUILD",
     strip_prefix = "gcc-linaro-5.3.1-2016.05-x86_64_arm-linux-gnueabihf",
@@ -71,7 +73,7 @@ load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
 
 gmaven_rules()
 
-new_http_archive(
+http_archive(
     name = "freetype",
     build_file_content = all_content,
     sha256 = "e6ffba3c8cef93f557d1f767d7bc3dee860ac7a3aaff588a521e081bc36f4c8a",
@@ -81,7 +83,7 @@ new_http_archive(
     ],
 )
 
-new_http_archive(
+http_archive(
     name = "libgd",
     build_file_content = all_content,
     sha256 = "8c302ccbf467faec732f0741a859eef4ecae22fea2d2ab87467be940842bde51",
@@ -91,14 +93,14 @@ new_http_archive(
     ],
 )
 
-new_http_archive(
+http_archive(
     name = "pybind11",
     build_file_content = all_content,
     strip_prefix = "pybind11-2.2.3",
     url = "https://github.com/pybind/pybind11/archive/v2.2.3.tar.gz",
 )
 
-new_http_archive(
+http_archive(
     name = "ninja_build",
     build_file_content = all_content,
     sha256 = "86b8700c3d0880c2b44c2ff67ce42774aaf8c28cbf57725cb881569288c1c6f4",
@@ -108,7 +110,7 @@ new_http_archive(
     ],
 )
 
-new_http_archive(
+http_archive(
     name = "cares",
     build_file_content = all_content,
     sha256 = "62dd12f0557918f89ad6f5b759f0bf4727174ae9979499f5452c02be38d9d3e8",
