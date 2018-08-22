@@ -6,7 +6,7 @@ def _ninja_tool(ctx):
     ninja = ctx.actions.declare_directory("ninja")
     script_text = "\n".join([
         "mkdir " + ninja.path,
-        "cp -r -L ./{}/** {}".format(root, ninja.path),
+        "cp -r ./{}/** {}".format(root, ninja.path),
         "cd " + ninja.path,
         "pwd",
         "./configure.py --bootstrap",
