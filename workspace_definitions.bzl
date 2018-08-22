@@ -8,14 +8,62 @@ def _define_shell_utils_impl(rctx):
     if os_name.find("windows") != -1:
         utils_name = "utils_win.bat"
         fail("Not supported yet!")
-    rctx.file("WORKSPACE", "workspace(name='foreign_cc_platform_utils')")
+
+    existing_cmake = rctx.which("cmake")
+
+    is_ci = rctx.os.environ.get("CI")
+    print("IS_CI: " + str(is_ci))
+
+    cmake_globals_text = ""
+    cmake_text = ""
+    if existing_cmake != None:
+        cmake_globals_text = """
+CMAKE_COMMAND="cmake"
+CMAKE_DEPS=[]
+"""
+        cmake_text = """
+sh_library(
+  name = "cmake",
+  visibility = ["//visibility:public"]
+)
+"""
+    else:
+        path_to_cmake_build = rctx.path(Label("//tools/build_defs:cmake_build.bzl"))
+        rctx.template("cmake_build.bzl", path_to_cmake_build)
+
+        path_to_detect_root = rctx.path(Label("//tools/build_defs:detect_root.bzl"))
+        rctx.template("detect_root.bzl", path_to_detect_root)
+
+        cmake_globals_text = """
+CMAKE_COMMAND="$EXT_BUILD_DEPS/bin/cmake/bin/cmake"
+CMAKE_DEPS=[Label("@foreign_cc_platform_utils//:cmake")]
+"""
+        cmake_text = """
+sh_library(
+  name = "cmake",
+  srcs = [":cmake_externally_built"],
+  visibility = ["//visibility:public"]
+)
+
+load("//:cmake_build.bzl", "cmake_tool")
+cmake_tool(
+  name = "cmake_externally_built",
+  cmake_srcs = "@cmake//:all"
+)
+"""
+
+    rctx.file("cmake_globals.bzl", cmake_globals_text)
+
+    rctx.file("WORKSPACE", """workspace(name='foreign_cc_platform_utils')""")
+
     rctx.file("BUILD.bazel", """
 sh_library(
   name = "shell_utils",
   srcs = ["{}"],
   visibility = ["//visibility:public"]
 )
-""".format(utils_name))
+""".format(utils_name) + cmake_text)
+
     path = rctx.path(Label("//tools/build_defs:" + utils_name))
     rctx.template(utils_name, path, executable = True)
 

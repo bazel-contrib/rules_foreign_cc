@@ -1,4 +1,4 @@
-load("//tools/build_defs:framework.bzl", "detect_root")
+load("//tools/build_defs:detect_root.bzl", "detect_root")
 
 def _ninja_tool(ctx):
     root = detect_root(ctx.attr.ninja_srcs)
@@ -6,9 +6,8 @@ def _ninja_tool(ctx):
     ninja = ctx.actions.declare_directory("ninja")
     script_text = "\n".join([
         "mkdir " + ninja.path,
-        "cp -r ./{}/** {}".format(root, ninja.path),
+        "cp -R ./{}/. {}".format(root, ninja.path),
         "cd " + ninja.path,
-        "pwd",
         "./configure.py --bootstrap",
     ])
 
