@@ -90,7 +90,7 @@ function symlink_to_dir() {
   mkdir -p ${target}
 
   if [[ -d $1 ]]; then
-    local dir_name="$(dirname "$1")"
+    local dir_name="$(basename "$1")"
     ln -s $1 ${target}/${dir_name}
   elif [[ -f $1 ]]; then
     ln -s $1 ${target}
