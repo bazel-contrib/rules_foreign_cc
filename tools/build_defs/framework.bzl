@@ -230,7 +230,6 @@ def _copy_deps_and_tools(files):
         list += ["symlink_to_dir $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS".format(_file_path(ext_dir))]
 
     list += ["if [ -d $EXT_BUILD_DEPS/bin ]; then"]
-    list += ["  echo \"BIN EXISTS\""]
 
     list += ["  tools=$(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)"]
     list += ["  for tool in $tools;"]
