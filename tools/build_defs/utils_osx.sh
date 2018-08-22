@@ -123,10 +123,3 @@ function define_absolute_paths() {
 function replace_absolute_paths() {
   replace_in_files $1 $2 $REPLACE_VALUE
 }
-
-# create temp directory in specific directory
-# $1 directory where to create temp directory
-function create_tmp_dir() {
-  local in_folder=$1
-  mktemp -d -t ${in_folder}
-}
