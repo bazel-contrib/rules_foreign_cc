@@ -12,11 +12,10 @@ def _define_shell_utils_impl(rctx):
     existing_cmake = rctx.which("cmake")
 
     is_ci = rctx.os.environ.get("CI")
-    print("IS_CI: " + str(is_ci))
 
     cmake_globals_text = ""
     cmake_text = ""
-    if existing_cmake != None:
+    if existing_cmake != None or existing_cmake == None and is_ci == None:
         cmake_globals_text = """
 CMAKE_COMMAND="cmake"
 CMAKE_DEPS=[]
