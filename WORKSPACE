@@ -140,3 +140,31 @@ http_archive(
         "https://github.com/Kitware/CMake/archive/v3.12.1.tar.gz",
     ],
 )
+
+new_http_archive(
+    name = "pcl",
+    build_file_content = all_content,
+    strip_prefix = "pcl-pcl-1.8.1",
+    urls = ["https://github.com/PointCloudLibrary/pcl/archive/pcl-1.8.1.tar.gz"],
+)
+
+new_http_archive(
+    name = "eigen",
+    build_file_content = all_content,
+    strip_prefix = "eigen-git-mirror-3.3.5",
+    urls = ["https://github.com/eigenteam/eigen-git-mirror/archive/3.3.5.tar.gz"],
+)
+
+new_http_archive(
+    name = "openblas",
+    build_file_content = all_content,
+    strip_prefix = "OpenBLAS-0.3.2",
+    urls = ["https://github.com/xianyi/OpenBLAS/archive/v0.3.2.tar.gz"],
+)
+
+new_http_archive(
+    name = "flann",
+    build_file_content = all_content,
+    strip_prefix = "flann-1.9.1",
+    urls = ["https://github.com/mariusmuja/flann/archive/1.9.1.tar.gz"],
+)
