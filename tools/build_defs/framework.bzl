@@ -80,9 +80,8 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     #
     # link to the shell utilities used by the shell script in cc_external_rule_impl.
     "_utils": attr.label(
-        default = Label("//tools/build_defs:utils.sh"),
+        default = "@foreign_cc_platform_utils//:shell_utils",
         allow_single_file = True,
-        executable = True,
         cfg = "target",
     ),
     # we need to declare this attribute to access cc_toolchain
@@ -165,7 +164,7 @@ def cc_external_rule_impl(ctx, attrs):
         "echo \"Building external library '{}'\"".format(lib_name),
         "export TMPDIR=$(mktemp -d)",
         "trap \"{ rm -rf $TMPDIR; }\" EXIT",
-        "export EXT_BUILD_DEPS=$(mktemp -d --tmpdir=$EXT_BUILD_ROOT)",
+        "export EXT_BUILD_DEPS=$(create_tmp_dir $EXT_BUILD_ROOT)",
         "\n".join(_copy_deps_and_tools(inputs)),
         "define_absolute_paths $EXT_BUILD_ROOT/bin $EXT_BUILD_ROOT/bin",
         "export INSTALLDIR=$EXT_BUILD_ROOT/" + outputs.installdir.path,
