@@ -15,7 +15,10 @@ def _define_shell_utils_impl(rctx):
 
     cmake_globals_text = ""
     cmake_text = ""
-    if existing_cmake != None or existing_cmake == None and is_ci == None:
+
+    # for now, do not try to build cmake from sources, rather fail fast
+    if True:
+        #    if existing_cmake != None or existing_cmake == None and is_ci == None:
         cmake_globals_text = """
 CMAKE_COMMAND="cmake"
 CMAKE_DEPS=[]
