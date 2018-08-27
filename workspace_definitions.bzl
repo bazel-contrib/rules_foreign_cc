@@ -1,6 +1,4 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-#load("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure")
 load(":repositories.bzl", "repositories")
 load(":install_ws_dependency.bzl", "install_ws_dependency")
 
@@ -11,8 +9,6 @@ def _platform_dependent_init_impl(rctx):
         [_shell_utils_text(rctx, host_os), _cmake_build_rule_text(rctx, host_os)],
     ))
     _create_os_description(rctx, host_os)
-
-#   xcode_configure("@bazel_tools//tools/osx:xcode_locator.m")
 
 def _get_host_os(rctx):
     os_name = rctx.os.name.lower()
