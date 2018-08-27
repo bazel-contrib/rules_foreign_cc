@@ -10,6 +10,97 @@ load(
     "targets_windows",
 )
 load("//tools/build_defs:detect_root.bzl", "detect_root")
+load("@foreign_cc_platform_utils//:host_os.bzl", "host_os")
+load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
+
+def _create_common_attributes():
+    dict = {
+        # Library name. Defines the name of the install directory and the name of the static library,
+        # if no output files parameters are defined (any of static_libraries, shared_libraries,
+        # interface_libraries, binaries_names)
+        # Optional. If not defined, defaults to the target's name.
+        "lib_name": attr.string(mandatory = False),
+        # Label with source code to build. Typically a filegroup for the source of remote repository.
+        # Mandatory.
+        "lib_source": attr.label(mandatory = True, allow_files = True),
+        # Optional compilation definitions to be passed to the dependencies of this library.
+        # They are NOT passed to the compiler, you should duplicate them in the configuration options.
+        "defines": attr.string_list(mandatory = False, default = []),
+        #
+        # Optional additional inputs to be declared as needed for the shell script action.
+        # Not used by the shell script part in cc_external_rule_impl.
+        "additional_inputs": attr.label_list(mandatory = False, allow_files = True, default = []),
+        # Optional additional tools needed for the building.
+        # Not used by the shell script part in cc_external_rule_impl.
+        "additional_tools": attr.label_list(mandatory = False, allow_files = True, default = []),
+        #
+        # Optional part of the shell script to be added after the make commands
+        "postfix_script": attr.string(mandatory = False),
+        # Optinal make commands, defaults to ["make", "make install"]
+        "make_commands": attr.string_list(mandatory = False, default = ["make", "make install"]),
+        #
+        # Optional dependencies to be copied into the directory structure.
+        # Typically those directly required for the external building of the library/binaries.
+        # (i.e. those that the external buidl system will be looking for and paths to which are
+        # provided by the calling rule)
+        "deps": attr.label_list(mandatory = False, allow_files = True, default = []),
+        # Optional tools to be copied into the directory structure.
+        # Similar to deps, those directly required for the external building of the library/binaries.
+        "tools_deps": attr.label_list(mandatory = False, allow_files = True, default = []),
+        #
+        # Optional name of the output subdirectory with the header files, defaults to 'include'.
+        "out_include_dir": attr.string(mandatory = False, default = "include"),
+        # Optional name of the output subdirectory with the library files, defaults to 'lib'.
+        "out_lib_dir": attr.string(mandatory = False, default = "lib"),
+        # Optional name of the output subdirectory with the binary files, defaults to 'bin'.
+        "out_bin_dir": attr.string(mandatory = False, default = "bin"),
+        #
+        # Optional. if true, link all the object files from the static library,
+        # even if they are not used.
+        "alwayslink": attr.bool(mandatory = False, default = False),
+        # Optional link options to be passed up to the dependencies of this library
+        "linkopts": attr.string_list(mandatory = False, default = []),
+        #
+        # Output files names parameters. If any of them is defined, only these files are passed to
+        # Bazel providers.
+        # if no of them is defined, default lib_name.a/lib_name.lib static library is assumed.
+        #
+        # Optional names of the resulting static libraries.
+        "static_libraries": attr.string_list(mandatory = False),
+        # Optional names of the resulting shared libraries.
+        "shared_libraries": attr.string_list(mandatory = False),
+        # Optional names of the resulting interface libraries.
+        "interface_libraries": attr.string_list(mandatory = False),
+        # Optional names of the resulting binaries.
+        "binaries": attr.string_list(mandatory = False),
+        # Flag variable to indicate that the library produces only headers
+        "headers_only": attr.bool(mandatory = False, default = False),
+        #
+        # link to the shell utilities used by the shell script in cc_external_rule_impl.
+        "_utils": attr.label(
+            default = "@foreign_cc_platform_utils//:shell_utils",
+            allow_single_file = True,
+            cfg = "target",
+        ),
+        # we need to declare this attribute to access cc_toolchain
+        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+    }
+    if host_os["is_osx"]:
+        dict.update({
+            "_xcode_config": attr.label(default = Label("@bazel_tools//tools/osx:current_xcode_config")),
+            "_xcrunwrapper": attr.label(
+                executable = True,
+                cfg = "host",
+                default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
+            ),
+            "_platform_type": attr.string(
+                default = str(apple_common.platform_type.macos),
+            ),
+        })
+    return dict
 
 """ Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
  Many of the attributes have default values.
@@ -17,77 +108,7 @@ load("//tools/build_defs:detect_root.bzl", "detect_root")
  Typically, the concrete external library rule will use this structure to create the attributes
  description dict. See cmake.bzl as an example.
 """
-CC_EXTERNAL_RULE_ATTRIBUTES = {
-    # Library name. Defines the name of the install directory and the name of the static library,
-    # if no output files parameters are defined (any of static_libraries, shared_libraries,
-    # interface_libraries, binaries_names)
-    # Optional. If not defined, defaults to the target's name.
-    "lib_name": attr.string(mandatory = False),
-    # Label with source code to build. Typically a filegroup for the source of remote repository.
-    # Mandatory.
-    "lib_source": attr.label(mandatory = True, allow_files = True),
-    # Optional compilation definitions to be passed to the dependencies of this library.
-    # They are NOT passed to the compiler, you should duplicate them in the configuration options.
-    "defines": attr.string_list(mandatory = False, default = []),
-    #
-    # Optional additional inputs to be declared as needed for the shell script action.
-    # Not used by the shell script part in cc_external_rule_impl.
-    "additional_inputs": attr.label_list(mandatory = False, allow_files = True, default = []),
-    # Optional additional tools needed for the building.
-    # Not used by the shell script part in cc_external_rule_impl.
-    "additional_tools": attr.label_list(mandatory = False, allow_files = True, default = []),
-    #
-    # Optional part of the shell script to be added after the make commands
-    "postfix_script": attr.string(mandatory = False),
-    # Optinal make commands, defaults to ["make", "make install"]
-    "make_commands": attr.string_list(mandatory = False, default = ["make", "make install"]),
-    #
-    # Optional dependencies to be copied into the directory structure.
-    # Typically those directly required for the external building of the library/binaries.
-    # (i.e. those that the external buidl system will be looking for and paths to which are
-    # provided by the calling rule)
-    "deps": attr.label_list(mandatory = False, allow_files = True, default = []),
-    # Optional tools to be copied into the directory structure.
-    # Similar to deps, those directly required for the external building of the library/binaries.
-    "tools_deps": attr.label_list(mandatory = False, allow_files = True, default = []),
-    #
-    # Optional name of the output subdirectory with the header files, defaults to 'include'.
-    "out_include_dir": attr.string(mandatory = False, default = "include"),
-    # Optional name of the output subdirectory with the library files, defaults to 'lib'.
-    "out_lib_dir": attr.string(mandatory = False, default = "lib"),
-    # Optional name of the output subdirectory with the binary files, defaults to 'bin'.
-    "out_bin_dir": attr.string(mandatory = False, default = "bin"),
-    #
-    # Optional. if true, link all the object files from the static library,
-    # even if they are not used.
-    "alwayslink": attr.bool(mandatory = False, default = False),
-    # Optional link options to be passed up to the dependencies of this library
-    "linkopts": attr.string_list(mandatory = False, default = []),
-    #
-    # Output files names parameters. If any of them is defined, only these files are passed to
-    # Bazel providers.
-    # if no of them is defined, default lib_name.a/lib_name.lib static library is assumed.
-    #
-    # Optional names of the resulting static libraries.
-    "static_libraries": attr.string_list(mandatory = False),
-    # Optional names of the resulting shared libraries.
-    "shared_libraries": attr.string_list(mandatory = False),
-    # Optional names of the resulting interface libraries.
-    "interface_libraries": attr.string_list(mandatory = False),
-    # Optional names of the resulting binaries.
-    "binaries": attr.string_list(mandatory = False),
-    # Flag variable to indicate that the library produces only headers
-    "headers_only": attr.bool(mandatory = False, default = False),
-    #
-    # link to the shell utilities used by the shell script in cc_external_rule_impl.
-    "_utils": attr.label(
-        default = "@foreign_cc_platform_utils//:shell_utils",
-        allow_single_file = True,
-        cfg = "target",
-    ),
-    # we need to declare this attribute to access cc_toolchain
-    "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
-}
+CC_EXTERNAL_RULE_ATTRIBUTES = _create_common_attributes()
 
 def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
     """ Function for adding/modifying context attributes struct (originally from ctx.attr),
@@ -183,14 +204,23 @@ def cc_external_rule_impl(ctx, attrs):
     script_text = "\n".join(script_lines)
     print("script text: " + script_text)
 
+    env = {}
+    execution_requirements = {"block-network": ""}
+    if host_os["is_osx"]:
+        env = _xcrun_env(ctx)
+        execution_requirements.update({
+            "requires-darwin": "",
+        })
+
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs) + ctx.attr._cc_toolchain.files,
         outputs = outputs.declared_outputs,
         tools = ctx.attr._utils.files,
-        use_default_shell_env = True,
+        use_default_shell_env = False,
         command = script_text,
-        execution_requirements = {"block-network": ""},
+        execution_requirements = execution_requirements,
+        env = env,
     )
 
     return [
@@ -465,3 +495,10 @@ def _collect_flags(cc_linking):
     for params in _extract_link_params(cc_linking):
         linkopts = params.linkopts.to_list()
     return collections.uniq(linkopts)
+
+def _xcrun_env(ctx):
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    action_env = apple_common.target_apple_env(xcode_config, platform_support.platform(ctx))
+    action_env.update(apple_common.apple_host_system_env(xcode_config))
+    return action_env
