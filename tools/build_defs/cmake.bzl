@@ -165,7 +165,7 @@ def _attrs():
 """
 cmake_external = rule(
     attrs = _attrs(),
-    fragments = ["cpp"],
+    fragments = ["cpp", "apple"],
     output_to_genfiles = True,
     implementation = _cmake_external,
 )
