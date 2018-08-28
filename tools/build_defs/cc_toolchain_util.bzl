@@ -392,6 +392,7 @@ def absolutize_path_in_str(ctx, text, root_str):
     return new_text
 
 def _prefix(text, from_str, prefix):
+    text = text.replace('"', '\\"')
     (before, middle, after) = text.partition(from_str)
     if not middle or before.endswith("/"):
         return text
