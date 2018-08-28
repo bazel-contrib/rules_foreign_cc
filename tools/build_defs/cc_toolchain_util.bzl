@@ -263,7 +263,25 @@ def create_linking_info(ctx, user_link_flags, files):
 
     return CcLinkingInfo(**link_params)
 
-def getToolsInfo(ctx):
+def get_env_vars(ctx):
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else depset()
+    return cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = C_COMPILE_ACTION_NAME,
+        variables = cc_common.create_compile_variables(
+            feature_configuration = feature_configuration,
+            cc_toolchain = cc_toolchain,
+            user_compile_flags = copts,
+        ),
+    )
+
+def get_tools_info(ctx):
     """ Takes information about tools paths from cc_toolchain, returns CxxToolsInfo
     Args:
         ctx - rule context
@@ -294,7 +312,7 @@ def getToolsInfo(ctx):
         ),
     )
 
-def getFlagsInfo(ctx):
+def get_flags_info(ctx):
     """ Takes information about flags from cc_toolchain, returns CxxFlagsInfo
     Args:
         ctx - rule context
