@@ -96,10 +96,3 @@ _platform_dependent_init = repository_rule(
 def rules_foreign_cc_dependencies():
     repositories()
     _platform_dependent_init(name = "foreign_cc_platform_utils")
-    install_ws_dependency(
-        repo_name = "build_bazel_rules_apple",
-        url = "https://github.com/bazelbuild/rules_apple/archive/0.7.0.tar.gz",
-        strip_prefix = "rules_apple-0.7.0",
-        init_file = "//apple:repositories.bzl",
-        init_function = "apple_rules_dependencies",
-    )

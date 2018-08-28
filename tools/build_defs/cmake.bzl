@@ -11,15 +11,15 @@ load(
     "//tools/build_defs:detect_root.bzl",
     "detect_root",
 )
-load("//tools/build_defs:cc_toolchain_util.bzl", "absolutize_path_in_str", "getFlagsInfo", "getToolsInfo")
+load("//tools/build_defs:cc_toolchain_util.bzl", "absolutize_path_in_str", "get_flags_info", "get_tools_info")
 load("@foreign_cc_platform_utils//:cmake_globals.bzl", "CMAKE_COMMAND", "CMAKE_DEPS")
 
 def _cmake_external(ctx):
     options = " ".join(ctx.attr.cmake_options)
     root = detect_root(ctx.attr.lib_source)
 
-    tools = getToolsInfo(ctx)
-    flags = getFlagsInfo(ctx)
+    tools = get_tools_info(ctx)
+    flags = get_flags_info(ctx)
     cache_entries = _join_cache_options(ctx, _get_toolchain_entries(ctx, tools, flags), ctx.attr.cache_entries)
 
     install_prefix = _get_install_prefix(ctx)
@@ -165,7 +165,7 @@ def _attrs():
 """
 cmake_external = rule(
     attrs = _attrs(),
-    fragments = ["cpp", "apple"],
+    fragments = ["cpp"],
     output_to_genfiles = True,
     implementation = _cmake_external,
 )
