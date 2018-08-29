@@ -386,7 +386,7 @@ def get_flags_info(ctx):
         ),
     )
 
-def absolutize_path_in_str(ctx, text, root_str):
+def absolutize_path_in_str(workspace_name, root_str, text):
     """ Replaces relative paths in [the middle of] 'text', prepending them with 'root_str'.
     If there is nothing to replace, returns the 'text'.
 
@@ -395,17 +395,13 @@ def absolutize_path_in_str(ctx, text, root_str):
     current workspace. (And also to limit the possibility of error with such not exact replacing.)
 
     Args:
-        ctx - rule context (to determine the top package name)
+        workspace_name - workspace name
         text - the text to do replacement in
         root_str - the text to prepend to the found relative path
     """
-    package = ctx.label.package
-    if package.find("/") > 0:
-        (package, separator, tail) = package.partition("/")
-
     new_text = _prefix(text, "external/", root_str)
     if new_text == text:
-        new_text = _prefix(text, package + "/", root_str)
+        new_text = _prefix(text, workspace_name + "/", root_str)
 
     return new_text
 
