@@ -216,6 +216,7 @@ export_for_test = struct(
     find_flag_value = _find_flag_value,
     fill_crossfile_from_toolchain = _fill_crossfile_from_toolchain,
     move_dict_values = _move_dict_values,
+    reverse_descriptor_dict = _reverse_descriptor_dict,
     CMAKE_ENV_VARS_FOR_CROSSTOOL = _CMAKE_ENV_VARS_FOR_CROSSTOOL,
     CMAKE_CACHE_ENTRIES_CROSSTOOL = _CMAKE_CACHE_ENTRIES_CROSSTOOL,
 )

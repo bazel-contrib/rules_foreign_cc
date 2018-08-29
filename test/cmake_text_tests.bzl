@@ -151,11 +151,33 @@ def _move_dict_values_test(ctx):
 
     unittest.end(env)
 
+def _reverse_descriptor_dict_test(ctx):
+    env = unittest.begin(ctx)
+
+    res = export_for_test.reverse_descriptor_dict(export_for_test.CMAKE_CACHE_ENTRIES_CROSSTOOL)
+    expected = {
+    "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
+    "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
+    "CMAKE_CXX_LINK_EXECUTABLE": struct(value = "CMAKE_CXX_LINK_EXECUTABLE", replace = True),
+    "CMAKE_C_FLAGS_INIT": struct(value = "CMAKE_C_FLAGS", replace = False),
+    "CMAKE_CXX_FLAGS_INIT": struct(value = "CMAKE_CXX_FLAGS", replace = False),
+    "CMAKE_ASM_FLAGS_INIT": struct(value = "CMAKE_ASM_FLAGS", replace = False),
+    "CMAKE_STATIC_LINKER_FLAGS_INIT": struct(value = "CMAKE_STATIC_LINKER_FLAGS", replace = False),
+    "CMAKE_SHARED_LINKER_FLAGS_INIT": struct(value = "CMAKE_SHARED_LINKER_FLAGS", replace = False),
+    "CMAKE_EXE_LINKER_FLAGS_INIT": struct(value = "CMAKE_EXE_LINKER_FLAGS", replace = False),
+    }
+
+    for key in expected:
+        asserts.equals(env, expected[key], res[key])
+
+    unittest.end(env)
+
 absolutize_test = unittest.make(_absolutize_test)
 tail_extraction_test = unittest.make(_tail_extraction_test)
 find_flag_value_test = unittest.make(_find_flag_value_test)
 fill_crossfile_from_toolchain_test = unittest.make(_fill_crossfile_from_toolchain_test)
 move_dict_values_test = unittest.make(_move_dict_values_test)
+reverse_descriptor_dict_test = unittest.make(_reverse_descriptor_dict_test)
 
 def cmake_script_test_suite():
     unittest.suite(
@@ -165,4 +187,5 @@ def cmake_script_test_suite():
         find_flag_value_test,
         fill_crossfile_from_toolchain_test,
         move_dict_values_test,
+        reverse_descriptor_dict_test,
     )
