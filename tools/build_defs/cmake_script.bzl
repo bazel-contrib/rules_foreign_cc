@@ -84,21 +84,25 @@ def _create_cache_entries_env_vars(workspace_name, tools, flags, user_cache, use
         cache = merged_cache_entries,
     )
 
-def _merge_toolchain_and_user_values(toolchain_dict, user_dict, descriptor_map):
+def _translate_from_toolchain_file(toolchain_dict, descriptor_map):
     reverse = _reverse_descriptor_dict(descriptor_map)
-    env_vars_toolchain = dict()
+    cl_keyed_toolchain = dict()
 
     keys = toolchain_dict.keys()
     for key in keys:
         env_var_key = reverse.get(key)
         if env_var_key:
-            env_vars_toolchain[env_var_key.value] = toolchain_dict.pop(key)
-    _move_dict_values(env_vars_toolchain, user_dict, reverse)
+            cl_keyed_toolchain[env_var_key.value] = toolchain_dict.pop(key)
+    return cl_keyed_toolchain
+
+def _merge_toolchain_and_user_values(toolchain_dict, user_dict, descriptor_map):
+    _move_dict_values(toolchain_dict, user_dict, descriptor_map)
+    cl_keyed_toolchain = _translate_from_toolchain_file(toolchain_dict, descriptor_map)
 
     # anything left in user's env_entries does not correspond to anything defined by toolchain
     # => simple merge
-    env_vars_toolchain.update(user_dict)
-    return env_vars_toolchain
+    cl_keyed_toolchain.update(user_dict)
+    return cl_keyed_toolchain
 
 def _reverse_descriptor_dict(dict):
     out_dict = {}
@@ -217,6 +221,7 @@ export_for_test = struct(
     fill_crossfile_from_toolchain = _fill_crossfile_from_toolchain,
     move_dict_values = _move_dict_values,
     reverse_descriptor_dict = _reverse_descriptor_dict,
+    merge_toolchain_and_user_values = _merge_toolchain_and_user_values,
     CMAKE_ENV_VARS_FOR_CROSSTOOL = _CMAKE_ENV_VARS_FOR_CROSSTOOL,
     CMAKE_CACHE_ENTRIES_CROSSTOOL = _CMAKE_CACHE_ENTRIES_CROSSTOOL,
 )

@@ -156,19 +156,51 @@ def _reverse_descriptor_dict_test(ctx):
 
     res = export_for_test.reverse_descriptor_dict(export_for_test.CMAKE_CACHE_ENTRIES_CROSSTOOL)
     expected = {
-    "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
-    "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
-    "CMAKE_CXX_LINK_EXECUTABLE": struct(value = "CMAKE_CXX_LINK_EXECUTABLE", replace = True),
-    "CMAKE_C_FLAGS_INIT": struct(value = "CMAKE_C_FLAGS", replace = False),
-    "CMAKE_CXX_FLAGS_INIT": struct(value = "CMAKE_CXX_FLAGS", replace = False),
-    "CMAKE_ASM_FLAGS_INIT": struct(value = "CMAKE_ASM_FLAGS", replace = False),
-    "CMAKE_STATIC_LINKER_FLAGS_INIT": struct(value = "CMAKE_STATIC_LINKER_FLAGS", replace = False),
-    "CMAKE_SHARED_LINKER_FLAGS_INIT": struct(value = "CMAKE_SHARED_LINKER_FLAGS", replace = False),
-    "CMAKE_EXE_LINKER_FLAGS_INIT": struct(value = "CMAKE_EXE_LINKER_FLAGS", replace = False),
+        "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
+        "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
+        "CMAKE_CXX_LINK_EXECUTABLE": struct(value = "CMAKE_CXX_LINK_EXECUTABLE", replace = True),
+        "CMAKE_C_FLAGS_INIT": struct(value = "CMAKE_C_FLAGS", replace = False),
+        "CMAKE_CXX_FLAGS_INIT": struct(value = "CMAKE_CXX_FLAGS", replace = False),
+        "CMAKE_ASM_FLAGS_INIT": struct(value = "CMAKE_ASM_FLAGS", replace = False),
+        "CMAKE_STATIC_LINKER_FLAGS_INIT": struct(value = "CMAKE_STATIC_LINKER_FLAGS", replace = False),
+        "CMAKE_SHARED_LINKER_FLAGS_INIT": struct(value = "CMAKE_SHARED_LINKER_FLAGS", replace = False),
+        "CMAKE_EXE_LINKER_FLAGS_INIT": struct(value = "CMAKE_EXE_LINKER_FLAGS", replace = False),
     }
 
     for key in expected:
         asserts.equals(env, expected[key], res[key])
+
+    unittest.end(env)
+
+def _merge_toolchain_and_user_values_test(ctx):
+    env = unittest.begin(ctx)
+
+    target = {
+        "CMAKE_C_COMPILER": "some-cc-value",
+        "CMAKE_CXX_COMPILER": "$EXT_BUILD_ROOT/external/cxx-value",
+        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
+        "CMAKE_CXX_FLAGS_INIT": "-ccx-flag",
+        "CMAKE_CXX_LINK_EXECUTABLE": "was",
+    }
+    source_cache = {
+        "CMAKE_C_FLAGS": "--additional-flag",
+        "CMAKE_ASM_FLAGS": "assemble",
+        "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CUSTOM": "YES",
+    }
+
+    res = export_for_test.merge_toolchain_and_user_values(target, source_cache, export_for_test.CMAKE_CACHE_ENTRIES_CROSSTOOL)
+
+    expected_target = {
+        "CMAKE_C_FLAGS": "-cc-flag -gcc_toolchain cc-toolchain --additional-flag",
+        "CMAKE_CXX_FLAGS": "-ccx-flag",
+        "CMAKE_ASM_FLAGS": "assemble",
+        "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CUSTOM": "YES",
+    }
+
+    for key in expected_target:
+        asserts.equals(env, expected_target[key], res[key])
 
     unittest.end(env)
 
@@ -178,6 +210,7 @@ find_flag_value_test = unittest.make(_find_flag_value_test)
 fill_crossfile_from_toolchain_test = unittest.make(_fill_crossfile_from_toolchain_test)
 move_dict_values_test = unittest.make(_move_dict_values_test)
 reverse_descriptor_dict_test = unittest.make(_reverse_descriptor_dict_test)
+merge_toolchain_and_user_values_test = unittest.make(_merge_toolchain_and_user_values_test)
 
 def cmake_script_test_suite():
     unittest.suite(
@@ -188,4 +221,5 @@ def cmake_script_test_suite():
         fill_crossfile_from_toolchain_test,
         move_dict_values_test,
         reverse_descriptor_dict_test,
+        merge_toolchain_and_user_values_test,
     )
