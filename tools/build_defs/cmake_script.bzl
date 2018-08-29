@@ -7,17 +7,22 @@ def create_cmake_script(workspace_name, tools, flags, install_prefix, root, no_t
         params = _create_cache_entries_env_vars(workspace_name, tools, flags, user_cache, user_env)
     else:
         params = _create_crosstool_file_text(workspace_name, tools, flags, user_cache, user_env)
+    params.cache.update({
+        "CMAKE_PREFIX_PATH": "$EXT_BUILD_DEPS",
+        "CMAKE_INSTALL_PREFIX": install_prefix,
+    })
 
-    # todo simplify
-    return "\n".join([] + params.commands + [" ".join([
-        " ".join([key + "=\"" + params.env[key] + "\"" for key in params.env]),
-        " " + CMAKE_COMMAND,
-        " ".join(["-D" + key + "=\"" + params.cache[key] + "\"" for key in params.cache]),
-        "-DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\"",
-        "-DCMAKE_INSTALL_PREFIX=\"{}\"".format(install_prefix),
-        " ".join(params.options + options),
+    set_env_vars = " ".join([key + "=\"" + params.env[key] + "\"" for key in params.env])
+    str_cmake_cache_entries = " ".join(["-D" + key + "=\"" + params.cache[key] + "\"" for key in params.cache])
+    cmake_call = " ".join([
+        set_env_vars,
+        CMAKE_COMMAND,
+        str_cmake_cache_entries,
+        " ".join(options),
         "$EXT_BUILD_ROOT/" + root,
-    ])])
+    ])
+
+    return "\n".join(params.commands + [cmake_call])
 
 _CMAKE_ENV_VARS_FOR_CROSSTOOL = {
     "CC": struct(value = "CMAKE_C_COMPILER", replace = True),
@@ -53,9 +58,11 @@ def _create_crosstool_file_text(workspace_name, tools, flags, user_cache, user_e
             continue
         lines += ["set({} \"{}\")".format(key, dict[key])]
 
+    cache_entries.update({
+        "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",
+    })
     return struct(
         commands = ["cat > crosstool_bazel.cmake <<EOF\n" + "\n".join(lines) + "\nEOF\n"],
-        options = ["-DCMAKE_TOOLCHAIN_FILE=crosstool_bazel.cmake"],
         env = env_vars,
         cache = cache_entries,
     )
@@ -73,7 +80,6 @@ def _create_cache_entries_env_vars(workspace_name, tools, flags, user_cache, use
     merged_cache_entries = _merge_toolchain_and_user_values(dict, user_cache, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
     return struct(
         commands = [],
-        options = [],
         env = merged_env_entries,
         cache = merged_cache_entries,
     )
