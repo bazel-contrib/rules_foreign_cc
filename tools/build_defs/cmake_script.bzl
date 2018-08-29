@@ -48,8 +48,8 @@ def _create_crosstool_file_text(workspace_name, tools, flags, user_cache, user_e
     dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
     cache_entries = _dict_copy(user_cache)
     env_vars = _dict_copy(user_env)
-    _merge_dict(dict, env_vars, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
-    _merge_dict(dict, cache_entries, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
+    _move_dict_values(dict, env_vars, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
+    _move_dict_values(dict, cache_entries, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
 
     lines = []
     for key in dict:
@@ -93,7 +93,7 @@ def _merge_toolchain_and_user_values(toolchain_dict, user_dict, descriptor_map):
         env_var_key = reverse.get(key)
         if env_var_key:
             env_vars_toolchain[env_var_key.value] = toolchain_dict.pop(key)
-    _merge_dict(env_vars_toolchain, user_dict, reverse)
+    _move_dict_values(env_vars_toolchain, user_dict, reverse)
 
     # anything left in user's env_entries does not correspond to anything defined by toolchain
     # => simple merge
@@ -109,16 +109,16 @@ def _reverse_descriptor_dict(dict):
 
     return out_dict
 
-def _merge_dict(toolchain_dict, user_dict, KEYS_MAP):
-    keys = user_dict.keys()
+def _move_dict_values(target, source, descriptor_map):
+    keys = source.keys()
     for key in keys:
-        existing = KEYS_MAP.get(key)
+        existing = descriptor_map.get(key)
         if existing:
-            value = user_dict.pop(key)
-            if existing.replace or toolchain_dict.get(existing.value) == None:
-                toolchain_dict[existing.value] = value
+            value = source.pop(key)
+            if existing.replace or target.get(existing.value) == None:
+                target[existing.value] = value
             else:
-                toolchain_dict[existing.value] = _merge(toolchain_dict[key], value)
+                target[existing.value] = _merge(target[existing.value], value)
 
 def _merge(str1, str2):
     return str1.strip("\"'") + " " + str2.strip("\"'")
@@ -215,4 +215,7 @@ export_for_test = struct(
     tail_if_starts_with = _tail_if_starts_with,
     find_flag_value = _find_flag_value,
     fill_crossfile_from_toolchain = _fill_crossfile_from_toolchain,
+    move_dict_values = _move_dict_values,
+    CMAKE_ENV_VARS_FOR_CROSSTOOL = _CMAKE_ENV_VARS_FOR_CROSSTOOL,
+    CMAKE_CACHE_ENTRIES_CROSSTOOL = _CMAKE_CACHE_ENTRIES_CROSSTOOL,
 )

@@ -110,10 +110,52 @@ def _fill_crossfile_from_toolchain_test(ctx):
 
     unittest.end(env)
 
+def _move_dict_values_test(ctx):
+    env = unittest.begin(ctx)
+
+    target = {
+        "CMAKE_C_COMPILER": "some-cc-value",
+        "CMAKE_CXX_COMPILER": "$EXT_BUILD_ROOT/external/cxx-value",
+        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
+        "CMAKE_CXX_LINK_EXECUTABLE": "was",
+    }
+    source_env = {
+        "CC": "sink-cc-value",
+        "CXX": "sink-cxx-value",
+        "CFLAGS": "--from-env",
+        "CUSTOM": "YES",
+    }
+    source_cache = {
+        "CMAKE_C_FLAGS": "--additional-flag",
+        "CMAKE_ASM_FLAGS": "assemble",
+        "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CUSTOM": "YES",
+    }
+    export_for_test.move_dict_values(target, source_env, export_for_test.CMAKE_ENV_VARS_FOR_CROSSTOOL)
+    export_for_test.move_dict_values(target, source_cache, export_for_test.CMAKE_CACHE_ENTRIES_CROSSTOOL)
+
+    expected_target = {
+        "CMAKE_C_COMPILER": "sink-cc-value",
+        "CMAKE_CXX_COMPILER": "sink-cxx-value",
+        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag",
+        "CMAKE_ASM_FLAGS_INIT": "assemble",
+        "CMAKE_CXX_LINK_EXECUTABLE": "became",
+    }
+    for key in expected_target:
+        asserts.equals(env, expected_target[key], target[key])
+
+    asserts.equals(env, "YES", source_env["CUSTOM"])
+    asserts.equals(env, "YES", source_cache["CUSTOM"])
+    asserts.equals(env, 1, len(source_env))
+    asserts.equals(env, 1, len(source_cache))
+
+    unittest.end(env)
+
 absolutize_test = unittest.make(_absolutize_test)
 tail_extraction_test = unittest.make(_tail_extraction_test)
 find_flag_value_test = unittest.make(_find_flag_value_test)
 fill_crossfile_from_toolchain_test = unittest.make(_fill_crossfile_from_toolchain_test)
+move_dict_values_test = unittest.make(_move_dict_values_test)
 
 def cmake_script_test_suite():
     unittest.suite(
@@ -122,4 +164,5 @@ def cmake_script_test_suite():
         tail_extraction_test,
         find_flag_value_test,
         fill_crossfile_from_toolchain_test,
+        move_dict_values_test,
     )
