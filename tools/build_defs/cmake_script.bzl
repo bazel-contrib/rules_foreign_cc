@@ -45,7 +45,7 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
 }
 
 def _create_crosstool_file_text(workspace_name, tools, flags, user_cache, user_env):
-    dict = fill_crossfile_from_toolchain(workspace_name, tools, flags)
+    dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
     cache_entries = _dict_copy(user_cache)
     env_vars = _dict_copy(user_env)
     _merge_dict(dict, env_vars, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
@@ -74,7 +74,7 @@ def _dict_copy(d):
     return out
 
 def _create_cache_entries_env_vars(workspace_name, tools, flags, user_cache, user_env):
-    dict = fill_crossfile_from_toolchain(workspace_name, tools, flags)
+    dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
     dict.pop("CMAKE_SYSTEM_NAME")  # specify this only in a toolchain file
     merged_env_entries = _merge_toolchain_and_user_values(dict, user_env, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
     merged_cache_entries = _merge_toolchain_and_user_values(dict, user_cache, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
@@ -123,7 +123,7 @@ def _merge_dict(toolchain_dict, user_dict, KEYS_MAP):
 def _merge(str1, str2):
     return str1.strip("\"'") + " " + str2.strip("\"'")
 
-def fill_crossfile_from_toolchain(workspace_name, tools, flags):
+def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
     dict = {
         "CMAKE_SYSTEM_NAME": "Linux",
     }
@@ -184,18 +184,19 @@ def _find_in_cc_or_cxx(flags, flag_name_no_dashes):
     return _find_flag_value(flags.cc, flag_name_no_dashes)
 
 def _find_flag_value(list, flag_name_no_dashes):
-    one_dash = "-" + flag_name_no_dashes
-    two_dash = "--" + flag_name_no_dashes
+    one_dash = "-" + flag_name_no_dashes.lstrip(" ")
+    two_dash = "--" + flag_name_no_dashes.lstrip(" ")
 
     check_for_value = False
     for value in list:
+        value = value.lstrip(" ")
         if check_for_value:
             return value.lstrip(" =")
         _tail = _tail_if_starts_with(value, one_dash)
-        _tail = _tail_if_starts_with(value, two_dash) if not _tail else _tail
-        if _tail and len(_tail) > 0:
+        _tail = _tail_if_starts_with(value, two_dash) if _tail == None else _tail
+        if _tail != None and len(_tail) > 0:
             return _tail.lstrip(" =")
-        if _tail:
+        if _tail != None:
             check_for_value = True
 
 def _tail_if_starts_with(str, start):
@@ -208,3 +209,10 @@ def _absolutize(workspace_name, text):
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+
+export_for_test = struct(
+    absolutize = _absolutize,
+    tail_if_starts_with = _tail_if_starts_with,
+    find_flag_value = _find_flag_value,
+    fill_crossfile_from_toolchain = _fill_crossfile_from_toolchain,
+)
