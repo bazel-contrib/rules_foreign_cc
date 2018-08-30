@@ -204,6 +204,42 @@ def _merge_toolchain_and_user_values_test(ctx):
 
     unittest.end(env)
 
+def _create_cmake_script_no_toolchain_file_test(ctx):
+    env = unittest.begin(ctx)
+
+    tools = CxxToolsInfo(
+        cc = "some-cc-value",
+        cxx = "external/cxx-value",
+        cxx_linker_static = "cxx_linker_static",
+        cxx_linker_executable = "ws/cxx_linker_executable",
+    )
+    flags = CxxFlagsInfo(
+        cc = ["-cc-flag", "-gcc_toolchain", "cc-toolchain"],
+        cxx = ["--quoted=\"abc def\"", "--sysroot=/abc/sysroot", "--gcc_toolchain", "cxx-toolchain"],
+        cxx_linker_shared = ["shared1", "shared2"],
+        cxx_linker_static = ["static"],
+        cxx_linker_executable = ["executable"],
+        assemble = ["assemble"],
+    )
+    user_env = {
+        "CC": "sink-cc-value",
+        "CXX": "sink-cxx-value",
+        "CFLAGS": "--from-env",
+        "CUSTOM_ENV": "YES",
+    }
+    user_cache = {
+        "CMAKE_C_FLAGS": "--additional-flag",
+        "CMAKE_ASM_FLAGS": "assemble-user",
+        "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CUSTOM_CACHE": "YES",
+    }
+
+    script = create_cmake_script("ws", tools, flags, "test_rule", "external/test_rule", True, user_cache, user_env, ["-GNinja"])
+    expected = "CC=\"sink-cc-value\" CXX=\"sink-cxx-value\" CFLAGS=\"-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag\" CXXFLAGS=\"--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain\" ASMFLAGS=\"assemble assemble-user\" CUSTOM_ENV=\"YES\" cmake -DCMAKE_AR=\"cxx_linker_static\" -DCMAKE_CXX_LINK_EXECUTABLE=\"became\" -DCMAKE_SHARED_LINKER_FLAGS=\"shared1 shared2\" -DCMAKE_EXE_LINKER_FLAGS=\"executable\" -DCUSTOM_CACHE=\"YES\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
+    asserts.equals(env, expected, script)
+
+    unittest.end(env)
+
 absolutize_test = unittest.make(_absolutize_test)
 tail_extraction_test = unittest.make(_tail_extraction_test)
 find_flag_value_test = unittest.make(_find_flag_value_test)
@@ -211,6 +247,7 @@ fill_crossfile_from_toolchain_test = unittest.make(_fill_crossfile_from_toolchai
 move_dict_values_test = unittest.make(_move_dict_values_test)
 reverse_descriptor_dict_test = unittest.make(_reverse_descriptor_dict_test)
 merge_toolchain_and_user_values_test = unittest.make(_merge_toolchain_and_user_values_test)
+create_cmake_script_no_toolchain_file_test = unittest.make(_create_cmake_script_no_toolchain_file_test)
 
 def cmake_script_test_suite():
     unittest.suite(
@@ -222,4 +259,5 @@ def cmake_script_test_suite():
         move_dict_values_test,
         reverse_descriptor_dict_test,
         merge_toolchain_and_user_values_test,
+        create_cmake_script_no_toolchain_file_test,
     )

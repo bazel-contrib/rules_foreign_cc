@@ -74,14 +74,24 @@ def _dict_copy(d):
     return out
 
 def _create_cache_entries_env_vars(workspace_name, tools, flags, user_cache, user_env):
-    dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
-    dict.pop("CMAKE_SYSTEM_NAME")  # specify this only in a toolchain file
-    merged_env_entries = _merge_toolchain_and_user_values(dict, user_env, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
-    merged_cache_entries = _merge_toolchain_and_user_values(dict, user_cache, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
+    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
+    toolchain_dict.pop("CMAKE_SYSTEM_NAME")  # specify this only in a toolchain file
+
+    _move_dict_values(toolchain_dict, user_env, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
+    _move_dict_values(toolchain_dict, user_cache, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
+
+    merged_env = _translate_from_toolchain_file(toolchain_dict, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
+    merged_cache = _translate_from_toolchain_file(toolchain_dict, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
+
+    # anything left in user's env_entries does not correspond to anything defined by toolchain
+    # => simple merge
+    merged_env.update(user_env)
+    merged_cache.update(user_cache)
+
     return struct(
         commands = [],
-        env = merged_env_entries,
-        cache = merged_cache_entries,
+        env = merged_env,
+        cache = merged_cache,
     )
 
 def _translate_from_toolchain_file(toolchain_dict, descriptor_map):
