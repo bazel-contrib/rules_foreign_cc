@@ -1,3 +1,5 @@
+""" Contains all logic for calling CMake for building external libraries/binaries """
+
 load("@foreign_cc_platform_utils//:tools.bzl", "CMAKE_COMMAND")
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
@@ -12,6 +14,20 @@ def create_cmake_script(
         user_cache,
         user_env,
         options):
+    """ Constructs CMake script to be passed to cc_external_rule_impl.
+  Args:
+    workspace_name - current workspace name
+    target_os - OSInfo with target operating system information, used for CMAKE_SYSTEM_NAME in
+CMake toolchain file
+    tools - cc_toolchain tools (CxxToolsInfo)
+    flags - cc_toolchain flags (CxxFlagsInfo)
+    install_prefix - value ot pass to CMAKE_INSTALL_PREFIX
+    root - sources root relative to the $EXT_BUILD_ROOT
+    no_toolchain_file - if False, CMake toolchain file will be generated, otherwise not
+    user_cache - dictionary with user's values of cache initializers
+    user_env - dictionary with user's values for CMake environment variables
+    options - other CMake options specified by user
+"""
     toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags)
     params = None
     if no_toolchain_file:
