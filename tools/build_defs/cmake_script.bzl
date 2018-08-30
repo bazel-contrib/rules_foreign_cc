@@ -162,7 +162,7 @@ def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
     if tools.cxx_linker_static:
         dict["CMAKE_AR"] = _absolutize(workspace_name, tools.cxx_linker_static)
 
-    if tools.cxx_linker_executable:
+    if tools.cxx_linker_executable and tools.cxx_linker_executable != tools.cxx:
         normalized_path = _absolutize(workspace_name, tools.cxx_linker_executable)
         dict["CMAKE_CXX_LINK_EXECUTABLE"] = " ".join([
             normalized_path,
