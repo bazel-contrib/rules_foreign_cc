@@ -1,10 +1,5 @@
 load("//tools/build_defs:cmake.bzl", "cmake_external")
-load("//tools/build_defs:ninja_build.bzl", "ninja_tool")
-
-ninja_tool(
-    name = "ninjatool",
-    ninja_srcs = "@ninja_build//:all",
-)
+load("@foreign_cc_platform_utils//:tools.bzl", "NINJA_COMMAND")
 
 cmake_external(
     name = "cares",
@@ -15,11 +10,11 @@ cmake_external(
     cmake_options = ["-GNinja"],
     lib_source = "@cares//:all",
     make_commands = [
-        "ninja",
-        "ninja install",
+        NINJA_COMMAND,
+        NINJA_COMMAND + " install",
     ],
     static_libraries = ["libcares.a"],
-    tools_deps = [":ninjatool"],
+    tools_deps = ["@foreign_cc_platform_utils//:ninja"],
 )
 
 cc_test(

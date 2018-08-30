@@ -4,7 +4,7 @@ load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load("//tools/build_defs:cmake_script.bzl", "create_cmake_script", "export_for_test")
 load("//tools/build_defs:cc_toolchain_util.bzl", "CxxFlagsInfo", "CxxToolsInfo")
 load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
-load("@foreign_cc_platform_utils//:cmake_globals.bzl", "CMAKE_COMMAND")
+load("@foreign_cc_platform_utils//:tools.bzl", "CMAKE_COMMAND")
 
 def _absolutize_test(ctx):
     env = unittest.begin(ctx)
