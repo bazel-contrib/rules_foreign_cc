@@ -1,12 +1,23 @@
 load("@foreign_cc_platform_utils//:cmake_globals.bzl", "CMAKE_COMMAND", "CMAKE_DEPS")
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
-def create_cmake_script(workspace_name, tools, flags, install_prefix, root, no_toolchain_file, user_cache, user_env, options):
+def create_cmake_script(
+        workspace_name,
+        target_os,
+        tools,
+        flags,
+        install_prefix,
+        root,
+        no_toolchain_file,
+        user_cache,
+        user_env,
+        options):
+    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags)
     params = None
     if no_toolchain_file:
-        params = _create_cache_entries_env_vars(workspace_name, tools, flags, user_cache, user_env)
+        params = _create_cache_entries_env_vars(toolchain_dict, user_cache, user_env)
     else:
-        params = _create_crosstool_file_text(workspace_name, tools, flags, user_cache, user_env)
+        params = _create_crosstool_file_text(toolchain_dict, user_cache, user_env)
     params.cache.update({
         "CMAKE_PREFIX_PATH": "$EXT_BUILD_DEPS",
         "CMAKE_INSTALL_PREFIX": install_prefix,
@@ -44,19 +55,18 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_EXE_LINKER_FLAGS": struct(value = "CMAKE_EXE_LINKER_FLAGS_INIT", replace = False),
 }
 
-def _create_crosstool_file_text(workspace_name, tools, flags, user_cache, user_env):
-    dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
+def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
     cache_entries = _dict_copy(user_cache)
     env_vars = _dict_copy(user_env)
-    _move_dict_values(dict, env_vars, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
-    _move_dict_values(dict, cache_entries, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
+    _move_dict_values(toolchain_dict, env_vars, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
+    _move_dict_values(toolchain_dict, cache_entries, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
 
     lines = []
-    for key in dict:
+    for key in toolchain_dict:
         if ("CMAKE_AR" == key):
-            lines += ["set({} \"{}\" {})".format(key, dict[key], "CACHE FILEPATH \"Archiver\"")]
+            lines += ["set({} \"{}\" {})".format(key, toolchain_dict[key], "CACHE FILEPATH \"Archiver\"")]
             continue
-        lines += ["set({} \"{}\")".format(key, dict[key])]
+        lines += ["set({} \"{}\")".format(key, toolchain_dict[key])]
 
     cache_entries.update({
         "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",
@@ -73,8 +83,7 @@ def _dict_copy(d):
         out.update(d)
     return out
 
-def _create_cache_entries_env_vars(workspace_name, tools, flags, user_cache, user_env):
-    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
+def _create_cache_entries_env_vars(toolchain_dict, user_cache, user_env):
     toolchain_dict.pop("CMAKE_SYSTEM_NAME")  # specify this only in a toolchain file
 
     _move_dict_values(toolchain_dict, user_env, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
@@ -137,9 +146,15 @@ def _move_dict_values(target, source, descriptor_map):
 def _merge(str1, str2):
     return str1.strip("\"'") + " " + str2.strip("\"'")
 
-def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
+def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
+    print("target: " + str(target_os))
+    os_name = "Linux"
+    if target_os.is_win:
+        os_name = "Windows"
+    if target_os.is_osx:
+        os_name = "Apple"
     dict = {
-        "CMAKE_SYSTEM_NAME": "Linux",
+        "CMAKE_SYSTEM_NAME": os_name,
     }
 
     _sysroot = _find_in_cc_or_cxx(flags, "sysroot")

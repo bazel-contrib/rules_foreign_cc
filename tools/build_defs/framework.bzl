@@ -11,7 +11,6 @@ load(
     "targets_windows",
 )
 load("//tools/build_defs:detect_root.bzl", "detect_root")
-load("@foreign_cc_platform_utils//:host_os.bzl", "host_os")
 
 """ Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
  Many of the attributes have default values.
@@ -85,7 +84,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "_utils": attr.label(
         default = "@foreign_cc_platform_utils//:shell_utils",
         allow_single_file = True,
-        cfg = "target",
+    ),
+    # link to the shell utilities used by the shell script in cc_external_rule_impl.
+    "_target_os": attr.label(
+        default = "@foreign_cc_platform_utils//:target_os",
     ),
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
@@ -187,10 +189,6 @@ def cc_external_rule_impl(ctx, attrs):
 
     env = get_env_vars(ctx)
     execution_requirements = {"block-network": ""}
-    if host_os["is_osx"]:
-        execution_requirements.update({
-            "requires-darwin": "",
-        })
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",

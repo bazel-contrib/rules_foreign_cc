@@ -17,6 +17,7 @@ load(
     "get_tools_info",
 )
 load(":cmake_script.bzl", "create_cmake_script")
+load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
 
 def _cmake_external(ctx):
     root = detect_root(ctx.attr.lib_source)
@@ -26,7 +27,18 @@ def _cmake_external(ctx):
     flags = get_flags_info(ctx)
     no_toolchain_file = ctx.attr.cache_entries.get("CMAKE_TOOLCHAIN_FILE") or not ctx.attr.generate_crosstool_file
 
-    configure_script = create_cmake_script(ctx.workspace_name, tools, flags, install_prefix, root, no_toolchain_file, ctx.attr.cache_entries, ctx.attr.env_vars, ctx.attr.cmake_options)
+    configure_script = create_cmake_script(
+        ctx.workspace_name,
+        ctx.attr._target_os[OSInfo],
+        tools,
+        flags,
+        install_prefix,
+        root,
+        no_toolchain_file,
+        ctx.attr.cache_entries,
+        ctx.attr.env_vars,
+        ctx.attr.cmake_options,
+    )
     copy_results = "copy_dir_contents_to_dir $TMPDIR/{} $INSTALLDIR".format(install_prefix)
 
     tools_deps = ctx.attr.tools_deps + [ctx.attr._cmake_dep]
