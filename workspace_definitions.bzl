@@ -1,33 +1,30 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load(":repositories.bzl", "repositories")
 load(":install_ws_dependency.bzl", "install_ws_dependency")
+load("//tools/build_defs:os_info.bzl", "get_os_info")
 
 def _platform_dependent_init_impl(rctx):
-    host_os = _get_host_os(rctx)
+    os_name = rctx.os.name.lower()
+    host_os = get_os_info(os_name)
     rctx.file("WORKSPACE", """workspace(name='foreign_cc_platform_utils')""")
     rctx.file("BUILD.bazel", "\n".join(
-        [_shell_utils_text(rctx, host_os), _cmake_build_rule_text(rctx, host_os)],
+        [
+            _create_os_description(rctx, os_name),
+            _shell_utils_text(rctx, host_os),
+            _cmake_build_rule_text(rctx, host_os),
+        ],
     ))
-    _create_os_description(rctx, host_os)
 
-def _get_host_os(rctx):
-    os_name = rctx.os.name.lower()
-    is_win = os_name.find("windows") != -1
-    is_osx = os_name.startswith("mac os")
-    return {
-        "is_unix": not is_win and not is_osx,
-        "is_win": is_win,
-        "is_osx": is_osx,
-    }
-
-def _create_os_description(rctx, host_os):
-    rctx.file("host_os.bzl", "host_os = " + str(host_os) + "\n")
+def _create_os_description(rctx, os_name):
+    path = rctx.path(Label("//tools/build_defs:os_info.bzl"))
+    rctx.template("os_info.bzl", path, executable = True)
+    return "load(\":os_info.bzl\", \"define_os\")\ndefine_os(\"{}\")".format(os_name)
 
 def _shell_utils_text(rctx, host_os):
     utils_name = "utils_unix.sh"
-    if host_os["is_osx"]:
+    if host_os.is_osx:
         utils_name = "utils_osx.sh"
-    if host_os["is_win"]:
+    if host_os.is_win:
         utils_name = "utils_win.bat"
         fail("Not supported yet!")
 

@@ -7,5 +7,6 @@ test_suite(
         "//examples/cmake_cares:test_c_ares",
         "//examples/cmake_nghttp2:test_nghttp2",
         "//examples/ninja:test_ninja_version",
+        "//test:cmake_script_test_suite",
     ],
 )
