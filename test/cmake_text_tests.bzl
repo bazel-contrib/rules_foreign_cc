@@ -4,6 +4,7 @@ load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load("//tools/build_defs:cmake_script.bzl", "create_cmake_script", "export_for_test")
 load("//tools/build_defs:cc_toolchain_util.bzl", "CxxFlagsInfo", "CxxToolsInfo")
 load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
+load("@foreign_cc_platform_utils//:cmake_globals.bzl", "CMAKE_COMMAND")
 
 def _absolutize_test(ctx):
     env = unittest.begin(ctx)
@@ -230,8 +231,8 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
 
     os_info = OSInfo(is_unix = True, is_osx = False, is_win = False)
     script = create_cmake_script("ws", os_info, tools, flags, "test_rule", "external/test_rule", True, user_cache, user_env, ["-GNinja"])
-    expected = "CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" CXXFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" ASMFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_SHARED_LINKER_FLAGS=\"-shared -fuse-ld=gold\" -DCMAKE_EXE_LINKER_FLAGS=\"-fuse-ld=gold -Wl -no-as-needed\" -DNOFORTRAN=\"on\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
-    asserts.equals(env, expected, script)
+    expected = "CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" CXXFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" ASMFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" {cmake} -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_SHARED_LINKER_FLAGS=\"-shared -fuse-ld=gold\" -DCMAKE_EXE_LINKER_FLAGS=\"-fuse-ld=gold -Wl -no-as-needed\" -DNOFORTRAN=\"on\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
+    asserts.equals(env, expected.format(cmake = CMAKE_COMMAND), script)
 
     unittest.end(env)
 
@@ -271,8 +272,8 @@ set(CMAKE_SHARED_LINKER_FLAGS_INIT "-shared -fuse-ld=gold")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "-fuse-ld=gold -Wl -no-as-needed")
 EOF
 
- cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
-    asserts.equals(env, expected, script)
+ {cmake} -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+    asserts.equals(env, expected.format(cmake = CMAKE_COMMAND), script)
 
     unittest.end(env)
 
@@ -308,8 +309,8 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
 
     os_info = OSInfo(is_unix = True, is_osx = False, is_win = False)
     script = create_cmake_script("ws", os_info, tools, flags, "test_rule", "external/test_rule", True, user_cache, user_env, ["-GNinja"])
-    expected = "CC=\"sink-cc-value\" CXX=\"sink-cxx-value\" CFLAGS=\"-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag\" CXXFLAGS=\"--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain\" ASMFLAGS=\"assemble assemble-user\" CUSTOM_ENV=\"YES\" cmake -DCMAKE_AR=\"cxx_linker_static\" -DCMAKE_CXX_LINK_EXECUTABLE=\"became\" -DCMAKE_SHARED_LINKER_FLAGS=\"shared1 shared2\" -DCMAKE_EXE_LINKER_FLAGS=\"executable\" -DCUSTOM_CACHE=\"YES\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
-    asserts.equals(env, expected, script)
+    expected = "CC=\"sink-cc-value\" CXX=\"sink-cxx-value\" CFLAGS=\"-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag\" CXXFLAGS=\"--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain\" ASMFLAGS=\"assemble assemble-user\" CUSTOM_ENV=\"YES\" {cmake} -DCMAKE_AR=\"cxx_linker_static\" -DCMAKE_CXX_LINK_EXECUTABLE=\"became\" -DCMAKE_SHARED_LINKER_FLAGS=\"shared1 shared2\" -DCMAKE_EXE_LINKER_FLAGS=\"executable\" -DCUSTOM_CACHE=\"YES\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
+    asserts.equals(env, expected.format(cmake = CMAKE_COMMAND), script)
 
     unittest.end(env)
 
@@ -361,8 +362,8 @@ set(CMAKE_SHARED_LINKER_FLAGS_INIT "shared1 shared2")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "executable")
 EOF
 
-CUSTOM_ENV="YES" cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
-    asserts.equals(env, expected, script)
+CUSTOM_ENV="YES" {cmake} -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+    asserts.equals(env, expected.format(cmake = CMAKE_COMMAND), script)
 
     unittest.end(env)
 

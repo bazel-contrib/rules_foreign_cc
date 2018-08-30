@@ -147,7 +147,6 @@ def _merge(str1, str2):
     return str1.strip("\"'") + " " + str2.strip("\"'")
 
 def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
-    print("target: " + str(target_os))
     os_name = "Linux"
     if target_os.is_win:
         os_name = "Windows"
