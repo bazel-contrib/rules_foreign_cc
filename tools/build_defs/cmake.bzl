@@ -100,9 +100,9 @@ def _attrs():
         })
     return attrs
 
-""" Rule for building external library with CMake
+""" Rule for building external library with CMake.
  Attributes:
-   cmake_options - (list of strings) options to be passed to the cmake call
+   See line comments in _attrs() method.
  Other attributes are documented in framework.bzl:CC_EXTERNAL_RULE_ATTRIBUTES
 """
 cmake_external = rule(

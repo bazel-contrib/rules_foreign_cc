@@ -1,15 +1,8 @@
 def detect_root(source):
     """Detects the path to the topmost directory of the 'source' outputs.
     To be used with external build systems to point to the source code/tools directories.
+"""
 
-    If the target groups the sources of the external dependency, the workspace root is used,
-    and no other checks are performed (i.e. it is assumed that the whole contents of the external
-    dependency is used).
-    Otherwise, for the "usual" targets, target's files are iterated and the path with the least length
-    is selected.
-    """
-
-    #    root = source.label.workspace_root
     root = ""
     sources = source.files
     if (root and len(root) > 0) or len(sources) == 0:

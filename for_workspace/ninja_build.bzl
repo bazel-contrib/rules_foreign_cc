@@ -1,3 +1,5 @@
+""" Rule for building Ninja from sources. """
+
 load("//:detect_root.bzl", "detect_root")
 
 def _ninja_tool(ctx):
@@ -23,6 +25,10 @@ def _ninja_tool(ctx):
 
     return [DefaultInfo(files = depset([ninja]))]
 
+""" Rule for building Ninja. Invokes configure script and make install.
+  Attributes:
+    ninja_srcs - target with the Ninja sources
+"""
 ninja_tool = rule(
     attrs = {
         "ninja_srcs": attr.label(mandatory = True),
