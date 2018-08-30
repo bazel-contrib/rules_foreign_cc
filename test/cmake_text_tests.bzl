@@ -308,6 +308,58 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
 
     unittest.end(env)
 
+def _create_cmake_script_toolchain_file_test(ctx):
+    env = unittest.begin(ctx)
+
+    tools = CxxToolsInfo(
+        cc = "some-cc-value",
+        cxx = "external/cxx-value",
+        cxx_linker_static = "cxx_linker_static",
+        cxx_linker_executable = "ws/cxx_linker_executable",
+    )
+    flags = CxxFlagsInfo(
+        cc = ["-cc-flag", "-gcc_toolchain", "cc-toolchain"],
+        cxx = ["--quoted=\"abc def\"", "--sysroot=/abc/sysroot", "--gcc_toolchain", "cxx-toolchain"],
+        cxx_linker_shared = ["shared1", "shared2"],
+        cxx_linker_static = ["static"],
+        cxx_linker_executable = ["executable"],
+        assemble = ["assemble"],
+    )
+    user_env = {
+        "CC": "sink-cc-value",
+        "CXX": "sink-cxx-value",
+        "CFLAGS": "--from-env",
+        "CUSTOM_ENV": "YES",
+    }
+    user_cache = {
+        "CMAKE_C_FLAGS": "--additional-flag",
+        "CMAKE_ASM_FLAGS": "assemble-user",
+        "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CUSTOM_CACHE": "YES",
+    }
+
+    script = create_cmake_script("ws", tools, flags, "test_rule", "external/test_rule", False, user_cache, user_env, ["-GNinja"])
+    expected = """cat > crosstool_bazel.cmake <<EOF
+set(CMAKE_SYSTEM_NAME "Linux")
+set(CMAKE_SYSROOT "/abc/sysroot")
+set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "cc-toolchain")
+set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "cxx-toolchain")
+set(CMAKE_C_COMPILER "sink-cc-value")
+set(CMAKE_CXX_COMPILER "sink-cxx-value")
+set(CMAKE_AR "cxx_linker_static" CACHE FILEPATH "Archiver")
+set(CMAKE_CXX_LINK_EXECUTABLE "became")
+set(CMAKE_C_FLAGS_INIT "-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag")
+set(CMAKE_CXX_FLAGS_INIT "--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain")
+set(CMAKE_ASM_FLAGS_INIT "assemble assemble-user")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "shared1 shared2")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "executable")
+EOF
+
+CUSTOM_ENV="YES" cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+    asserts.equals(env, expected, script)
+
+    unittest.end(env)
+
 absolutize_test = unittest.make(_absolutize_test)
 tail_extraction_test = unittest.make(_tail_extraction_test)
 find_flag_value_test = unittest.make(_find_flag_value_test)
@@ -318,6 +370,7 @@ merge_toolchain_and_user_values_test = unittest.make(_merge_toolchain_and_user_v
 create_min_cmake_script_no_toolchain_file_test = unittest.make(_create_min_cmake_script_no_toolchain_file_test)
 create_min_cmake_script_toolchain_file_test = unittest.make(_create_min_cmake_script_toolchain_file_test)
 create_cmake_script_no_toolchain_file_test = unittest.make(_create_cmake_script_no_toolchain_file_test)
+create_cmake_script_toolchain_file_test = unittest.make(_create_cmake_script_toolchain_file_test)
 
 def cmake_script_test_suite():
     unittest.suite(
@@ -332,4 +385,5 @@ def cmake_script_test_suite():
         create_min_cmake_script_no_toolchain_file_test,
         create_min_cmake_script_toolchain_file_test,
         create_cmake_script_no_toolchain_file_test,
+        create_cmake_script_toolchain_file_test,
     )
