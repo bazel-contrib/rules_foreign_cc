@@ -1,18 +1,9 @@
-load("//tools/build_defs:ninja_build.bzl", "ninja_tool")
-
-ninja_tool(
-    name = "ninjatool",
-    ninja_srcs = "@ninja_build//:all",
-)
-
-sh_library(
-    name = "ninja",
-    srcs = [":ninjatool"],
-)
+load("@foreign_cc_platform_utils//:tools.bzl", "NINJA_USE_BUILT")
 
 sh_test(
     name = "test_ninja_version",
     srcs = ["test_ninja_version.sh"],
+    args = ["true" if NINJA_USE_BUILT else "false"],
     visibility = ["//:__pkg__"],
-    deps = [":ninja"],
+    deps = ["@foreign_cc_platform_utils//:ninja"],
 )

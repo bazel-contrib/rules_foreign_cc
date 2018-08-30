@@ -1,4 +1,4 @@
-load("@foreign_cc_platform_utils//:cmake_globals.bzl", "CMAKE_COMMAND", "CMAKE_DEPS")
+load("@foreign_cc_platform_utils//:tools.bzl", "CMAKE_COMMAND")
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
 def create_cmake_script(

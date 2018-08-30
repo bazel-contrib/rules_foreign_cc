@@ -27,6 +27,6 @@ load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
 
 gmaven_rules()
 
-load(":examples_repositories.bzl", "include_examples_repositories")
+load("//examples:examples_repositories.bzl", "include_examples_repositories")
 
 include_examples_repositories()

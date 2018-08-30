@@ -18,6 +18,7 @@ load(
 )
 load(":cmake_script.bzl", "create_cmake_script")
 load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
+load("@foreign_cc_platform_utils//:tools.bzl", "CMAKE_USE_BUILT")
 
 def _cmake_external(ctx):
     root = detect_root(ctx.attr.lib_source)
@@ -41,7 +42,7 @@ def _cmake_external(ctx):
     )
     copy_results = "copy_dir_contents_to_dir $TMPDIR/{} $INSTALLDIR".format(install_prefix)
 
-    tools_deps = ctx.attr.tools_deps + [ctx.attr._cmake_dep]
+    tools_deps = ctx.attr.tools_deps + ([ctx.attr._cmake_dep] if hasattr(ctx.attr, "_cmake_dep") else [])
     attrs = create_attrs(
         ctx.attr,
         configure_name = "CMake",
@@ -87,12 +88,16 @@ def _attrs():
         # cache_entries - the rule makes only a poor guess about the target system,
         # it is better to specify it manually.
         "generate_crosstool_file": attr.bool(mandatory = False, default = False),
-        "_cmake_dep": attr.label(
-            default = "@foreign_cc_platform_utils//:cmake",
-            cfg = "target",
-            allow_files = True,
-        ),
     })
+    if CMAKE_USE_BUILT == True:
+        # include cmake only if needed
+        attrs.update({
+            "_cmake_dep": attr.label(
+                default = "@foreign_cc_platform_utils//:cmake",
+                cfg = "target",
+                allow_files = True,
+            ),
+        })
     return attrs
 
 """ Rule for building external library with CMake
