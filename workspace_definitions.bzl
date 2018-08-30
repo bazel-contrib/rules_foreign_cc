@@ -1,6 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("//workspace:repositories.bzl", "repositories")
-load("//workspace:os_info.bzl", "get_os_info")
+load("//for_workspace:repositories.bzl", "repositories")
+load("//for_workspace:os_info.bzl", "get_os_info")
 
 def _platform_dependent_init_impl(rctx):
     os_name = rctx.os.name.lower()
@@ -19,7 +19,7 @@ def _platform_dependent_init_impl(rctx):
     ))
 
 def _create_os_description(rctx, os_name):
-    path = rctx.path(Label("//workspace:os_info.bzl"))
+    path = rctx.path(Label("//for_workspace:os_info.bzl"))
     rctx.template("os_info.bzl", path, executable = True)
     return "load(\":os_info.bzl\", \"define_os\")\ndefine_os(\"{}\")".format(os_name)
 
@@ -31,7 +31,7 @@ def _shell_utils_text(rctx, host_os):
         utils_name = "utils_win.bat"
         fail("Not supported yet!")
 
-    path = rctx.path(Label("//workspace:" + utils_name))
+    path = rctx.path(Label("//for_workspace:" + utils_name))
     rctx.template(utils_name, path, executable = True)
 
     return """
@@ -87,7 +87,7 @@ def _build_tools(rctx, host_os):
         descriptor = _tools[tool]
 
         # define the rule for building the tool in any case
-        definition_path = rctx.path(Label("//workspace:" + descriptor.file))
+        definition_path = rctx.path(Label("//for_workspace:" + descriptor.file))
         rctx.template(descriptor.file, definition_path)
         build_text += ["""
 sh_library(
