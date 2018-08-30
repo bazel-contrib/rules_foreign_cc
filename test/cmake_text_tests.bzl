@@ -232,6 +232,46 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
 
     unittest.end(env)
 
+def _create_min_cmake_script_toolchain_file_test(ctx):
+    env = unittest.begin(ctx)
+
+    tools = CxxToolsInfo(
+        cc = "/usr/bin/gcc",
+        cxx = "/usr/bin/gcc",
+        cxx_linker_static = "/usr/bin/ar",
+        cxx_linker_executable = "/usr/bin/gcc",
+    )
+    flags = CxxFlagsInfo(
+        cc = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
+        cxx = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
+        cxx_linker_shared = ["-shared", "-fuse-ld=gold"],
+        cxx_linker_static = ["static"],
+        cxx_linker_executable = ["-fuse-ld=gold", "-Wl", "-no-as-needed"],
+        assemble = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
+    )
+    user_env = {}
+    user_cache = {
+        "NOFORTRAN": "on",
+    }
+
+    script = create_cmake_script("ws", tools, flags, "test_rule", "external/test_rule", False, user_cache, user_env, ["-GNinja"])
+    expected = """cat > crosstool_bazel.cmake <<EOF
+set(CMAKE_SYSTEM_NAME "Linux")
+set(CMAKE_C_COMPILER "/usr/bin/gcc")
+set(CMAKE_CXX_COMPILER "/usr/bin/gcc")
+set(CMAKE_AR "/usr/bin/ar" CACHE FILEPATH "Archiver")
+set(CMAKE_C_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
+set(CMAKE_CXX_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
+set(CMAKE_ASM_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "-shared -fuse-ld=gold")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "-fuse-ld=gold -Wl -no-as-needed")
+EOF
+
+ cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+    asserts.equals(env, expected, script)
+
+    unittest.end(env)
+
 def _create_cmake_script_no_toolchain_file_test(ctx):
     env = unittest.begin(ctx)
 
@@ -276,6 +316,7 @@ move_dict_values_test = unittest.make(_move_dict_values_test)
 reverse_descriptor_dict_test = unittest.make(_reverse_descriptor_dict_test)
 merge_toolchain_and_user_values_test = unittest.make(_merge_toolchain_and_user_values_test)
 create_min_cmake_script_no_toolchain_file_test = unittest.make(_create_min_cmake_script_no_toolchain_file_test)
+create_min_cmake_script_toolchain_file_test = unittest.make(_create_min_cmake_script_toolchain_file_test)
 create_cmake_script_no_toolchain_file_test = unittest.make(_create_cmake_script_no_toolchain_file_test)
 
 def cmake_script_test_suite():
@@ -289,5 +330,6 @@ def cmake_script_test_suite():
         reverse_descriptor_dict_test,
         merge_toolchain_and_user_values_test,
         create_min_cmake_script_no_toolchain_file_test,
+        create_min_cmake_script_toolchain_file_test,
         create_cmake_script_no_toolchain_file_test,
     )
