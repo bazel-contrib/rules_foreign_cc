@@ -131,10 +131,16 @@ def cc_external_rule_impl(ctx, attrs):
      3) defines the following environment variables:
         EXT_BUILD_ROOT: execroot directory
         EXT_BUILD_DEPS: subdirectory of execroot, which contains the following subdirectories:
-          include - here the include directories are symlinked
-          lib - here the library files are symlinked
-          lib/pkgconfig - here the pkgconfig files are symlinked
-          bin - here the tools are copied
+
+          For cmake_external built dependencies:
+            symlinked install directories of the dependencies
+
+          for Bazel built/imported dependencies:
+
+            include - here the include directories are symlinked
+            lib - here the library files are symlinked
+            lib/pkgconfig - here the pkgconfig files are symlinked
+            bin - here the tools are copied
         INSTALLDIR: subdirectory of the execroot (named by the lib_name), where the library/binary
         will be installed
 
