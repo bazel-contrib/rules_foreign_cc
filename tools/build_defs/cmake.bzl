@@ -36,8 +36,8 @@ def _cmake_external(ctx):
         install_prefix,
         root,
         no_toolchain_file,
-        ctx.attr.cache_entries,
-        ctx.attr.env_vars,
+        dict(ctx.attr.cache_entries),
+        dict(ctx.attr.env_vars),
         ctx.attr.cmake_options,
     )
     copy_results = "copy_dir_contents_to_dir $TMPDIR/{} $INSTALLDIR".format(install_prefix)

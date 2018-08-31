@@ -2,6 +2,10 @@ load("//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(
     name = "libz",
+    cache_entries = {
+        # fictive prefix to test prefix merging
+        "CMAKE_PREFIX_PATH": "/bac/def",
+    },
     lib_source = "@zlib//:all",
 )
 
