@@ -1,3 +1,5 @@
+""" Rule for building CMake from sources. """
+
 load(":detect_root.bzl", "detect_root")
 
 def _cmake_tool(ctx):
@@ -28,6 +30,10 @@ def _cmake_tool(ctx):
 
     return [DefaultInfo(files = depset([cmake]))]
 
+""" Rule for building CMake. Invokes bootstrap script and make install.
+  Attributes:
+    cmake_srcs - target with the CMake sources
+"""
 cmake_tool = rule(
     attrs = {
         "cmake_srcs": attr.label(mandatory = True),
