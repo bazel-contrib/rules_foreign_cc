@@ -2,7 +2,7 @@
 
 Rules for building C/C++ projects using foreign build systems inside Bazel projects.
 
-* Experimental - API will most definitely change.
+* <span style="color:red">**Experimental** - API will most definitely change.</span>
 * This is not an officially supported Google product
 (meaning, support and/or new releases may be limited.)
 
@@ -14,88 +14,137 @@ It also requires passing Bazel the following flag:
 ```
 --experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs
 ```
+Where ```rules_foreign_cc``` is the name of this repository in your WORKSPACE file.
 
-## building CMake projects:
+## Building CMake projects:
 
-- build libraries/binaries with CMake from sources using cmake_external rule
-- use cmake_external targets in cc_library, cc_binary targets as dependency
+- Build libraries/binaries with CMake from sources using cmake_external rule
+- Use cmake_external targets in cc_library, cc_binary targets as dependency
 - Bazel cc_toolchain parameters are used inside cmake_external build
-- see full list of cmake_external arguments below example
+- See full list of cmake_external arguments below 'example'
 - cmake_external is defined in ./tools/build_defs
+- Works on Ubuntu and Mac OS operating systems, **does not work on Windows** yet
 
 **Example:**
-(Please see full examples in ./framework_example)
+(Please see full examples in ./examples)
 
-* In `WORKSPACE`, we use a `new_http_archive` to download tarballs with the libraries we use.
+* In `WORKSPACE`, we use a `http_archive` to download tarballs with the libraries we use.
 * In `BUILD`, we instantiate a `cmake_external` rule which behaves similarly to a `cc_library`, which can then be used in a C++ rule (`cc_binary` in this case).
 
 In `WORKSPACE`, put
 
 ```python
-# -- Load CMake rule definition and its dependencies
-http_archive(
-    name = "rules_foreign_cc",
-    strip_prefix = "rules_foreign_cc-master",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
-)
+workspace(name = "rules_foreign_cc_usage_example")
 
-load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
-
-rules_foreign_cc_dependencies()
-
-# -- Load the library
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # Group the sources of the library so that CMake rule have access to it
 all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
 
-new_http_archive(
-    name = "zlib",
-    build_file_content = all_content,
-    sha256 = "4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066",
-    strip_prefix = "zlib-1.2.11",
-    urls = [
-        "https://zlib.net/zlib-1.2.11.tar.xz",
-    ],
+# Rule repository
+http_archive(
+   name = "rules_foreign_cc",
+   strip_prefix = "rules_foreign_cc-master",
+   url = "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
+)
+
+load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+
+# Workspace initialization function; includes repositories needed by rules_foreign_cc,
+# and creates some utilities for the host operating system
+rules_foreign_cc_dependencies()
+
+# OpenBLAS source code repository
+http_archive(
+   name = "openblas",
+   build_file_content = all_content,
+   strip_prefix = "OpenBLAS-0.3.2",
+   urls = ["https://github.com/xianyi/OpenBLAS/archive/v0.3.2.tar.gz"],
+)
+
+# Eigen source code repository
+http_archive(
+   name = "eigen",
+   build_file_content = all_content,
+   strip_prefix = "eigen-git-mirror-3.3.5",
+   urls = ["https://github.com/eigenteam/eigen-git-mirror/archive/3.3.5.tar.gz"],
 )
 ```
 
 and in `BUILD`, put
 
 ```python
-load("//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(
-    name = "libz",
-    # Here we are referencing the library sources
-    lib_source = "@zlib//:all",
+   name = "openblas",
+   # Values to be passed as -Dkey=value on the CMake command line;
+   # here are serving to provide some CMake script configuration options
+   cache_entries = {
+       "NOFORTRAN": "on",
+       "BUILD_WITHOUT_LAPACK": "no",
+   },
+   lib_source = "@openblas//:all",
+
+   # We are selecting the resulting static library to be passed in C/C++ provider
+   # as the result of the build;
+   # However, the cmake_external dependants could use other artefacts provided by the build,
+   # according to their CMake script
+   static_libraries = ["libopenblas.a"],
 )
 
-# Example to show that zlib was actually build
-cc_binary(
-    name = "zlib_usage_example",
-    srcs = ["zlib-example.cpp"],
-    deps = [":libz"],
+cmake_external(
+   name = "eigen",
+   # These options help CMake to find prebuilt OpenBLAS, which will be copied into
+   # $EXT_BUILD_DEPS/openblas by the cmake_external script
+   cache_entries = {
+       "BLA_VENDOR": "OpenBLAS",
+       "BLAS_LIBRARIES": "$EXT_BUILD_DEPS/openblas/lib/libopenblas.a",
+   },
+   headers_only = True,
+   lib_source = "@eigen//:all",
+   # Dependency on other cmake_external rule; can also depend on cc_import, cc_library rules
+   deps = [":openblas"],
 )
 ```
 
 then build as usual:
 
 ```bash
-$ devbazel build //examples:zlib_usage_example
-```
-
-run to see that the zlib library was actually build and the example code can use it:
- 
-```bash
-$ devbazel run //examples:zlib_usage_example
+$ devbazel build //examples/cmake_pcl:eigen
 ```
 
 **cmake_external arguments:**
 
+Mandatory arguments:
+```name, lib_source```
+
 ```python
 attrs: {
-    # cmake_options - (list of strings) options to be passed to the cmake call
-    "cmake_options": attr.string_list(mandatory = False, default = [])
+    # CMake only:
+    #
+    # Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX
+    "install_prefix": attr.string(mandatory = False),
+    # CMake cache entries to initialize (they will be passed with -Dkey=value)
+    # Values, defined by the toolchain, will be joined with the values, passed here.
+    # (Toolchain values come first)
+    "cache_entries": attr.string_dict(mandatory = False, default = {}),
+    # CMake environment variable values to join with toolchain-defined.
+    # For example, additional CXXFLAGS.
+    "env_vars": attr.string_dict(mandatory = False, default = {}),
+    # Other CMake options
+    "cmake_options": attr.string_list(mandatory = False, default = []),
+    # When True, CMake crosstool file will be generated from the toolchain values,
+    # provided cache-entries and env_vars (some values will still be passed as -Dkey=value
+    # and environment variables).
+    # If CMAKE_TOOLCHAIN_FILE cache entry is passed, specified crosstool file will be used
+    # When using this option, it makes sense to specify CMAKE_SYSTEM_NAME in the
+    # cache_entries - the rule makes only a poor guess about the target system,
+    # it is better to specify it manually.
+    "generate_crosstool_file": attr.bool(mandatory = False, default = False),
+    #
+    # From framework.bzl:
+    # 
     # Library name. Defines the name of the install directory and the name of the static library,
     # if no output files parameters are defined (any of static_libraries, shared_libraries,
     # interface_libraries, binaries_names)
@@ -154,8 +203,11 @@ attrs: {
     "interface_libraries": attr.string_list(mandatory = False),
     # Optional names of the resulting binaries.
     "binaries": attr.string_list(mandatory = False),
-    #
-    # Optional name of the output subdirectory with pkgconfig files.
-    "out_pkg_config_dir": attr.string(mandatory = False),
+    # Flag variable to indicate that the library produces only headers
+    "headers_only": attr.bool(mandatory = False, default = False),
   }
 ```
+
+## Design document:
+
+[External C/C++ libraries rules](https://docs.google.com/document/d/1Gv452Vtki8edo_Dj9VTNJt5DA_lKTcSMwrwjJOkLaoU/edit?usp=sharing) 
