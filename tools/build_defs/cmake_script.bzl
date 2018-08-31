@@ -14,7 +14,7 @@ def create_cmake_script(
         user_cache,
         user_env,
         options):
-    """ Constructs CMake script to be passed to cc_external_rule_impl.
+  """ Constructs CMake script to be passed to cc_external_rule_impl.
   Args:
     workspace_name - current workspace name
     target_os - OSInfo with target operating system information, used for CMAKE_SYSTEM_NAME in
@@ -28,14 +28,17 @@ CMake toolchain file
     user_env - dictionary with user's values for CMake environment variables
     options - other CMake options specified by user
 """
+    merged_prefix_path = _merge_prefix_path(user_cache)
+
     toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags)
     params = None
     if no_toolchain_file:
         params = _create_cache_entries_env_vars(toolchain_dict, user_cache, user_env)
     else:
         params = _create_crosstool_file_text(toolchain_dict, user_cache, user_env)
+
     params.cache.update({
-        "CMAKE_PREFIX_PATH": "$EXT_BUILD_DEPS",
+        "CMAKE_PREFIX_PATH": merged_prefix_path,
         "CMAKE_INSTALL_PREFIX": install_prefix,
     })
 
@@ -50,6 +53,15 @@ CMake toolchain file
     ])
 
     return "\n".join(params.commands + [cmake_call])
+
+# From CMake documentation: ;-list of directories specifying installation prefixes to be searched...
+def _merge_prefix_path(user_cache):
+    user_prefix = user_cache.get("CMAKE_PREFIX_PATH")
+    if user_prefix != None:
+        # remove it, it is gonna be merged specifically
+        user_cache.pop("CMAKE_PREFIX_PATH")
+        return "$EXT_BUILD_DEPS;" + user_prefix.strip("\"'")
+    return "$EXT_BUILD_DEPS"
 
 _CMAKE_ENV_VARS_FOR_CROSSTOOL = {
     "CC": struct(value = "CMAKE_C_COMPILER", replace = True),
