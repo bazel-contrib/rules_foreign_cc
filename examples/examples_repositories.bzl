@@ -106,3 +106,11 @@ def include_examples_repositories():
         strip_prefix = "pcl-pcl-1.8.1",
         urls = ["https://github.com/PointCloudLibrary/pcl/archive/pcl-1.8.1.tar.gz"],
     )
+
+    http_archive(
+        name = "boost",
+        build_file_content = all_content,
+        strip_prefix = "boost_1_68_0",
+        sha256 = "da3411ea45622579d419bfda66f45cd0f8c32a181d84adfa936f5688388995cf",
+        urls = ["https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz"],
+    )
