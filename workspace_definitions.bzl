@@ -99,10 +99,13 @@ sh_library(
 
         value = tool
         to_build_tool = descriptor.should_be_built(existing, rctx, host_os)
+        tool_deps = "[]"
         if to_build_tool:
             value = "$EXT_BUILD_DEPS/bin/{}/{}".format(tool, descriptor.bin_path)
+            tool_deps = "[\"@foreign_cc_platform_utils//:{}\"]".format(tool)
         tools_text += ["{}_USE_BUILT={}".format(tool.upper(), to_build_tool)]
         tools_text += ["{}_COMMAND=\"{}\"".format(tool.upper(), value)]
+        tools_text += ["{}_DEP={}".format(tool.upper(), tool_deps)]
 
     rctx.file("tools.bzl", "\n".join(tools_text))
     return "\n".join(build_text)

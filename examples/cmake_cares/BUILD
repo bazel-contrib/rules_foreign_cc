@@ -1,5 +1,5 @@
 load("//tools/build_defs:cmake.bzl", "cmake_external")
-load("@foreign_cc_platform_utils//:tools.bzl", "NINJA_COMMAND")
+load("@foreign_cc_platform_utils//:tools.bzl", "NINJA_COMMAND", "NINJA_DEP")
 
 cmake_external(
     name = "cares",
@@ -14,7 +14,7 @@ cmake_external(
         NINJA_COMMAND + " install",
     ],
     static_libraries = ["libcares.a"],
-    tools_deps = ["@foreign_cc_platform_utils//:ninja"],
+    tools_deps = NINJA_DEP,
 )
 
 cc_test(
