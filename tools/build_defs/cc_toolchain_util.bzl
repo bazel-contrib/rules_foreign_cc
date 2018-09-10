@@ -61,16 +61,16 @@ def _perform_error_checks(
         targets_windows):
     # If the shared library will be provided by system during runtime, users are not supposed to
     # specify shared_library.
-    if system_provided and shared_library_artifacts != None:
+    if system_provided and shared_library_artifacts:
         fail("'shared_library' shouldn't be specified when 'system_provided' is true")
 
     # If a shared library won't be provided by system during runtime and we are linking the shared
     # library through interface library, the shared library must be specified.
-    if (not system_provided and shared_library_artifacts == None and
-        interface_library_artifacts != None):
+    if (not system_provided and shared_library_artifacts and
+        interface_library_artifacts):
         fail("'shared_library' should be specified when 'system_provided' is false")
 
-    if targets_windows and shared_library_artifacts != None:
+    if targets_windows and shared_library_artifacts:
         fail("'interface library' must be specified when using cc_import for " +
              "shared library on Windows")
 
