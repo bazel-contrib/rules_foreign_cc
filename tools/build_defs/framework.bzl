@@ -201,7 +201,10 @@ def cc_external_rule_impl(ctx, attrs):
         inputs = depset(inputs.declared_inputs) + ctx.attr._cc_toolchain.files,
         outputs = outputs.declared_outputs,
         tools = ctx.attr._utils.files,
-        use_default_shell_env = False,
+        # We should take the default PATH passed by Bazel, not that from cc_toolchain
+        # for Windows, because the PATH under msys2 is different and that is which we need
+        # for shell commands
+        use_default_shell_env = targets_windows(ctx, None),
         command = script_text,
         execution_requirements = execution_requirements,
         env = env,
