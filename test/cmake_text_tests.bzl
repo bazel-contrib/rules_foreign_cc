@@ -274,7 +274,7 @@ set(CMAKE_EXE_LINKER_FLAGS_INIT "-fuse-ld=gold -Wl -no-as-needed")
 EOF
 
  {cmake} -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
-    asserts.equals(env, expected.format(cmake = CMAKE_COMMAND), script)
+    asserts.equals(env, expected.format(cmake = CMAKE_COMMAND).splitlines(), script.splitlines())
 
     unittest.end(env)
 
@@ -364,7 +364,7 @@ set(CMAKE_EXE_LINKER_FLAGS_INIT "executable")
 EOF
 
 CUSTOM_ENV="YES" {cmake} -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
-    asserts.equals(env, expected.format(cmake = CMAKE_COMMAND), script)
+    asserts.equals(env, expected.format(cmake = CMAKE_COMMAND).splitlines(), script.splitlines())
 
     unittest.end(env)
 
