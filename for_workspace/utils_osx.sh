@@ -2,6 +2,7 @@
 
 # default placeholder value
 REPLACE_VALUE='BAZEL_GEN_ROOT'
+export BUILD_PWD=$(pwd)
 
 # Echo variables in the format
 # var1_name="var1_value"
@@ -123,4 +124,10 @@ function define_absolute_paths() {
 # $2 absolute path to replace
 function replace_absolute_paths() {
   replace_in_files $1 $2 $REPLACE_VALUE
+}
+
+# function for setting necessary environment variables for the platform
+function set_platform_env_vars() {
+  # empty for Mac OS
+  return 0
 }
