@@ -28,8 +28,7 @@ def _shell_utils_text(rctx, host_os):
     if host_os.is_osx:
         utils_name = "utils_osx.sh"
     if host_os.is_win:
-        utils_name = "utils_win.bat"
-        fail("Not supported yet!")
+        utils_name = "utils_win.sh"
 
     path = rctx.path(Label("//for_workspace:" + utils_name))
     rctx.template(utils_name, path, executable = True)
