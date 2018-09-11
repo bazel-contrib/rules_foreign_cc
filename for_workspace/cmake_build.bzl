@@ -8,10 +8,10 @@ def _cmake_tool(ctx):
     cmake = ctx.actions.declare_directory("cmake")
     script_text = "\n".join([
         "BUILD_DIR=$(pwd)",
-        "export TMPDIR=$(mktemp -d)",
-        "cp -R ./{}/. $TMPDIR".format(root),
+        "export BUILD_TMPDIR=$(mktemp -d)",
+        "cp -R ./{}/. $BUILD_TMPDIR".format(root),
         "mkdir " + cmake.path,
-        "pushd $TMPDIR",
+        "pushd $BUILD_TMPDIR",
         "./bootstrap --prefix=install",
         "make install",
         "cp -a ./install/. $BUILD_DIR/" + cmake.path,

@@ -40,7 +40,7 @@ def _cmake_external(ctx):
         dict(ctx.attr.env_vars),
         ctx.attr.cmake_options,
     )
-    copy_results = "copy_dir_contents_to_dir $TMPDIR/{} $INSTALLDIR".format(install_prefix)
+    copy_results = "copy_dir_contents_to_dir $BUILD_TMPDIR/{} $INSTALLDIR".format(install_prefix)
 
     tools_deps = ctx.attr.tools_deps + ([ctx.attr._cmake_dep] if hasattr(ctx.attr, "_cmake_dep") else [])
     attrs = create_attrs(

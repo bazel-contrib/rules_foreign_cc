@@ -2,7 +2,7 @@
 
 # default placeholder value
 REPLACE_VALUE='BAZEL_GEN_ROOT'
-export BUILD_PWD=$(pwd)
+export BUILD_PWD=$(cygpath -m $(pwd))
 
 # Echo variables in the format
 # var1_name="var1_value"
@@ -82,24 +82,13 @@ function symlink_contents_to_dir() {
   done
 }
 
-# Symlink all files from source directory to target directory (create the target directory if needed)
+# COPIES all files from source directory to target directory (create the target directory if needed)
+# (Windows complains about long filenames with symlink command, so copy them)
 # NB symlinks from the source directory are copied
 # $1 source directory
 # $2 target directory
 function symlink_to_dir() {
-  local target="$2"
-  mkdir -p ${target}
-
-  if [[ -d $1 ]]; then
-    local dir_name="$(basename "$1")"
-    ln -s $1 ${target}/${dir_name}
-  elif [[ -f $1 ]]; then
-    ln -s $1 ${target}
-  elif [[ -L $1 ]]; then
-    cp $1 ${target}
-  else
-    echo "Can not copy $1"
-  fi
+  cp $1 $2
 }
 
 # Copy all files from source directory to target directory (create the target directory if needed),
@@ -128,6 +117,7 @@ function replace_absolute_paths() {
 
 # function for setting necessary environment variables for the platform
 function set_platform_env_vars() {
-  # empty for Mac OS
-  return 0
+  export MSYS_NO_PATHCONV=1
+  export MSYS2_ARG_CONV_EXCL="*"
+  export SYSTEMDRIVE="C:"
 }
