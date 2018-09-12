@@ -17,5 +17,8 @@ test_suite(
 test_suite(
     name = "win_tests",
     tags = ["windows"],
-    tests = tests,
+    tests = tests + [
+        "//examples/cmake_hello_world_lib:test_hello_ninja",
+        "//examples/cmake_hello_world_lib:test_hello_nmake",
+    ],
 )
