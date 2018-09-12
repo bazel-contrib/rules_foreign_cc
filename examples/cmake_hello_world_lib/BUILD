@@ -32,7 +32,6 @@ cmake_external(
     name = "libhello_win_ninja",
     cmake_options = ["-GNinja"],
     generate_crosstool_file = True,
-    lib_name = "libhello",
     lib_source = ":srcs",
     make_commands = [
         "ninja",
@@ -47,7 +46,6 @@ cmake_external(
     name = "libhello_win_nmake",
     cmake_options = ["-G \"NMake Makefiles\""],
     generate_crosstool_file = True,
-    lib_name = "libhello",
     lib_source = ":srcs",
     make_commands = [
         "nmake",
