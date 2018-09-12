@@ -111,6 +111,7 @@ sh_library(
 
 _platform_dependent_init = repository_rule(
     implementation = _platform_dependent_init_impl,
+    environ = ["PATH"],
 )
 
 def rules_foreign_cc_dependencies():

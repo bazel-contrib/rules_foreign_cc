@@ -168,10 +168,13 @@ def cc_external_rule_impl(ctx, attrs):
 
     shell_utils = ctx.attr._utils.files.to_list()[0].path
 
+    env = _correct_path_variable(get_env_vars(ctx))
+
     script_lines = [
         "echo \"Building external library '{}'\"".format(lib_name),
         "set -e",
         "source " + shell_utils,
+        "\n".join(["export {}=\"{}\"".format(key, env[key]) for key in env]),
         "set_platform_env_vars",
         "export EXT_BUILD_ROOT=$BUILD_PWD",
         "export BUILD_TMPDIR=$(mktemp -d)",
@@ -196,7 +199,6 @@ def cc_external_rule_impl(ctx, attrs):
     script_text = "\n".join(script_lines)
     print("script text: " + script_text)
 
-    env = get_env_vars(ctx)
     execution_requirements = {"block-network": ""}
 
     ctx.actions.run_shell(
@@ -207,10 +209,9 @@ def cc_external_rule_impl(ctx, attrs):
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
         # for shell commands
-        use_default_shell_env = targets_windows(ctx, None),
+        use_default_shell_env = True,
         command = script_text,
         execution_requirements = execution_requirements,
-        env = env,
     )
 
     return [
@@ -224,6 +225,16 @@ def cc_external_rule_impl(ctx, attrs):
         out_cc_info.compilation_info,
         out_cc_info.linking_info,
     ]
+
+def _correct_path_variable(env):
+    value = env.get("PATH", "")
+    if not value:
+        return env
+    value = env.get("PATH", "").replace("C:\\", "/c/")
+    value = value.replace("\\", "/")
+    value = value.replace(";", ":")
+    env["PATH"] = "$PATH:" + value
+    return env
 
 def _value(value, default_value):
     if (value):
