@@ -271,15 +271,20 @@ def get_env_vars(ctx):
         unsupported_features = ctx.disabled_features,
     )
     copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else depset()
-    return cc_common.get_environment_variables(
-        feature_configuration = feature_configuration,
-        action_name = C_COMPILE_ACTION_NAME,
-        variables = cc_common.create_compile_variables(
-            feature_configuration = feature_configuration,
-            cc_toolchain = cc_toolchain,
-            user_compile_flags = copts,
-        ),
-    )
+
+    vars = dict()
+
+    for action_name in [C_COMPILE_ACTION_NAME, CPP_LINK_STATIC_LIBRARY_ACTION_NAME, CPP_LINK_EXECUTABLE_ACTION_NAME]:
+        vars.update(cc_common.get_environment_variables(
+                            feature_configuration = feature_configuration,
+                            action_name = action_name,
+                            variables = cc_common.create_compile_variables(
+                                feature_configuration = feature_configuration,
+                                cc_toolchain = cc_toolchain,
+                                user_compile_flags = copts,
+                            ),
+                        ))
+    return vars
 
 def get_tools_info(ctx):
     """ Takes information about tools paths from cc_toolchain, returns CxxToolsInfo
