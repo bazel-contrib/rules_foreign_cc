@@ -15,6 +15,7 @@ load(
     "//tools/build_defs:cc_toolchain_util.bzl",
     "get_flags_info",
     "get_tools_info",
+    "is_debug_mode",
 )
 load(":cmake_script.bzl", "create_cmake_script")
 load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
@@ -39,6 +40,7 @@ def _cmake_external(ctx):
         dict(ctx.attr.cache_entries),
         dict(ctx.attr.env_vars),
         ctx.attr.cmake_options,
+        is_debug_mode(ctx),
     )
     copy_results = "copy_dir_contents_to_dir $BUILD_TMPDIR/{} $INSTALLDIR".format(install_prefix)
 

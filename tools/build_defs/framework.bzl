@@ -85,6 +85,9 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = "@foreign_cc_platform_utils//:shell_utils",
         allow_single_file = True,
     ),
+    "_is_debug": attr.label(
+        default = "@foreign_cc_platform_utils//:compilation_mode",
+    ),
     # link to the shell utilities used by the shell script in cc_external_rule_impl.
     "_target_os": attr.label(
         default = "@foreign_cc_platform_utils//:target_os",
