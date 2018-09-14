@@ -10,24 +10,24 @@ filegroup(
 cmake_external(
     name = "liba",
     cmake_options = ["-GNinja"],
+    generate_crosstool_file = True,
     lib_source = "//examples/cmake_synthetic/liba:a_srcs",
     make_commands = [
         NINJA_COMMAND,
         NINJA_COMMAND + " install",
     ],
-    static_libraries = ["libliba.a"],
     tools_deps = NINJA_DEP,
 )
 
 cmake_external(
     name = "libb",
     cmake_options = ["-GNinja"],
+    generate_crosstool_file = True,
     lib_source = "//examples/cmake_synthetic/libb:b_srcs",
     make_commands = [
         NINJA_COMMAND,
         NINJA_COMMAND + " install",
     ],
-    static_libraries = ["liblibb.a"],
     tools_deps = NINJA_DEP,
     deps = [":liba"],
 )
