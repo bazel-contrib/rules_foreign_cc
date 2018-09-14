@@ -5,6 +5,11 @@ set(LIBA_SRC liba.cpp liba.h)
 add_library(liba_static STATIC ${LIBA_SRC})
 
 set_target_properties(liba_static PROPERTIES OUTPUT_NAME "liba")
+IF (WIN32)
+  set_target_properties(liba_static PROPERTIES ARCHIVE_OUTPUT_NAME "liba")
+ELSE()
+  set_target_properties(liba_static PROPERTIES ARCHIVE_OUTPUT_NAME "a")
+ENDIF()
 set_target_properties(liba_static PROPERTIES PUBLIC_HEADER "liba.h")
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
