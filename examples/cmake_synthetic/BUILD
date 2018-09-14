@@ -7,10 +7,15 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+generate_crosstool = select({
+    "@bazel_tools//src/conditions:windows": True,
+    "//conditions:default": False,
+})
+
 cmake_external(
     name = "liba",
     cmake_options = ["-GNinja"],
-    generate_crosstool_file = True,
+    generate_crosstool_file = generate_crosstool,
     lib_source = "//examples/cmake_synthetic/liba:a_srcs",
     make_commands = [
         NINJA_COMMAND,
@@ -22,7 +27,7 @@ cmake_external(
 cmake_external(
     name = "libb",
     cmake_options = ["-GNinja"],
-    generate_crosstool_file = True,
+    generate_crosstool_file = generate_crosstool,
     lib_source = "//examples/cmake_synthetic/libb:b_srcs",
     make_commands = [
         NINJA_COMMAND,
