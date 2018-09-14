@@ -11,6 +11,7 @@ load(
     "targets_windows",
 )
 load("//tools/build_defs:detect_root.bzl", "detect_root")
+load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
 
 """ Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
  Many of the attributes have default values.
@@ -172,12 +173,15 @@ def cc_external_rule_impl(ctx, attrs):
     shell_utils = ctx.attr._utils.files.to_list()[0].path
 
     env = _correct_path_variable(get_env_vars(ctx))
+    set_envs = ""
+    if not ctx.attr._target_os[OSInfo].is_osx:
+        set_envs = "\n".join(["export {}=\"{}\"".format(key, env[key]) for key in env])
 
     script_lines = [
         "echo \"Building external library '{}'\"".format(lib_name),
         "set -e",
         "source " + shell_utils,
-        "\n".join(["export {}=\"{}\"".format(key, env[key]) for key in env]),
+        set_envs,
         "set_platform_env_vars",
         "export EXT_BUILD_ROOT=$BUILD_PWD",
         "export BUILD_TMPDIR=$(mktemp -d)",
@@ -212,9 +216,11 @@ def cc_external_rule_impl(ctx, attrs):
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
         # for shell commands
-        use_default_shell_env = True,
+        use_default_shell_env = not ctx.attr._target_os[OSInfo].is_osx,
         command = script_text,
         execution_requirements = execution_requirements,
+        # this is ignored if use_default_shell_env = True
+        env = env,
     )
 
     return [
