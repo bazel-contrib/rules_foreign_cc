@@ -88,7 +88,7 @@ function symlink_contents_to_dir() {
 # $1 source directory
 # $2 target directory
 function symlink_to_dir() {
-  cp $1 $2
+  cp -r $1 $2
 }
 
 # Copy all files from source directory to target directory (create the target directory if needed),
