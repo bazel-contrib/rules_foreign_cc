@@ -276,15 +276,19 @@ def get_env_vars(ctx):
 
     for action_name in [C_COMPILE_ACTION_NAME, CPP_LINK_STATIC_LIBRARY_ACTION_NAME, CPP_LINK_EXECUTABLE_ACTION_NAME]:
         vars.update(cc_common.get_environment_variables(
-                            feature_configuration = feature_configuration,
-                            action_name = action_name,
-                            variables = cc_common.create_compile_variables(
-                                feature_configuration = feature_configuration,
-                                cc_toolchain = cc_toolchain,
-                                user_compile_flags = copts,
-                            ),
-                        ))
+            feature_configuration = feature_configuration,
+            action_name = action_name,
+            variables = cc_common.create_compile_variables(
+                feature_configuration = feature_configuration,
+                cc_toolchain = cc_toolchain,
+                user_compile_flags = copts,
+            ),
+        ))
     return vars
+
+def is_debug_mode(ctx):
+    # see workspace_definitions.bzl
+    return str(True) == ctx.attr._is_debug[config_common.FeatureFlagInfo].value
 
 def get_tools_info(ctx):
     """ Takes information about tools paths from cc_toolchain, returns CxxToolsInfo

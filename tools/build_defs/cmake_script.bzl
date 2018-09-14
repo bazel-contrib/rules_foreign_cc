@@ -13,7 +13,8 @@ def create_cmake_script(
         no_toolchain_file,
         user_cache,
         user_env,
-        options):
+        options,
+        is_debug_mode = True):
     """ Constructs CMake script to be passed to cc_external_rule_impl.
       Args:
         workspace_name - current workspace name
@@ -37,9 +38,12 @@ def create_cmake_script(
     else:
         params = _create_crosstool_file_text(toolchain_dict, user_cache, user_env)
 
+    build_type = params.cache.get("CMAKE_BUILD_TYPE",
+                                  "DEBUG" if is_debug_mode else "RELEASE")
     params.cache.update({
         "CMAKE_PREFIX_PATH": merged_prefix_path,
         "CMAKE_INSTALL_PREFIX": install_prefix,
+        "CMAKE_BUILD_TYPE": build_type,
     })
 
     set_env_vars = " ".join([key + "=\"" + params.env[key] + "\"" for key in params.env])

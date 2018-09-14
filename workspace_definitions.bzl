@@ -15,8 +15,31 @@ def _platform_dependent_init_impl(rctx):
             _create_os_description(rctx, os_name),
             _shell_utils_text(rctx, host_os),
             _build_tools(rctx, host_os),
+            _build_mode(rctx),
         ],
     ))
+
+def _build_mode(rctx):
+    path = rctx.path(Label("//for_workspace:compilation_mode.bzl"))
+    rctx.template("compilation_mode.bzl", path)
+
+    return """
+load("//:compilation_mode.bzl", "compilation_mode")
+
+config_setting(
+  name = "is_debug",
+  values = {"compilation_mode": "dbg"}
+)
+
+compilation_mode(
+  name = "compilation_mode",
+  is_debug = select({
+    ":is_debug": True,
+    "//conditions:default": False,
+}),
+  visibility = ["//visibility:public"],
+)
+"""
 
 def _create_os_description(rctx, os_name):
     path = rctx.path(Label("//for_workspace:os_info.bzl"))
