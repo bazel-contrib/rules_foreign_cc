@@ -37,6 +37,7 @@ cc_test(
     srcs = [
         "test_libb.cpp",
     ],
+    tags = ["windows"],
     deps = [
         ":liba",
         ":libb",
