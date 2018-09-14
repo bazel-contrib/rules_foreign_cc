@@ -411,11 +411,11 @@ def _define_inputs(attrs):
     for tool in attrs.tools_deps:
         tool_root = detect_root(tool)
         tools_roots += [tool_root]
-        for file_list in tool.files.to_list():
+        for file_list in tool.files:
             tools_files += _list(file_list)
 
     for tool in attrs.additional_tools:
-        for file_list in tool.files.to_list():
+        for file_list in tool.files:
             tools_files += _list(file_list)
 
     # For Bazel-built libraries: copy headers and libs.
@@ -444,6 +444,7 @@ def _define_inputs(attrs):
                           attrs.additional_inputs + deps_compilation.headers + ext_build_dirs,
     )
 
+# consider optimization here to do not iterate both collections
 def _get_headers(compilation_info):
     include_dirs = collections.uniq(compilation_info.system_includes.to_list())
     headers = []
@@ -490,7 +491,7 @@ def _extract_link_params(cc_linking):
 def _collect_libs(cc_linking):
     libs = []
     for params in _extract_link_params(cc_linking):
-        libs += [lib.artifact() for lib in params.libraries_to_link.to_list()]
+        libs += [lib.artifact() for lib in params.libraries_to_link]
         libs += params.dynamic_libraries_for_runtime.to_list()
     return collections.uniq(libs)
 
