@@ -5,7 +5,7 @@ platforms:
     - "//examples:tests"
   ubuntu1604:
     test_targets:
-    - "//examples:tests"
+    - "//examples:tests_no_synthetic"
   macos:
     test_targets:
     - "//examples:tests"
