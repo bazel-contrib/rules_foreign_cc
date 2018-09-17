@@ -22,19 +22,31 @@ load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
 load("@foreign_cc_platform_utils//:tools.bzl", "CMAKE_USE_BUILT")
 
 def _cmake_external(ctx):
+    tools_deps = ctx.attr.tools_deps + ([ctx.attr._cmake_dep] if hasattr(ctx.attr, "_cmake_dep") else [])
+    attrs = create_attrs(
+        ctx.attr,
+        configure_name = "CMake",
+        configure_script = _create_configure_script,
+        postfix_script = "copy_dir_contents_to_dir $BUILD_TMPDIR/$INSTALL_PREFIX $INSTALLDIR\n" + ctx.attr.postfix_script,
+        tools_deps = tools_deps,
+    )
+
+    return cc_external_rule_impl(ctx, attrs)
+
+def _create_configure_script(ctx, attrs, inputs):
     root = detect_root(ctx.attr.lib_source)
-    install_prefix = _get_install_prefix(ctx)
 
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
     no_toolchain_file = ctx.attr.cache_entries.get("CMAKE_TOOLCHAIN_FILE") or not ctx.attr.generate_crosstool_file
 
+    define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
     configure_script = create_cmake_script(
         ctx.workspace_name,
         ctx.attr._target_os[OSInfo],
         tools,
         flags,
-        install_prefix,
+        "$INSTALL_PREFIX",
         root,
         no_toolchain_file,
         dict(ctx.attr.cache_entries),
@@ -42,18 +54,7 @@ def _cmake_external(ctx):
         ctx.attr.cmake_options,
         is_debug_mode(ctx),
     )
-    copy_results = "copy_dir_contents_to_dir $BUILD_TMPDIR/{} $INSTALLDIR".format(install_prefix)
-
-    tools_deps = ctx.attr.tools_deps + ([ctx.attr._cmake_dep] if hasattr(ctx.attr, "_cmake_dep") else [])
-    attrs = create_attrs(
-        ctx.attr,
-        configure_name = "CMake",
-        configure_script = configure_script,
-        postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
-        tools_deps = tools_deps,
-    )
-
-    return cc_external_rule_impl(ctx, attrs)
+    return define_install_prefix + configure_script
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:

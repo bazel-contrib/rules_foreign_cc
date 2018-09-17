@@ -196,7 +196,7 @@ def cc_external_rule_impl(ctx, attrs):
         "\n".join(_copy_deps_and_tools(inputs)),
         "define_absolute_paths $EXT_BUILD_ROOT/bin $EXT_BUILD_ROOT/bin",
         "pushd $BUILD_TMPDIR",
-        attrs.configure_script,
+        attrs.configure_script(ctx, attrs, inputs),
         "\n".join(attrs.make_commands),
         _value(attrs.postfix_script, ""),
         "replace_absolute_paths $INSTALLDIR $INSTALLDIR",
