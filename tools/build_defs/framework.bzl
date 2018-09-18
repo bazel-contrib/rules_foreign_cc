@@ -194,12 +194,17 @@ def cc_external_rule_impl(ctx, attrs):
         "echo \"__________________________\"",
         "trap \"{ rm -rf $BUILD_TMPDIR $EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name + "; }\" EXIT",
         "\n".join(_copy_deps_and_tools(inputs)),
-        "define_absolute_paths $EXT_BUILD_ROOT/bin $EXT_BUILD_ROOT/bin",
+        # replace placeholder with the dependencies root
+        "define_absolute_paths $EXT_BUILD_DEPS $EXT_BUILD_DEPS",
         "pushd $BUILD_TMPDIR",
         attrs.configure_script(ctx, attrs, inputs),
         "\n".join(attrs.make_commands),
         _value(attrs.postfix_script, ""),
-        "replace_absolute_paths $INSTALLDIR $INSTALLDIR",
+        # replace references to the root directory when building ($BUILD_TMPDIR)
+        # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
+        # for the results which are in $INSTALLDIR (with placeholder)
+        "replace_absolute_paths $INSTALLDIR $BUILD_TMPDIR",
+        "replace_absolute_paths $INSTALLDIR $EXT_BUILD_DEPS",
         "popd",
     ]
 

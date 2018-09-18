@@ -43,13 +43,13 @@ function path() {
   export PATH="$1:$PATH"
 }
 
-# Replace string in all files in directory
+# Replace string in *.pc and *.la files in directory
 # $1 directory to search recursively, absolute path
 # $2 string to replace
 # $3 replace target
 function replace_in_files() {
   if [ -d "$1" ]; then
-    find $1 -type f -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
+    find -L $1 -type f \( -name "*.pc" -or -name "*.la" \) -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
   fi
 }
 
@@ -129,4 +129,13 @@ function replace_absolute_paths() {
 function set_platform_env_vars() {
   # empty for Linux
   return 0
+}
+
+function increment_pkg_config_path() {
+  local children=$(find $1 -mindepth 1 -name '*.pc' -print)
+  # assume there is only one directory with pkg config
+  for child in $children; do
+    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(dirname $child)"
+    return
+  done
 }
