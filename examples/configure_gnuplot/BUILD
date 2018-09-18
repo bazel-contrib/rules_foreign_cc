@@ -34,22 +34,33 @@ configure_make(
     ],
 )
 
-cc_binary(
-    name = "zlib_usage_example",
+cc_test(
+    name = "test_zlib",
     srcs = ["zlib-example.cpp"],
     deps = [":libz"],
 )
 
-cc_binary(
-    name = "libpng_usage_example",
+cc_test(
+    name = "test_libpng",
     srcs = ["libpng_usage_example.cpp"],
+    args = ["$(location bazel-icon-transparent.png) out.png"],
+    data = ["bazel-icon-transparent.png"],
     deps = [
         ":libpng",
     ],
 )
 
-cc_binary(
-    name = "test_libgd_with_png",
+cc_test(
+    name = "test_libgd",
     srcs = ["arc.c"],
     deps = ["libgd"],
+)
+
+test_suite(
+    name = "configure_libgd_tests",
+    tests = [
+        ":test_libgd",
+        ":test_libpng",
+        ":test_zlib",
+    ],
 )

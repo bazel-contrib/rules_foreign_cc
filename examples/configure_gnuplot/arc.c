@@ -25,9 +25,12 @@ int main()
 	gdImagePng(im, fp);
 #else
 	printf("No PNG support. Cannot save image.\n");
+	return -1;
 #endif
 	fclose(fp);
 
 	gdImageDestroy(im);
+
+	fprintf(stdout, "Success.\n");
 	return 0;
 }
