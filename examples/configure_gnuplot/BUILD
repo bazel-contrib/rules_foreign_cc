@@ -26,11 +26,11 @@ configure_make(
 
 configure_make(
     name = "libgd",
-    defines = ["HAVE_LIBPNG"],
     lib_source = "@libgd//:all",
     deps = [
         ":freetype",
         ":libpng",
+        ":libz",
     ],
 )
 

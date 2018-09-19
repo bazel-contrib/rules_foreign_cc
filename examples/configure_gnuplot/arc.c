@@ -20,13 +20,7 @@ int main()
 		gdImageDestroy(im);
 		return 1;
 	}
-//	gdImagePng(im, fp);
-#ifdef HAVE_LIBPNG
 	gdImagePng(im, fp);
-#else
-	printf("No PNG support. Cannot save image.\n");
-	return -1;
-#endif
 	fclose(fp);
 
 	gdImageDestroy(im);
