@@ -381,9 +381,10 @@ _InputFiles = provider(
     doc = """Provider to keep different kinds of input files, directories,
 and C/C++ compilation and linking info from dependencies""",
     fields = dict(
-        headers = """Include directories to be used for compilation.
+        headers = """Include directories to be used for compilation, of libraries built by Bazel.
 Will be copied into $EXT_BUILD_DEPS/include.""",
-        libs = "Library files to be used for building. Will be copied into $EXT_BUILD_DEPS/lib.",
+        libs = """Library files to be used for building, built by Bazel.
+Will be copied into $EXT_BUILD_DEPS/lib.""",
         deps_linkopts = "Link options from deps to be passed to resulting CcLinkingInfo",
         tools_files = """Files and directories with tools needed for configuration/building
 to be copied into the bin folder, which is added to the PATH""",
@@ -396,10 +397,11 @@ This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all 
 )
 
 def _define_inputs(attrs):
-    compilation_infos_ext = []
-    linking_infos_ext = []
-    compilation_infos_bazel = []
-    linking_infos_bazel = []
+    compilation_infos_all = []
+    linking_infos_all = []
+
+    bazel_headers = []
+    bazel_libs = []
 
     # This framework function-built libraries: copy result directories under
     # $EXT_BUILD_DEPS/lib-name
@@ -409,13 +411,14 @@ def _define_inputs(attrs):
         provider = dep[OutputGroupInfo]
         ext_built = provider and hasattr(provider, "gen_dir")
 
+        linking_infos_all += [dep[CcLinkingInfo]]
+        compilation_infos_all += [dep[CcCompilationInfo]]
+
         if ext_built:
             ext_build_dirs += provider.gen_dir.to_list()
-            compilation_infos_ext += [dep[CcCompilationInfo]]
-            linking_infos_ext += [dep[CcLinkingInfo]]
         else:
-            compilation_infos_bazel += [dep[CcCompilationInfo]]
-            linking_infos_bazel += [dep[CcLinkingInfo]]
+            bazel_headers += _get_headers(dep[CcCompilationInfo])
+            bazel_libs += collect_libs(dep[CcLinkingInfo])
 
     tools_roots = []
     tools_files = []
@@ -429,29 +432,24 @@ def _define_inputs(attrs):
         for file_list in tool.files:
             tools_files += _list(file_list)
 
-    # For Bazel-built libraries: copy headers and libs.
-    headers = [_get_headers(cc_info) for cc_info in compilation_infos_bazel]
-    deps_linking_bazel = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos_bazel)
-    libs = _collect_libs(deps_linking_bazel)
-
     # These variables are needed for correct C/C++ providers constraction,
     # they should contain all libraries and include directories.
-    deps_compilation = cc_common.merge_cc_compilation_infos(cc_compilation_infos = compilation_infos_ext + compilation_infos_bazel)
-    deps_linking = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos_ext + [deps_linking_bazel])
+    deps_compilation = cc_common.merge_cc_compilation_infos(cc_compilation_infos = compilation_infos_all)
+    deps_linking = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos_all)
 
     # Pass flags up the dependency chain for all types of libraries;
     # flags are passed uniformly for Bazel-built and external libraries
     linkopts = _collect_flags(deps_linking)
 
     return _InputFiles(
-        headers = headers,
-        libs = libs,
+        headers = bazel_headers,
+        libs = bazel_libs,
         deps_linkopts = linkopts,
         tools_files = tools_roots,
         deps_compilation_info = deps_compilation,
         deps_linking_info = deps_linking,
         ext_build_dirs = ext_build_dirs,
-        declared_inputs = depset(attrs.lib_source.files) + libs + tools_files +
+        declared_inputs = depset(attrs.lib_source.files) + bazel_libs + tools_files +
                           attrs.additional_inputs + deps_compilation.headers + ext_build_dirs,
     )
 
@@ -499,7 +497,7 @@ def _extract_link_params(cc_linking):
         cc_linking.dynamic_mode_params_for_executable,
     ]
 
-def _collect_libs(cc_linking):
+def collect_libs(cc_linking):
     libs = []
     for params in _extract_link_params(cc_linking):
         libs += [lib.artifact() for lib in params.libraries_to_link]
