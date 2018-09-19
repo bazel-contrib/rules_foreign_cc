@@ -132,7 +132,7 @@ function set_platform_env_vars() {
 }
 
 function increment_pkg_config_path() {
-  local children=$(find $1 -mindepth 1 -name '*.pc' -print)
+  local children=$(find $1 -mindepth 1 -name '*.pc')
   # assume there is only one directory with pkg config
   for child in $children; do
     export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(dirname $child)"

@@ -49,7 +49,8 @@ function path() {
 # $3 replace target
 function replace_in_files() {
   if [ -d "$1" ]; then
-    find -L $1 -type f \( -name "*.pc" -or -name "*.la" \) -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
+# !!! the command line find and sed options are slightly different from Linux
+    find -L -f $1 \( -name "*.pc" -or -name "*.la" \) -exec sed -i -e 's@'"$2"'@'"$3"'@g' {} ';'
   fi
 }
 
@@ -133,9 +134,10 @@ function set_platform_env_vars() {
 }
 
 function increment_pkg_config_path() {
-  local children=$(find $1 -maxdepth 1 -mindepth 1 -name '*.pc')
+  local children=$(find $1 -mindepth 1 -name '*.pc')
   # assume there is only one directory with pkg config
   for child in $children; do
-    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$(dirname $child)
+    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(dirname $child)"
+    return
   done
 }
