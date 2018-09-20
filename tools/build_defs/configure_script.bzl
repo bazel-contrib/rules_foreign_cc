@@ -1,4 +1,5 @@
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
+load(":framework.bzl", "collect_libs")
 
 def create_configure_script(
         workspace_name,
@@ -34,7 +35,7 @@ def create_configure_script(
     return "\n".join(script)
 
 def _define_deps_flags(inputs):
-    libs = inputs.libs
+    libs = collect_libs(inputs.deps_linking_info)
 
     # It is very important to keep the order for the linker => put them into list
     lib_dirs = []
@@ -52,8 +53,8 @@ def _define_deps_flags(inputs):
         include_dirs[include_dir] = 1
 
     return {
-        "LDFLAGS": ["-L" + dir for dir in lib_dirs],
-        "CPPFLAGS": ["-I" + dir for dir in include_dirs],
+        "LDFLAGS": ["-L$EXT_BUILD_ROOT/" + dir for dir in lib_dirs],
+        "CPPFLAGS": ["-I$EXT_BUILD_ROOT/" + dir for dir in include_dirs],
     }
 
 # See https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
