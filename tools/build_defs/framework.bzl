@@ -381,9 +381,9 @@ _InputFiles = provider(
     doc = """Provider to keep different kinds of input files, directories,
 and C/C++ compilation and linking info from dependencies""",
     fields = dict(
-        headers = """Include directories to be used for compilation, of libraries built by Bazel.
+        headers = """Include directories built by Bazel.
 Will be copied into $EXT_BUILD_DEPS/include.""",
-        libs = """Library files to be used for building, built by Bazel.
+        libs = """Library files built by Bazel.
 Will be copied into $EXT_BUILD_DEPS/lib.""",
         deps_linkopts = "Link options from deps to be passed to resulting CcLinkingInfo",
         tools_files = """Files and directories with tools needed for configuration/building
