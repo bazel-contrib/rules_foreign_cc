@@ -27,9 +27,10 @@ configure_make(
 configure_make(
     name = "libgd",
     configure_options = [
-        "--with-png",
-        "--with-freetype",
-        "--with-zlib",
+        "--disable-shared",
+        "--with-png=\"EXT_BUILD_DEPS/libpng\"",
+        "--with-freetype=\"EXT_BUILD_DEPS/freetype\"",
+        "--with-zlib=\"EXT_BUILD_DEPS/libz\"",
     ],
     lib_source = "@libgd//:all",
     deps = [
