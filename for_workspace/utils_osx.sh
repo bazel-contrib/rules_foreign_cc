@@ -50,7 +50,7 @@ function path() {
 function replace_in_files() {
   if [ -d "$1" ]; then
 # !!! the command line find and sed options are slightly different from Linux
-    find -L -f $1 \( -name "*.pc" -or -name "*.la" \) \
+    find -L -f $1 \( -name "*.pc" -or -name "*.la" -or -name "*-config" \) \
     -exec sed -i -e 's@'"$2"'@'"$3"'@g' {} ';'
   fi
 }
