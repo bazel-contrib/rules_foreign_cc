@@ -3,6 +3,7 @@
 """
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
+load(":version.bzl", "VERSION")
 load(
     "//tools/build_defs:cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
@@ -177,8 +178,10 @@ def cc_external_rule_impl(ctx, attrs):
     if not ctx.attr._target_os[OSInfo].is_osx:
         set_envs = "\n".join(["export {}=\"{}\"".format(key, env[key]) for key in env])
 
+    version_and_lib = "Bazel external C/C++ Rules #{}. Building library '{}'".format(VERSION, lib_name)
+
     script_lines = [
-        "echo \"Building external library '{}'\"".format(lib_name),
+        "echo \"\n{}\n\"".format(version_and_lib),
         "set -e",
         "source " + shell_utils,
         set_envs,
