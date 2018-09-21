@@ -95,10 +95,7 @@ cc_binary(
     name = "libgd_with_png_example",
     srcs = ["arc.c"],
     deps = [
-        ":freetype",
         ":libgd",
-        ":libpng",
-        ":libz",
     ],
 )
 

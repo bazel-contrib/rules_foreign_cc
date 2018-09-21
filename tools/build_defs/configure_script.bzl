@@ -1,5 +1,5 @@
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
-load(":framework.bzl", "collect_libs")
+load(":framework.bzl", "ExternallyBuiltTransitive", "collect_libs")
 
 def create_configure_script(
         workspace_name,
@@ -11,9 +11,10 @@ def create_configure_script(
         user_vars,
         is_debug,
         configure_command,
+        deps,
         inputs):
     vars = _get_configure_variables(tools, flags, user_vars)
-    deps_flags = _define_deps_flags(inputs)
+    deps_flags = _define_deps_flags(deps, inputs)
 
     vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags["LDFLAGS"]
     vars["CPPFLAGS"] = deps_flags["CPPFLAGS"]
@@ -34,27 +35,50 @@ def create_configure_script(
     )]
     return "\n".join(script)
 
-def _define_deps_flags(inputs):
-    libs = collect_libs(inputs.deps_linking_info)
-
+def _define_deps_flags(deps, inputs):
     # It is very important to keep the order for the linker => put them into list
     lib_dirs = []
 
-    # For filtering duplicates
+    # Here go libraries built with Bazel
     lib_dirs_set = {}
-    for lib in libs:
+    for lib in inputs.libs:
         dir = lib.dirname
         if not lib_dirs_set.get(dir):
             lib_dirs_set[dir] = 1
-            lib_dirs += [dir]
+            lib_dirs += ["-L$EXT_BUILD_ROOT/" + dir]
 
-    include_dirs = {}
-    for include_dir in inputs.deps_compilation_info.system_includes:
-        include_dirs[include_dir] = 1
+    include_dirs_set = {}
+    for list in inputs.include_dirs:
+        for include_dir in list:
+            include_dirs_set[include_dir] = "-I$EXT_BUILD_ROOT/" + include_dir
+    for list in inputs.headers:
+        for header in list:
+            include_dir = header.dirname
+            if not include_dirs_set.get(include_dir):
+                include_dirs_set[include_dir] = "-I$EXT_BUILD_ROOT/" + include_dir
+    include_dirs = include_dirs_set.values()
+
+    # For the external libraries, we need to refer to the places where
+    # we copied the dependencies ($EXT_BUILD_DEPS/<lib_name>), because
+    # we also want configure to find that same files with pkg-config
+    # -config or other mechanics.
+    # Since we need the names of include and lib directories under
+    # the $EXT_BUILD_DEPS/<lib_name>, we ask the provider.
+    lib_dirs_set = {}
+    for dep in deps:
+        provider = dep[ExternallyBuiltTransitive]
+        if provider:
+            for artifact in provider.artifacts:
+                if not lib_dirs_set.get(artifact.gen_dir):
+                    lib_dirs_set[artifact.gen_dir] = 1
+
+                    dir_name = artifact.gen_dir.basename
+                    include_dirs += ["-I$EXT_BUILD_DEPS/{}/{}".format(dir_name, artifact.include_dir_name)]
+                    lib_dirs += ["-L$EXT_BUILD_DEPS/{}/{}".format(dir_name, artifact.lib_dir_name)]
 
     return {
-        "LDFLAGS": ["-L$EXT_BUILD_ROOT/" + dir for dir in lib_dirs],
-        "CPPFLAGS": ["-I$EXT_BUILD_ROOT/" + dir for dir in include_dirs],
+        "LDFLAGS": lib_dirs,
+        "CPPFLAGS": include_dirs,
     }
 
 # See https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html

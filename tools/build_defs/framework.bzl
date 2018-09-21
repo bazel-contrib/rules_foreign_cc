@@ -118,6 +118,22 @@ def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
         dict[arg] = kwargs[arg]
     return struct(**dict)
 
+ExternallyBuiltTransitive = provider(
+    doc = """Provider to pass transitive information about external libraries.""",
+    fields = dict(artifacts = "Depset of ExternallyBuiltArtifact"),
+)
+
+ExternallyBuiltArtifact = provider(
+    doc = """Provider with the information about the external library install directory,
+and relative bin, include and lib directories""",
+    fields = dict(
+        gen_dir = "Install directory",
+        bin_dir_name = "Relative (to install directory) bin directory",
+        lib_dir_name = "Relative (to install directory) lib directory",
+        include_dir_name = "Relative (to install directory) include directory",
+    ),
+)
+
 def cc_external_rule_impl(ctx, attrs):
     """ Framework function for performing external C/C++ building.
 
@@ -231,13 +247,21 @@ def cc_external_rule_impl(ctx, attrs):
         env = env,
     )
 
+    externally_built = ExternallyBuiltArtifact(
+        gen_dir = outputs.installdir,
+        bin_dir_name = attrs.out_bin_dir,
+        lib_dir_name = attrs.out_lib_dir,
+        include_dir_name = attrs.out_include_dir,
+    )
     return [
         DefaultInfo(files = depset(direct = outputs.declared_outputs)),
         OutputGroupInfo(
-            gen_dir = depset([outputs.installdir]),
             bin_dir = depset([outputs.out_bin_dir]),
-            out_binary_files = depset(outputs.out_binary_files),
         ),
+        ExternallyBuiltTransitive(artifacts = depset(
+            [externally_built],
+            transitive = [dep[ExternallyBuiltTransitive].artifacts for dep in attrs.deps],
+        )),
         cc_common.create_cc_skylark_info(ctx = ctx),
         out_cc_info.compilation_info,
         out_cc_info.linking_info,
@@ -271,7 +295,7 @@ def _list(item):
 def _copy_deps_and_tools(files):
     list = []
     list += _symlink_to_dir("lib", files.libs, False)
-    list += _symlink_to_dir("include", files.headers, True)
+    list += _symlink_to_dir("include", files.headers + files.include_dirs, True)
 
     list += _symlink_to_dir("bin", files.tools_files, False)
 
@@ -384,7 +408,8 @@ _InputFiles = provider(
     doc = """Provider to keep different kinds of input files, directories,
 and C/C++ compilation and linking info from dependencies""",
     fields = dict(
-        headers = """Include directories built by Bazel.
+        headers = """Include files built by Bazel. Will be copied into $EXT_BUILD_DEPS/include.""",
+        include_dirs = """Include directories built by Bazel.
 Will be copied into $EXT_BUILD_DEPS/include.""",
         libs = """Library files built by Bazel.
 Will be copied into $EXT_BUILD_DEPS/lib.""",
@@ -404,23 +429,29 @@ def _define_inputs(attrs):
     linking_infos_all = []
 
     bazel_headers = []
+    bazel_system_includes = []
     bazel_libs = []
 
     # This framework function-built libraries: copy result directories under
     # $EXT_BUILD_DEPS/lib-name
     ext_build_dirs = []
+    ext_build_dirs_set = {}
 
     for dep in attrs.deps:
-        provider = dep[OutputGroupInfo]
-        ext_built = provider and hasattr(provider, "gen_dir")
+        provider = dep[ExternallyBuiltTransitive]
 
         linking_infos_all += [dep[CcLinkingInfo]]
         compilation_infos_all += [dep[CcCompilationInfo]]
 
-        if ext_built:
-            ext_build_dirs += provider.gen_dir.to_list()
+        if provider:
+            for artifact in provider.artifacts:
+                if not ext_build_dirs_set.get(artifact.gen_dir):
+                    ext_build_dirs_set[artifact.gen_dir] = 1
+                    ext_build_dirs += [artifact.gen_dir]
         else:
-            bazel_headers += _get_headers(dep[CcCompilationInfo])
+            headers_info = _get_headers(dep[CcCompilationInfo])
+            bazel_headers += headers_info.headers
+            bazel_system_includes += headers_info.include_dirs
             bazel_libs += collect_libs(dep[CcLinkingInfo])
 
     tools_roots = []
@@ -446,6 +477,7 @@ def _define_inputs(attrs):
 
     return _InputFiles(
         headers = bazel_headers,
+        include_dirs = bazel_system_includes,
         libs = bazel_libs,
         deps_linkopts = linkopts,
         tools_files = tools_roots,
@@ -469,7 +501,10 @@ def _get_headers(compilation_info):
                 break
         if not included:
             headers += [header]
-    return headers + include_dirs
+    return struct(
+        headers = headers,
+        include_dirs = include_dirs,
+    )
 
 def _define_out_cc_info(ctx, attrs, inputs, outputs):
     compilation_info = CcCompilationInfo(
