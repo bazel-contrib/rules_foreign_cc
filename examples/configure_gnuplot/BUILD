@@ -26,6 +26,11 @@ configure_make(
 
 configure_make(
     name = "libgd",
+    configure_options = [
+        "--with-png",
+        "--with-freetype",
+        "--with-zlib",
+    ],
     lib_source = "@libgd//:all",
     deps = [
         ":freetype",
@@ -53,7 +58,7 @@ cc_test(
 cc_test(
     name = "test_libgd",
     srcs = ["arc.c"],
-    deps = ["libgd"],
+    deps = [":libgd"],
 )
 
 test_suite(
