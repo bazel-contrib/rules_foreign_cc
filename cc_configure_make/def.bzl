@@ -22,15 +22,19 @@ def _cc_configure_make_impl(ctx):
     c_options = compiler_options + cpp_fragment.c_options
     cxx_options = compiler_options + cpp_fragment.cxx_options(ctx.features)
 
-    CFLAGS = "\"{}\"".format(' '.join(c_options))
-    CXXFLAGS = "\"{}\"".format(' '.join(cxx_options))
-
     # Run ./configure && make from a temporary directory, and install into another temporary directory.
     # Finally, copy the results into the directory artifact declared in out_includes.
     ctx.actions.run_shell(
         mnemonic="ConfigureMake",
         inputs = ctx.attr.src.files,
         outputs = outputs,
+        env = {
+          'CXX': cpp_fragment.compiler_executable,
+          'CC': cpp_fragment.compiler_executable,
+          'CFLAGS': ' '.join(c_options),
+          'CXXFLAGS': ' '.join(cxx_options),
+          'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+        },
         command = '\n'.join([
             "set -e",
             "P=$(pwd)",
@@ -38,9 +42,9 @@ def _cc_configure_make_impl(ctx):
             "tmpinstalldir=$(mktemp -d)",
             "trap \"{ rm -rf $tmpdir $tmpinstalldir; }\" EXIT",
             "pushd $tmpdir",
-            "CFLAGS={} CXXFLAGS={} $P/{}/configure --prefix=$tmpinstalldir {}".format(
-                CFLAGS, CXXFLAGS, ctx.attr.src.label.workspace_root, ' '.join(ctx.attr.configure_flags)),
-            "CFLAGS={} CXXFLAGS={} make install".format(CFLAGS, CXXFLAGS),
+            "$P/{}/configure --prefix=$tmpinstalldir {}".format(
+                ctx.attr.src.label.workspace_root, ' '.join(ctx.attr.configure_flags)),
+            "make install",
             "popd",
             "cp $tmpinstalldir/{} {}".format(ctx.attr.out_lib_path, out_lib.path),
             "cp -R $tmpinstalldir/include/ {}".format(out_includes.path)]),
