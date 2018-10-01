@@ -98,7 +98,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
 }
 
-def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
+def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs):
     """ Function for adding/modifying context attributes struct (originally from ctx.attr),
      provided by user, to be passed to the cc_external_rule_impl function as a struct.
 
@@ -112,7 +112,7 @@ def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
             attrs[key] = getattr(attr_struct, key)
 
     attrs["configure_name"] = configure_name
-    attrs["configure_script"] = configure_script
+    attrs["create_configure_script"] = create_configure_script
 
     for arg in kwargs:
         attrs[arg] = kwargs[arg]
@@ -137,6 +137,19 @@ Instances of ForeignCcArtifact are incapsulated in a depset ForeignCcDeps#artifa
         "lib_dir_name": "Lib directory, relative to install directory",
         "include_dir_name": "Include directory, relative to install directory",
     },
+)
+
+ConfigureParameters = provider(
+    doc = """Parameters of create_configure_script callback function, called by
+cc_external_rule_impl function. create_configure_script creates the configuration part
+of the script, and allows to reuse the inputs structure, created by the framework.""",
+    fields = dict(
+        ctx = "Rule context",
+        attrs = """Attributes struct, created by create_attrs function above""",
+        inputs = """InputFiles provider: summarized information on rule inputs, created by framework
+function, to be reused in script creator. Contains in particular merged compilation and linking
+dependencies.""",
+    ),
 )
 
 def cc_external_rule_impl(ctx, attrs):
@@ -171,7 +184,7 @@ def cc_external_rule_impl(ctx, attrs):
         will be installed
 
         These variables should be used by the calling rule to refer to the created directory structure.
-     4) calls 'attrs.configure_script'
+     4) calls 'attrs.create_configure_script'
      5) calls 'attrs.make_commands'
      6) calls 'attrs.postfix_script'
      7) replaces absolute paths in possibly created scripts with a placeholder value
@@ -180,11 +193,13 @@ def cc_external_rule_impl(ctx, attrs):
 
      Args:
        ctx: calling rule context
-       attrs: struct with fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there), and
+       attrs: attributes struct, created by create_attrs function above.
+         Contains fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there),
          two mandatory fields:
-         configure_name: name of the configuration tool, to be used in action mnemonic
-         configure_script: actual configuration script
-       All other fields are ignored.
+         -  configure_name: name of the configuration tool, to be used in action mnemonic,
+         -  create_configure_script(ConfigureParameters): function that creates configuration
+            script, accepts ConfigureParameters
+         and some other fields provided by the rule, which have been passed to create_attrs.
     """
     lib_name = _value(attrs.lib_name, ctx.attr.name)
 
@@ -221,7 +236,7 @@ def cc_external_rule_impl(ctx, attrs):
         # replace placeholder with the dependencies root
         "define_absolute_paths $EXT_BUILD_DEPS $EXT_BUILD_DEPS",
         "pushd $BUILD_TMPDIR",
-        attrs.configure_script(ctx, attrs, inputs),
+        attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(attrs.make_commands),
         _value(attrs.postfix_script, ""),
         # replace references to the root directory when building ($BUILD_TMPDIR)
@@ -419,7 +434,7 @@ def _declare_out(ctx, lib_name, dir, files):
         return [ctx.actions.declare_file("/".join([lib_name, dir.basename, file])) for file in files]
     return []
 
-_InputFiles = provider(
+InputFiles = provider(
     doc = """Provider to keep different kinds of input files, directories,
 and C/C++ compilation and linking info from dependencies""",
     fields = dict(
@@ -485,7 +500,7 @@ def _define_inputs(attrs):
     deps_compilation = cc_common.merge_cc_compilation_infos(cc_compilation_infos = compilation_infos_all)
     deps_linking = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos_all)
 
-    return _InputFiles(
+    return InputFiles(
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
         libs = bazel_libs,

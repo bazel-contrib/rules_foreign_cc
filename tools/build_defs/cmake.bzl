@@ -26,14 +26,17 @@ def _cmake_external(ctx):
     attrs = create_attrs(
         ctx.attr,
         configure_name = "CMake",
-        configure_script = _create_configure_script,
+        create_configure_script = _create_configure_script,
         postfix_script = "copy_dir_contents_to_dir $BUILD_TMPDIR/$INSTALL_PREFIX $INSTALLDIR\n" + ctx.attr.postfix_script,
         tools_deps = tools_deps,
     )
 
     return cc_external_rule_impl(ctx, attrs)
 
-def _create_configure_script(ctx, attrs, inputs):
+def _create_configure_script(configureParameters):
+    ctx = configureParameters.ctx
+    inputs = configureParameters.inputs
+
     root = detect_root(ctx.attr.lib_source)
 
     tools = get_tools_info(ctx)
