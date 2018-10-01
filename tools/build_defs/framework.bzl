@@ -106,17 +106,17 @@ def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
      to the resulting struct, adding or replacing attributes passed in 'configure_name',
      'configure_script', and '**kwargs' parameters.
     """
-    dict = {}
+    attrs = {}
     for key in CC_EXTERNAL_RULE_ATTRIBUTES:
         if not key.startswith("_") and hasattr(attr_struct, key):
-            dict[key] = getattr(attr_struct, key)
+            attrs[key] = getattr(attr_struct, key)
 
-    dict["configure_name"] = configure_name
-    dict["configure_script"] = configure_script
+    attrs["configure_name"] = configure_name
+    attrs["configure_script"] = configure_script
 
     for arg in kwargs:
-        dict[arg] = kwargs[arg]
-    return struct(**dict)
+        attrs[arg] = kwargs[arg]
+    return struct(**attrs)
 
 ForeignCcDeps = provider(
     doc = """Provider to pass transitive information about external libraries.""",

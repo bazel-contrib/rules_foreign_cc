@@ -40,11 +40,11 @@ def _define_deps_flags(deps, inputs):
     lib_dirs = []
 
     # Here go libraries built with Bazel
-    lib_dirs_set = {}
+    gen_dirs_set = {}
     for lib in inputs.libs:
         _dir = lib.dirname
-        if not lib_dirs_set.get(_dir):
-            lib_dirs_set[_dir] = 1
+        if not gen_dirs_set.get(_dir):
+            gen_dirs_set[_dir] = 1
             lib_dirs += ["-L$EXT_BUILD_ROOT/" + _dir]
 
     include_dirs_set = {}
@@ -64,13 +64,13 @@ def _define_deps_flags(deps, inputs):
     # -config or other mechanics.
     # Since we need the names of include and lib directories under
     # the $EXT_BUILD_DEPS/<lib_name>, we ask the provider.
-    lib_dirs_set = {}
+    gen_dirs_set = {}
     for dep in deps:
         external_deps = dep[ForeignCcDeps]
         if external_deps:
             for artifact in external_deps.artifacts:
-                if not lib_dirs_set.get(artifact.gen_dir):
-                    lib_dirs_set[artifact.gen_dir] = 1
+                if not gen_dirs_set.get(artifact.gen_dir):
+                    gen_dirs_set[artifact.gen_dir] = 1
 
                     dir_name = artifact.gen_dir.basename
                     include_dirs += ["-I$EXT_BUILD_DEPS/{}/{}".format(dir_name, artifact.include_dir_name)]
@@ -99,18 +99,18 @@ _CONFIGURE_TOOLS = {
 }
 
 def _get_configure_variables(tools, flags, user_env_vars):
-    dict = {}
+    vars = {}
 
     for flag in _CONFIGURE_FLAGS:
         flag_value = getattr(flags, _CONFIGURE_FLAGS[flag])
         if flag_value:
-            dict[flag] = flag_value
+            vars[flag] = flag_value
 
     # Merge flags lists
     for user_var in user_env_vars:
-        toolchain_val = dict.get(user_var)
+        toolchain_val = vars.get(user_var)
         if toolchain_val:
-            dict[user_var] = toolchain_val + [user_env_vars[user_var]]
+            vars[user_var] = toolchain_val + [user_env_vars[user_var]]
 
     tools_dict = {}
     for tool in _CONFIGURE_TOOLS:
@@ -124,14 +124,14 @@ def _get_configure_variables(tools, flags, user_env_vars):
         if toolchain_val:
             tools_dict[user_var] = [user_env_vars[user_var]]
 
-    dict.update(tools_dict)
+    vars.update(tools_dict)
 
     # Put all other environment variables, passed by the user
     for user_var in user_env_vars:
-        if not dict.get(user_var):
-            dict[user_var] = [user_env_vars[user_var]]
+        if not vars.get(user_var):
+            vars[user_var] = [user_env_vars[user_var]]
 
-    return dict
+    return vars
 
 def _absolutize(workspace_name, text):
     return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text)
