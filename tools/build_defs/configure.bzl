@@ -23,12 +23,15 @@ def _configure_make(ctx):
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Configure",
-        configure_script = _create_configure_script,
+        create_configure_script = _create_configure_script,
         postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
     )
     return cc_external_rule_impl(ctx, attrs)
 
-def _create_configure_script(ctx, attrs, inputs):
+def _create_configure_script(configureParameters):
+    ctx = configureParameters.ctx
+    inputs = configureParameters.inputs
+
     root = detect_root(ctx.attr.lib_source)
     install_prefix = _get_install_prefix(ctx)
 
