@@ -1,5 +1,5 @@
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
-load(":framework.bzl", "ExternallyBuiltTransitive", "collect_libs")
+load(":framework.bzl", "ForeignCcDeps")
 
 def create_configure_script(
         workspace_name,
@@ -42,17 +42,17 @@ def _define_deps_flags(deps, inputs):
     # Here go libraries built with Bazel
     lib_dirs_set = {}
     for lib in inputs.libs:
-        dir = lib.dirname
-        if not lib_dirs_set.get(dir):
-            lib_dirs_set[dir] = 1
-            lib_dirs += ["-L$EXT_BUILD_ROOT/" + dir]
+        _dir = lib.dirname
+        if not lib_dirs_set.get(_dir):
+            lib_dirs_set[_dir] = 1
+            lib_dirs += ["-L$EXT_BUILD_ROOT/" + _dir]
 
     include_dirs_set = {}
-    for list in inputs.include_dirs:
-        for include_dir in list:
+    for dir_list in inputs.include_dirs:
+        for include_dir in dir_list:
             include_dirs_set[include_dir] = "-I$EXT_BUILD_ROOT/" + include_dir
-    for list in inputs.headers:
-        for header in list:
+    for header_list in inputs.headers:
+        for header in header_list:
             include_dir = header.dirname
             if not include_dirs_set.get(include_dir):
                 include_dirs_set[include_dir] = "-I$EXT_BUILD_ROOT/" + include_dir
@@ -66,9 +66,9 @@ def _define_deps_flags(deps, inputs):
     # the $EXT_BUILD_DEPS/<lib_name>, we ask the provider.
     lib_dirs_set = {}
     for dep in deps:
-        provider = dep[ExternallyBuiltTransitive]
-        if provider:
-            for artifact in provider.artifacts:
+        external_deps = dep[ForeignCcDeps]
+        if external_deps:
+            for artifact in external_deps.artifacts:
                 if not lib_dirs_set.get(artifact.gen_dir):
                     lib_dirs_set[artifact.gen_dir] = 1
 
