@@ -1,5 +1,5 @@
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
-load(":framework.bzl", "collect_libs")
+load(":framework.bzl", "ForeignCcDeps")
 
 def create_configure_script(
         workspace_name,
@@ -11,9 +11,10 @@ def create_configure_script(
         user_vars,
         is_debug,
         configure_command,
+        deps,
         inputs):
     vars = _get_configure_variables(tools, flags, user_vars)
-    deps_flags = _define_deps_flags(inputs)
+    deps_flags = _define_deps_flags(deps, inputs)
 
     vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags["LDFLAGS"]
     vars["CPPFLAGS"] = deps_flags["CPPFLAGS"]
@@ -34,27 +35,50 @@ def create_configure_script(
     )]
     return "\n".join(script)
 
-def _define_deps_flags(inputs):
-    libs = collect_libs(inputs.deps_linking_info)
-
+def _define_deps_flags(deps, inputs):
     # It is very important to keep the order for the linker => put them into list
     lib_dirs = []
 
-    # For filtering duplicates
-    lib_dirs_set = {}
-    for lib in libs:
-        dir = lib.dirname
-        if not lib_dirs_set.get(dir):
-            lib_dirs_set[dir] = 1
-            lib_dirs += [dir]
+    # Here go libraries built with Bazel
+    gen_dirs_set = {}
+    for lib in inputs.libs:
+        _dir = lib.dirname
+        if not gen_dirs_set.get(_dir):
+            gen_dirs_set[_dir] = 1
+            lib_dirs += ["-L$EXT_BUILD_ROOT/" + _dir]
 
-    include_dirs = {}
-    for include_dir in inputs.deps_compilation_info.system_includes:
-        include_dirs[include_dir] = 1
+    include_dirs_set = {}
+    for dir_list in inputs.include_dirs:
+        for include_dir in dir_list:
+            include_dirs_set[include_dir] = "-I$EXT_BUILD_ROOT/" + include_dir
+    for header_list in inputs.headers:
+        for header in header_list:
+            include_dir = header.dirname
+            if not include_dirs_set.get(include_dir):
+                include_dirs_set[include_dir] = "-I$EXT_BUILD_ROOT/" + include_dir
+    include_dirs = include_dirs_set.values()
+
+    # For the external libraries, we need to refer to the places where
+    # we copied the dependencies ($EXT_BUILD_DEPS/<lib_name>), because
+    # we also want configure to find that same files with pkg-config
+    # -config or other mechanics.
+    # Since we need the names of include and lib directories under
+    # the $EXT_BUILD_DEPS/<lib_name>, we ask the provider.
+    gen_dirs_set = {}
+    for dep in deps:
+        external_deps = dep[ForeignCcDeps]
+        if external_deps:
+            for artifact in external_deps.artifacts:
+                if not gen_dirs_set.get(artifact.gen_dir):
+                    gen_dirs_set[artifact.gen_dir] = 1
+
+                    dir_name = artifact.gen_dir.basename
+                    include_dirs += ["-I$EXT_BUILD_DEPS/{}/{}".format(dir_name, artifact.include_dir_name)]
+                    lib_dirs += ["-L$EXT_BUILD_DEPS/{}/{}".format(dir_name, artifact.lib_dir_name)]
 
     return {
-        "LDFLAGS": ["-L$EXT_BUILD_ROOT/" + dir for dir in lib_dirs],
-        "CPPFLAGS": ["-I$EXT_BUILD_ROOT/" + dir for dir in include_dirs],
+        "LDFLAGS": lib_dirs,
+        "CPPFLAGS": include_dirs,
     }
 
 # See https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
@@ -75,18 +99,18 @@ _CONFIGURE_TOOLS = {
 }
 
 def _get_configure_variables(tools, flags, user_env_vars):
-    dict = {}
+    vars = {}
 
     for flag in _CONFIGURE_FLAGS:
         flag_value = getattr(flags, _CONFIGURE_FLAGS[flag])
         if flag_value:
-            dict[flag] = flag_value
+            vars[flag] = flag_value
 
     # Merge flags lists
     for user_var in user_env_vars:
-        toolchain_val = dict.get(user_var)
+        toolchain_val = vars.get(user_var)
         if toolchain_val:
-            dict[user_var] = toolchain_val + [user_env_vars[user_var]]
+            vars[user_var] = toolchain_val + [user_env_vars[user_var]]
 
     tools_dict = {}
     for tool in _CONFIGURE_TOOLS:
@@ -100,14 +124,14 @@ def _get_configure_variables(tools, flags, user_env_vars):
         if toolchain_val:
             tools_dict[user_var] = [user_env_vars[user_var]]
 
-    dict.update(tools_dict)
+    vars.update(tools_dict)
 
     # Put all other environment variables, passed by the user
     for user_var in user_env_vars:
-        if not dict.get(user_var):
-            dict[user_var] = [user_env_vars[user_var]]
+        if not vars.get(user_var):
+            vars[user_var] = [user_env_vars[user_var]]
 
-    return dict
+    return vars
 
 def _absolutize(workspace_name, text):
     return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text)

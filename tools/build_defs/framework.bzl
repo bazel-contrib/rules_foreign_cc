@@ -98,7 +98,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
 }
 
-def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
+def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs):
     """ Function for adding/modifying context attributes struct (originally from ctx.attr),
      provided by user, to be passed to the cc_external_rule_impl function as a struct.
 
@@ -106,17 +106,46 @@ def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
      to the resulting struct, adding or replacing attributes passed in 'configure_name',
      'configure_script', and '**kwargs' parameters.
     """
-    dict = {}
+    attrs = {}
     for key in CC_EXTERNAL_RULE_ATTRIBUTES:
         if not key.startswith("_") and hasattr(attr_struct, key):
-            dict[key] = getattr(attr_struct, key)
+            attrs[key] = getattr(attr_struct, key)
 
-    dict["configure_name"] = configure_name
-    dict["configure_script"] = configure_script
+    attrs["configure_name"] = configure_name
+    attrs["create_configure_script"] = create_configure_script
 
     for arg in kwargs:
-        dict[arg] = kwargs[arg]
-    return struct(**dict)
+        attrs[arg] = kwargs[arg]
+    return struct(**attrs)
+
+ForeignCcDeps = provider(
+    doc = """Provider to pass transitive information about external libraries.""",
+    fields = dict(artifacts = "Depset of ExternallyBuiltArtifact"),
+)
+
+ForeignCcArtifact = provider(
+    doc = """Provider with the information about the external library install directory,
+and relative bin, include and lib directories""",
+    fields = dict(
+        gen_dir = "Install directory",
+        bin_dir_name = "Bin directory, relative to install directory",
+        lib_dir_name = "Lib directory, relative to install directory",
+        include_dir_name = "Include directory, relative to install directory",
+    ),
+)
+
+ConfigureParameters = provider(
+    doc = """Parameters of create_configure_script callback function, called by
+cc_external_rule_impl function. create_configure_script creates the configuration part
+of the script, and allows to reuse the inputs structure, created by the framework.""",
+    fields = dict(
+        ctx = "Rule context",
+        attrs = """Attributes struct, created by create_attrs function above""",
+        inputs = """InputFiles provider: summarized information on rule inputs, created by framework
+function, to be reused in script creator. Contains in particular merged compilation and linking
+dependencies.""",
+    ),
+)
 
 def cc_external_rule_impl(ctx, attrs):
     """ Framework function for performing external C/C++ building.
@@ -150,7 +179,7 @@ def cc_external_rule_impl(ctx, attrs):
         will be installed
 
         These variables should be used by the calling rule to refer to the created directory structure.
-     4) calls 'attrs.configure_script'
+     4) calls 'attrs.create_configure_script'
      5) calls 'attrs.make_commands'
      6) calls 'attrs.postfix_script'
      7) replaces absolute paths in possibly created scripts with a placeholder value
@@ -159,11 +188,13 @@ def cc_external_rule_impl(ctx, attrs):
 
      Args:
        ctx: calling rule context
-       attrs: struct with fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there), and
+       attrs: attributes struct, created by create_attrs function above.
+         Contains fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there),
          two mandatory fields:
-         configure_name: name of the configuration tool, to be used in action mnemonic
-         configure_script: actual configuration script
-       All other fields are ignored.
+         -  configure_name: name of the configuration tool, to be used in action mnemonic,
+         -  create_configure_script(ConfigureParameters): function that creates configuration
+            script, accepts ConfigureParameters
+         and some other fields provided by the rule, which have been passed to create_attrs.
     """
     lib_name = _value(attrs.lib_name, ctx.attr.name)
 
@@ -200,7 +231,7 @@ def cc_external_rule_impl(ctx, attrs):
         # replace placeholder with the dependencies root
         "define_absolute_paths $EXT_BUILD_DEPS $EXT_BUILD_DEPS",
         "pushd $BUILD_TMPDIR",
-        attrs.configure_script(ctx, attrs, inputs),
+        attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(attrs.make_commands),
         _value(attrs.postfix_script, ""),
         # replace references to the root directory when building ($BUILD_TMPDIR)
@@ -231,6 +262,12 @@ def cc_external_rule_impl(ctx, attrs):
         env = env,
     )
 
+    externally_built = ForeignCcArtifact(
+        gen_dir = outputs.installdir,
+        bin_dir_name = attrs.out_bin_dir,
+        lib_dir_name = attrs.out_lib_dir,
+        include_dir_name = attrs.out_include_dir,
+    )
     return [
         DefaultInfo(files = depset(direct = outputs.declared_outputs)),
         OutputGroupInfo(
@@ -238,6 +275,10 @@ def cc_external_rule_impl(ctx, attrs):
             bin_dir = depset([outputs.out_bin_dir]),
             out_binary_files = depset(outputs.out_binary_files),
         ),
+        ForeignCcDeps(artifacts = depset(
+            [externally_built],
+            transitive = [dep[ForeignCcDeps].artifacts for dep in attrs.deps],
+        )),
         cc_common.create_cc_skylark_info(ctx = ctx),
         out_cc_info.compilation_info,
         out_cc_info.linking_info,
@@ -269,33 +310,33 @@ def _list(item):
     return []
 
 def _copy_deps_and_tools(files):
-    list = []
-    list += _symlink_to_dir("lib", files.libs, False)
-    list += _symlink_to_dir("include", files.headers, True)
+    lines = []
+    lines += _symlink_to_dir("lib", files.libs, False)
+    lines += _symlink_to_dir("include", files.headers + files.include_dirs, True)
 
-    list += _symlink_to_dir("bin", files.tools_files, False)
+    lines += _symlink_to_dir("bin", files.tools_files, False)
 
     for ext_dir in files.ext_build_dirs:
-        list += ["symlink_to_dir $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS".format(_file_path(ext_dir))]
+        lines += ["symlink_to_dir $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS".format(_file_path(ext_dir))]
 
-    list += ["if [ -d $EXT_BUILD_DEPS/bin ]; then"]
+    lines += ["if [ -d $EXT_BUILD_DEPS/bin ]; then"]
 
-    list += ["  tools=$(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)"]
-    list += ["  for tool in $tools;"]
-    list += ["  do"]
-    list += ["    if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then"]
-    list += ["      export PATH=$PATH:$tool"]
-    list += ["    fi"]
-    list += ["  done"]
-    list += ["fi"]
-    list += ["path $EXT_BUILD_DEPS/bin"]
+    lines += ["  tools=$(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)"]
+    lines += ["  for tool in $tools;"]
+    lines += ["  do"]
+    lines += ["    if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then"]
+    lines += ["      export PATH=$PATH:$tool"]
+    lines += ["    fi"]
+    lines += ["  done"]
+    lines += ["fi"]
+    lines += ["path $EXT_BUILD_DEPS/bin"]
 
-    return list
+    return lines
 
 def _symlink_to_dir(dir_name, files_list, link_children):
     if len(files_list) == 0:
         return []
-    list = ["mkdir -p $EXT_BUILD_DEPS/" + dir_name]
+    lines = ["mkdir -p $EXT_BUILD_DEPS/" + dir_name]
 
     paths_list = []
     for file in files_list:
@@ -303,9 +344,9 @@ def _symlink_to_dir(dir_name, files_list, link_children):
 
     link_function = "symlink_contents_to_dir" if link_children else "symlink_to_dir"
     for path in paths_list:
-        list += ["{} $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS/{}".format(link_function, path, dir_name)]
+        lines += ["{} $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS/{}".format(link_function, path, dir_name)]
 
-    return list
+    return lines
 
 def _file_path(file):
     return file if type(file) == "string" else file.path
@@ -380,11 +421,12 @@ def _declare_out(ctx, lib_name, dir, files):
         return [ctx.actions.declare_file("/".join([lib_name, dir.basename, file])) for file in files]
     return []
 
-_InputFiles = provider(
+InputFiles = provider(
     doc = """Provider to keep different kinds of input files, directories,
 and C/C++ compilation and linking info from dependencies""",
     fields = dict(
-        headers = """Include directories built by Bazel.
+        headers = """Include files built by Bazel. Will be copied into $EXT_BUILD_DEPS/include.""",
+        include_dirs = """Include directories built by Bazel.
 Will be copied into $EXT_BUILD_DEPS/include.""",
         libs = """Library files built by Bazel.
 Will be copied into $EXT_BUILD_DEPS/lib.""",
@@ -404,24 +446,30 @@ def _define_inputs(attrs):
     linking_infos_all = []
 
     bazel_headers = []
+    bazel_system_includes = []
     bazel_libs = []
 
     # This framework function-built libraries: copy result directories under
     # $EXT_BUILD_DEPS/lib-name
     ext_build_dirs = []
+    ext_build_dirs_set = {}
 
     for dep in attrs.deps:
-        provider = dep[OutputGroupInfo]
-        ext_built = provider and hasattr(provider, "gen_dir")
+        external_deps = dep[ForeignCcDeps]
 
         linking_infos_all += [dep[CcLinkingInfo]]
         compilation_infos_all += [dep[CcCompilationInfo]]
 
-        if ext_built:
-            ext_build_dirs += provider.gen_dir.to_list()
+        if external_deps:
+            for artifact in external_deps.artifacts:
+                if not ext_build_dirs_set.get(artifact.gen_dir):
+                    ext_build_dirs_set[artifact.gen_dir] = 1
+                    ext_build_dirs += [artifact.gen_dir]
         else:
-            bazel_headers += _get_headers(dep[CcCompilationInfo])
-            bazel_libs += collect_libs(dep[CcLinkingInfo])
+            headers_info = _get_headers(dep[CcCompilationInfo])
+            bazel_headers += headers_info.headers
+            bazel_system_includes += headers_info.include_dirs
+            bazel_libs += _collect_libs(dep[CcLinkingInfo])
 
     tools_roots = []
     tools_files = []
@@ -444,8 +492,9 @@ def _define_inputs(attrs):
     # flags are passed uniformly for Bazel-built and external libraries
     linkopts = _collect_flags(deps_linking)
 
-    return _InputFiles(
+    return InputFiles(
         headers = bazel_headers,
+        include_dirs = bazel_system_includes,
         libs = bazel_libs,
         deps_linkopts = linkopts,
         tools_files = tools_roots,
@@ -463,13 +512,16 @@ def _get_headers(compilation_info):
     for header in compilation_info.headers:
         path = header.path
         included = False
-        for dir in include_dirs:
-            if path.startswith(dir):
+        for _dir in include_dirs:
+            if path.startswith(_dir):
                 included = True
                 break
         if not included:
             headers += [header]
-    return headers + include_dirs
+    return struct(
+        headers = headers,
+        include_dirs = include_dirs,
+    )
 
 def _define_out_cc_info(ctx, attrs, inputs, outputs):
     compilation_info = CcCompilationInfo(
@@ -500,7 +552,7 @@ def _extract_link_params(cc_linking):
         cc_linking.dynamic_mode_params_for_executable,
     ]
 
-def collect_libs(cc_linking):
+def _collect_libs(cc_linking):
     libs = []
     for params in _extract_link_params(cc_linking):
         libs += [lib.artifact() for lib in params.libraries_to_link]
