@@ -6,9 +6,7 @@ Rules for building C/C++ projects using foreign build systems inside Bazel proje
 * This is not an officially supported Google product
 (meaning, support and/or new releases may be limited.)
 
-## ./configure && make
-
-**NOTE**: this requires building Bazel from head after https://github.com/bazelbuild/bazel/commit/6d4cc4c910a92c9de664ef99b7b2c3681f8d9cf1
+**NOTE**: this requires Bazel version starting from 0.17.1.
 
 It also requires passing Bazel the following flag:
 ```
