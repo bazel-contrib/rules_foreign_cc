@@ -388,7 +388,6 @@ and C/C++ compilation and linking info from dependencies""",
 Will be copied into $EXT_BUILD_DEPS/include.""",
         libs = """Library files built by Bazel.
 Will be copied into $EXT_BUILD_DEPS/lib.""",
-        deps_linkopts = "Link options from deps to be passed to resulting CcLinkingInfo",
         tools_files = """Files and directories with tools needed for configuration/building
 to be copied into the bin folder, which is added to the PATH""",
         ext_build_dirs = """Directories with libraries, built by framework function.
@@ -440,14 +439,9 @@ def _define_inputs(attrs):
     deps_compilation = cc_common.merge_cc_compilation_infos(cc_compilation_infos = compilation_infos_all)
     deps_linking = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos_all)
 
-    # Pass flags up the dependency chain for all types of libraries;
-    # flags are passed uniformly for Bazel-built and external libraries
-    linkopts = _collect_flags(deps_linking)
-
     return _InputFiles(
         headers = bazel_headers,
         libs = bazel_libs,
-        deps_linkopts = linkopts,
         tools_files = tools_roots,
         deps_compilation_info = deps_compilation,
         deps_linking_info = deps_linking,
@@ -481,8 +475,7 @@ def _define_out_cc_info(ctx, attrs, inputs, outputs):
         cc_compilation_infos = [inputs.deps_compilation_info, compilation_info],
     )
 
-    linkopts = depset(direct = attrs.linkopts, transitive = [depset(inputs.deps_linkopts)])
-    linking_info = create_linking_info(ctx, linkopts, outputs.libraries)
+    linking_info = create_linking_info(ctx, depset(direct = attrs.linkopts), outputs.libraries)
     out_linking_info = cc_common.merge_cc_linking_infos(
         cc_linking_infos = [linking_info, inputs.deps_linking_info],
     )
@@ -506,9 +499,3 @@ def collect_libs(cc_linking):
         libs += [lib.artifact() for lib in params.libraries_to_link]
         libs += params.dynamic_libraries_for_runtime.to_list()
     return collections.uniq(libs)
-
-def _collect_flags(cc_linking):
-    linkopts = []
-    for params in _extract_link_params(cc_linking):
-        linkopts = params.linkopts.to_list()
-    return collections.uniq(linkopts)
