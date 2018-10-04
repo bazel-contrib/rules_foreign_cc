@@ -42,10 +42,10 @@ def _define_deps_flags(deps, inputs):
     # Here go libraries built with Bazel
     gen_dirs_set = {}
     for lib in inputs.libs:
-        _dir = lib.dirname
-        if not gen_dirs_set.get(_dir):
-            gen_dirs_set[_dir] = 1
-            lib_dirs += ["-L$EXT_BUILD_ROOT/" + _dir]
+        dir_ = lib.dirname
+        if not gen_dirs_set.get(dir_):
+            gen_dirs_set[dir_] = 1
+            lib_dirs += ["-L$EXT_BUILD_ROOT/" + dir_]
 
     include_dirs_set = {}
     for dir_list in inputs.include_dirs:

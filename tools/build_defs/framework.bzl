@@ -120,18 +120,23 @@ def create_attrs(attr_struct, configure_name, configure_script, **kwargs):
 
 ForeignCcDeps = provider(
     doc = """Provider to pass transitive information about external libraries.""",
-    fields = dict(artifacts = "Depset of ExternallyBuiltArtifact"),
+    fields = {"artifacts": "Depset of ForeignCcArtifact"},
 )
 
 ForeignCcArtifact = provider(
-    doc = """Provider with the information about the external library install directory,
-and relative bin, include and lib directories""",
-    fields = dict(
-        gen_dir = "Install directory",
-        bin_dir_name = "Bin directory, relative to install directory",
-        lib_dir_name = "Lib directory, relative to install directory",
-        include_dir_name = "Include directory, relative to install directory",
-    ),
+    doc = """Groups information about the external library install directory,
+and relative bin, include and lib directories.
+
+Serves to pass transitive information about externally built artifacts up the dependency chain.
+
+Can not be used as a top-level provider.
+Instances of ForeignCcArtifact are incapsulated in a depset ForeignCcDeps#artifacts.""",
+    fields = {
+        "gen_dir": "Install directory",
+        "bin_dir_name": "Bin directory, relative to install directory",
+        "lib_dir_name": "Lib directory, relative to install directory",
+        "include_dir_name": "Include directory, relative to install directory",
+    },
 )
 
 def cc_external_rule_impl(ctx, attrs):
@@ -497,8 +502,8 @@ def _get_headers(compilation_info):
     for header in compilation_info.headers:
         path = header.path
         included = False
-        for _dir in include_dirs:
-            if path.startswith(_dir):
+        for dir_ in include_dirs:
+            if path.startswith(dir_):
                 included = True
                 break
         if not included:
