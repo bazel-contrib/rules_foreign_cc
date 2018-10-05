@@ -47,6 +47,7 @@ def _create_configure_script(ctx, attrs, inputs):
         dict(ctx.attr.configure_env_vars),
         is_debug_mode(ctx),
         ctx.attr.configure_command,
+        ctx.attr.deps,
         inputs,
     )
     return "\n".join([define_install_prefix, configure])
