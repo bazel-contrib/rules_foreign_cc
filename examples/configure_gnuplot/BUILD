@@ -26,11 +26,17 @@ configure_make(
 
 configure_make(
     name = "libgd",
-    defines = ["HAVE_LIBPNG"],
+    configure_options = [
+        "--disable-shared",
+        "--with-png=\"EXT_BUILD_DEPS/libpng\"",
+        "--with-freetype=\"EXT_BUILD_DEPS/freetype\"",
+        "--with-zlib=\"EXT_BUILD_DEPS/libz\"",
+    ],
     lib_source = "@libgd//:all",
     deps = [
         ":freetype",
         ":libpng",
+        ":libz",
     ],
 )
 
@@ -53,7 +59,7 @@ cc_test(
 cc_test(
     name = "test_libgd",
     srcs = ["arc.c"],
-    deps = ["libgd"],
+    deps = [":libgd"],
 )
 
 test_suite(

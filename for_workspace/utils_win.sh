@@ -49,11 +49,14 @@ function path() {
 # $3 replace target
 function replace_in_files() {
   if [ -d "$1" ]; then
-    find -L $1 -type f \( -name "*.pc" -or -name "*.la" \) -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
+    find -L $1 -type f \
+     \( -name "*.pc" -or -name "*.la" -or -name "*-config" \) \
+    -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
   fi
 }
 
-# copies contents of the directory to target directory (create the target directory if needed)
+# copies contents of the directory to target directory
+# (create the target directory if needed)
 # $1 source directory, immediate children of which are copied
 # $2 target directory
 function copy_dir_contents_to_dir() {
@@ -65,9 +68,11 @@ function copy_dir_contents_to_dir() {
   done
 }
 
-# Symlink contents of the directory to target directory (create the target directory if needed).
+# Symlink contents of the directory to target directory
+# (create the target directory if needed).
 # If file is passed, symlink it into the target directory.
-# $1 source directory, immediate children of which are symlinked, or file to be symlinked.
+# $1 source directory, immediate children of which are symlinked,
+# or file to be symlinked.
 # $2 target directory
 function symlink_contents_to_dir() {
   local target="$2"
@@ -82,7 +87,8 @@ function symlink_contents_to_dir() {
   done
 }
 
-# COPIES all files from source directory to target directory (create the target directory if needed)
+# COPIES all files from source directory to target directory
+# (create the target directory if needed)
 # (Windows complains about long filenames with symlink command, so copy them)
 # NB symlinks from the source directory are copied
 # $1 source directory
@@ -91,7 +97,8 @@ function symlink_to_dir() {
   cp -r $1 $2
 }
 
-# Copy all files from source directory to target directory (create the target directory if needed),
+# Copy all files from source directory to target directory
+# (create the target directory if needed),
 # and add target paths on to path
 # $1 source directory
 # $2 target directory
@@ -123,9 +130,10 @@ function set_platform_env_vars() {
 }
 
 function increment_pkg_config_path() {
-  local children=$(find $1 -maxdepth 1 -mindepth -name '*.pc')
+  local children=$(find $1 -mindepth 1 -name '*.pc')
   # assume there is only one directory with pkg config
   for child in $children; do
-    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$(dirname $child)
+    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(dirname $child)"
+    return
   done
 }
