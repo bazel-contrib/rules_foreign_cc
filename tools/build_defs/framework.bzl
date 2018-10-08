@@ -211,7 +211,7 @@ def cc_external_rule_impl(ctx, attrs):
         "export BUILD_TMPDIR=$(mktemp -d)",
         "export EXT_BUILD_DEPS=$EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name,
         "mkdir -p $EXT_BUILD_DEPS",
-        "export INSTALLDIR=$EXT_BUILD_ROOT/" + outputs.installdir.path,
+        "export INSTALLDIR=$EXT_BUILD_ROOT/" + '/'.join(outputs.out_include_dir.path.split('/')[:-1]),
         "mkdir -p $INSTALLDIR",
         "echo \"Environment:______________\"",
         "env",
@@ -261,8 +261,6 @@ def cc_external_rule_impl(ctx, attrs):
     return [
         DefaultInfo(files = depset(direct = outputs.declared_outputs)),
         OutputGroupInfo(
-            gen_dir = depset([outputs.installdir]),
-            bin_dir = depset([outputs.out_bin_dir]),
             out_binary_files = depset(outputs.out_binary_files),
         ),
         ForeignCcDeps(artifacts = depset(
@@ -355,10 +353,7 @@ def _check_file_name(var, name):
 _Outputs = provider(
     doc = "Provider to keep different kinds of the external build output files and directories",
     fields = dict(
-        installdir = "Directory, where the library or binary is installed",
         out_include_dir = "Directory with header files (relative to install directory)",
-        out_bin_dir = "Directory with binary files (relative to install directory)",
-        out_lib_dir = "Directory with library files (relative to install directory)",
         out_binary_files = "Binary files, which will be created by the action",
         libraries = "Library files, which will be created by the action",
         declared_outputs = "All output files and directories of the action",
@@ -382,25 +377,19 @@ def _define_outputs(ctx, attrs, lib_name):
     for file in attrs.binaries:
         out_binary_files += [_declare_out(ctx, lib_name, attrs.out_bin_dir, file)]
 
-    installdir = ctx.actions.declare_directory(lib_name)
     out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
-    out_bin_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_bin_dir)
-    out_lib_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_lib_dir)
 
     libraries = LibrariesToLinkInfo(
-        static_libraries = _declare_out(ctx, lib_name, out_lib_dir, static_libraries),
-        shared_libraries = _declare_out(ctx, lib_name, out_lib_dir, attrs.shared_libraries),
-        interface_libraries = _declare_out(ctx, lib_name, out_lib_dir, attrs.interface_libraries),
+        static_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, static_libraries),
+        shared_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attrs.shared_libraries),
+        interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attrs.interface_libraries),
     )
-    declared_outputs = [installdir, out_include_dir, out_bin_dir, out_lib_dir] + out_binary_files
+    declared_outputs = [out_include_dir] + out_binary_files
     declared_outputs += libraries.static_libraries
     declared_outputs += libraries.shared_libraries + libraries.interface_libraries
 
     return _Outputs(
-        installdir = installdir,
         out_include_dir = out_include_dir,
-        out_bin_dir = out_bin_dir,
-        out_lib_dir = out_lib_dir,
         out_binary_files = out_binary_files,
         libraries = libraries,
         declared_outputs = declared_outputs,
@@ -408,7 +397,7 @@ def _define_outputs(ctx, attrs, lib_name):
 
 def _declare_out(ctx, lib_name, dir, files):
     if files and len(files) > 0:
-        return [ctx.actions.declare_file("/".join([lib_name, dir.basename, file])) for file in files]
+        return [ctx.actions.declare_file("/".join([lib_name, dir, file])) for file in files]
     return []
 
 _InputFiles = provider(
