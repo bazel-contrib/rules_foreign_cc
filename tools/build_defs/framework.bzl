@@ -401,14 +401,12 @@ def _define_outputs(ctx, attrs, lib_name):
 
     _check_file_name(lib_name, "Library name")
 
-    out_binary_files = []
-    for file in attrs.binaries:
-        out_binary_files += [_declare_out(ctx, lib_name, attrs.out_bin_dir, file)]
-
     installdir = ctx.actions.declare_directory(lib_name)
     out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
     out_bin_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_bin_dir)
     out_lib_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_lib_dir)
+
+    out_binary_files = _declare_out(ctx, lib_name, out_bin_dir, attrs.binaries)
 
     libraries = LibrariesToLinkInfo(
         static_libraries = _declare_out(ctx, lib_name, out_lib_dir, static_libraries),
