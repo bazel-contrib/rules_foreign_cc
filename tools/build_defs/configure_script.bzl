@@ -1,5 +1,5 @@
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
-load(":framework.bzl", "ForeignCcDeps")
+load(":framework.bzl", "ForeignCcDeps", "get_foreign_cc_dep")
 
 def create_configure_script(
         workspace_name,
@@ -66,7 +66,7 @@ def _define_deps_flags(deps, inputs):
     # the $EXT_BUILD_DEPS/<lib_name>, we ask the provider.
     gen_dirs_set = {}
     for dep in deps:
-        external_deps = dep[ForeignCcDeps]
+        external_deps = get_foreign_cc_dep(dep)
         if external_deps:
             for artifact in external_deps.artifacts:
                 if not gen_dirs_set.get(artifact.gen_dir):

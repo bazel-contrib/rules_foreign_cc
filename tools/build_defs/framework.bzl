@@ -267,12 +267,20 @@ def cc_external_rule_impl(ctx, attrs):
         ),
         ForeignCcDeps(artifacts = depset(
             [externally_built],
-            transitive = [dep[ForeignCcDeps].artifacts for dep in attrs.deps],
+            transitive = _get_transitive_artifacts(attrs.deps),
         )),
         cc_common.create_cc_skylark_info(ctx = ctx),
         out_cc_info.compilation_info,
         out_cc_info.linking_info,
     ]
+
+def _get_transitive_artifacts(deps):
+    artifacts = []
+    for dep in deps:
+        foreign_dep = get_foreign_cc_dep(dep)
+        if foreign_dep:
+            artifacts += [foreign_dep.artifacts]
+    return artifacts
 
 def _correct_path_variable(env):
     value = env.get("PATH", "")
@@ -444,7 +452,7 @@ def _define_inputs(attrs):
     ext_build_dirs_set = {}
 
     for dep in attrs.deps:
-        external_deps = dep[ForeignCcDeps]
+        external_deps = get_foreign_cc_dep(dep)
 
         linking_infos_all += [dep[CcLinkingInfo]]
         compilation_infos_all += [dep[CcCompilationInfo]]
@@ -488,6 +496,9 @@ def _define_inputs(attrs):
         declared_inputs = depset(attrs.lib_source.files) + bazel_libs + tools_files +
                           attrs.additional_inputs + deps_compilation.headers + ext_build_dirs,
     )
+
+def get_foreign_cc_dep(dep):
+    return dep[ForeignCcDeps] if ForeignCcDeps in dep else None
 
 # consider optimization here to do not iterate both collections
 def _get_headers(compilation_info):
