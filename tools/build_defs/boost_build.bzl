@@ -60,7 +60,8 @@ def _boost_build(ctx):
     )
     return cc_external_rule_impl(ctx, attrs)
 
-def _create_configure_script(ctx, attrs, inputs):
+def _create_configure_script(configureParameters):
+    ctx = configureParameters.ctx
     root = detect_root(ctx.attr.lib_source)
 
     return "\n".join([
