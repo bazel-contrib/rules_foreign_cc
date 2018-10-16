@@ -12,7 +12,7 @@ def _boost_build(ctx):
     attrs = create_attrs(
         ctx.attr,
         configure_name = "BuildBoost",
-        configure_script = _create_configure_script,
+        configure_script = create_configure_script,
         make_commands = ["./b2 install --prefix=."],
         static_libraries = [
             "libboost_atomic.a",
