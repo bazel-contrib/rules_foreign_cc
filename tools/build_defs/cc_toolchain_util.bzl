@@ -66,7 +66,7 @@ def _perform_error_checks(
 
     # If a shared library won't be provided by system during runtime and we are linking the shared
     # library through interface library, the shared library must be specified.
-    if (not system_provided and shared_library_artifacts and
+    if (not system_provided and not shared_library_artifacts and
         interface_library_artifacts):
         fail("'shared_library' should be specified when 'system_provided' is false")
 
@@ -90,39 +90,25 @@ def _build_static_library_to_link(ctx, library):
         artifact_category = static_library_category,
     )
 
-def _build_shared_library_to_link(ctx, library, cc_toolchain, targets_windows):
+def _build_shared_library_to_link(ctx, library):
     if library == None:
         fail("Parameter 'shared_library_artifact' cannot be None")
 
-    if targets_windows:
-        return cc_common.create_library_to_link(
-            ctx = ctx,
-            library = library,
-            artifact_category = "dynamic_library",
-        )
-    else:
-        return cc_common.create_library_to_link(
-            ctx = ctx,
-            cc_toolchain = cc_toolchain,
-            library = library,
-        )
+    return cc_common.create_library_to_link(
+        ctx = ctx,
+        library = library,
+        artifact_category = "dynamic_library",
+    )
 
-def _build_interface_library_to_link(ctx, library, cc_toolchain, targets_windows):
+def _build_interface_library_to_link(ctx, library):
     if library == None:
         fail("Parameter 'interface_library_artifact' cannot be None")
 
-    if targets_windows:
-        return cc_common.create_library_to_link(
-            ctx = ctx,
-            library = library,
-            artifact_category = "interface_library",
-        )
-    else:
-        return cc_common.create_library_to_link(
-            ctx = ctx,
-            cc_toolchain = cc_toolchain,
-            library = library,
-        )
+    return cc_common.create_library_to_link(
+        ctx = ctx,
+        library = library,
+        artifact_category = "interface_library",
+    )
 
 # we could possibly take a decision about linking interface/shared library beased on each library name
 # (usefull for the case when multiple output targets are provided)
@@ -133,14 +119,14 @@ def _build_libraries_to_link_and_runtime_artifact(ctx, files, cc_toolchain, targ
     runtime_artifacts = []
     if files.shared_libraries != None:
         for lib in files.shared_libraries:
-            shared_library = _build_shared_library_to_link(ctx, lib, cc_toolchain, targets_windows)
+            shared_library = _build_shared_library_to_link(ctx, lib)
             shared_libraries += [shared_library]
             runtime_artifacts += [shared_library.artifact()]
 
     interface_libraries = []
     if files.interface_libraries != None:
         for lib in files.interface_libraries:
-            interface_libraries += [_build_interface_library_to_link(ctx, lib, cc_toolchain, targets_windows)]
+            interface_libraries += [_build_interface_library_to_link(ctx, lib)]
 
     dynamic_libraries_for_linking = None
     if len(interface_libraries) > 0:
