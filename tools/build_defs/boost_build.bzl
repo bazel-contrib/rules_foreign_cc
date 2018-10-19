@@ -12,7 +12,7 @@ def _boost_build(ctx):
     attrs = create_attrs(
         ctx.attr,
         configure_name = "BuildBoost",
-        configure_script = _create_configure_script,
+        create_configure_script = _create_configure_script,
         make_commands = ["./b2 install --prefix=."],
         static_libraries = [
             "libboost_atomic.a",
@@ -60,7 +60,8 @@ def _boost_build(ctx):
     )
     return cc_external_rule_impl(ctx, attrs)
 
-def _create_configure_script(ctx, attrs, inputs):
+def _create_configure_script(configureParameters):
+    ctx = configureParameters.ctx
     root = detect_root(ctx.attr.lib_source)
 
     return "\n".join([
