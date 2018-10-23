@@ -15,12 +15,6 @@ cmake_external(
     shared_libraries = ["libhello.so"],
 )
 
-cc_binary(
-    name = "run_libhello",
-    srcs = ["hello_client.c"],
-    deps = [":libhello"],
-)
-
 cc_test(
     name = "test_libhello",
     srcs = ["hello_client.c"],

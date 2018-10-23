@@ -90,9 +90,16 @@ def _build_static_library_to_link(ctx, library):
         artifact_category = static_library_category,
     )
 
-def _build_shared_library_to_link(ctx, library):
+def _build_shared_library_to_link(ctx, library, cc_toolchain, targets_windows):
     if library == None:
         fail("Parameter 'shared_library_artifact' cannot be None")
+
+    if not targets_windows and hasattr(cc_common, "create_symlink_library_to_link"):
+        return cc_common.create_symlink_library_to_link(
+            ctx = ctx,
+            cc_toolchain = cc_toolchain,
+            library = library,
+        )
 
     return cc_common.create_library_to_link(
         ctx = ctx,
@@ -100,10 +107,16 @@ def _build_shared_library_to_link(ctx, library):
         artifact_category = "dynamic_library",
     )
 
-def _build_interface_library_to_link(ctx, library):
+def _build_interface_library_to_link(ctx, library, cc_toolchain, targets_windows):
     if library == None:
         fail("Parameter 'interface_library_artifact' cannot be None")
 
+    if not targets_windows and hasattr(cc_common, "create_symlink_library_to_link"):
+        return cc_common.create_symlink_library_to_link(
+            ctx = ctx,
+            cc_toolchain = cc_toolchain,
+            library = library,
+        )
     return cc_common.create_library_to_link(
         ctx = ctx,
         library = library,
@@ -119,14 +132,14 @@ def _build_libraries_to_link_and_runtime_artifact(ctx, files, cc_toolchain, targ
     runtime_artifacts = []
     if files.shared_libraries != None:
         for lib in files.shared_libraries:
-            shared_library = _build_shared_library_to_link(ctx, lib)
+            shared_library = _build_shared_library_to_link(ctx, lib, cc_toolchain, targets_windows)
             shared_libraries += [shared_library]
             runtime_artifacts += [shared_library.artifact()]
 
     interface_libraries = []
     if files.interface_libraries != None:
         for lib in files.interface_libraries:
-            interface_libraries += [_build_interface_library_to_link(ctx, lib)]
+            interface_libraries += [_build_interface_library_to_link(ctx, lib, cc_toolchain, targets_windows)]
 
     dynamic_libraries_for_linking = None
     if len(interface_libraries) > 0:

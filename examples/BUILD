@@ -16,7 +16,9 @@ tests_with_synthetic = tests + [
 
 test_suite(
     name = "tests",
-    tests = tests_with_synthetic,
+    tests = tests_with_synthetic + [
+        "//examples/cmake_hello_world_lib/only_shared:test_libhello",
+    ],
 )
 
 test_suite(
