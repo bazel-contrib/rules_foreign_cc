@@ -229,21 +229,17 @@ def cc_external_rule_impl(ctx, attrs):
     # we need this fictive file in the root to get the path of the root in the script
     empty = fictive_file_in_genroot(ctx)
 
-    define_variables = [
-        "export EXT_BUILD_ROOT=$BUILD_PWD",
-        "export BUILD_TMPDIR=$(mktemp -d)",
-        "export EXT_BUILD_DEPS=$EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name,
-        "export INSTALLDIR=$EXT_BUILD_ROOT/" + empty.file.dirname + "/" + lib_name,
-    ]
-
     script_lines = [
         "echo \"\n{}\n\"".format(version_and_lib),
         "set -e",
         "source " + shell_utils,
         set_envs,
         "set_platform_env_vars",
-        "\n".join(define_variables),
+        "export EXT_BUILD_ROOT=$BUILD_PWD",
+        "export BUILD_TMPDIR=$(mktemp -d)",
+        "export EXT_BUILD_DEPS=$EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name,
         "mkdir -p $EXT_BUILD_DEPS",
+        "export INSTALLDIR=$EXT_BUILD_ROOT/" + empty.file.dirname + "/" + lib_name,
         "mkdir -p $INSTALLDIR",
         _print_env(),
         "trap \"{ rm -rf $BUILD_TMPDIR $EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name + "; }\" EXIT",
