@@ -3,8 +3,8 @@ load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
 
 cmake_external(
     name = "libhello",
-    lib_source = "//examples/cmake_hello_world_lib:srcs",
-    out_include_dir = "include/version123"
+    lib_source = "//examples/cmake_hello_world_lib/only_static:srcs",
+    out_include_dir = "include/version123",
 )
 
 cc_library(

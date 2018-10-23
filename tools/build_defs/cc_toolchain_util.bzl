@@ -66,7 +66,7 @@ def _perform_error_checks(
 
     # If a shared library won't be provided by system during runtime and we are linking the shared
     # library through interface library, the shared library must be specified.
-    if (not system_provided and shared_library_artifacts and
+    if (not system_provided and not shared_library_artifacts and
         interface_library_artifacts):
         fail("'shared_library' should be specified when 'system_provided' is false")
 
@@ -94,35 +94,34 @@ def _build_shared_library_to_link(ctx, library, cc_toolchain, targets_windows):
     if library == None:
         fail("Parameter 'shared_library_artifact' cannot be None")
 
-    if targets_windows:
-        return cc_common.create_library_to_link(
-            ctx = ctx,
-            library = library,
-            artifact_category = "dynamic_library",
-        )
-    else:
-        return cc_common.create_library_to_link(
+    if not targets_windows and hasattr(cc_common, "create_symlink_library_to_link"):
+        return cc_common.create_symlink_library_to_link(
             ctx = ctx,
             cc_toolchain = cc_toolchain,
             library = library,
         )
+
+    return cc_common.create_library_to_link(
+        ctx = ctx,
+        library = library,
+        artifact_category = "dynamic_library",
+    )
 
 def _build_interface_library_to_link(ctx, library, cc_toolchain, targets_windows):
     if library == None:
         fail("Parameter 'interface_library_artifact' cannot be None")
 
-    if targets_windows:
-        return cc_common.create_library_to_link(
-            ctx = ctx,
-            library = library,
-            artifact_category = "interface_library",
-        )
-    else:
-        return cc_common.create_library_to_link(
+    if not targets_windows and hasattr(cc_common, "create_symlink_library_to_link"):
+        return cc_common.create_symlink_library_to_link(
             ctx = ctx,
             cc_toolchain = cc_toolchain,
             library = library,
         )
+    return cc_common.create_library_to_link(
+        ctx = ctx,
+        library = library,
+        artifact_category = "interface_library",
+    )
 
 # we could possibly take a decision about linking interface/shared library beased on each library name
 # (usefull for the case when multiple output targets are provided)
