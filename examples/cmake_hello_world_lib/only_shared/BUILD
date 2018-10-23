@@ -11,8 +11,15 @@ load("//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(
     name = "libhello",
+    cache_entries = {
+        "CMAKE_MACOSX_RPATH": "True",
+    },
     lib_source = ":srcs",
-    shared_libraries = ["libhello.so"],
+    shared_libraries = select({
+        "@bazel_tools//src/conditions:windows": ["libhello.dll"],
+        "@bazel_tools//src/conditions:darwin": ["libhello.dylib"],
+        "//conditions:default": ["libhello.so"],
+    }),
 )
 
 cc_test(
