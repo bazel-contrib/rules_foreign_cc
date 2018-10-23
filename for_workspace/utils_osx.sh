@@ -27,7 +27,12 @@ function replace_in_files() {
 # $1 source directory, immediate children of which are copied
 # $2 target directory
 function copy_dir_contents_to_dir() {
-  cp -L -r --no-target-directory "$1" "$2"
+  local children=$(find $1 -maxdepth 1 -mindepth 1)
+  local target="$2"
+  mkdir -p ${target}
+  for child in $children; do
+    cp -R $child ${target}
+  done
 }
 
 # Symlink contents of the directory to target directory
@@ -64,7 +69,7 @@ function symlink_to_dir() {
   elif [[ -f $1 ]]; then
     ln -s $1 ${target}
   elif [[ -L $1 ]]; then
-    cp --no-target-directory $1 ${target}
+    cp $1 ${target}
   else
     echo "Can not copy $1"
   fi
