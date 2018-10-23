@@ -11,6 +11,8 @@ load("//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(
     name = "libhello",
+    # Probably this variable should be set by default.
+    # Apparently, it needs to be set for shared libraries on Mac OS
     cache_entries = {
         "CMAKE_MACOSX_RPATH": "True",
     },
