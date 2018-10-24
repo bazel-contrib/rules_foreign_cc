@@ -23,7 +23,7 @@ def create_configure_script(
 
     script = []
     for ext_dir in inputs.ext_build_dirs:
-        script += ["increment_pkg_config_path $EXT_BUILD_ROOT/" + ext_dir]
+        script += ["increment_pkg_config_path $EXT_BUILD_ROOT/" + ext_dir.path]
 
     script += ["echo \"PKG_CONFIG_PATH=$PKG_CONFIG_PATH\""]
 
@@ -72,7 +72,7 @@ def _define_deps_flags(deps, inputs):
                 if not gen_dirs_set.get(artifact.gen_dir):
                     gen_dirs_set[artifact.gen_dir] = 1
 
-                    dir_name = "/".join(artifact.gen_dir.split("/")[-1:])
+                    dir_name = artifact.gen_dir.basename
                     include_dirs += ["-I$EXT_BUILD_DEPS/{}/{}".format(dir_name, artifact.include_dir_name)]
                     lib_dirs += ["-L$EXT_BUILD_DEPS/{}/{}".format(dir_name, artifact.lib_dir_name)]
 

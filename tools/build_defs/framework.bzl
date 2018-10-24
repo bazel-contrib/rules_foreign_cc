@@ -136,7 +136,6 @@ Instances of ForeignCcArtifact are incapsulated in a depset ForeignCcDeps#artifa
         "bin_dir_name": "Bin directory, relative to install directory",
         "lib_dir_name": "Lib directory, relative to install directory",
         "include_dir_name": "Include directory, relative to install directory",
-        "declared_outputs": "List of files that must be generated",
     },
 )
 
@@ -227,7 +226,7 @@ def cc_external_rule_impl(ctx, attrs):
         "export BUILD_TMPDIR=$(mktemp -d)",
         "export EXT_BUILD_DEPS=$EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name,
         "mkdir -p $EXT_BUILD_DEPS",
-        "export INSTALLDIR=$EXT_BUILD_ROOT/" + outputs.installdir,
+        "export INSTALLDIR=$EXT_BUILD_ROOT/" + outputs.installdir.path,
         "mkdir -p $INSTALLDIR",
         "echo \"Environment:______________\"",
         "env",
@@ -273,11 +272,11 @@ def cc_external_rule_impl(ctx, attrs):
         bin_dir_name = attrs.out_bin_dir,
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
-        declared_outputs = outputs.declared_outputs,
     )
     return [
         DefaultInfo(files = depset(direct = outputs.declared_outputs)),
         OutputGroupInfo(
+            gen_dir = depset([outputs.installdir]),
             out_binary_files = depset(outputs.out_binary_files),
         ),
         ForeignCcDeps(artifacts = depset(
@@ -399,19 +398,17 @@ def _define_outputs(ctx, attrs, lib_name):
 
     _check_file_name(lib_name, "Library name")
 
-    out_binary_files = []
-    for file in attrs.binaries:
-        out_binary_files += [_declare_out(ctx, lib_name, attrs.out_bin_dir, file)]
+    out_binary_files = [_declare_out(ctx, lib_name, attrs.out_bin_dir, bin_file) for bin_file in attrs.binaries]
 
+    installdir = ctx.actions.declare_directory(lib_name)
     out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
-    installdir = '/'.join(out_include_dir.path.split('/')[:-1])
 
     libraries = LibrariesToLinkInfo(
         static_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, static_libraries),
         shared_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attrs.shared_libraries),
         interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attrs.interface_libraries),
     )
-    declared_outputs = [out_include_dir] + out_binary_files
+    declared_outputs = [installdir, out_include_dir] + out_binary_files
     declared_outputs += libraries.static_libraries
     declared_outputs += libraries.shared_libraries + libraries.interface_libraries
 
@@ -458,7 +455,6 @@ def _define_inputs(attrs):
     # This framework function-built libraries: copy result directories under
     # $EXT_BUILD_DEPS/lib-name
     ext_build_dirs = []
-    ext_build_files = []
     ext_build_dirs_set = {}
 
     for dep in attrs.deps:
@@ -472,7 +468,6 @@ def _define_inputs(attrs):
                 if not ext_build_dirs_set.get(artifact.gen_dir):
                     ext_build_dirs_set[artifact.gen_dir] = 1
                     ext_build_dirs += [artifact.gen_dir]
-                    ext_build_files += artifact.declared_outputs
         else:
             headers_info = _get_headers(dep[CcCompilationInfo])
             bazel_headers += headers_info.headers
@@ -505,7 +500,7 @@ def _define_inputs(attrs):
         deps_linking_info = deps_linking,
         ext_build_dirs = ext_build_dirs,
         declared_inputs = depset(attrs.lib_source.files) + bazel_libs + tools_files +
-                          attrs.additional_inputs + deps_compilation.headers + ext_build_files,
+                          attrs.additional_inputs + deps_compilation.headers + ext_build_dirs,
     )
 
 def get_foreign_cc_dep(dep):
