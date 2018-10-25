@@ -13,6 +13,7 @@ load(
 )
 load("//tools/build_defs:detect_root.bzl", "detect_root")
 load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
+load(":run_shell_file_utils.bzl", "copy_directory", "fictive_file_in_genroot")
 
 """ Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
  Many of the attributes have default values.
@@ -216,6 +217,18 @@ def cc_external_rule_impl(ctx, attrs):
 
     version_and_lib = "Bazel external C/C++ Rules #{}. Building library '{}'".format(VERSION, lib_name)
 
+    # We can not declare outputs of the action, which are in parent-child relashion,
+    # so we need to have a (symlinked) copy of the output directory to provide
+    # both the C/C++ artifacts - libraries, headers, and binaries,
+    # and the install directory as a whole (which is mostly nessesary for chained external builds).
+    #
+    # We want the install directory output of this rule to have the same name as the library,
+    # so symlink it under the same name but in a subdirectory
+    installdir_copy = copy_directory(ctx.actions, "$INSTALLDIR", "copy_{}/{}".format(lib_name, lib_name))
+
+    # we need this fictive file in the root to get the path of the root in the script
+    empty = fictive_file_in_genroot(ctx.actions, ctx.label.name)
+
     script_lines = [
         "echo \"\n{}\n\"".format(version_and_lib),
         "set -e",
@@ -226,11 +239,9 @@ def cc_external_rule_impl(ctx, attrs):
         "export BUILD_TMPDIR=$(mktemp -d)",
         "export EXT_BUILD_DEPS=$EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name,
         "mkdir -p $EXT_BUILD_DEPS",
-        "export INSTALLDIR=$EXT_BUILD_ROOT/" + outputs.installdir.path,
+        "export INSTALLDIR=$EXT_BUILD_ROOT/" + empty.file.dirname + "/" + lib_name,
         "mkdir -p $INSTALLDIR",
-        "echo \"Environment:______________\"",
-        "env",
-        "echo \"__________________________\"",
+        _print_env(),
         "trap \"{ rm -rf $BUILD_TMPDIR $EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name + "; }\" EXIT",
         "\n".join(_copy_deps_and_tools(inputs)),
         # replace placeholder with the dependencies root
@@ -244,6 +255,8 @@ def cc_external_rule_impl(ctx, attrs):
         # for the results which are in $INSTALLDIR (with placeholder)
         "replace_absolute_paths $INSTALLDIR $BUILD_TMPDIR",
         "replace_absolute_paths $INSTALLDIR $EXT_BUILD_DEPS",
+        installdir_copy.script,
+        empty.script,
         "popd",
     ]
 
@@ -252,10 +265,12 @@ def cc_external_rule_impl(ctx, attrs):
 
     execution_requirements = {"block-network": ""}
 
+    rule_outputs = outputs.declared_outputs + [installdir_copy.file]
+
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs) + ctx.attr._cc_toolchain.files,
-        outputs = outputs.declared_outputs,
+        outputs = rule_outputs + [empty.file],
         tools = ctx.attr._utils.files,
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
@@ -268,15 +283,15 @@ def cc_external_rule_impl(ctx, attrs):
     )
 
     externally_built = ForeignCcArtifact(
-        gen_dir = outputs.installdir,
+        gen_dir = installdir_copy.file,
         bin_dir_name = attrs.out_bin_dir,
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
     )
     return [
-        DefaultInfo(files = depset(direct = outputs.declared_outputs)),
+        DefaultInfo(files = depset(direct = rule_outputs)),
         OutputGroupInfo(
-            gen_dir = depset([outputs.installdir]),
+            gen_dir = depset([installdir_copy.file]),
             out_binary_files = depset(outputs.out_binary_files),
         ),
         ForeignCcDeps(artifacts = depset(
@@ -295,6 +310,13 @@ def _get_transitive_artifacts(deps):
         if foreign_dep:
             artifacts += [foreign_dep.artifacts]
     return artifacts
+
+def _print_env():
+    return "\n".join([
+        "echo \"Environment:______________\"",
+        "env",
+        "echo \"__________________________\"",
+    ])
 
 def _correct_path_variable(env):
     value = env.get("PATH", "")
@@ -372,7 +394,6 @@ def _check_file_name(var, name):
 _Outputs = provider(
     doc = "Provider to keep different kinds of the external build output files and directories",
     fields = dict(
-        installdir = "Directory, where the library or binary is installed",
         out_include_dir = "Directory with header files (relative to install directory)",
         out_binary_files = "Binary files, which will be created by the action",
         libraries = "Library files, which will be created by the action",
@@ -393,31 +414,29 @@ def _define_outputs(ctx, attrs, lib_name):
 
     _check_file_name(lib_name, "Library name")
 
-    out_binary_files = [_declare_out(ctx, lib_name, attrs.out_bin_dir, bin_file) for bin_file in attrs.binaries]
-
-    installdir = ctx.actions.declare_directory(lib_name)
     out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
+
+    out_binary_files = _declare_out(ctx, lib_name, attrs.out_bin_dir, attrs.binaries)
 
     libraries = LibrariesToLinkInfo(
         static_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, static_libraries),
         shared_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attrs.shared_libraries),
         interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attrs.interface_libraries),
     )
-    declared_outputs = [installdir, out_include_dir] + out_binary_files
+    declared_outputs = [out_include_dir] + out_binary_files
     declared_outputs += libraries.static_libraries
     declared_outputs += libraries.shared_libraries + libraries.interface_libraries
 
     return _Outputs(
-        installdir = installdir,
         out_include_dir = out_include_dir,
         out_binary_files = out_binary_files,
         libraries = libraries,
         declared_outputs = declared_outputs,
     )
 
-def _declare_out(ctx, lib_name, dir, files):
+def _declare_out(ctx, lib_name, dir_, files):
     if files and len(files) > 0:
-        return [ctx.actions.declare_file("/".join([lib_name, dir, file])) for file in files]
+        return [ctx.actions.declare_file("/".join([lib_name, dir_, file])) for file in files]
     return []
 
 InputFiles = provider(
