@@ -18,6 +18,7 @@ test_suite(
     name = "tests",
     tests = tests_with_synthetic + [
         "//examples/cmake_hello_world_lib/shared:test_libhello",
+        "//examples/cmake_hello_world_lib/binary:test_binary",
     ],
 )
 

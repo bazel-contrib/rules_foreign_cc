@@ -294,10 +294,7 @@ def cc_external_rule_impl(ctx, attrs):
     )
     return [
         DefaultInfo(files = depset(direct = rule_outputs)),
-        OutputGroupInfo(
-            gen_dir = depset([installdir_copy.file]),
-            out_binary_files = depset(outputs.out_binary_files),
-        ),
+        OutputGroupInfo(**_declare_output_groups(installdir_copy.file, outputs.out_binary_files)),
         ForeignCcDeps(artifacts = depset(
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
@@ -306,6 +303,13 @@ def cc_external_rule_impl(ctx, attrs):
         out_cc_info.compilation_info,
         out_cc_info.linking_info,
     ]
+
+def _declare_output_groups(installdir, outputs):
+    dict_ = {}
+    dict_["gen_dir"] = depset([installdir])
+    for output in outputs:
+        dict_[output.basename] = [output]
+    return dict_
 
 def _get_transitive_artifacts(deps):
     artifacts = []
