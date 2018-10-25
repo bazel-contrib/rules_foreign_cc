@@ -202,7 +202,7 @@ def cc_external_rule_impl(ctx, attrs):
             script, accepts ConfigureParameters
          and some other fields provided by the rule, which have been passed to create_attrs.
     """
-    lib_name = _value(attrs.lib_name, ctx.attr.name)
+    lib_name = attrs.lib_name or ctx.attr.name
 
     inputs = _define_inputs(attrs)
     outputs = _define_outputs(ctx, attrs, lib_name)
@@ -249,7 +249,7 @@ def cc_external_rule_impl(ctx, attrs):
         "pushd $BUILD_TMPDIR",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(attrs.make_commands),
-        _value(attrs.postfix_script, ""),
+        attrs.postfix_script or "",
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
@@ -292,6 +292,7 @@ def cc_external_rule_impl(ctx, attrs):
         DefaultInfo(files = depset(direct = rule_outputs)),
         OutputGroupInfo(
             gen_dir = depset([installdir_copy.file]),
+            out_binary_files = depset(outputs.out_binary_files),
         ),
         ForeignCcDeps(artifacts = depset(
             [externally_built],
@@ -326,11 +327,6 @@ def _correct_path_variable(env):
     value = value.replace(";", ":")
     env["PATH"] = "$PATH:" + value
     return env
-
-def _value(value, default_value):
-    if (value):
-        return value
-    return default_value
 
 def _depset(item):
     if item == None:
