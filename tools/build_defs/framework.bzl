@@ -224,10 +224,10 @@ def cc_external_rule_impl(ctx, attrs):
     #
     # We want the install directory output of this rule to have the same name as the library,
     # so symlink it under the same name but in a subdirectory
-    installdir_copy = copy_directory(ctx, "$INSTALLDIR", "copy_{}/{}".format(lib_name, lib_name))
+    installdir_copy = copy_directory(ctx.actions, "$INSTALLDIR", "copy_{}/{}".format(lib_name, lib_name))
 
     # we need this fictive file in the root to get the path of the root in the script
-    empty = fictive_file_in_genroot(ctx)
+    empty = fictive_file_in_genroot(ctx.actions, ctx.label.name)
 
     script_lines = [
         "echo \"\n{}\n\"".format(version_and_lib),

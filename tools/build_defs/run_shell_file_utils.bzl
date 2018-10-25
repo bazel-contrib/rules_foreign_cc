@@ -9,26 +9,27 @@ CreatedByScript = provider(
 """ Creates a fictive file under the build root.
 This gives the possibility to address the build root in script and construct paths under it.
   Attributes:
-    ctx - rule context
+    actions - actions factory (ctx.actions)
+    target_name - name of the current target (ctx.label.name)
 """
-def fictive_file_in_genroot(ctx):
+def fictive_file_in_genroot(actions, target_name):
     # we need this fictive file in the genroot to get the path of the root in the script
-    empty = ctx.actions.declare_file("empty_{}.txt".format(ctx.label.name))
+    empty = actions.declare_file("empty_{}.txt".format(target_name))
     return CreatedByScript(
         file = empty,
         script = "touch $EXT_BUILD_ROOT/" + empty.path,
     )
 
 """ Copies directory by $EXT_BUILD_ROOT/orig_path into to $EXT_BUILD_ROOT/copy_path.
-I.e. a copy of teh directory is created under $EXT_BUILD_ROOT/copy_path.
+I.e. a copy of the directory is created under $EXT_BUILD_ROOT/copy_path.
   Attributes:
-    ctx - rule context
+    actions - actions factory (ctx.actions)
     orig_path - path to the original directory, relative to the build root
     copy_path - target directory, relative to the build root
 """
 
-def copy_directory(ctx, orig_path, copy_path):
-    dir_copy = ctx.actions.declare_directory(copy_path)
+def copy_directory(actions, orig_path, copy_path):
+    dir_copy = actions.declare_directory(copy_path)
     return CreatedByScript(
         file = dir_copy,
         script = "\n".join([
