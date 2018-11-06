@@ -23,7 +23,6 @@ def _boost_build(ctx):
             "libboost_coroutine.a",
             "libboost_date_time.a",
             "libboost_exception.a",
-            "libboost_fiber.a",
             "libboost_filesystem.a",
             "libboost_graph.a",
             "libboost_iostreams.a",
