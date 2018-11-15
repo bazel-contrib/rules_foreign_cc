@@ -43,7 +43,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     #
     # Optional part of the shell script to be added after the make commands
     "postfix_script": attr.string(mandatory = False),
-    # Optinal make commands, defaults to ["make", "make install"]
+    # Optional make commands, defaults to ["make", "make install"]
     "make_commands": attr.string_list(mandatory = False, default = ["make", "make install"]),
     #
     # Optional dependencies to be copied into the directory structure.
@@ -51,6 +51,9 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     # (i.e. those that the external buidl system will be looking for and paths to which are
     # provided by the calling rule)
     "deps": attr.label_list(mandatory = False, allow_files = True, default = []),
+
+    # Optional exports to be appended to the deps attribute of dependent targets.
+    "exports": attr.label_list(mandatory = False, allow_files = True, default = []),
     # Optional tools to be copied into the directory structure.
     # Similar to deps, those directly required for the external building of the library/binaries.
     "tools_deps": attr.label_list(mandatory = False, allow_files = True, default = []),
@@ -118,6 +121,11 @@ def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs)
     for arg in kwargs:
         attrs[arg] = kwargs[arg]
     return struct(**attrs)
+
+ExportInfo = provider(
+    doc = """Provider to pass exports to dependent targets.""",
+    fields = {"exports": "Targets to add to deps"},
+)
 
 ForeignCcDeps = provider(
     doc = """Provider to pass transitive information about external libraries.""",
@@ -295,6 +303,7 @@ def cc_external_rule_impl(ctx, attrs):
     return [
         DefaultInfo(files = depset(direct = rule_outputs)),
         OutputGroupInfo(**_declare_output_groups(installdir_copy.file, outputs.out_binary_files)),
+        ExportInfo(exports = depset(attrs.exports))
         ForeignCcDeps(artifacts = depset(
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
@@ -479,7 +488,15 @@ def _define_inputs(attrs):
     ext_build_dirs = []
     ext_build_dirs_set = {}
 
+    deps_and_exports = []
+    deps_and_exports_set = {}
     for dep in attrs.deps:
+        for export in dep[ExportInfo] + dep:
+            if not deps_and_exports_set.get(export):
+                deps_and_exports_set[export] = 1
+                deps_and_exports += [export]
+
+    for dep in deps_and_exports:
         external_deps = get_foreign_cc_dep(dep)
 
         linking_infos_all += [dep[CcLinkingInfo]]
