@@ -320,7 +320,7 @@ def _declare_output_groups(installdir, outputs):
         dict_[output.basename] = [output]
     return dict_
 
-def _get_transitive_artifacts(deps, exports):
+def _get_transitive_artifacts(deps):
     artifacts = []
     for dep in deps:
         for export in dep[ExportInfo].exports + [dep]:
