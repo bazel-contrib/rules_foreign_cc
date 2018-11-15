@@ -491,7 +491,7 @@ def _define_inputs(attrs):
     deps_and_exports = []
     deps_and_exports_set = {}
     for dep in attrs.deps:
-        for export in dep[ExportInfo] + dep:
+        for export in dep[ExportInfo] + [dep]:
             if not deps_and_exports_set.get(export):
                 deps_and_exports_set[export] = 1
                 deps_and_exports += [export]
