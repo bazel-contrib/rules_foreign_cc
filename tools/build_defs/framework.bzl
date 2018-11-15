@@ -303,7 +303,7 @@ def cc_external_rule_impl(ctx, attrs):
     return [
         DefaultInfo(files = depset(direct = rule_outputs)),
         OutputGroupInfo(**_declare_output_groups(installdir_copy.file, outputs.out_binary_files)),
-        ExportInfo(exports = depset(attrs.exports))
+        ExportInfo(exports = depset(attrs.exports)),
         ForeignCcDeps(artifacts = depset(
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
