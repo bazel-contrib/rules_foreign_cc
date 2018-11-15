@@ -17,7 +17,7 @@ function path() {
 function replace_in_files() {
   if [ -d "$1" ]; then
     find -L $1 -print -type f \
-     \( -name "*.pc" -or -name "*.la" -or -name "*-config" \) \
+     \( -name "*.pc" -or -name "*.la" -or -name "*-config.cmake" -or -name "*Config.cmake" \) \
     -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
   fi
 }
