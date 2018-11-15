@@ -306,7 +306,7 @@ def cc_external_rule_impl(ctx, attrs):
         ExportInfo(exports = attrs.exports),
         ForeignCcDeps(artifacts = depset(
             [externally_built],
-            transitive = _get_transitive_artifacts(attrs.deps),
+            transitive = _get_transitive_artifacts(attrs.deps, attrs.exports),
         )),
         cc_common.create_cc_skylark_info(ctx = ctx),
         out_cc_info.compilation_info,
@@ -320,9 +320,9 @@ def _declare_output_groups(installdir, outputs):
         dict_[output.basename] = [output]
     return dict_
 
-def _get_transitive_artifacts(deps):
+def _get_transitive_artifacts(deps, exports):
     artifacts = []
-    for dep in deps:
+    for dep in deps + exports:
         foreign_dep = get_foreign_cc_dep(dep)
         if foreign_dep:
             artifacts += [foreign_dep.artifacts]
