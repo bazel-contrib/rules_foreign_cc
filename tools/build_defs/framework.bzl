@@ -493,8 +493,9 @@ def _define_inputs(attrs):
     for dep in attrs.deps:
         for export in dep[ExportInfo].exports + [dep]:
             if not deps_and_exports_set.get(export):
-                deps_and_exports_set[export] = 1
-                deps_and_exports += [export]
+                export_id = export.label.package + export.label.name
+                deps_and_exports_set[export_id] = 1
+                deps_and_exports += [export_id]
 
     for dep in deps_and_exports:
         external_deps = get_foreign_cc_dep(dep)
