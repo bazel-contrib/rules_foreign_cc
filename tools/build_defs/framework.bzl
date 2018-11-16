@@ -254,7 +254,7 @@ def cc_external_rule_impl(ctx, attrs):
         "mkdir -p $EXT_BUILD_DEPS",
         "mkdir -p $INSTALLDIR",
         _print_env(),
-        "trap \"{ rm -rf $BUILD_TMPDIR $EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name + "; }\" EXIT",
+        #"trap \"{ rm -rf $BUILD_TMPDIR $EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name + "; }\" EXIT",
         "\n".join(_copy_deps_and_tools(inputs)),
         # replace placeholder with the dependencies root
         "define_absolute_paths $EXT_BUILD_DEPS $EXT_BUILD_DEPS",
