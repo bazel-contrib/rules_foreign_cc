@@ -1,6 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//for_workspace:repositories.bzl", "repositories")
 load("//for_workspace:os_info.bzl", "get_os_info")
+load("//for_workspace:starlark_api_change_support.bzl", "generate_implementation_fragments")
 
 def _platform_dependent_init_impl(rctx):
     os_name = rctx.os.name.lower()
@@ -140,3 +141,4 @@ _platform_dependent_init = repository_rule(
 def rules_foreign_cc_dependencies():
     repositories()
     _platform_dependent_init(name = "foreign_cc_platform_utils")
+    generate_implementation_fragments(name = "foreign_cc_impl")

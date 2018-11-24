@@ -9,8 +9,9 @@ Rules for building C/C++ projects using foreign build systems inside Bazel proje
 **NOTE**: this requires Bazel version starting from 0.17.1.
 
 It also requires passing Bazel the following flag:
+(**please pay attention @foreign_cc_impl was added** due to adoption to Starlark API changes that are goning to happen in Bazel 0.21)
 ```
---experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs
+--experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs,@foreign_cc_impl
 ```
 Where ```rules_foreign_cc``` is the name of this repository in your WORKSPACE file.
 
