@@ -325,9 +325,12 @@ def _declare_output_groups(installdir, outputs):
 def _get_transitive_artifacts(deps):
     artifacts = []
     for dep in deps:
+        print("Get transitive artifacts for {}".format(dep))
         for export in dep[ExportInfo].exports + [dep]:
+            print("Export: {}".format(export))
             foreign_dep = get_foreign_cc_dep(export)
             if foreign_dep:
+                print("Foreign dep: {}".format(foreign_dep))
                 artifacts += [foreign_dep.artifacts]
     return artifacts
 
@@ -497,6 +500,7 @@ def _define_inputs(attrs):
         for export in dep[ExportInfo].exports + [dep]:
             if not deps_and_exports_set.get(export):
                 export_id = export.label.package + export.label.name
+                print("export_id: {}".format(export_id))
                 deps_and_exports_set[export_id] = 1
                 deps_and_exports += [export]
 
