@@ -3,7 +3,7 @@
 """
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
-load("@//tools/build_defs:version.bzl", "VERSION")
+load("@rules_foreign_cc//tools/build_defs:version.bzl", "VERSION")
 load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
@@ -11,9 +11,9 @@ load(
     "get_env_vars",
     "targets_windows",
 )
-load("@//tools/build_defs:detect_root.bzl", "detect_root")
+load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root")
 load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
-load("@//tools/build_defs:run_shell_file_utils.bzl", "copy_directory", "fictive_file_in_genroot")
+load("@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl", "copy_directory", "fictive_file_in_genroot")
 
 """ Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
  Many of the attributes have default values.
