@@ -173,10 +173,7 @@ def _move_dict_values(target, source, descriptor_map):
             if existing.replace or target.get(existing.value) == None:
                 target[existing.value] = value
             else:
-                target[existing.value] = _merge(target[existing.value], value)
-
-def _merge(str1, str2):
-    return str1.strip("\"'") + " " + str2.strip("\"'")
+                target[existing.value] = target[existing.value] + " " + value
 
 def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
     os_name = "Linux"
