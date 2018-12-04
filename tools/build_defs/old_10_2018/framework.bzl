@@ -238,15 +238,33 @@ def cc_external_rule_impl(ctx, attrs):
         "export INSTALLDIR=$EXT_BUILD_ROOT/" + empty.file.dirname + "/" + lib_name,
     ]
 
+    trap_function = [
+        "function cleanup() {",
+        "local ecode=$?",
+        "if [ $ecode -eq 0 ]; then",
+        "echo \"rules_foreign_cc: Cleaning temp directories\"",
+        "rm -rf $BUILD_TMPDIR $EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name,
+        "else",
+        "echo \"\"",
+        "echo \"rules_foreign_cc: Keeping temp build directory $BUILD_TMPDIR\
+ and dependencies directory $EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name + " for debug.\"",
+        "echo \"rules_foreign_cc: Please note that the directories inside a sandbox are still\
+ cleaned unless you specify '--sandbox_debug' Bazel command line flag.\"",
+        "echo \"\"",
+        "fi",
+        "}",
+    ]
+
     script_lines = [
         "echo \"\n{}\n\"".format(version_and_lib),
         "set -e",
         "source " + shell_utils,
         "\n".join(define_variables),
+        "\n".join(trap_function),
         "mkdir -p $EXT_BUILD_DEPS",
         "mkdir -p $INSTALLDIR",
         _print_env(),
-        "trap \"{ rm -rf $BUILD_TMPDIR $EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name + "; }\" EXIT",
+        "trap \"cleanup\" EXIT",
         "\n".join(_copy_deps_and_tools(inputs)),
         # replace placeholder with the dependencies root
         "define_absolute_paths $EXT_BUILD_DEPS $EXT_BUILD_DEPS",
