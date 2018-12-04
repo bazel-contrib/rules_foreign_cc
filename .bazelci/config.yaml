@@ -8,4 +8,4 @@ platforms:
     - "//examples:tests_no_synthetic"
   macos:
     test_targets:
-    - "//examples:tests"
+    - "//examples:cmake_tests"
