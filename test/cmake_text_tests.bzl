@@ -207,6 +207,35 @@ def _merge_toolchain_and_user_values_test(ctx):
 
     unittest.end(env)
 
+def _merge_flag_values_no_toolchain_file_test(ctx):
+    env = unittest.begin(ctx)
+
+    tools = CxxToolsInfo(
+        cc = "/usr/bin/gcc",
+        cxx = "/usr/bin/gcc",
+        cxx_linker_static = "/usr/bin/ar",
+        cxx_linker_executable = "/usr/bin/gcc",
+    )
+    flags = CxxFlagsInfo(
+        cc = [],
+        cxx = ["foo=\"bar\""],
+        cxx_linker_shared = [],
+        cxx_linker_static = [],
+        cxx_linker_executable = [],
+        assemble = [],
+    )
+    user_env = {}
+    user_cache = {
+        "CMAKE_CXX_FLAGS": "-Fbat",
+    }
+
+    os_info = OSInfo(is_unix = True, is_osx = False, is_win = False)
+    script = create_cmake_script("ws", os_info, tools, flags, "test_rule", "external/test_rule", True, user_cache, user_env, [])
+    expected = """CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CXXFLAGS=\"foo=\\\"bar\\\" -Fbat" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_BUILD_TYPE=\"DEBUG\"  $EXT_BUILD_ROOT/external/test_rule"""
+    asserts.equals(env, expected.format(cmake = CMAKE_COMMAND), script)
+
+    unittest.end(env)
+
 def _create_min_cmake_script_no_toolchain_file_test(ctx):
     env = unittest.begin(ctx)
 
@@ -380,6 +409,7 @@ create_min_cmake_script_no_toolchain_file_test = unittest.make(_create_min_cmake
 create_min_cmake_script_toolchain_file_test = unittest.make(_create_min_cmake_script_toolchain_file_test)
 create_cmake_script_no_toolchain_file_test = unittest.make(_create_cmake_script_no_toolchain_file_test)
 create_cmake_script_toolchain_file_test = unittest.make(_create_cmake_script_toolchain_file_test)
+merge_flag_values_no_toolchain_file_test = unittest.make(_merge_flag_values_no_toolchain_file_test)
 
 def cmake_script_test_suite():
     unittest.suite(
@@ -395,4 +425,5 @@ def cmake_script_test_suite():
         create_min_cmake_script_toolchain_file_test,
         create_cmake_script_no_toolchain_file_test,
         create_cmake_script_toolchain_file_test,
+        merge_flag_values_no_toolchain_file_test,
     )
