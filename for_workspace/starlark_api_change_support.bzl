@@ -4,7 +4,11 @@ def has_bazel_cc_info():
 def _generate_implementation_fragments(rctx):
     prefix = ""
     if has_bazel_cc_info():
-        prefix = "//tools/build_defs/new_11_2018:"
+        bazel_version = native.bazel_version
+        if native.bazel_version.startswith("0.20."):
+            prefix = "//tools/build_defs/old_11_2018:"
+        else:
+            prefix = "//tools/build_defs/new_11_2018:"
     else:
         prefix = "//tools/build_defs/old_10_2018:"
 
