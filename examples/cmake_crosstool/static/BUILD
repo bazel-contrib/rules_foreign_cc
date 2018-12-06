@@ -7,6 +7,10 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+exports_files([
+    "hello_client.c"
+])
+
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(

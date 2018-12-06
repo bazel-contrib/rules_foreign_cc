@@ -103,4 +103,5 @@ cc_toolchain(
     static_runtime_libs = [":empty"],
     strip_files = ":empty",
     supports_param_files = 1,
+    visibility = ["//visibility:public"],
 )
