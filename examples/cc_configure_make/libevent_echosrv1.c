@@ -179,35 +179,37 @@ int main(int argc, char **argv) {
   /* Initialize libevent. */
   event_init();
 
-  /* Create our listening socket. This is largely boiler plate
-   * code that I'll abstract away in the future. */
-  listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (listen_fd < 0)
-    err(1, "listen failed");
-  if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr_on,
-                 sizeof(reuseaddr_on)) == -1)
-    err(1, "setsockopt failed");
-  memset(&listen_addr, 0, sizeof(listen_addr));
-  listen_addr.sin_family = AF_INET;
-  listen_addr.sin_addr.s_addr = INADDR_ANY;
-  listen_addr.sin_port = htons(SERVER_PORT);
-  if (bind(listen_fd, (struct sockaddr *)&listen_addr, sizeof(listen_addr)) < 0)
-    err(1, "bind failed");
-  if (listen(listen_fd, 5) < 0)
-    err(1, "listen failed");
+// comment out since it is called from test and should terminate
 
-  /* Set the socket to non-blocking, this is essential in event
-   * based programming with libevent. */
-  if (setnonblock(listen_fd) < 0)
-    err(1, "failed to set server socket to non-blocking");
-
-  /* We now have a listening socket, we create a read event to
-   * be notified when a client connects. */
-  event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, NULL);
-  event_add(&ev_accept, NULL);
-
-  /* Start the libevent event loop. */
-  event_dispatch();
+//  /* Create our listening socket. This is largely boiler plate
+//   * code that I'll abstract away in the future. */
+//  listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+//  if (listen_fd < 0)
+//    err(1, "listen failed");
+//  if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr_on,
+//                 sizeof(reuseaddr_on)) == -1)
+//    err(1, "setsockopt failed");
+//  memset(&listen_addr, 0, sizeof(listen_addr));
+//  listen_addr.sin_family = AF_INET;
+//  listen_addr.sin_addr.s_addr = INADDR_ANY;
+//  listen_addr.sin_port = htons(SERVER_PORT);
+//  if (bind(listen_fd, (struct sockaddr *)&listen_addr, sizeof(listen_addr)) < 0)
+//    err(1, "bind failed");
+//  if (listen(listen_fd, 5) < 0)
+//    err(1, "listen failed");
+//
+//  /* Set the socket to non-blocking, this is essential in event
+//   * based programming with libevent. */
+//  if (setnonblock(listen_fd) < 0)
+//    err(1, "failed to set server socket to non-blocking");
+//
+//  /* We now have a listening socket, we create a read event to
+//   * be notified when a client connects. */
+//  event_set(&ev_accept, listen_fd, EV_READ | EV_PERSIST, on_accept, NULL);
+//  event_add(&ev_accept, NULL);
+//
+//  /* Start the libevent event loop. */
+//  event_dispatch();
 
   return 0;
 }
