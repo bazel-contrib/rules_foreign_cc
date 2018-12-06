@@ -1,17 +1,17 @@
-load("//cc_configure_make:def.bzl", "cc_configure_make")
+load("//tools/build_defs:configure.bzl", "configure_make")
 
-cc_configure_make(
+configure_make(
     name = "libevent",
-    src = "@libevent//:all",
-    configure_flags = [
+    lib_source = "@libevent//:all",
+    configure_options = [
         "--enable-shared=no",
         "--disable-libevent-regress",
         "--disable-openssl",
     ],
-    out_lib_path = "lib/libevent.a",
+    out_lib_dir = "lib",
 )
 
-cc_binary(
+cc_test(
     name = "libevent_echosrv1",
     srcs = ["libevent_echosrv1.c"],
     deps = [

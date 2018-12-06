@@ -7,6 +7,7 @@ tests = [
     "//examples/cmake_nghttp2:test_nghttp2",
     "//examples/ninja:test_ninja_version",
     "//test:cmake_script_test_suite",
+    "//examples/cc_configure_make:libevent_echosrv1",
 ]
 
 test_suite(
