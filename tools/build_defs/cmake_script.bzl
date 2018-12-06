@@ -197,13 +197,14 @@ def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
     if _ext_toolchain_cxx:
         dict["CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN"] = _absolutize(workspace_name, _ext_toolchain_cxx)
 
+    # Force convert tools paths to absolute using $EXT_BUILD_ROOT
     if tools.cc:
-        dict["CMAKE_C_COMPILER"] = _absolutize(workspace_name, tools.cc)
+        dict["CMAKE_C_COMPILER"] = _absolutize(workspace_name, tools.cc, True)
     if tools.cxx:
-        dict["CMAKE_CXX_COMPILER"] = _absolutize(workspace_name, tools.cxx)
+        dict["CMAKE_CXX_COMPILER"] = _absolutize(workspace_name, tools.cxx, True)
 
     if tools.cxx_linker_static:
-        dict["CMAKE_AR"] = _absolutize(workspace_name, tools.cxx_linker_static)
+        dict["CMAKE_AR"] = _absolutize(workspace_name, tools.cxx_linker_static, True)
 
     if tools.cxx_linker_executable and tools.cxx_linker_executable != tools.cxx:
         normalized_path = _absolutize(workspace_name, tools.cxx_linker_executable)
@@ -261,8 +262,8 @@ def _tail_if_starts_with(str, start):
         return str[len(start):]
     return None
 
-def _absolutize(workspace_name, text):
-    return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text)
+def _absolutize(workspace_name, text, force = False):
+    return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text, force)
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])

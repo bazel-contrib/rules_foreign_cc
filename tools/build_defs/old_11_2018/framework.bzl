@@ -260,6 +260,7 @@ def cc_external_rule_impl(ctx, attrs):
         "set -e",
         "source " + shell_utils,
         "\n".join(define_variables),
+        "path $EXT_BUILD_ROOT",
         "\n".join(trap_function),
         "mkdir -p $EXT_BUILD_DEPS",
         "mkdir -p $INSTALLDIR",

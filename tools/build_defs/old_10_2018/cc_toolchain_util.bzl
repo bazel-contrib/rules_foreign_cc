@@ -394,7 +394,7 @@ def get_flags_info(ctx):
         ),
     )
 
-def absolutize_path_in_str(workspace_name, root_str, text):
+def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     """ Replaces relative paths in [the middle of] 'text', prepending them with 'root_str'.
     If there is nothing to replace, returns the 'text'.
 
@@ -410,6 +410,10 @@ def absolutize_path_in_str(workspace_name, root_str, text):
     new_text = _prefix(text, "external/", root_str)
     if new_text == text:
         new_text = _prefix(text, workspace_name + "/", root_str)
+    # absolutize relative by adding our working directory
+    # this works because we ru on windows under msys now
+    if force and new_text == text and not text.startswith("/"):
+        new_text = root_str + "/" + text
 
     return new_text
 
