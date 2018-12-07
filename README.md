@@ -1,4 +1,5 @@
 # rules_foreign_cc
+[![Build status](https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg)](https://buildkite.com/bazel/rules-foreign-cc)
 
 Rules for building C/C++ projects using foreign build systems inside Bazel projects.
 
