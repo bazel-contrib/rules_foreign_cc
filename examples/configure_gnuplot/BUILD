@@ -96,7 +96,6 @@ cc_test(
 test_suite(
     name = "configure_libgd_tests",
     tests = [
-        ":test_gdtopng",
         ":test_libgd",
         ":test_libpng",
         ":test_zlib",
