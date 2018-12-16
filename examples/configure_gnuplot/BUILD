@@ -1,4 +1,5 @@
 load("//tools/build_defs:configure.bzl", "configure_make")
+load("@bazel_tools//tools/build_rules:test_rules.bzl", "file_test")
 
 configure_make(
     name = "libz",
@@ -24,8 +25,17 @@ configure_make(
     ],
 )
 
+libgd_name = select({
+    "@bazel_tools//src/conditions:windows": ["libgd.lib"],
+    "//conditions:default": ["libgd.a"],
+})
+
 configure_make(
     name = "libgd",
+    binaries = [
+        "webpng",
+        "gdtopng",
+    ],
     configure_options = [
         "--disable-shared",
         "--with-png=\"EXT_BUILD_DEPS/libpng\"",
@@ -33,11 +43,32 @@ configure_make(
         "--with-zlib=\"EXT_BUILD_DEPS/libz\"",
     ],
     lib_source = "@libgd//:all",
+    static_libraries = libgd_name,
     deps = [
         ":freetype",
         ":libpng",
         ":libz",
     ],
+)
+
+filegroup(
+    name = "gdtopng_fg",
+    srcs = [":libgd"],
+    output_group = "gdtopng",
+)
+
+genrule(
+    name = "invoke_gdtopng",
+    srcs = [],
+    outs = ["out.txt"],
+    cmd = "./$(location gdtopng_fg) > $(location out.txt) 2>&1 || true",
+    tools = [":gdtopng_fg"],
+)
+
+file_test(
+    name = "test_gdtopng",
+    content = "Usage: gdtopng filename.gd filename.png\n",
+    file = ":invoke_gdtopng",
 )
 
 cc_test(
@@ -65,6 +96,7 @@ cc_test(
 test_suite(
     name = "configure_libgd_tests",
     tests = [
+        ":test_gdtopng",
         ":test_libgd",
         ":test_libpng",
         ":test_zlib",
