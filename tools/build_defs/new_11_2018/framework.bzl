@@ -569,6 +569,8 @@ def _define_out_cc_info(ctx, attrs, inputs, outputs):
         ctx = ctx,
         headers = depset([outputs.out_include_dir]),
         system_includes = depset([outputs.out_include_dir.path]),
+        includes = depset([]),
+        quote_includes = depset([]),
         defines = depset(attrs.defines),
     )
     linking_info = create_linking_info(ctx, attrs.linkopts, outputs.libraries)
