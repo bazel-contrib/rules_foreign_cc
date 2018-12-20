@@ -568,6 +568,8 @@ def _define_out_cc_info(ctx, attrs, inputs, outputs):
     compilation_info = cc_common.create_compilation_context(
         ctx = ctx,
         headers = depset([outputs.out_include_dir]),
+        includes = depset([]),
+        quote_includes = depset([]),
         system_includes = depset([outputs.out_include_dir.path]),
         defines = depset(attrs.defines),
     )
