@@ -70,7 +70,7 @@ def _perform_error_checks(
         interface_library_artifacts):
         fail("'shared_library' should be specified when 'system_provided' is false")
 
-    if targets_windows and shared_library_artifacts:
+    if targets_windows and shared_library_artifacts and not interface_library_artifacts:
         fail("'interface library' must be specified when using cc_import for " +
              "shared library on Windows")
 
