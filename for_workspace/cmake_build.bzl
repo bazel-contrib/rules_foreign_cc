@@ -1,6 +1,6 @@
 """ Rule for building CMake from sources. """
 
-load(":detect_root.bzl", "detect_root")
+load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root")
 
 def _cmake_tool(ctx):
     root = detect_root(ctx.attr.cmake_srcs)
