@@ -318,7 +318,6 @@ def cc_external_rule_impl(ctx, attrs):
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
         )),
-        cc_common.create_cc_skylark_info(ctx = ctx),
         CcInfo(
             compilation_context = out_cc_info.compilation_context,
             linking_context = out_cc_info.linking_context,
