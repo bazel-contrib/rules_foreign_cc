@@ -16,6 +16,20 @@ It also requires passing Bazel the following flag:
 ```
 Where ```rules_foreign_cc``` is the name of this repository in your WORKSPACE file.
 
+## News
+**January 2019:**
+
+- Examples package became the separate workspace. 
+This also allows to illustrate how to initialize rules_foreign_cc.
+
+- Native tools (cmake, ninja) toolchains were introduced.
+Though the user code does not have to be changed (default toolchains are registered, they call the preinstalled binaries by name.),
+you may simplify usage of ninja with the cmake_external rule and call it just by name.
+Please see examples/cmake_nghttp2 for ninja usage, and WORKSPACE and BUILD files in examles for the native tools toolchains usage.
+
+- Awaiting Bazel 0.22, with it would be possible to use rules_foreign_cc without any flags:
+[C++: Remove whitelist flag for new API](https://github.com/bazelbuild/bazel/commit/1d36051776557bbcbba1a8f0d98e5a408a717d11) 
+
 ## Building CMake projects:
 
 - Build libraries/binaries with CMake from sources using cmake_external rule
@@ -51,9 +65,21 @@ http_archive(
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
-# Workspace initialization function; includes repositories needed by rules_foreign_cc,
-# and creates some utilities for the host operating system
-rules_foreign_cc_dependencies()
+# Call this function from the WORKSPACE file to initialize rules_foreign_cc
+#  dependencies and let neccesary code generation happen
+#  (Code generation is needed to support different variants of the C++ Starlark API.).
+#
+#  Args:
+#    native_tools_toolchains: pass the toolchains for toolchain types
+#      '@rules_foreign_cc//tools/build_defs:cmake_toolchain' and
+#      '@rules_foreign_cc//tools/build_defs:ninja_toolchain' with the needed platform constraints.
+#      If you do not pass anything, registered default toolchains will be selected (see below).
+#  
+#    register_default_tools: if True, the cmake and ninja toolchains, calling corresponding
+#      preinstalled binaries by name (cmake, ninja) will be registered after
+#      'native_tools_toolchains' without any platform constraints.
+#      The default is True.
+rules_foreign_cc_dependencies(["//:my_cmake_toolchain", "//:my_ninja_toolchain"])
 
 # OpenBLAS source code repository
 http_archive(
