@@ -269,7 +269,7 @@ def get_env_vars(ctx):
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
-    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else depset()
+    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else []
 
     vars = dict()
 
@@ -331,7 +331,7 @@ def get_flags_info(ctx):
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
-    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else depset()
+    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else []
 
     return CxxFlagsInfo(
         cc = cc_common.get_memory_inefficient_command_line(
