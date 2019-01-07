@@ -6,10 +6,10 @@ load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 native_tool_toolchain(
     name = "ninja_tool",
-    label = "@ninja_artefact//:all",
     # In the path, we also start with the name of the directory,
     # in this case the external repository.
     path = "ninja_artefact/ninja",
+    target = "@ninja_artefact//:all",
     visibility = ["//visibility:public"],
 )
 
