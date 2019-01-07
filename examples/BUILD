@@ -6,7 +6,10 @@ tests = [
     "//cmake_cares:test_old_c_ares",
     "//cmake_hello_world_lib/static:test_hello",
     "//cmake_nghttp2:test_nghttp2",
-    "//built_ninja:test_ninja_version",
+    # Commented out because the paths in shell test should be different depending on whether it called
+    # from out workspace or same workspace
+    # Uncomment after nested workspaces are supported on CI
+    #    "//built_ninja:test_ninja_version",
     "@rules_foreign_cc//test:cmake_script_test_suite",
     "//cc_configure_make:libevent_echosrv1",
 ]
