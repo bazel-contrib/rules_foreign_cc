@@ -565,7 +565,6 @@ def _get_headers(compilation_info):
 
 def _define_out_cc_info(ctx, attrs, inputs, outputs):
     compilation_info = cc_common.create_compilation_context(
-        ctx = ctx,
         headers = depset([outputs.out_include_dir]),
         system_includes = depset([outputs.out_include_dir.path]),
         includes = depset([]),
