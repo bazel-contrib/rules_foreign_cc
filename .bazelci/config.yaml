@@ -2,10 +2,10 @@
 platforms:
   ubuntu1804:
     test_targets:
-    - "//examples:tests"
+    - "@rules_foreign_cc_tests//:tests"
   ubuntu1604:
     test_targets:
-    - "//examples:tests_no_synthetic"
+    - "@rules_foreign_cc_tests//:tests_no_synthetic"
   macos:
     test_targets:
-    - "//examples:cmake_tests"
+    - "@rules_foreign_cc_tests//:cmake_tests"
