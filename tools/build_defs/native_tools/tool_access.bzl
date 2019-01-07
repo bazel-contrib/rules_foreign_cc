@@ -8,6 +8,7 @@ def get_ninja_data(ctx):
 
 def _access_and_expect_label_copied(toolchain_type_, ctx, tool_name):
     tool_data = access_tool(toolchain_type_, ctx, tool_name)
+    print("Label: " + str(tool_data.label))
     if tool_data.label:
         return struct(
             deps = [tool_data.label],

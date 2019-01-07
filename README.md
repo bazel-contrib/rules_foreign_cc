@@ -25,7 +25,9 @@ This also allows to illustrate how to initialize rules_foreign_cc.
 - Native tools (cmake, ninja) toolchains were introduced.
 Though the user code does not have to be changed (default toolchains are registered, they call the preinstalled binaries by name.),
 you may simplify usage of ninja with the cmake_external rule and call it just by name.
-Please see examples/cmake_nghttp2 for ninja usage, and WORKSPACE and BUILD files in examles for the native tools toolchains usage.
+Please see examples/cmake_nghttp2 for ninja usage, and WORKSPACE and BUILD files in examples for the native tools toolchains usage
+(the locally preinstalled tools are registered by default, the build as part of the build tools are used in examples).
+Also, in examples/with_prebuilt_ninja_artefact you can see how to download and use prebuilt artifact.
 
 - Awaiting Bazel 0.22, with it would be possible to use rules_foreign_cc without any flags:
 [C++: Remove whitelist flag for new API](https://github.com/bazelbuild/bazel/commit/1d36051776557bbcbba1a8f0d98e5a408a717d11) 
