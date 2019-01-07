@@ -1,17 +1,11 @@
 ---
 platforms:
   ubuntu1804:
-    shell_commands:
-    - "cd examples"
     test_targets:
-    - "//:tests"
+    - "@rules_foreign_cc_tests//:tests"
   ubuntu1604:
-    shell_commands:
-    - "cd examples"
     test_targets:
-    - "//:tests_no_synthetic"
+    - "@rules_foreign_cc_tests//:tests_no_synthetic"
   macos:
-    shell_commands:
-    - "cd examples"
     test_targets:
-    - "//:cmake_tests"
+    - "@rules_foreign_cc_tests//:cmake_tests"
