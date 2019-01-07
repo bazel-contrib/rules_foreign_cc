@@ -14,8 +14,7 @@ local_repository(
 
 register_toolchains(
     "@rules_foreign_cc_tests//:built_cmake_toolchain",
-    "@rules_foreign_cc_tests//:built_ninja_toolchain_osx",
-    "@rules_foreign_cc_tests//:built_ninja_toolchain_linux",
+    "@rules_foreign_cc_tests//:built_ninja_toolchain",
 )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
