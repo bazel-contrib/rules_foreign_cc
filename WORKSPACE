@@ -9,6 +9,12 @@ local_repository(
     path = "examples",
 )
 
+register_toolchains(
+    "@rules_foreign_cc_tests//:built_cmake_toolchain",
+    "@rules_foreign_cc_tests//:built_ninja_toolchain_osx",
+    "@rules_foreign_cc_tests//:built_ninja_toolchain_linux",
+)
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 android_sdk_repository(
