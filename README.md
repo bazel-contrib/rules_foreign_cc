@@ -286,6 +286,8 @@ attrs: {
     "interface_libraries": attr.string_list(mandatory = False),
     # Optional names of the resulting binaries.
     "binaries": attr.string_list(mandatory = False),
+    # Optional names of any additional output files.
+    "additional_outputs": attr.string_list(mandatory = False),
     # Flag variable to indicate that the library produces only headers
     "headers_only": attr.bool(mandatory = False, default = False),
   }
