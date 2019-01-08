@@ -23,22 +23,23 @@ def _native_tool_toolchain(ctx):
  to be used by rules_foreign_cc with toolchain types
  @rules_foreign_cc//tools/build_defs:cmake_toolchain and
  @rules_foreign_cc//tools/build_defs:ninja_toolchain.
-
- Attrs:
-   path - Absolute path to the tool in case the tool is preinstalled on the machine.
-        Relative path to the tool in case the tool is built as part of a build; the path should be
-        relative to the bazel-genfiles, i.e. it should start with the name of the top directory
-        of the built tree artifact. (Please see the example "//examples:built_cmake_toolchain")
-
-   target - If the tool is preinstalled, must be None.
-            If the tool is built as part of the build, the corresponding build target,
-            which should produce the tree artifact with the binary to call.
 """
 native_tool_toolchain = rule(
     implementation = _native_tool_toolchain,
     attrs = {
-        "path": attr.string(mandatory = False),
-        "target": attr.label(mandatory = False),
+        "path": attr.string(
+            mandatory = False,
+            doc = """Absolute path to the tool in case the tool is preinstalled on the machine.
+Relative path to the tool in case the tool is built as part of a build; the path should be
+relative to the bazel-genfiles, i.e. it should start with the name of the top directory
+of the built tree artifact. (Please see the example "//examples:built_cmake_toolchain")""",
+        ),
+        "target": attr.label(
+            mandatory = False,
+            doc = """If the tool is preinstalled, must be None.
+If the tool is built as part of the build, the corresponding build target,
+which should produce the tree artifact with the binary to call.""",
+        ),
     },
 )
 
