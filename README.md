@@ -31,6 +31,20 @@ Please see examples/cmake_nghttp2 for ninja usage, and WORKSPACE and BUILD files
 (the locally preinstalled tools are registered by default, the build as part of the build tools are used in examples).
 Also, in examples/with_prebuilt_ninja_artefact you can see how to download and use prebuilt artifact.
 
+- Shell script parts were extracted into a separate toolchain.
+Shell script inside framework.bzl is first created with special notations:
+
+    - 'export var_name=var_value' for defining the environment variable
+    - '$$var_name$$' for referencing environment variable
+    - 'shell_command <space-separated-maybe-quoted-arguments>' for calling shell fragment
+
+  The created script is further processed to get the real shell script with shell parts either
+replaced with actual fragments or with shell function calls (functions are added into the beginning of the script).
+Extracted shell fragments are described in commands.bzl.
+ 
+  Further planned steps in this direction: testing with RBE, shell script fragments for running on Windows without msys/mingw,
+tests for shell fragments.
+
 - Awaiting Bazel 0.22, with it would be possible to use rules_foreign_cc without any flags:
 [C++: Remove whitelist flag for new API](https://github.com/bazelbuild/bazel/commit/1d36051776557bbcbba1a8f0d98e5a408a717d11) 
 

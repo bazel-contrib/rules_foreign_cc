@@ -18,8 +18,9 @@ load(
     "is_debug_mode",
 )
 load(":cmake_script.bzl", "create_cmake_script")
-load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
+load("//tools/build_defs/shell_toolchain/toolchains:access.bzl", "create_context")
 load("//tools/build_defs/native_tools:tool_access.bzl", "get_cmake_data", "get_ninja_data")
+load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
 
 def _cmake_external(ctx):
     cmake_data = get_cmake_data(ctx)
@@ -36,7 +37,7 @@ def _cmake_external(ctx):
         ctx.attr,
         configure_name = "CMake",
         create_configure_script = _create_configure_script,
-        postfix_script = "copy_dir_contents_to_dir $BUILD_TMPDIR/$INSTALL_PREFIX $INSTALLDIR\n" + ctx.attr.postfix_script,
+        postfix_script = "copy_dir_contents_to_dir $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n" + ctx.attr.postfix_script,
         tools_deps = tools_deps,
         cmake_path = cmake_data.path,
         ninja_path = ninja_data.path,
@@ -65,11 +66,12 @@ def _create_configure_script(configureParameters):
     define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
     configure_script = create_cmake_script(
         ctx.workspace_name,
-        ctx.attr._target_os[OSInfo],
+        # as default, pass execution OS as target OS
+        os_name(ctx),
         configureParameters.attrs.cmake_path,
         tools,
         flags,
-        "$INSTALL_PREFIX",
+        "$$INSTALL_PREFIX$$",
         root,
         no_toolchain_file,
         dict(ctx.attr.cache_entries),
@@ -130,5 +132,6 @@ cmake_external = rule(
     toolchains = [
         "@rules_foreign_cc//tools/build_defs:cmake_toolchain",
         "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
+        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
     ],
 )

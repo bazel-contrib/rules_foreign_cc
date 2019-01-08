@@ -2,6 +2,8 @@
 
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
+CMAKE_COMMAND = "cmake"
+
 def create_cmake_script(
         workspace_name,
         target_os,
@@ -179,9 +181,9 @@ def _move_dict_values(target, source, descriptor_map):
 
 def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
     os_name = "Linux"
-    if target_os.is_win:
+    if target_os == "windows":
         os_name = "Windows"
-    if target_os.is_osx:
+    if target_os == "osx":
         os_name = "Apple"
     dict = {
         "CMAKE_SYSTEM_NAME": os_name,
