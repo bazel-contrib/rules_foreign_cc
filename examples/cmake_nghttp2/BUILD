@@ -1,5 +1,4 @@
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
-load("@foreign_cc_platform_utils//:tools.bzl", "NINJA_COMMAND", "NINJA_DEP")
 
 cmake_external(
     name = "nghttp2",
@@ -10,11 +9,12 @@ cmake_external(
     cmake_options = ["-GNinja"],
     lib_source = "@nghttp2//:all",
     make_commands = [
-        NINJA_COMMAND,
-        NINJA_COMMAND + " install",
+        # The correct path to the ninja tool is detected from the selected ninja_toolchain.
+        # and "ninja" will be replaced with that path if needed
+        "ninja",
+        "ninja install",
     ],
     static_libraries = ["libnghttp2.a"],
-    tools_deps = NINJA_DEP,
 )
 
 cc_test(

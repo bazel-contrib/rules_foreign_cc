@@ -19,19 +19,38 @@ load(
 )
 load(":cmake_script.bzl", "create_cmake_script")
 load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
-load("@foreign_cc_platform_utils//:tools.bzl", "CMAKE_USE_BUILT")
+load("//tools/build_defs/native_tools:tool_access.bzl", "get_cmake_data", "get_ninja_data")
 
 def _cmake_external(ctx):
-    tools_deps = ctx.attr.tools_deps + ([ctx.attr._cmake_dep] if hasattr(ctx.attr, "_cmake_dep") else [])
+    cmake_data = get_cmake_data(ctx)
+
+    tools_deps = ctx.attr.tools_deps + cmake_data.deps
+
+    ninja_data = get_ninja_data(ctx)
+    make_commands = ctx.attr.make_commands
+    if _uses_ninja(ctx.attr.make_commands):
+        tools_deps += ninja_data.deps
+        make_commands = [command.replace("ninja", ninja_data.path) for command in make_commands]
+
     attrs = create_attrs(
         ctx.attr,
         configure_name = "CMake",
         create_configure_script = _create_configure_script,
         postfix_script = "copy_dir_contents_to_dir $BUILD_TMPDIR/$INSTALL_PREFIX $INSTALLDIR\n" + ctx.attr.postfix_script,
         tools_deps = tools_deps,
+        cmake_path = cmake_data.path,
+        ninja_path = ninja_data.path,
+        make_commands = make_commands,
     )
 
     return cc_external_rule_impl(ctx, attrs)
+
+def _uses_ninja(make_commands):
+    for command in make_commands:
+        (before, separator, after) = command.partition(" ")
+        if before == "ninja":
+            return True
+    return False
 
 def _create_configure_script(configureParameters):
     ctx = configureParameters.ctx
@@ -47,6 +66,7 @@ def _create_configure_script(configureParameters):
     configure_script = create_cmake_script(
         ctx.workspace_name,
         ctx.attr._target_os[OSInfo],
+        configureParameters.attrs.cmake_path,
         tools,
         flags,
         "$INSTALL_PREFIX",
@@ -95,15 +115,6 @@ def _attrs():
         # it is better to specify it manually.
         "generate_crosstool_file": attr.bool(mandatory = False, default = False),
     })
-    if CMAKE_USE_BUILT == True:
-        # include cmake only if needed
-        attrs.update({
-            "_cmake_dep": attr.label(
-                default = "@foreign_cc_platform_utils//:cmake",
-                cfg = "target",
-                allow_files = True,
-            ),
-        })
     return attrs
 
 """ Rule for building external library with CMake.
@@ -116,4 +127,8 @@ cmake_external = rule(
     fragments = ["cpp"],
     output_to_genfiles = True,
     implementation = _cmake_external,
+    toolchains = [
+        "@rules_foreign_cc//tools/build_defs:cmake_toolchain",
+        "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
+    ],
 )

@@ -1,6 +1,6 @@
 """ Rule for building Ninja from sources. """
 
-load("//:detect_root.bzl", "detect_root")
+load("//tools/build_defs:detect_root.bzl", "detect_root")
 
 def _ninja_tool(ctx):
     root = detect_root(ctx.attr.ninja_srcs)

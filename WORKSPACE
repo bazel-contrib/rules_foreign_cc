@@ -2,11 +2,19 @@ workspace(name = "rules_foreign_cc")
 
 load("//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
-rules_foreign_cc_dependencies()
+rules_foreign_cc_dependencies([
+    "@rules_foreign_cc_tests//:built_cmake_toolchain",
+    "@rules_foreign_cc_tests//:built_ninja_toolchain",
+])
 
 local_repository(
     name = "rules_foreign_cc_tests",
     path = "examples",
+)
+
+register_toolchains(
+    "@rules_foreign_cc_tests//:built_cmake_toolchain",
+    "@rules_foreign_cc_tests//:built_ninja_toolchain",
 )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")

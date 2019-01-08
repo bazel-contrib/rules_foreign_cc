@@ -1,0 +1,26 @@
+workspace(name = "prebuilt_ninja_artefact_example")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+local_repository(
+    name = "rules_foreign_cc",
+    path = "../..",
+)
+
+load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies([
+    "@prebuilt_ninja_artefact_example//:prebuilt_ninja_artefact_toolchain",
+])
+
+http_archive(
+    name = "ninja_artefact",
+    build_file_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])""",
+    sha256 = "d2fea9ff33b3ef353161ed906f260d565ca55b8ca0568fa07b1d2cab90a84a07",
+    url = "https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-linux.zip",
+)
+
+local_repository(
+    name = "examples",
+    path = "..",
+)
