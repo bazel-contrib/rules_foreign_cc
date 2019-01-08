@@ -7,7 +7,7 @@ Rules for building C/C++ projects using foreign build systems inside Bazel proje
 * This is not an officially supported Google product
 (meaning, support and/or new releases may be limited.)
 
-**NOTE**: this requires Bazel version starting from 0.17.1.
+**NOTE**: this requires Bazel version starting from 0.20.0
 
 It also requires passing Bazel the following flag:
 (**please pay attention @foreign_cc_impl was added** due to adoption to Starlark API changes that are goning to happen in Bazel 0.21)
@@ -18,6 +18,8 @@ Where ```rules_foreign_cc``` is the name of this repository in your WORKSPACE fi
 
 ## News
 **January 2019:**
+
+- Should be used with Bazel 0.20.0 or newer. 
 
 - Examples package became the separate workspace. 
 This also allows to illustrate how to initialize rules_foreign_cc.
