@@ -80,6 +80,8 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "interface_libraries": attr.string_list(mandatory = False),
     # Optional names of the resulting binaries.
     "binaries": attr.string_list(mandatory = False),
+    # Optional names of any additional output files.
+    "additional_outputs": attr.string_list(mandatory = False),
     # Flag variable to indicate that the library produces only headers
     "headers_only": attr.bool(mandatory = False, default = False),
     #
@@ -454,6 +456,8 @@ def _define_outputs(ctx, attrs, lib_name):
     declared_outputs = [out_include_dir] + out_binary_files
     declared_outputs += libraries.static_libraries
     declared_outputs += libraries.shared_libraries + libraries.interface_libraries
+
+    declared_outputs += _declare_out(ctx, lib_name, attrs.out_lib_dir, attrs.additional_outputs)
 
     return _Outputs(
         out_include_dir = out_include_dir,
