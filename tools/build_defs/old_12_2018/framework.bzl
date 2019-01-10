@@ -274,7 +274,7 @@ def cc_external_rule_impl(ctx, attrs):
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
-        inputs = depset(inputs.declared_inputs) + ctx.attr._cc_toolchain.files,
+        inputs = inputs.declared_inputs + ctx.attr._cc_toolchain.files.to_list(),
         outputs = rule_outputs + [empty.file],
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
@@ -486,7 +486,7 @@ def _define_inputs(attrs):
         cc_infos += [dep[CcInfo]]
 
         if external_deps:
-            for artifact in external_deps.artifacts:
+            for artifact in external_deps.artifacts.to_list():
                 if not ext_build_dirs_set.get(artifact.gen_dir):
                     ext_build_dirs_set[artifact.gen_dir] = 1
                     ext_build_dirs += [artifact.gen_dir]
@@ -501,7 +501,7 @@ def _define_inputs(attrs):
     for tool in attrs.tools_deps:
         tool_root = detect_root(tool)
         tools_roots += [tool_root]
-        for file_list in tool.files:
+        for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
     for tool in attrs.additional_tools:
@@ -520,8 +520,9 @@ def _define_inputs(attrs):
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
-        declared_inputs = depset(attrs.lib_source.files) + bazel_libs + tools_files +
-                          attrs.additional_inputs + cc_info_merged.compilation_context.headers + ext_build_dirs,
+        declared_inputs = attrs.lib_source.files.to_list() + bazel_libs + tools_files +
+                          attrs.additional_inputs +
+                          cc_info_merged.compilation_context.headers.to_list() + ext_build_dirs,
     )
 
 def get_foreign_cc_dep(dep):
