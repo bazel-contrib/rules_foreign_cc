@@ -68,7 +68,7 @@ def _define_deps_flags(deps, inputs):
     for dep in deps:
         external_deps = get_foreign_cc_dep(dep)
         if external_deps:
-            for artifact in external_deps.artifacts:
+            for artifact in external_deps.artifacts.to_list():
                 if not gen_dirs_set.get(artifact.gen_dir):
                     gen_dirs_set[artifact.gen_dir] = 1
 
