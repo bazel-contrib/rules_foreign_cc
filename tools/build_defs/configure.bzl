@@ -18,7 +18,7 @@ load(":configure_script.bzl", "create_configure_script")
 load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
 
 def _configure_make(ctx):
-    copy_results = "copy_dir_contents_to_dir $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
+    copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
 
     attrs = create_attrs(
         ctx.attr,

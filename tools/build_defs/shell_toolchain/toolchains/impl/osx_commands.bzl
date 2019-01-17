@@ -77,13 +77,13 @@ def symlink_contents_to_dir(source, target):
 local target="$2"
 mkdir -p $target
 if [[ -f $1 ]]; then
-  symlink_to_dir $1 $target
+  ##symlink_to_dir## $1 $target
   return 0
 fi
 
 local children=$(find $1 -maxdepth 1 -mindepth 1)
 for child in $children; do
-  symlink_to_dir $child $target
+  ##symlink_to_dir## $child $target
 done
 """
     return FunctionAndCall(text = text)
@@ -127,9 +127,9 @@ def cleanup_function(message_cleaning, message_keeping):
         "printf \"%s\"" % message_cleaning,
         "rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS",
         "else",
-        "echo \"\"",
+        "printf \"\"",
         "printf \"%s\"" % message_keeping,
-        "echo \"\"",
+        "printf \"\"",
         "fi",
     ])
     return FunctionAndCall(text = text, call = "trap \"cleanup_function\" EXIT")
@@ -147,14 +147,14 @@ fi""".format(dir_ = dir_)
     return FunctionAndCall(text = text)
 
 def define_absolute_paths(dir_, abs_path):
-    return "replace_in_files {dir_} {REPLACE_VALUE} {abs_path}".format(
+    return "##replace_in_files## {dir_} {REPLACE_VALUE} {abs_path}".format(
         dir_ = dir_,
         REPLACE_VALUE = _REPLACE_VALUE,
         abs_path = abs_path,
     )
 
 def replace_absolute_paths(dir_, abs_path):
-    return "replace_in_files {dir_} {abs_path} {REPLACE_VALUE}".format(
+    return "##replace_in_files## {dir_} {abs_path} {REPLACE_VALUE}".format(
         dir_ = dir_,
         REPLACE_VALUE = _REPLACE_VALUE,
         abs_path = abs_path,

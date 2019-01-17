@@ -18,7 +18,7 @@ def fictive_file_in_genroot(actions, target_name):
     empty = actions.declare_file("empty_{}.txt".format(target_name))
     return CreatedByScript(
         file = empty,
-        script = "touch $$EXT_BUILD_ROOT$$/" + empty.path,
+        script = "##touch## $$EXT_BUILD_ROOT$$/" + empty.path,
     )
 
 """ Copies directory by $EXT_BUILD_ROOT/orig_path into to $EXT_BUILD_ROOT/copy_path.
@@ -34,8 +34,8 @@ def copy_directory(actions, orig_path, copy_path):
     return CreatedByScript(
         file = dir_copy,
         script = "\n".join([
-            "mkdirs $$EXT_BUILD_ROOT$$/" + dir_copy.path,
-            "copy_dir_contents_to_dir {} $$EXT_BUILD_ROOT$$/{}".format(
+            "##mkdirs## $$EXT_BUILD_ROOT$$/" + dir_copy.path,
+            "##copy_dir_contents_to_dir## {} $$EXT_BUILD_ROOT$$/{}".format(
                 orig_path,
                 dir_copy.path,
             ),

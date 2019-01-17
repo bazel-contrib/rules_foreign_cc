@@ -104,13 +104,13 @@ def _do_function_call_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "symlink_contents_to_dir 1 2": "1_2",
-        "echo \"\ntext\n\"": "echo1 \"\ntext\n\"",
+        "##symlink_contents_to_dir## 1 2": "1_2",
+        "##echo## \"\ntext\n\"": "echo1 \"\ntext\n\"",
         "export ROOT=\"ABC\"": "export1 ROOT=\"ABC\"",
         "export ROOT=ABC": "export1 ROOT=ABC",
         "export ROOT=\"A B C\"": "export1 ROOT=\"A B C\"",
-        "script_prelude": "set -e",
-        "os_name": "Fuchsia",
+        "##script_prelude##": "set -e",
+        "##os_name##": "Fuchsia",
     }
     shell_ = struct(
         symlink_contents_to_dir = _funny_fun,
@@ -154,11 +154,11 @@ def _do_function_call_with_body_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "touch a/b/c": {
+        "##touch## a/b/c": {
             "text": "function touch() {\n  call_touch $1\n}",
             "call": "touch a/b/c",
         },
-        "cleanup_function \"echo $$CLEANUP_MSG$$\" \"echo $$KEEP_MSG1$$ && echo $$KEEP_MSG2$$\"": {
+        "##cleanup_function## \"echo $$CLEANUP_MSG$$\" \"echo $$KEEP_MSG1$$ && echo $$KEEP_MSG2$$\"": {
             "text": """function cleanup_function() {
   local ecode=$?
 if [ $ecode -eq 0 ]; then

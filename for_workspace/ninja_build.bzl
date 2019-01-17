@@ -8,8 +8,8 @@ def _ninja_tool(ctx):
 
     ninja = ctx.actions.declare_directory("ninja")
     script = [
-        "mkdirs " + ninja.path,
-        "copy_dir_contents_to_dir ./{} {}".format(root, ninja.path),
+        "##mkdirs## " + ninja.path,
+        "##copy_dir_contents_to_dir## ./{} {}".format(root, ninja.path),
         "cd " + ninja.path,
         "./configure.py --bootstrap",
     ]

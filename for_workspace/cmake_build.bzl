@@ -10,12 +10,12 @@ def _cmake_tool(ctx):
     script = [
         "export BUILD_DIR=pwd",
         "export BUILD_TMPDIR=tmpdir",
-        "copy_dir_contents_to_dir ./{} $BUILD_TMPDIR".format(root),
-        "mkdirs " + cmake.path,
+        "##copy_dir_contents_to_dir## ./{} $BUILD_TMPDIR".format(root),
+        "##mkdirs## " + cmake.path,
         "cd $$BUILD_TMPDIR$$",
         "./bootstrap --prefix=install",
         "make install",
-        "copy_dir_contents_to_dir ./install $BUILD_DIR/" + cmake.path,
+        "##copy_dir_contents_to_dir## ./install $BUILD_DIR/" + cmake.path,
         "cd $$BUILD_DIR$$",
     ]
 

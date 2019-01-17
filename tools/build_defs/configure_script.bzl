@@ -24,7 +24,7 @@ def create_configure_script(
 
     script = []
     for ext_dir in inputs.ext_build_dirs:
-        script += ["increment_pkg_config_path $$EXT_BUILD_ROOT$$/" + ext_dir.path]
+        script += ["##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path]
 
     script += ["echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\""]
 

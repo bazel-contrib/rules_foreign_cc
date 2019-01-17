@@ -37,7 +37,7 @@ def _cmake_external(ctx):
         ctx.attr,
         configure_name = "CMake",
         create_configure_script = _create_configure_script,
-        postfix_script = "copy_dir_contents_to_dir $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n" + ctx.attr.postfix_script,
+        postfix_script = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n" + ctx.attr.postfix_script,
         tools_deps = tools_deps,
         cmake_path = cmake_data.path,
         ninja_path = ninja_data.path,

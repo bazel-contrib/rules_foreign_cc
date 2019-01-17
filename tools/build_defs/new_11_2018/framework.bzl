@@ -221,8 +221,8 @@ def cc_external_rule_impl(ctx, attrs):
 
     define_variables = [
         set_cc_envs,
-        "export EXT_BUILD_ROOT=pwd",
-        "export BUILD_TMPDIR=tmpdir",
+        "export EXT_BUILD_ROOT=##pwd##",
+        "export BUILD_TMPDIR=##tmpdir##",
         "export EXT_BUILD_DEPS=$$EXT_BUILD_ROOT$$/bazel_foreign_cc_deps_" + lib_name,
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
     ]
@@ -232,25 +232,25 @@ def cc_external_rule_impl(ctx, attrs):
         "export KEEP_MSG=\"rules_foreign_cc: Keeping temp build directory $$BUILD_TMPDIR$$\
  and dependencies directory $$EXT_BUILD_DEPS$$ for debug.\\nrules_foreign_cc: Please note that the directories inside a sandbox are still\
  cleaned unless you specify '--sandbox_debug' Bazel command line flag.\"",
-        "cleanup_function \"$$CLEANUP_MSG$$\" \"$$KEEP_MSG$$\"",
+        "##cleanup_function## \"$$CLEANUP_MSG$$\" \"$$KEEP_MSG$$\"",
     ])
 
     script_lines = [
-        "echo \"\"",
-        "echo \"{}\"".format(version_and_lib),
-        "echo \"\"",
-        "script_prelude",
+        "##echo## \"\"",
+        "##echo## \"{}\"".format(version_and_lib),
+        "##echo## \"\"",
+        "##script_prelude##",
         "\n".join(define_variables),
-        "path $$EXT_BUILD_ROOT$$",
-        "mkdirs $$EXT_BUILD_DEPS$$",
-        "mkdirs $$INSTALLDIR$$",
+        "##path## $$EXT_BUILD_ROOT$$",
+        "##mkdirs## $$EXT_BUILD_DEPS$$",
+        "##mkdirs## $$INSTALLDIR$$",
         _print_env(),
         # the call trap is defined inside, in a way how the shell function should be called
         # see, for instance, linux_commands.bzl
         trap_function,
         "\n".join(_copy_deps_and_tools(inputs)),
         # replace placeholder with the dependencies root
-        "define_absolute_paths $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$",
+        "##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$",
         "cd $$BUILD_TMPDIR$$",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(attrs.make_commands),
@@ -258,8 +258,8 @@ def cc_external_rule_impl(ctx, attrs):
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
-        "replace_absolute_paths $$INSTALLDIR$$ $$BUILD_TMPDIR$$",
-        "replace_absolute_paths $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
+        "##replace_absolute_paths## $$INSTALLDIR$$ $$BUILD_TMPDIR$$",
+        "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
         installdir_copy.script,
         empty.script,
         "cd $$EXT_BUILD_ROOT$$",
@@ -322,9 +322,9 @@ def _get_transitive_artifacts(deps):
 
 def _print_env():
     return "\n".join([
-        "echo \"Environment:______________\"",
-        "env",
-        "echo \"__________________________\"",
+        "##echo## \"Environment:______________\"",
+        "##env##",
+        "##echo## \"__________________________\"",
     ])
 
 def _correct_path_variable(env):
@@ -353,29 +353,29 @@ def _copy_deps_and_tools(files):
     lines += _symlink_contents_to_dir("include", files.headers + files.include_dirs)
 
     if files.tools_files:
-        lines.append("mkdirs $$EXT_BUILD_DEPS$$/bin")
+        lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
     for tool in files.tools_files:
-        lines.append("symlink_to_dir $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/".format(tool))
+        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/".format(tool))
 
     for ext_dir in files.ext_build_dirs:
-        lines += ["symlink_to_dir $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir))]
+        lines += ["##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir))]
 
-    lines += ["children_to_path $$EXT_BUILD_DEPS$$/bin"]
-    lines += ["path $$EXT_BUILD_DEPS$$/bin"]
+    lines += ["##children_to_path## $$EXT_BUILD_DEPS$$/bin"]
+    lines += ["##path## $$EXT_BUILD_DEPS$$/bin"]
 
     return lines
 
 def _symlink_contents_to_dir(dir_name, files_list):
     if len(files_list) == 0:
         return []
-    lines = ["mkdirs $$EXT_BUILD_DEPS$$/" + dir_name]
+    lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
 
     paths_list = []
     for file in files_list:
         paths_list += [_file_path(file)]
 
     for path in paths_list:
-        lines += ["symlink_contents_to_dir $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name)]
+        lines += ["##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name)]
 
     return lines
 
