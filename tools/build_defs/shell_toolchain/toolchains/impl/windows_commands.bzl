@@ -3,7 +3,7 @@ load("@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:function_an
 _REPLACE_VALUE = "BAZEL_GEN_ROOT"
 
 def os_name():
-    return "linux"
+    return "windows"
 
 def pwd():
     return "$(pwd)"
