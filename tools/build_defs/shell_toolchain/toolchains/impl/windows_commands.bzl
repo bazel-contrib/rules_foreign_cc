@@ -97,7 +97,11 @@ fi
     return FunctionAndCall(text = text)
 
 def script_prelude():
-    return "set -e"
+    return """set -e
+export MSYS_NO_PATHCONV=1
+export MSYS2_ARG_CONV_EXCL="*"
+export SYSTEMDRIVE="C:"
+"""
 
 def increment_pkg_config_path(source):
     text = """local children=$(find $1 -mindepth 1 -name '*.pc')
