@@ -43,10 +43,10 @@ test_suite(
     name = "win_tests",
     tags = ["windows"],
     tests = tests + [
-        "//cmake_synthetic:test_libs",
-        "//configure_gnuplot:configure_libgd_tests",
+#        "//cmake_synthetic:test_libs",
+#        "//configure_gnuplot:configure_libgd_tests",
         "//cmake_hello_world_lib/static:test_hello_ninja",
-        "//cmake_hello_world_lib/static:test_hello_nmake",
+#        "//cmake_hello_world_lib/static:test_hello_nmake",
     ],
 )
 

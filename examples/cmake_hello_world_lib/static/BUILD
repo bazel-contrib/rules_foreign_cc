@@ -18,7 +18,7 @@ cmake_external(
 
 cmake_external(
     name = "libhello_win",
-    cmake_options = ["-G \"Visual Studio 15 2017 Win64\""],
+    cmake_options = ["-G \"Visual Studio 14 2015 Win64\""],
     generate_crosstool_file = True,
     lib_name = "libhello",
     lib_source = ":srcs",
