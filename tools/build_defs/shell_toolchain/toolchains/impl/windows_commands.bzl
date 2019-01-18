@@ -6,7 +6,7 @@ def os_name():
     return "windows"
 
 def pwd():
-    return "$(pwd)"
+    return "$(pwd -W)"
 
 def echo(text):
     return "printf \"{text}\"".format(text = text)
@@ -55,9 +55,7 @@ def define_function(name, text):
 def replace_in_files(dir, from_, to_):
     return FunctionAndCall(
         text = """if [ -d "$1" ]; then
-  find -L $1 -print -type f \
-  \( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \) \
-  -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
+  $REAL_FIND -L $1 -type f -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
 fi
 """,
     )
@@ -73,7 +71,7 @@ if [[ -f $1 ]]; then
   return 0
 fi
 
-local children=$(find $1 -maxdepth 1 -mindepth 1)
+local children=$($REAL_FIND $1 -maxdepth 1 -mindepth 1)
 for child in $children; do
   ##symlink_to_dir## $child $target
 done
@@ -98,13 +96,18 @@ fi
 
 def script_prelude():
     return """set -e
+if [ -f /usr/bin/find ]; then
+  REAL_FIND="/usr/bin/find"
+else
+  REAL_FIND="$(which find)"
+fi
 export MSYS_NO_PATHCONV=1
 export MSYS2_ARG_CONV_EXCL="*"
 export SYSTEMDRIVE="C:"
 """
 
 def increment_pkg_config_path(source):
-    text = """local children=$(find $1 -mindepth 1 -name '*.pc')
+    text = """local children=$($REAL_FIND $1 -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
   export PKG_CONFIG_PATH="$$PKG_CONFIG_PATH$$:$(dirname $child)"
@@ -129,7 +132,7 @@ def cleanup_function(message_cleaning, message_keeping):
 
 def children_to_path(dir_):
     text = """if [ -d {dir_} ]; then
-  local tools=$(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)
+  local tools=$($REAL_FIND $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)
   for tool in $tools;
   do
     if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then
