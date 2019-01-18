@@ -11,6 +11,7 @@ tests = [
     # Uncomment after nested workspaces are supported on CI
     #    "//built_ninja:test_ninja_version",
     "@rules_foreign_cc//test:cmake_script_test_suite",
+    "@rules_foreign_cc//test:shell_script_conversion_suite",
     "//cc_configure_make:libevent_echosrv1",
 ]
 
@@ -62,7 +63,21 @@ toolchain(
 
 # On Bazel CI Mac machines, we are using ninja built from sources
 toolchain(
-    name = "built_ninja_toolchain",
+    name = "built_ninja_toolchain_osx",
+    exec_compatible_with = [
+        "@bazel_tools//platforms:osx",
+        "@bazel_tools//platforms:x86_64",
+    ],
+    toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:built_ninja",
+    toolchain_type = "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
+)
+
+toolchain(
+    name = "built_ninja_toolchain_linux",
+    exec_compatible_with = [
+        "@bazel_tools//platforms:linux",
+        "@bazel_tools//platforms:x86_64",
+    ],
     toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:built_ninja",
     toolchain_type = "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
 )

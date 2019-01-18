@@ -1,20 +1,14 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//for_workspace:repositories.bzl", "repositories")
-load("//for_workspace:os_info.bzl", "get_os_info")
 load("//for_workspace:starlark_api_change_support.bzl", "generate_implementation_fragments")
+load(
+    "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",
+    shell_toolchain_workspace_initalization = "workspace_part",
+)
 
-def _platform_dependent_init_impl(rctx):
-    os_name = rctx.os.name.lower()
-    host_os = get_os_info(os_name)
-
-    path_to_detect_root = rctx.path(Label("//tools/build_defs:detect_root.bzl"))
-    rctx.template("detect_root.bzl", path_to_detect_root)
-
-    rctx.file("WORKSPACE", """workspace(name='foreign_cc_platform_utils')""")
+def _read_build_options_impl(rctx):
     rctx.file("BUILD.bazel", "\n".join(
         [
-            _create_os_description(rctx, os_name),
-            _shell_utils_text(rctx, host_os),
             _build_tools(rctx),
             _build_mode(rctx),
         ],
@@ -42,29 +36,6 @@ compilation_mode(
 )
 """
 
-def _create_os_description(rctx, os_name):
-    path = rctx.path(Label("//for_workspace:os_info.bzl"))
-    rctx.template("os_info.bzl", path, executable = True)
-    return "load(\":os_info.bzl\", \"define_os\")\ndefine_os(\"{}\")".format(os_name)
-
-def _shell_utils_text(rctx, host_os):
-    utils_name = "utils_unix.sh"
-    if host_os.is_osx:
-        utils_name = "utils_osx.sh"
-    if host_os.is_win:
-        utils_name = "utils_win.sh"
-
-    path = rctx.path(Label("//for_workspace:" + utils_name))
-    rctx.template(utils_name, path, executable = True)
-
-    return """
-sh_library(
-  name = "shell_utils",
-  srcs = ["{}"],
-  visibility = ["//visibility:public"]
-)
-""".format(utils_name)
-
 def _build_tools(rctx):
     rctx.file(
         "tools.bzl",
@@ -81,8 +52,8 @@ rules_foreign_cc_dependencies() parameters.")
 """,
     )
 
-_platform_dependent_init = repository_rule(
-    implementation = _platform_dependent_init_impl,
+_read_build_options = repository_rule(
+    implementation = _read_build_options_impl,
     environ = ["PATH"],
 )
 
@@ -103,7 +74,9 @@ def rules_foreign_cc_dependencies(native_tools_toolchains = [], register_default
         The default is True.
     """
     repositories()
-    _platform_dependent_init(name = "foreign_cc_platform_utils")
+    _read_build_options(name = "foreign_cc_platform_utils")
+
+    shell_toolchain_workspace_initalization()
     generate_implementation_fragments(name = "foreign_cc_impl")
 
     native.register_toolchains(*native_tools_toolchains)

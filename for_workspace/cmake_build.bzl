@@ -1,22 +1,25 @@
 """ Rule for building CMake from sources. """
 
 load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root")
+load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "convert_shell_script")
 
 def _cmake_tool(ctx):
     root = detect_root(ctx.attr.cmake_srcs)
 
     cmake = ctx.actions.declare_directory("cmake")
-    script_text = "\n".join([
-        "BUILD_DIR=$(pwd)",
-        "export BUILD_TMPDIR=$(mktemp -d)",
-        "cp -R ./{}/. $BUILD_TMPDIR".format(root),
-        "mkdir " + cmake.path,
-        "pushd $BUILD_TMPDIR",
+    script = [
+        "export BUILD_DIR=##pwd##",
+        "export BUILD_TMPDIR=##tmpdir##",
+        "##copy_dir_contents_to_dir## ./{} $BUILD_TMPDIR".format(root),
+        "##mkdirs## " + cmake.path,
+        "cd $$BUILD_TMPDIR$$",
         "./bootstrap --prefix=install",
         "make install",
-        "cp -a ./install/. $BUILD_DIR/" + cmake.path,
-        "popd",
-    ])
+        "##copy_dir_contents_to_dir## ./install $BUILD_DIR/" + cmake.path,
+        "cd $$BUILD_DIR$$",
+    ]
+
+    script_text = convert_shell_script(ctx, script)
 
     ctx.actions.run_shell(
         mnemonic = "BootstrapCMake",
@@ -41,4 +44,7 @@ cmake_tool = rule(
     fragments = ["cpp"],
     output_to_genfiles = True,
     implementation = _cmake_tool,
+    toolchains = [
+        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+    ],
 )

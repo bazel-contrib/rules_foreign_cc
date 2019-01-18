@@ -20,8 +20,8 @@ configure_make(
     out_include_dir = "include/freetype2",
     static_libraries = ["libfreetype.a"],
     configure_options = [
-        "--with-png=\"$EXT_BUILD_DEPS/libpng\"",
-        "--with-zlib=\"$EXT_BUILD_DEPS/libz\"",
+        "--with-png=\"$$EXT_BUILD_DEPS$$/libpng\"",
+        "--with-zlib=\"$$EXT_BUILD_DEPS$$/libz\"",
     ],
     deps = [
         ":libpng",
@@ -42,9 +42,9 @@ configure_make(
     ],
     configure_options = [
         "--disable-shared",
-        "--with-png=\"$EXT_BUILD_DEPS/libpng\"",
-        "--with-freetype=\"$EXT_BUILD_DEPS/freetype\"",
-        "--with-zlib=\"$EXT_BUILD_DEPS/libz\"",
+        "--with-png=\"$$EXT_BUILD_DEPS$$/libpng\"",
+        "--with-freetype=\"$$EXT_BUILD_DEPS$$/freetype\"",
+        "--with-zlib=\"$$EXT_BUILD_DEPS$$/libz\"",
     ],
     lib_source = "@libgd//:all",
     static_libraries = libgd_name,

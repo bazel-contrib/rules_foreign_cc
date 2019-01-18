@@ -1,1 +1,1 @@
-VERSION = "0.0.4"
+VERSION = "0.0.6"  # shell toolchain and native tools toolchains
