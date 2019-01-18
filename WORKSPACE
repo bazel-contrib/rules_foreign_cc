@@ -4,7 +4,8 @@ load("//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies([
     "@rules_foreign_cc_tests//:built_cmake_toolchain",
-    "@rules_foreign_cc_tests//:built_ninja_toolchain",
+    "@rules_foreign_cc_tests//:built_ninja_toolchain_osx",
+    "@rules_foreign_cc_tests//:built_ninja_toolchain_linux",
 ])
 
 local_repository(
