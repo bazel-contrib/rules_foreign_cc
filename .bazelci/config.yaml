@@ -9,3 +9,6 @@ platforms:
   macos:
     test_targets:
     - "@rules_foreign_cc_tests//:cmake_tests"
+  windows:
+    test_targets:
+    - "@rules_foreign_cc_tests//:win_tests"
