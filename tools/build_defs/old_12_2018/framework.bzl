@@ -231,7 +231,7 @@ def cc_external_rule_impl(ctx, attrs):
         "export CLEANUP_MSG=\"rules_foreign_cc: Cleaning temp directories\"",
         "export KEEP_MSG=\"rules_foreign_cc: Keeping temp build directory $$BUILD_TMPDIR$$\
  and dependencies directory $$EXT_BUILD_DEPS$$ for debug.\\nrules_foreign_cc: Please note that the directories inside a sandbox are still\
- cleaned unless you specify '--sandbox_debug' Bazel command line flag.\"",
+ cleaned unless you specify '--sandbox_debug' Bazel command line flag.\\n\"",
         "##cleanup_function## \"$$CLEANUP_MSG$$\" \"$$KEEP_MSG$$\"",
     ])
 
@@ -266,21 +266,46 @@ def cc_external_rule_impl(ctx, attrs):
     ]
 
     script_text = convert_shell_script(ctx, script_lines)
-    print("script text: " + script_text)
 
     execution_requirements = {"block-network": ""}
 
     rule_outputs = outputs.declared_outputs + [installdir_copy.file]
 
+    build_script_file = ctx.actions.declare_file("{}_Cc{}MakeRuleScript.sh".format(lib_name, attrs.configure_name.capitalize()))
+    ctx.actions.write(
+        output = build_script_file,
+        content = script_text,
+        is_executable = True,
+    )
+    build_log_file = ctx.actions.declare_file("{}_Cc{}MakeRuleLog.txt".format(lib_name, attrs.configure_name.capitalize()))
+    build_command_lines = [
+        "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
+        "export BUILD_LOG=\"{}\"".format(build_log_file.path),
+        "$$BUILD_SCRIPT$$ &> $$BUILD_LOG$$",
+        "BUILD_EXIT_CODE=$?",
+        "if [[ $$BUILD_EXIT_CODE$$ -ne 0 ]]",
+        "then",
+        "echo \"rules_foreign_cc: Build failed! Printing build logs:\"",
+        "echo \"##### BEGIN BUILD LOGS #####\"",
+        "cat $$BUILD_LOG$$",
+        "echo \"##### END BUILD LOGS #####\"",
+        "echo \"rules_foreign_cc: Build script location: $$BUILD_SCRIPT$$\"",
+        "echo \"rules_foreign_cc: Build log location: $$BUILD_LOG$$\"",
+        "exit 1",
+        "fi",
+    ]
+    build_command = convert_shell_script(ctx, build_command_lines)
+
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = inputs.declared_inputs + ctx.attr._cc_toolchain.files.to_list(),
-        outputs = rule_outputs + [empty.file],
+        outputs = rule_outputs + [empty.file, build_log_file],
+        tools = [build_script_file],
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
         # for shell commands
         use_default_shell_env = execution_os_name != "osx",
-        command = script_text,
+        command = build_command,
         execution_requirements = execution_requirements,
         # this is ignored if use_default_shell_env = True
         env = env,
