@@ -7,10 +7,14 @@ Rules for building C/C++ projects using foreign build systems inside Bazel proje
 * This is not an officially supported Google product
 (meaning, support and/or new releases may be limited.)
 
-**NOTE**: this requires Bazel version starting from 0.20.0
+**NOTE**: this requires Bazel version starting from 0.20.0.
+
+Unfortunately, **Bazel's Starlark C++ API in version 0.22 is broken on Windows**.
+Please use either 0.21/0.23+ (when it's landed) or Bazel version after [
+"C++: Fix create_library_to_link API method for Windows"](https://github.com/bazelbuild/bazel/commit/cae1e816e5e1142fbd4aefdd29bffb2cbad71fa8)
 
 It also requires passing Bazel the following flag:
-(**please pay attention @foreign_cc_impl was added** due to adoption to Starlark API changes that are goning to happen in Bazel 0.21)
+(**please pay attention @foreign_cc_impl was added** due to adoption to Starlark API changes that are going to happen in Bazel 0.21)
 ```
 --experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs,@foreign_cc_impl
 ```
