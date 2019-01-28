@@ -114,3 +114,10 @@ def include_examples_repositories():
         sha256 = "da3411ea45622579d419bfda66f45cd0f8c32a181d84adfa936f5688388995cf",
         urls = ["https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz"],
     )
+
+    http_archive(
+        name = "bison",
+        build_file_content = all_content,
+        strip_prefix = "bison-3.3",
+        urls = ["http://ftp.gnu.org/gnu/bison/bison-3.3.tar.gz"],
+    )
