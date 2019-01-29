@@ -7,14 +7,14 @@ Rules for building C/C++ projects using foreign build systems inside Bazel proje
 * This is not an officially supported Google product
 (meaning, support and/or new releases may be limited.)
 
-**NOTE**: this requires Bazel version starting from 0.20.0.
+## Bazel versions compatibility
 
-Unfortunately, **Bazel's Starlark C++ API in version 0.22 is broken on Windows**.
-Please use either 0.21/0.23+ (when it's landed) or Bazel version after [
-"C++: Fix create_library_to_link API method for Windows"](https://github.com/bazelbuild/bazel/commit/cae1e816e5e1142fbd4aefdd29bffb2cbad71fa8)
-
-It also requires passing Bazel the following flag:
-(**please pay attention @foreign_cc_impl was added** due to adoption to Starlark API changes that are going to happen in Bazel 0.21)
+#####Bazel HEAD after [cae1e816e](https://github.com/bazelbuild/bazel/commit/cae1e816e5e1142fbd4aefdd29bffb2cbad71fa8) or 0.23+:
+No flags are required, works on Windows.
+#####Bazel 0.22:
+No flags are required, but unfortunately Bazel's Starlark C++ API **is broken on Windows**.
+#####Bazel 0.20 - 0.21:
+Pass the Bazel the following flag:
 ```
 --experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs,@foreign_cc_impl
 ```
@@ -22,8 +22,11 @@ Where ```rules_foreign_cc``` is the name of this repository in your WORKSPACE fi
 
 ## News
 **January 2019:**
+- Bazel 0.22.0 is released, no flags are needed for this version, but it does not work on Windows (Bazel C++ API is broken).
 
-- Should be used with Bazel 0.20.0 or newer. 
+- Support for versions earlier then 0.20 was removed.
+
+- [rules_foreign_cc take-aways](https://docs.google.com/document/d/1ZVvzvkUVTkPCzI-2z4S4VrSNu4kdaBknz7UnK8vaoZU/edit?usp=sharing) describing the recent work has been published.
 
 - Examples package became the separate workspace. 
 This also allows to illustrate how to initialize rules_foreign_cc.
@@ -48,9 +51,6 @@ Extracted shell fragments are described in commands.bzl.
  
   Further planned steps in this direction: testing with RBE, shell script fragments for running on Windows without msys/mingw,
 tests for shell fragments.
-
-- Awaiting Bazel 0.22, with it would be possible to use rules_foreign_cc without any flags:
-[C++: Remove whitelist flag for new API](https://github.com/bazelbuild/bazel/commit/1d36051776557bbcbba1a8f0d98e5a408a717d11) 
 
 ## Building CMake projects:
 
