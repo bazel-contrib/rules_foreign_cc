@@ -13,6 +13,7 @@ def _read_build_options_impl(rctx):
             _build_mode(rctx),
         ],
     ))
+    rctx.file("bazel_version.bzl", "BAZEL_VERSION=\"{}\"".format(native.bazel_version))
 
 def _build_mode(rctx):
     path = rctx.path(Label("//for_workspace:compilation_mode.bzl"))
