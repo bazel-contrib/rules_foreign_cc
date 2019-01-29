@@ -9,11 +9,16 @@ Rules for building C/C++ projects using foreign build systems inside Bazel proje
 
 ## Bazel versions compatibility
 
-#####Bazel HEAD after [cae1e816e](https://github.com/bazelbuild/bazel/commit/cae1e816e5e1142fbd4aefdd29bffb2cbad71fa8) or 0.23+:
+**Bazel HEAD after [cae1e816e](https://github.com/bazelbuild/bazel/commit/cae1e816e5e1142fbd4aefdd29bffb2cbad71fa8) or 0.23+:**
+
 No flags are required, works on Windows.
-#####Bazel 0.22:
+
+**Bazel 0.22:**
+
 No flags are required, but unfortunately Bazel's Starlark C++ API **is broken on Windows**.
-#####Bazel 0.20 - 0.21:
+
+**Bazel 0.20 - 0.21:**
+
 Pass the Bazel the following flag:
 ```
 --experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs,@foreign_cc_impl
