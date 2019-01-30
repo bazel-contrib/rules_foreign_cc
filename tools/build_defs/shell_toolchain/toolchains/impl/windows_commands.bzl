@@ -104,10 +104,6 @@ fi
 export MSYS_NO_PATHCONV=1
 export MSYS2_ARG_CONV_EXCL="*"
 export SYSTEMDRIVE="C:"
-export MSBuildExtensionsPath="C:\\Program Files\\MSBuild"
-export VCTargetsPath="C:\\Program Files (x86)\\MSBuild\\Microsoft.Cpp\\v4.0\\V140"
-export PATH="/c/ninja":$PATH
-export PATH="/c/Program Files/CMake/bin":$PATH
 """
 
 def increment_pkg_config_path(source):
