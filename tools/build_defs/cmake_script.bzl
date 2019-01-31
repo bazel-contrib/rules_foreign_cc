@@ -178,11 +178,13 @@ def _move_dict_values(target, source, descriptor_map):
                 target[existing.value] = target[existing.value] + " " + value
 
 def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
-    os_name = "Linux"
+    os_name = target_os
     if target_os == "windows":
         os_name = "Windows"
     if target_os == "osx":
         os_name = "Apple"
+    if target_os == "linux":
+        os_name = "Linux"
     dict = {
         "CMAKE_SYSTEM_NAME": os_name,
     }
