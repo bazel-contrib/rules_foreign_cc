@@ -16,7 +16,10 @@ toolchain_data = rule(
 )
 
 def build_part(toolchain_type_):
-    for item in TOOLCHAIN_MAPPINGS:
+    register_mappings(toolchain_type_, TOOLCHAIN_MAPPINGS)
+
+def register_mappings(toolchain_type_, mappings):
+    for item in mappings:
         file_name = get_file_name(item.file)
 
         toolchain_data(
