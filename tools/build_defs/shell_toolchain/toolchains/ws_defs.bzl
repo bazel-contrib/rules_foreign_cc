@@ -18,7 +18,7 @@ def workspace_part(
     ordered_toolchains = []
     for item in additional_toolchain_mappings:
         if not additonal_shell_toolchain_package:
-            fail("Please specify the packge, where the toolchains will be created")
+            fail("Please specify the package, where the toolchains will be created")
         if not additonal_shell_toolchain_package.endswith(":"):
             additonal_shell_toolchain_package = additonal_shell_toolchain_package + ":"
         ordered_toolchains.append(additonal_shell_toolchain_package + get_file_name(item.file))
