@@ -1,6 +1,6 @@
 load(
     "//tools/build_defs/shell_toolchain/polymorphism:generate_overloads.bzl",
-    "id_from_file",
+    "get_file_name",
 )
 load(":toolchain_mappings.bzl", "TOOLCHAIN_MAPPINGS")
 load("@commands_overloads//:toolchain_data_defs.bzl", "get")
@@ -17,9 +17,7 @@ toolchain_data = rule(
 
 def build_part(toolchain_type_):
     for item in TOOLCHAIN_MAPPINGS:
-        file = item.file
-        (before, separator, after) = file.partition(":")
-        file_name = id_from_file(after)
+        file_name = get_file_name(item.file)
 
         toolchain_data(
             name = file_name + "_data",

@@ -34,6 +34,10 @@ def id_from_file(file_name):
     (before, middle, after) = file_name.partition(".")
     return before
 
+def get_file_name(file_label):
+    (before, separator, after) = file_label.partition(":")
+    return id_from_file(after)
+
 def _copy_file(rctx, src):
     src_path = rctx.path(src)
     copy_path = src_path.basename
