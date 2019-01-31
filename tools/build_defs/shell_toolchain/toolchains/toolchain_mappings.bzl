@@ -29,4 +29,7 @@ TOOLCHAIN_MAPPINGS = [
         ],
         file = "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains/impl:osx_commands.bzl",
     ),
+    _ToolchainMapping(
+        file = "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains/impl:default_commands.bzl",
+    ),
 ]
