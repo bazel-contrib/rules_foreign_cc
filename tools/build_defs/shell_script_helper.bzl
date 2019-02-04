@@ -47,8 +47,9 @@ def convert_shell_script(ctx, script):
 
     Output: the string with the shell script for the current execution platform
     """
-    shell_context = create_context(ctx)
+    return convert_shell_script_by_context(create_context(ctx), script)
 
+def convert_shell_script_by_context(shell_context, script):
     # 0. split in lines merged fragments
     new_script = []
     for fragment in script:
@@ -64,9 +65,14 @@ def convert_shell_script(ctx, script):
     script = [do_function_call(line, shell_context) for line in script]
 
     # 3. same for function bodies
-    for text in shell_context.prelude.values():
+    processed_prelude = {}
+    for key in shell_context.prelude.keys():
+        text = shell_context.prelude[key]
         lines = text.splitlines()
-        [do_function_call(line.strip(" "), shell_context) for line in lines]
+        processed_prelude[key] = "\n".join([do_function_call(line.strip(" "), shell_context) for line in lines])
+
+    for key in processed_prelude.keys():
+        shell_context.prelude[key] = processed_prelude[key]
 
     script = shell_context.prelude.values() + script
 

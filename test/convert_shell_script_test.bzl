@@ -3,7 +3,7 @@
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load(
     "//tools/build_defs:shell_script_helper.bzl",
-    "convert_shell_script",
+    "convert_shell_script_by_context",
     "do_function_call",
     "replace_exports",
     "replace_var_ref",
@@ -189,11 +189,91 @@ fi
 
     unittest.end(env)
 
+def _symlink_contents_to_dir(source, target):
+    text = """local target="$2"
+mkdir -p $target
+if [[ -f $1 ]]; then
+  ##symlink_to_dir## $1 $target
+  return 0
+fi
+
+local children=$(find $1 -maxdepth 1 -mindepth 1)
+for child in $children; do
+  ##symlink_to_dir## $child $target
+done
+"""
+    return FunctionAndCall(text = text)
+
+def _symlink_to_dir(source, target):
+    text = """local target="$2"
+mkdir -p ${target}
+
+if [[ -d $1 ]]; then
+  ln -s -t ${target} $1
+elif [[ -f $1 ]]; then
+  ln -s -t ${target} $1
+elif [[ -L $1 ]]; then
+  cp --no-target-directory $1 ${target}
+else
+  echo "Can not copy $1"
+fi
+"""
+    return FunctionAndCall(text = text)
+
+def _script_conversion_test(ctx):
+    env = unittest.begin(ctx)
+    script = ["##symlink_contents_to_dir## a b"]
+    expected = """function symlink_contents_to_dir() {
+local target="$2"
+mkdir -p $target
+if [[ -f $1 ]]; then
+symlink_to_dir $1 $target
+return 0
+fi
+
+local children=$(find $1 -maxdepth 1 -mindepth 1)
+for child in $children; do
+symlink_to_dir $child $target
+done
+
+}
+function symlink_to_dir() {
+  local target="$2"
+mkdir -p ${target}
+
+if [[ -d $1 ]]; then
+  ln -s -t ${target} $1
+elif [[ -f $1 ]]; then
+  ln -s -t ${target} $1
+elif [[ -L $1 ]]; then
+  cp --no-target-directory $1 ${target}
+else
+  echo "Can not copy $1"
+fi
+
+}
+symlink_contents_to_dir a b"""
+
+    shell_ = struct(
+        symlink_contents_to_dir = _symlink_contents_to_dir,
+        symlink_to_dir = _symlink_to_dir,
+        define_function = _define_function,
+    )
+    shell_context = struct(
+        prelude = {},
+        shell = shell_,
+    )
+    result = convert_shell_script_by_context(shell_context, script)
+    asserts.equals(env, expected, result)
+
+    unittest.end(env)
+
 replace_vars_test = unittest.make(_replace_vars_test)
 replace_vars_win_test = unittest.make(_replace_vars_win_test)
 do_function_call_test = unittest.make(_do_function_call_test)
 split_arguments_test = unittest.make(_split_arguments_test)
 do_function_call_with_body_test = unittest.make(_do_function_call_with_body_test)
+script_conversion_test = unittest.make(_script_conversion_test)
 
 def shell_script_conversion_suite():
     unittest.suite(
@@ -203,4 +283,5 @@ def shell_script_conversion_suite():
         do_function_call_test,
         split_arguments_test,
         do_function_call_with_body_test,
+        script_conversion_test,
     )
