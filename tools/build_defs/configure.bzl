@@ -53,6 +53,7 @@ def _create_configure_script(configureParameters):
         ctx.attr.configure_command,
         ctx.attr.deps,
         inputs,
+        ctx.attr.configure_in_place,
     )
     return "\n".join([define_install_prefix, configure])
 
@@ -72,14 +73,32 @@ def _get_install_prefix(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
-        # default: configure
+        # The name of the configuration script file, default: configure.
+        # The file must be in the root of the source directory.
         "configure_command": attr.string(default = "configure"),
+        # Any options to be put on the 'configure' command line.
         "configure_options": attr.string_list(),
+        # Environment variables to be set for the 'configure' invocation.
         "configure_env_vars": attr.string_dict(),
+        # Install prefix, i.e. relative path to where to install the result of the build.
+        # Passed to the 'configure' script with --prefix flag.
         "install_prefix": attr.string(mandatory = False),
+        # Set to True if 'configure' should be invoked in place, i.e. from its enclosing
+        # directory.
+        "configure_in_place": attr.bool(mandatory = False, default = False),
     })
     return attrs
 
+""" Rule for building external libraries with configure-make pattern.
+ Some 'configure' script is invoked with --prefix=install (by default),
+ and other parameters for compilation and linking, taken from Bazel C/C++
+ toolchain and passed dependencies.
+ After configuration, GNU Make is called.
+
+ Attributes:
+   See line comments in _attrs() method.
+ Other attributes are documented in framework.bzl:CC_EXTERNAL_RULE_ATTRIBUTES
+"""
 configure_make = rule(
     attrs = _attrs(),
     fragments = ["cpp"],

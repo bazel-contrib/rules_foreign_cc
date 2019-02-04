@@ -12,7 +12,8 @@ def create_configure_script(
         is_debug,
         configure_command,
         deps,
-        inputs):
+        inputs,
+        configure_in_place):
     vars = _get_configure_variables(tools, flags, user_vars)
     deps_flags = _define_deps_flags(deps, inputs)
 
@@ -28,10 +29,17 @@ def create_configure_script(
 
     script += ["echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\""]
 
-    script += ["{env_vars} \"$$EXT_BUILD_ROOT$$/{root}/{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
-        env_vars = env_vars_string,
+    configure_path = "$$EXT_BUILD_ROOT$$/{root}/{configure}".format(
         root = root,
         configure = configure_command,
+    )
+    if (configure_in_place):
+        script += ["##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root)]
+        configure_path = "$$BUILD_TMPDIR$$/{}".format(configure_command)
+
+    script += ["{env_vars} \"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+        env_vars = env_vars_string,
+        configure = configure_path,
         user_options = " ".join(user_options),
     )]
     return "\n".join(script)
