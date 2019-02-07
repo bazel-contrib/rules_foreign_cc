@@ -48,6 +48,12 @@ def create_cmake_script(
         "CMAKE_BUILD_TYPE": build_type,
     })
 
+    # Give user the ability to suppress some value, taken from Bazel's toolchain,
+    # or to suppress calculated CMAKE_BUILD_TYPE
+    # If the user passes "CMAKE_BUILD_TYPE": "" (empty string),
+    # CMAKE_BUILD_TYPE will not be passed to CMake
+    wipe_empty_values(params.cache, user_cache)
+
     set_env_vars = " ".join([key + "=\"" + params.env[key] + "\"" for key in params.env])
     str_cmake_cache_entries = " ".join(["-D" + key + "=\"" + params.cache[key] + "\"" for key in params.cache])
     cmake_call = " ".join([
@@ -59,6 +65,11 @@ def create_cmake_script(
     ])
 
     return "\n".join(params.commands + [cmake_call])
+
+def wipe_empty_values(cache, user_cache):
+    for key in user_cache:
+        if len(user_cache.get(key)) == 0:
+            cache.pop(key)
 
 # From CMake documentation: ;-list of directories specifying installation prefixes to be searched...
 def _merge_prefix_path(user_cache):
