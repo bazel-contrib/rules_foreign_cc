@@ -37,6 +37,9 @@ load("//tools/build_defs/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COM
 def os_name(ctx):
     return call_shell(create_context(ctx), "os_name")
 
+def create_function(ctx, name, text):
+    return call_shell(create_context(ctx), "define_function", name, text)
+
 def convert_shell_script(ctx, script):
     """ Converts shell script from the intermediate notation to actual schell script.
     Please see the file header for the notation description.

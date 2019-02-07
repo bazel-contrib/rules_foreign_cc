@@ -109,16 +109,22 @@ done
 """
     return FunctionAndCall(text = text)
 
-def cleanup_function(message_cleaning, message_keeping):
+def cat(filepath):
+    return "cat \"{}\"".format(filepath)
+
+def redirect_out_err(from_process, to_file):
+    return from_process + " &> " + to_file
+
+def assert_script_errors():
+    return "set -e"
+
+def cleanup_function(on_success, on_failure):
     text = "\n".join([
         "local ecode=$?",
         "if [ $ecode -eq 0 ]; then",
-        "printf \"%s\"" % message_cleaning,
-        "rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS",
+        on_success,
         "else",
-        "printf \"\"",
-        "printf \"%s\"" % message_keeping,
-        "printf \"\"",
+        on_failure,
         "fi",
     ])
     return FunctionAndCall(text = text, call = "trap \"cleanup_function\" EXIT")

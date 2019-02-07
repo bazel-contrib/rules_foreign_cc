@@ -12,8 +12,17 @@ load(
     "targets_windows",
 )
 load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root")
-load("@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl", "copy_directory", "fictive_file_in_genroot")
-load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "convert_shell_script", "os_name")
+load(
+    "@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl",
+    "copy_directory",
+    "fictive_file_in_genroot",
+)
+load(
+    "@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl",
+    "convert_shell_script",
+    "create_function",
+    "os_name",
+)
 
 """ Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
  Many of the attributes have default values.
@@ -205,7 +214,7 @@ def cc_external_rule_impl(ctx, attrs):
     if execution_os_name != "osx":
         set_envs = "\n".join(["export {}=\"{}\"".format(key, env[key]) for key in env])
 
-    version_and_lib = "Bazel external C/C++ Rules #{}. Building library '{}'".format(VERSION, lib_name)
+    version_and_lib = "Bazel external C/C++ Rules #{}. Building library '{}'\\n".format(VERSION, lib_name)
 
     # We can not declare outputs of the action, which are in parent-child relashion,
     # so we need to have a (symlinked) copy of the output directory to provide
@@ -227,14 +236,6 @@ def cc_external_rule_impl(ctx, attrs):
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
     ]
 
-    trap_function = "\n".join([
-        "export CLEANUP_MSG=\"rules_foreign_cc: Cleaning temp directories\"",
-        "export KEEP_MSG=\"rules_foreign_cc: Keeping temp build directory $$BUILD_TMPDIR$$\
- and dependencies directory $$EXT_BUILD_DEPS$$ for debug.\\nrules_foreign_cc: Please note that the directories inside a sandbox are still\
- cleaned unless you specify '--sandbox_debug' Bazel command line flag.\\n\"",
-        "##cleanup_function## \"$$CLEANUP_MSG$$\" \"$$KEEP_MSG$$\"",
-    ])
-
     script_lines = [
         "##echo## \"\"",
         "##echo## \"{}\"".format(version_and_lib),
@@ -245,9 +246,6 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$EXT_BUILD_DEPS$$",
         "##mkdirs## $$INSTALLDIR$$",
         _print_env(),
-        # the call trap is defined inside, in a way how the shell function should be called
-        # see, for instance, linux_commands.bzl
-        trap_function,
         "\n".join(_copy_deps_and_tools(inputs)),
         # replace placeholder with the dependencies root
         "##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$",
@@ -266,47 +264,24 @@ def cc_external_rule_impl(ctx, attrs):
     ]
 
     script_text = convert_shell_script(ctx, script_lines)
-
-    execution_requirements = {"block-network": ""}
+    wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
 
     rule_outputs = outputs.declared_outputs + [installdir_copy.file]
-
-    build_script_file = ctx.actions.declare_file("{}_Cc{}MakeRuleScript.sh".format(lib_name, attrs.configure_name.capitalize()))
-    ctx.actions.write(
-        output = build_script_file,
-        content = script_text,
-        is_executable = True,
-    )
-    build_log_file = ctx.actions.declare_file("{}_Cc{}MakeRuleLog.txt".format(lib_name, attrs.configure_name.capitalize()))
-    build_command_lines = [
-        "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
-        "export BUILD_LOG=\"{}\"".format(build_log_file.path),
-        "$$BUILD_SCRIPT$$ &> $$BUILD_LOG$$",
-        "BUILD_EXIT_CODE=$?",
-        "if [[ $$BUILD_EXIT_CODE$$ -ne 0 ]]",
-        "then",
-        "echo \"rules_foreign_cc: Build failed! Printing build logs:\"",
-        "echo \"##### BEGIN BUILD LOGS #####\"",
-        "cat $$BUILD_LOG$$",
-        "echo \"##### END BUILD LOGS #####\"",
-        "echo \"rules_foreign_cc: Build script location: $$BUILD_SCRIPT$$\"",
-        "echo \"rules_foreign_cc: Build log location: $$BUILD_LOG$$\"",
-        "exit 1",
-        "fi",
-    ]
-    build_command = convert_shell_script(ctx, build_command_lines)
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = inputs.declared_inputs + ctx.attr._cc_toolchain.files.to_list(),
-        outputs = rule_outputs + [empty.file, build_log_file],
-        tools = [build_script_file],
+        outputs = rule_outputs + [
+            empty.file,
+            wrapped_outputs.log_file,
+        ],
+        tools = [wrapped_outputs.script_file],
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
         # for shell commands
         use_default_shell_env = execution_os_name != "osx",
-        command = build_command,
-        execution_requirements = execution_requirements,
+        command = wrapped_outputs.wrapper_script,
+        execution_requirements = {"block-network": ""},
         # this is ignored if use_default_shell_env = True
         env = env,
     )
@@ -317,9 +292,16 @@ def cc_external_rule_impl(ctx, attrs):
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
     )
+    output_groups = _declare_output_groups(installdir_copy.file, outputs.out_binary_files)
+    wrapped_files = [
+        wrapped_outputs.script_file,
+        wrapped_outputs.log_file,
+        wrapped_outputs.wrapper_script_file,
+    ]
+    output_groups[attrs.configure_name + "_logs"] = wrapped_files
     return [
-        DefaultInfo(files = depset(direct = rule_outputs)),
-        OutputGroupInfo(**_declare_output_groups(installdir_copy.file, outputs.out_binary_files)),
+        DefaultInfo(files = depset(direct = rule_outputs + wrapped_files)),
+        OutputGroupInfo(**output_groups),
         ForeignCcDeps(artifacts = depset(
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
@@ -330,6 +312,76 @@ def cc_external_rule_impl(ctx, attrs):
             linking_context = out_cc_info.linking_context,
         ),
     ]
+
+WrappedOutputs = provider(
+    doc = "Structure for passing the log and scripts file information, and wrapper script text.",
+    fields = {
+        "script_file": "Main script file",
+        "log_file": "Execution log file",
+        "wrapper_script_file": "Wrapper script file (output for debugging purposes)",
+        "wrapper_script": "Wrapper script text to execute",
+    },
+)
+
+def wrap_outputs(ctx, lib_name, configure_name, script_text):
+    build_script_file = ctx.actions.declare_file("{}/logs/{}_script.sh".format(lib_name, configure_name))
+    ctx.actions.write(
+        output = build_script_file,
+        content = script_text,
+        is_executable = True,
+    )
+    build_log_file = ctx.actions.declare_file("{}/logs/{}.log".format(lib_name, configure_name))
+
+    cleanup_on_success_function = create_function(
+        ctx,
+        "cleanup_on_success",
+        """##echo## \"rules_foreign_cc: Cleaning temp directories\"
+rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS""",
+    )
+    cleanup_on_failure_function = create_function(
+        ctx,
+        "cleanup_on_failure",
+        """##echo## "\\nrules_foreign_cc: Build failed!\
+\\nrules_foreign_cc: Keeping temp build directory $$BUILD_TMPDIR$$ and dependencies directory\
+ $$EXT_BUILD_DEPS$$ for debug.\\nrules_foreign_cc:\
+ Please note that the directories inside a sandbox are still\
+ cleaned unless you specify '--sandbox_debug' Bazel command line flag.\\n\\n\
+rules_foreign_cc: Printing build logs:\\n\\n_____ BEGIN BUILD LOGS _____\\n"
+##cat## $$BUILD_LOG$$
+##echo## "\\n_____ END BUILD LOGS _____\\n"
+##echo## "rules_foreign_cc: Build script location: $$BUILD_SCRIPT$$\\n"
+##echo## "rules_foreign_cc: Build log location: $$BUILD_LOG$$\\n\\n"
+""",
+    )
+    trap_function = "##cleanup_function## cleanup_on_success cleanup_on_failure"
+
+    build_command_lines = [
+        "##assert_script_errors##",
+        cleanup_on_success_function,
+        cleanup_on_failure_function,
+        # the call trap is defined inside, in a way how the shell function should be called
+        # see, for instance, linux_commands.bzl
+        trap_function,
+        "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
+        "export BUILD_LOG=\"{}\"".format(build_log_file.path),
+        # sometimes the log file is not created, we do not want our script to fail because of this
+        "##touch## $$BUILD_LOG$$",
+        "##redirect_out_err## $$BUILD_SCRIPT$$ $$BUILD_LOG$$",
+    ]
+    build_command = convert_shell_script(ctx, build_command_lines)
+
+    wrapper_script_file = ctx.actions.declare_file("{}/logs/wrapper_script.sh".format(lib_name))
+    ctx.actions.write(
+        output = wrapper_script_file,
+        content = build_command,
+    )
+
+    return WrappedOutputs(
+        script_file = build_script_file,
+        log_file = build_log_file,
+        wrapper_script_file = wrapper_script_file,
+        wrapper_script = build_command,
+    )
 
 def _declare_output_groups(installdir, outputs):
     dict_ = {}
@@ -348,9 +400,9 @@ def _get_transitive_artifacts(deps):
 
 def _print_env():
     return "\n".join([
-        "##echo## \"Environment:______________\"",
+        "##echo## \"Environment:______________\\n\"",
         "##env##",
-        "##echo## \"__________________________\"",
+        "##echo## \"__________________________\\n\"",
     ])
 
 def _correct_path_variable(env):
