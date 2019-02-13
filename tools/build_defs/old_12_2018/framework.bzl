@@ -270,7 +270,7 @@ def cc_external_rule_impl(ctx, attrs):
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
-        inputs = inputs.declared_inputs + ctx.attr._cc_toolchain.files.to_list(),
+        inputs = depset(inputs.declared_inputs, transitive = [ctx.attr._cc_toolchain.files]),
         outputs = rule_outputs + [
             empty.file,
             wrapped_outputs.log_file,
