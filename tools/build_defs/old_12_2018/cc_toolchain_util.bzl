@@ -70,8 +70,8 @@ def _perform_error_checks(
         interface_library_artifacts):
         fail("'shared_library' should be specified when 'system_provided' is false")
 
-    if targets_windows and shared_library_artifacts:
-        fail("'interface library' must be specified when using cc_import for " +
+    if targets_windows and shared_library_artifacts and not interface_library_artifacts:
+        fail("'interface library' must be specified when using rules_foreign_cc for " +
              "shared library on Windows")
 
 def _build_static_library_to_link(ctx, library):
