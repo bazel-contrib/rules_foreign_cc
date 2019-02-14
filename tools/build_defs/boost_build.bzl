@@ -24,12 +24,14 @@ def _create_configure_script(configureParameters):
     return "\n".join([
         "cd $INSTALLDIR",
         "##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{}/. .".format(root),
-        "./bootstrap.sh",
+        "./bootstrap.sh".format(" ".join(ctx.attr.bootstrap_options)),
     ])
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
+        # any additional flags to pass to bootstrap.sh
+        "bootstrap_options": attr.string_list(mandatory = False),
         # any additional flags to pass to b2
         "user_options": attr.string_list(mandatory = False),
     })

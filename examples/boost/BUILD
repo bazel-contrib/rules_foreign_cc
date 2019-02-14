@@ -5,6 +5,7 @@ boost_build(
     lib_source = "@boost//:all",
     shared_libraries = ["libboost_regex.so.1.68.0"],
     static_libraries = ["libboost_regex.a"],
+    bootstrap_options = ["--with-toolchain=clang"],
     user_options = ["--with-regex"],
 )
 
