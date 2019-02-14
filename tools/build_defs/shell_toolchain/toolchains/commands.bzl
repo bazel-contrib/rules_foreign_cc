@@ -145,12 +145,30 @@ NB symlinks from the source directory are copied.""",
         doc = """Find subdirectory inside a passed directory with *.pc files and add it
     to the PKG_CONFIG_PATH""",
     ),
+    "assert_script_errors": CommandInfo(
+        arguments = [],
+        doc = "Script fragment that stops the execution after any error",
+    ),
+    "cat": CommandInfo(
+        arguments = [
+            ArgumentInfo(name = "filepath", type_ = type(""), doc = "Path to the file"),
+        ],
+        doc = "Output the file contents to stdout",
+    ),
+    "redirect_out_err": CommandInfo(
+        arguments = [
+            ArgumentInfo(name = "from_process", type_ = type(""), doc = "Process to run"),
+            ArgumentInfo(name = "to_file", type_ = type(""), doc = "File to redirect output to"),
+        ],
+        doc = "Read the result of the execution of the previous command, execute success or failure callbacks",
+    ),
     "cleanup_function": CommandInfo(
         arguments = [
-            ArgumentInfo(name = "message_cleaning", type_ = type(""), doc = "Message to output about cleaning"),
-            ArgumentInfo(name = "message_keeping", type_ = type(""), doc = "Message to output about keeping directories"),
+            ArgumentInfo(name = "on_success", type_ = type(""), doc = "Command(s) to be executed on success"),
+            ArgumentInfo(name = "on_failure", type_ = type(""), doc = "Command(s) to be executed on failure"),
         ],
         doc = "Trap function called after the script is finished",
+        #        doc = "Read the result of the execution of the previous command, execute success or failure callbacks",
     ),
     "children_to_path": CommandInfo(
         arguments = [
