@@ -1,5 +1,5 @@
-load("//tools/build_defs:cmake.bzl", "cmake_external")
-load("//tools/build_defs:boost_build.bzl", "boost_build")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:boost_build.bzl", "boost_build")
 
 # This takes something about 10 minutes
 boost_build(

@@ -7,14 +7,55 @@ Rules for building C/C++ projects using foreign build systems inside Bazel proje
 * This is not an officially supported Google product
 (meaning, support and/or new releases may be limited.)
 
-**NOTE**: this requires Bazel version starting from 0.17.1.
+## Bazel versions compatibility
 
-It also requires passing Bazel the following flag:
-(**please pay attention @foreign_cc_impl was added** due to adoption to Starlark API changes that are goning to happen in Bazel 0.21)
+**Bazel HEAD after [cae1e816e](https://github.com/bazelbuild/bazel/commit/cae1e816e5e1142fbd4aefdd29bffb2cbad71fa8) or 0.23+:**
+
+No flags are required, works on Windows.
+
+**Bazel 0.22:**
+
+No flags are required, but unfortunately Bazel's Starlark C++ API **is broken on Windows**.
+
+**Bazel 0.20 - 0.21:**
+
+Pass the Bazel the following flag:
 ```
 --experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs,@foreign_cc_impl
 ```
 Where ```rules_foreign_cc``` is the name of this repository in your WORKSPACE file.
+
+## News
+**January 2019:**
+- Bazel 0.22.0 is released, no flags are needed for this version, but it does not work on Windows (Bazel C++ API is broken).
+
+- Support for versions earlier then 0.20 was removed.
+
+- [rules_foreign_cc take-aways](https://docs.google.com/document/d/1ZVvzvkUVTkPCzI-2z4S4VrSNu4kdaBknz7UnK8vaoZU/edit?usp=sharing) describing the recent work has been published.
+
+- Examples package became the separate workspace. 
+This also allows to illustrate how to initialize rules_foreign_cc.
+
+- Native tools (cmake, ninja) toolchains were introduced.
+Though the user code does not have to be changed (default toolchains are registered, they call the preinstalled binaries by name.),
+you may simplify usage of ninja with the cmake_external rule and call it just by name.
+Please see examples/cmake_nghttp2 for ninja usage, and WORKSPACE and BUILD files in examples for the native tools toolchains usage
+(the locally preinstalled tools are registered by default, the build as part of the build tools are used in examples).
+Also, in examples/with_prebuilt_ninja_artefact you can see how to download and use prebuilt artifact.
+
+- Shell script parts were extracted into a separate toolchain.
+Shell script inside framework.bzl is first created with special notations:
+
+    - 'export var_name=var_value' for defining the environment variable
+    - '$$var_name$$' for referencing environment variable
+    - 'shell_command <space-separated-maybe-quoted-arguments>' for calling shell fragment
+
+  The created script is further processed to get the real shell script with shell parts either
+replaced with actual fragments or with shell function calls (functions are added into the beginning of the script).
+Extracted shell fragments are described in commands.bzl.
+ 
+  Further planned steps in this direction: testing with RBE, shell script fragments for running on Windows without msys/mingw,
+tests for shell fragments.
 
 ## Building CMake projects:
 
@@ -51,9 +92,21 @@ http_archive(
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
-# Workspace initialization function; includes repositories needed by rules_foreign_cc,
-# and creates some utilities for the host operating system
-rules_foreign_cc_dependencies()
+# Call this function from the WORKSPACE file to initialize rules_foreign_cc
+#  dependencies and let neccesary code generation happen
+#  (Code generation is needed to support different variants of the C++ Starlark API.).
+#
+#  Args:
+#    native_tools_toolchains: pass the toolchains for toolchain types
+#      '@rules_foreign_cc//tools/build_defs:cmake_toolchain' and
+#      '@rules_foreign_cc//tools/build_defs:ninja_toolchain' with the needed platform constraints.
+#      If you do not pass anything, registered default toolchains will be selected (see below).
+#  
+#    register_default_tools: if True, the cmake and ninja toolchains, calling corresponding
+#      preinstalled binaries by name (cmake, ninja) will be registered after
+#      'native_tools_toolchains' without any platform constraints.
+#      The default is True.
+rules_foreign_cc_dependencies(["//:my_cmake_toolchain", "//:my_ninja_toolchain"])
 
 # OpenBLAS source code repository
 http_archive(

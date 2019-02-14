@@ -258,9 +258,9 @@ def create_linking_info(ctx, user_link_flags, files):
         for_windows,
     )
 
-    link_params = _build_cc_link_params(ctx, user_link_flags, **artifacts)
+    link_params = _build_cc_link_params(ctx, depset(user_link_flags), **artifacts)
 
-    return CcLinkingInfo(**link_params)
+    return cc_common.create_linking_context(ctx = ctx, **link_params)
 
 def get_env_vars(ctx):
     cc_toolchain = find_cpp_toolchain(ctx)
@@ -269,7 +269,7 @@ def get_env_vars(ctx):
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
-    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else depset()
+    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else []
 
     vars = dict()
 
@@ -331,7 +331,7 @@ def get_flags_info(ctx):
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
-    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else depset()
+    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else []
 
     return CxxFlagsInfo(
         cc = cc_common.get_memory_inefficient_command_line(
@@ -411,7 +411,7 @@ def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     if new_text == text:
         new_text = _prefix(text, workspace_name + "/", root_str)
     # absolutize relative by adding our working directory
-    # this works because we ru on windows under msys now
+    # this works because we run on windows under msys now
     if force and new_text == text and not text.startswith("/"):
         new_text = root_str + "/" + text
 

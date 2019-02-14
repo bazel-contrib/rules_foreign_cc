@@ -12,25 +12,34 @@ def create_configure_script(
         is_debug,
         configure_command,
         deps,
-        inputs):
+        inputs,
+        configure_in_place):
     vars = _get_configure_variables(tools, flags, user_vars)
     deps_flags = _define_deps_flags(deps, inputs)
 
     vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags["LDFLAGS"]
     vars["CPPFLAGS"] = deps_flags["CPPFLAGS"]
+    #    vars["SYSROOT"] = "$EXT_BUILD_DEPS"
 
     env_vars_string = " ".join(["{}=\"{}\"".format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
 
     script = []
     for ext_dir in inputs.ext_build_dirs:
-        script += ["increment_pkg_config_path $EXT_BUILD_ROOT/" + ext_dir.path]
+        script += ["##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path]
 
-    script += ["echo \"PKG_CONFIG_PATH=$PKG_CONFIG_PATH\""]
+    script += ["echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\""]
 
-    script += ["{env_vars} \"$EXT_BUILD_ROOT/{root}/{configure}\" --prefix=$BUILD_TMPDIR/$INSTALL_PREFIX {user_options}".format(
-        env_vars = env_vars_string,
+    configure_path = "$$EXT_BUILD_ROOT$$/{root}/{configure}".format(
         root = root,
         configure = configure_command,
+    )
+    if (configure_in_place):
+        script += ["##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root)]
+        configure_path = "$$BUILD_TMPDIR$$/{}".format(configure_command)
+
+    script += ["{env_vars} \"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+        env_vars = env_vars_string,
+        configure = configure_path,
         user_options = " ".join(user_options),
     )]
     return "\n".join(script)
@@ -45,17 +54,17 @@ def _define_deps_flags(deps, inputs):
         dir_ = lib.dirname
         if not gen_dirs_set.get(dir_):
             gen_dirs_set[dir_] = 1
-            lib_dirs += ["-L$EXT_BUILD_ROOT/" + dir_]
+            lib_dirs += ["-L$$EXT_BUILD_ROOT$$/" + dir_]
 
     include_dirs_set = {}
     for dir_list in inputs.include_dirs:
         for include_dir in dir_list:
-            include_dirs_set[include_dir] = "-I$EXT_BUILD_ROOT/" + include_dir
+            include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
     for header_list in inputs.headers:
         for header in header_list:
             include_dir = header.dirname
             if not include_dirs_set.get(include_dir):
-                include_dirs_set[include_dir] = "-I$EXT_BUILD_ROOT/" + include_dir
+                include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
     include_dirs = include_dirs_set.values()
 
     # For the external libraries, we need to refer to the places where
@@ -68,13 +77,13 @@ def _define_deps_flags(deps, inputs):
     for dep in deps:
         external_deps = get_foreign_cc_dep(dep)
         if external_deps:
-            for artifact in external_deps.artifacts:
+            for artifact in external_deps.artifacts.to_list():
                 if not gen_dirs_set.get(artifact.gen_dir):
                     gen_dirs_set[artifact.gen_dir] = 1
 
                     dir_name = artifact.gen_dir.basename
-                    include_dirs += ["-I$EXT_BUILD_DEPS/{}/{}".format(dir_name, artifact.include_dir_name)]
-                    lib_dirs += ["-L$EXT_BUILD_DEPS/{}/{}".format(dir_name, artifact.lib_dir_name)]
+                    include_dirs += ["-I$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.include_dir_name)]
+                    lib_dirs += ["-L$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name)]
 
     return {
         "LDFLAGS": lib_dirs,
@@ -134,7 +143,7 @@ def _get_configure_variables(tools, flags, user_env_vars):
     return vars
 
 def _absolutize(workspace_name, text):
-    return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text)
+    return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text)
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])

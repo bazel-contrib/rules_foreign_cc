@@ -1,11 +1,11 @@
 """ Contains all logic for calling CMake for building external libraries/binaries """
 
-load("@foreign_cc_platform_utils//:tools.bzl", "CMAKE_COMMAND")
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
 def create_cmake_script(
         workspace_name,
         target_os,
+        cmake_path,
         tools,
         flags,
         install_prefix,
@@ -38,25 +38,38 @@ def create_cmake_script(
     else:
         params = _create_crosstool_file_text(toolchain_dict, user_cache, user_env)
 
-    build_type = params.cache.get("CMAKE_BUILD_TYPE",
-                                  "DEBUG" if is_debug_mode else "RELEASE")
+    build_type = params.cache.get(
+        "CMAKE_BUILD_TYPE",
+        "DEBUG" if is_debug_mode else "RELEASE",
+    )
     params.cache.update({
         "CMAKE_PREFIX_PATH": merged_prefix_path,
         "CMAKE_INSTALL_PREFIX": install_prefix,
         "CMAKE_BUILD_TYPE": build_type,
     })
 
+    # Give user the ability to suppress some value, taken from Bazel's toolchain,
+    # or to suppress calculated CMAKE_BUILD_TYPE
+    # If the user passes "CMAKE_BUILD_TYPE": "" (empty string),
+    # CMAKE_BUILD_TYPE will not be passed to CMake
+    wipe_empty_values(params.cache, user_cache)
+
     set_env_vars = " ".join([key + "=\"" + params.env[key] + "\"" for key in params.env])
     str_cmake_cache_entries = " ".join(["-D" + key + "=\"" + params.cache[key] + "\"" for key in params.cache])
     cmake_call = " ".join([
         set_env_vars,
-        CMAKE_COMMAND,
+        cmake_path,
         str_cmake_cache_entries,
         " ".join(options),
         "$EXT_BUILD_ROOT/" + root,
     ])
 
     return "\n".join(params.commands + [cmake_call])
+
+def wipe_empty_values(cache, user_cache):
+    for key in user_cache:
+        if len(user_cache.get(key)) == 0:
+            cache.pop(key)
 
 # From CMake documentation: ;-list of directories specifying installation prefixes to be searched...
 def _merge_prefix_path(user_cache):
@@ -176,11 +189,13 @@ def _move_dict_values(target, source, descriptor_map):
                 target[existing.value] = target[existing.value] + " " + value
 
 def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
-    os_name = "Linux"
-    if target_os.is_win:
+    os_name = target_os
+    if target_os == "windows":
         os_name = "Windows"
-    if target_os.is_osx:
+    if target_os == "osx":
         os_name = "Apple"
+    if target_os == "linux":
+        os_name = "Linux"
     dict = {
         "CMAKE_SYSTEM_NAME": os_name,
     }
@@ -263,6 +278,8 @@ def _tail_if_starts_with(str, start):
     return None
 
 def _absolutize(workspace_name, text, force = False):
+    if text.strip(" ").startswith("C:") or text.strip(" ").startswith("c:"):
+        return text
     return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text, force)
 
 def _join_flags_list(workspace_name, flags):

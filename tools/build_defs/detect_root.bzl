@@ -4,7 +4,7 @@ def detect_root(source):
 """
 
     root = ""
-    sources = source.files
+    sources = source.files.to_list()
     if (root and len(root) > 0) or len(sources) == 0:
         return root
 
