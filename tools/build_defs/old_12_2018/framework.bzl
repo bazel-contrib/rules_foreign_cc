@@ -12,8 +12,17 @@ load(
     "targets_windows",
 )
 load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root")
-load("@foreign_cc_platform_utils//:os_info.bzl", "OSInfo")
-load("@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl", "copy_directory", "fictive_file_in_genroot")
+load(
+    "@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl",
+    "copy_directory",
+    "fictive_file_in_genroot",
+)
+load(
+    "@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl",
+    "convert_shell_script",
+    "create_function",
+    "os_name",
+)
 
 """ Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
  Many of the attributes have default values.
@@ -83,17 +92,8 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     # Flag variable to indicate that the library produces only headers
     "headers_only": attr.bool(mandatory = False, default = False),
     #
-    # link to the shell utilities used by the shell script in cc_external_rule_impl.
-    "_utils": attr.label(
-        default = "@foreign_cc_platform_utils//:shell_utils",
-        allow_single_file = True,
-    ),
     "_is_debug": attr.label(
         default = "@foreign_cc_platform_utils//:compilation_mode",
-    ),
-    # link to the shell utilities used by the shell script in cc_external_rule_impl.
-    "_target_os": attr.label(
-        default = "@foreign_cc_platform_utils//:target_os",
     ),
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
@@ -208,14 +208,13 @@ def cc_external_rule_impl(ctx, attrs):
     outputs = _define_outputs(ctx, attrs, lib_name)
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
-    shell_utils = ctx.attr._utils.files.to_list()[0].path
-
     env = _correct_path_variable(get_env_vars(ctx))
     set_envs = ""
-    if not ctx.attr._target_os[OSInfo].is_osx:
+    execution_os_name = os_name(ctx)
+    if execution_os_name != "osx":
         set_envs = "\n".join(["export {}=\"{}\"".format(key, env[key]) for key in env])
 
-    version_and_lib = "Bazel external C/C++ Rules #{}. Building library '{}'".format(VERSION, lib_name)
+    version_and_lib = "Bazel external C/C++ Rules #{}. Building library '{}'\\n".format(VERSION, lib_name)
 
     # We can not declare outputs of the action, which are in parent-child relashion,
     # so we need to have a (symlinked) copy of the output directory to provide
@@ -224,83 +223,65 @@ def cc_external_rule_impl(ctx, attrs):
     #
     # We want the install directory output of this rule to have the same name as the library,
     # so symlink it under the same name but in a subdirectory
-    installdir_copy = copy_directory(ctx.actions, "$INSTALLDIR", "copy_{}/{}".format(lib_name, lib_name))
+    installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
 
     # we need this fictive file in the root to get the path of the root in the script
     empty = fictive_file_in_genroot(ctx.actions, ctx.label.name)
 
     define_variables = [
         set_envs,
-        "set_platform_env_vars",
-        "export EXT_BUILD_ROOT=$BUILD_PWD",
-        "export BUILD_TMPDIR=$(mktemp -d)",
-        "export EXT_BUILD_DEPS=$EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name,
-        "export INSTALLDIR=$EXT_BUILD_ROOT/" + empty.file.dirname + "/" + lib_name,
-    ]
-
-    trap_function = [
-        "function cleanup() {",
-        "local ecode=$?",
-        "if [ $ecode -eq 0 ]; then",
-        "echo \"rules_foreign_cc: Cleaning temp directories\"",
-        "rm -rf $BUILD_TMPDIR $EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name,
-        "else",
-        "echo \"\"",
-        "echo \"rules_foreign_cc: Keeping temp build directory $BUILD_TMPDIR\
- and dependencies directory $EXT_BUILD_ROOT/bazel_foreign_cc_deps_" + lib_name + " for debug.\"",
-        "echo \"rules_foreign_cc: Please note that the directories inside a sandbox are still\
- cleaned unless you specify '--sandbox_debug' Bazel command line flag.\"",
-        "echo \"\"",
-        "fi",
-        "}",
+        "export EXT_BUILD_ROOT=##pwd##",
+        "export BUILD_TMPDIR=##tmpdir##",
+        "export EXT_BUILD_DEPS=$$EXT_BUILD_ROOT$$/bazel_foreign_cc_deps_" + lib_name,
+        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
     ]
 
     script_lines = [
-        "echo \"\n{}\n\"".format(version_and_lib),
-        "set -e",
-        "source " + shell_utils,
+        "##echo## \"\"",
+        "##echo## \"{}\"".format(version_and_lib),
+        "##echo## \"\"",
+        "##script_prelude##",
         "\n".join(define_variables),
-        "path $EXT_BUILD_ROOT",
-        "\n".join(trap_function),
-        "mkdir -p $EXT_BUILD_DEPS",
-        "mkdir -p $INSTALLDIR",
+        "##path## $$EXT_BUILD_ROOT$$",
+        "##mkdirs## $$EXT_BUILD_DEPS$$",
+        "##mkdirs## $$INSTALLDIR$$",
         _print_env(),
-        "trap \"cleanup\" EXIT",
         "\n".join(_copy_deps_and_tools(inputs)),
         # replace placeholder with the dependencies root
-        "define_absolute_paths $EXT_BUILD_DEPS $EXT_BUILD_DEPS",
-        "pushd $BUILD_TMPDIR",
+        "##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$",
+        "cd $$BUILD_TMPDIR$$",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(attrs.make_commands),
         attrs.postfix_script or "",
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
-        "replace_absolute_paths $INSTALLDIR $BUILD_TMPDIR",
-        "replace_absolute_paths $INSTALLDIR $EXT_BUILD_DEPS",
+        "##replace_absolute_paths## $$INSTALLDIR$$ $$BUILD_TMPDIR$$",
+        "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
         installdir_copy.script,
         empty.script,
-        "popd",
+        "cd $$EXT_BUILD_ROOT$$",
     ]
 
-    script_text = "\n".join(script_lines)
-    print("script text: " + script_text)
-
-    execution_requirements = {"block-network": ""}
+    script_text = convert_shell_script(ctx, script_lines)
+    wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
 
     rule_outputs = outputs.declared_outputs + [installdir_copy.file]
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
-        inputs = depset(inputs.declared_inputs) + ctx.attr._cc_toolchain.files,
-        outputs = rule_outputs + [empty.file],
-        tools = ctx.attr._utils.files,
+        inputs = depset(inputs.declared_inputs, transitive = [ctx.attr._cc_toolchain.files]),
+        outputs = rule_outputs + [
+            empty.file,
+            wrapped_outputs.log_file,
+        ],
+        tools = [wrapped_outputs.script_file],
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
         # for shell commands
-        use_default_shell_env = not ctx.attr._target_os[OSInfo].is_osx,
-        command = script_text,
-        execution_requirements = execution_requirements,
+        use_default_shell_env = execution_os_name != "osx",
+        command = wrapped_outputs.wrapper_script,
+        execution_requirements = {"block-network": ""},
         # this is ignored if use_default_shell_env = True
         env = env,
     )
@@ -311,17 +292,96 @@ def cc_external_rule_impl(ctx, attrs):
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
     )
+    output_groups = _declare_output_groups(installdir_copy.file, outputs.out_binary_files)
+    wrapped_files = [
+        wrapped_outputs.script_file,
+        wrapped_outputs.log_file,
+        wrapped_outputs.wrapper_script_file,
+    ]
+    output_groups[attrs.configure_name + "_logs"] = wrapped_files
     return [
-        DefaultInfo(files = depset(direct = rule_outputs)),
-        OutputGroupInfo(**_declare_output_groups(installdir_copy.file, outputs.out_binary_files)),
+        DefaultInfo(files = depset(direct = rule_outputs + wrapped_files)),
+        OutputGroupInfo(**output_groups),
         ForeignCcDeps(artifacts = depset(
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
         )),
         cc_common.create_cc_skylark_info(ctx = ctx),
-        out_cc_info.compilation_info,
-        out_cc_info.linking_info,
+        CcInfo(
+            compilation_context = out_cc_info.compilation_context,
+            linking_context = out_cc_info.linking_context,
+        ),
     ]
+
+WrappedOutputs = provider(
+    doc = "Structure for passing the log and scripts file information, and wrapper script text.",
+    fields = {
+        "script_file": "Main script file",
+        "log_file": "Execution log file",
+        "wrapper_script_file": "Wrapper script file (output for debugging purposes)",
+        "wrapper_script": "Wrapper script text to execute",
+    },
+)
+
+def wrap_outputs(ctx, lib_name, configure_name, script_text):
+    build_script_file = ctx.actions.declare_file("{}/logs/{}_script.sh".format(lib_name, configure_name))
+    ctx.actions.write(
+        output = build_script_file,
+        content = script_text,
+        is_executable = True,
+    )
+    build_log_file = ctx.actions.declare_file("{}/logs/{}.log".format(lib_name, configure_name))
+
+    cleanup_on_success_function = create_function(
+        ctx,
+        "cleanup_on_success",
+        """##echo## \"rules_foreign_cc: Cleaning temp directories\"
+rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS""",
+    )
+    cleanup_on_failure_function = create_function(
+        ctx,
+        "cleanup_on_failure",
+        """##echo## "\\nrules_foreign_cc: Build failed!\
+\\nrules_foreign_cc: Keeping temp build directory $$BUILD_TMPDIR$$ and dependencies directory\
+ $$EXT_BUILD_DEPS$$ for debug.\\nrules_foreign_cc:\
+ Please note that the directories inside a sandbox are still\
+ cleaned unless you specify '--sandbox_debug' Bazel command line flag.\\n\\n\
+rules_foreign_cc: Printing build logs:\\n\\n_____ BEGIN BUILD LOGS _____\\n"
+##cat## $$BUILD_LOG$$
+##echo## "\\n_____ END BUILD LOGS _____\\n"
+##echo## "rules_foreign_cc: Build script location: $$BUILD_SCRIPT$$\\n"
+##echo## "rules_foreign_cc: Build log location: $$BUILD_LOG$$\\n\\n"
+""",
+    )
+    trap_function = "##cleanup_function## cleanup_on_success cleanup_on_failure"
+
+    build_command_lines = [
+        "##assert_script_errors##",
+        cleanup_on_success_function,
+        cleanup_on_failure_function,
+        # the call trap is defined inside, in a way how the shell function should be called
+        # see, for instance, linux_commands.bzl
+        trap_function,
+        "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
+        "export BUILD_LOG=\"{}\"".format(build_log_file.path),
+        # sometimes the log file is not created, we do not want our script to fail because of this
+        "##touch## $$BUILD_LOG$$",
+        "##redirect_out_err## $$BUILD_SCRIPT$$ $$BUILD_LOG$$",
+    ]
+    build_command = convert_shell_script(ctx, build_command_lines)
+
+    wrapper_script_file = ctx.actions.declare_file("{}/logs/wrapper_script.sh".format(lib_name))
+    ctx.actions.write(
+        output = wrapper_script_file,
+        content = build_command,
+    )
+
+    return WrappedOutputs(
+        script_file = build_script_file,
+        log_file = build_log_file,
+        wrapper_script_file = wrapper_script_file,
+        wrapper_script = build_command,
+    )
 
 def _declare_output_groups(installdir, outputs):
     dict_ = {}
@@ -340,9 +400,9 @@ def _get_transitive_artifacts(deps):
 
 def _print_env():
     return "\n".join([
-        "echo \"Environment:______________\"",
-        "env",
-        "echo \"__________________________\"",
+        "##echo## \"Environment:______________\\n\"",
+        "##env##",
+        "##echo## \"__________________________\\n\"",
     ])
 
 def _correct_path_variable(env):
@@ -373,34 +433,34 @@ def _copy_deps_and_tools(files):
     lines += _symlink_to_dir("bin", files.tools_files, False)
 
     for ext_dir in files.ext_build_dirs:
-        lines += ["symlink_to_dir $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS".format(_file_path(ext_dir))]
+        lines += ["##symlink_to_dir## $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS".format(_file_path(ext_dir))]
 
     lines += ["if [ -d $EXT_BUILD_DEPS/bin ]; then"]
 
-    lines += ["  tools=$(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)"]
+    lines += ["  tools=$(find $$EXT_BUILD_DEPS$$/bin -maxdepth 1 -mindepth 1)"]
     lines += ["  for tool in $tools;"]
     lines += ["  do"]
     lines += ["    if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then"]
-    lines += ["      export PATH=$PATH:$tool"]
+    lines += ["      ##path## $tool"]
     lines += ["    fi"]
     lines += ["  done"]
     lines += ["fi"]
-    lines += ["path $EXT_BUILD_DEPS/bin"]
+    lines += ["##path## $$EXT_BUILD_DEPS$$/bin"]
 
     return lines
 
 def _symlink_to_dir(dir_name, files_list, link_children):
     if len(files_list) == 0:
         return []
-    lines = ["mkdir -p $EXT_BUILD_DEPS/" + dir_name]
+    lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
 
     paths_list = []
     for file in files_list:
         paths_list += [_file_path(file)]
 
-    link_function = "symlink_contents_to_dir" if link_children else "symlink_to_dir"
+    link_function = "##symlink_contents_to_dir##" if link_children else "##symlink_to_dir##"
     for path in paths_list:
-        lines += ["{} $EXT_BUILD_ROOT/{} $EXT_BUILD_DEPS/{}".format(link_function, path, dir_name)]
+        lines += ["{} $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(link_function, path, dir_name)]
 
     return lines
 
@@ -486,8 +546,7 @@ This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all 
 )
 
 def _define_inputs(attrs):
-    compilation_infos_all = []
-    linking_infos_all = []
+    cc_infos = []
 
     bazel_headers = []
     bazel_system_includes = []
@@ -501,26 +560,25 @@ def _define_inputs(attrs):
     for dep in attrs.deps:
         external_deps = get_foreign_cc_dep(dep)
 
-        linking_infos_all += [dep[CcLinkingInfo]]
-        compilation_infos_all += [dep[CcCompilationInfo]]
+        cc_infos += [dep[CcInfo]]
 
         if external_deps:
-            for artifact in external_deps.artifacts:
+            for artifact in external_deps.artifacts.to_list():
                 if not ext_build_dirs_set.get(artifact.gen_dir):
                     ext_build_dirs_set[artifact.gen_dir] = 1
                     ext_build_dirs += [artifact.gen_dir]
         else:
-            headers_info = _get_headers(dep[CcCompilationInfo])
+            headers_info = _get_headers(dep[CcInfo].compilation_context)
             bazel_headers += headers_info.headers
             bazel_system_includes += headers_info.include_dirs
-            bazel_libs += _collect_libs(dep[CcLinkingInfo])
+            bazel_libs += _collect_libs(dep[CcInfo].linking_context)
 
     tools_roots = []
     tools_files = []
     for tool in attrs.tools_deps:
         tool_root = detect_root(tool)
         tools_roots += [tool_root]
-        for file_list in tool.files:
+        for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
     for tool in attrs.additional_tools:
@@ -529,19 +587,19 @@ def _define_inputs(attrs):
 
     # These variables are needed for correct C/C++ providers constraction,
     # they should contain all libraries and include directories.
-    deps_compilation = cc_common.merge_cc_compilation_infos(cc_compilation_infos = compilation_infos_all)
-    deps_linking = cc_common.merge_cc_linking_infos(cc_linking_infos = linking_infos_all)
+    cc_info_merged = cc_common.merge_cc_infos(cc_infos = cc_infos)
 
     return InputFiles(
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
         tools_files = tools_roots,
-        deps_compilation_info = deps_compilation,
-        deps_linking_info = deps_linking,
+        deps_compilation_info = cc_info_merged.compilation_context,
+        deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
-        declared_inputs = depset(attrs.lib_source.files) + bazel_libs + tools_files +
-                          attrs.additional_inputs + deps_compilation.headers + ext_build_dirs,
+        declared_inputs = attrs.lib_source.files.to_list() + bazel_libs + tools_files +
+                          attrs.additional_inputs +
+                          cc_info_merged.compilation_context.headers.to_list() + ext_build_dirs,
     )
 
 def get_foreign_cc_dep(dep):
@@ -566,24 +624,23 @@ def _get_headers(compilation_info):
     )
 
 def _define_out_cc_info(ctx, attrs, inputs, outputs):
-    compilation_info = CcCompilationInfo(
+    compilation_info = cc_common.create_compilation_context(
+        ctx = ctx,
         headers = depset([outputs.out_include_dir]),
         system_includes = depset([outputs.out_include_dir.path]),
         defines = depset(attrs.defines),
     )
-    out_compilation_info = cc_common.merge_cc_compilation_infos(
-        cc_compilation_infos = [inputs.deps_compilation_info, compilation_info],
+    linking_info = create_linking_info(ctx, attrs.linkopts, outputs.libraries)
+    cc_info = CcInfo(
+        compilation_context = compilation_info,
+        linking_context = linking_info,
+    )
+    inputs_info = CcInfo(
+        compilation_context = inputs.deps_compilation_info,
+        linking_context = inputs.deps_linking_info,
     )
 
-    linking_info = create_linking_info(ctx, depset(direct = attrs.linkopts), outputs.libraries)
-    out_linking_info = cc_common.merge_cc_linking_infos(
-        cc_linking_infos = [linking_info, inputs.deps_linking_info],
-    )
-
-    return struct(
-        compilation_info = out_compilation_info,
-        linking_info = out_linking_info,
-    )
+    return cc_common.merge_cc_infos(cc_infos = [cc_info, inputs_info])
 
 def _extract_link_params(cc_linking):
     return [

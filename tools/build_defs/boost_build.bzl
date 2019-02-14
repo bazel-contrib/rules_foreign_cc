@@ -23,7 +23,7 @@ def _create_configure_script(configureParameters):
 
     return "\n".join([
         "cd $INSTALLDIR",
-        "cp -R $EXT_BUILD_ROOT/{}/. .".format(root),
+        "##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{}/. .".format(root),
         "./bootstrap.sh".format(" ".join(ctx.attr.bootstrap_options)),
     ])
 
@@ -46,4 +46,7 @@ boost_build = rule(
     fragments = ["cpp"],
     output_to_genfiles = True,
     implementation = _boost_build,
+    toolchains = [
+        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+    ],
 )

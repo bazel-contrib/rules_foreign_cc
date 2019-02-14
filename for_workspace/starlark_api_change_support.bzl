@@ -7,6 +7,8 @@ def _generate_implementation_fragments(rctx):
         bazel_version = native.bazel_version
         if native.bazel_version.startswith("0.20."):
             prefix = "//tools/build_defs/old_11_2018:"
+        elif native.bazel_version.startswith("0.21."):
+            prefix = "//tools/build_defs/old_12_2018:"
         else:
             prefix = "//tools/build_defs/new_11_2018:"
     else:
@@ -25,13 +27,11 @@ generate_implementation_fragments = repository_rule(
             default = [
                 "@rules_foreign_cc//tools/build_defs/new_11_2018/cc_toolchain_util.bzl",
                 "@rules_foreign_cc//tools/build_defs/new_11_2018/framework.bzl",
-
                 "@rules_foreign_cc//tools/build_defs/old_11_2018/cc_toolchain_util.bzl",
                 "@rules_foreign_cc//tools/build_defs/old_11_2018/framework.bzl",
-
-                "@rules_foreign_cc//tools/build_defs/old_10_2018/cc_toolchain_util.bzl",
-                "@rules_foreign_cc//tools/build_defs/old_10_2018/framework.bzl",
-            ]
+                "@rules_foreign_cc//tools/build_defs/old_12_2018/cc_toolchain_util.bzl",
+                "@rules_foreign_cc//tools/build_defs/old_12_2018/framework.bzl",
+            ],
         ),
-    }
+    },
 )

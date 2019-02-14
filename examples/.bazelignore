@@ -1,0 +1,2 @@
+cmake_crosstool
+with_prebuilt_ninja_artefact

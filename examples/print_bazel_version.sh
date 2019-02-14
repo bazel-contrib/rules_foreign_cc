@@ -1,0 +1,1 @@
+echo "Bazel version: $1"

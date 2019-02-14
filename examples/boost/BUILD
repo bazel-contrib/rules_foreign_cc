@@ -1,4 +1,4 @@
-load("//tools/build_defs:boost_build.bzl", "boost_build")
+load("@rules_foreign_cc//tools/build_defs:boost_build.bzl", "boost_build")
 
 boost_build(
     name = "boost_regex",

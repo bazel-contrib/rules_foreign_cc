@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ $1 == "true" ]; then
-  NINJA_COMMAND="${TEST_SRCDIR}/rules_foreign_cc/external/foreign_cc_platform_utils/ninja/ninja"
+  NINJA_COMMAND="./built_ninja/ninja/ninja"
 else
   NINJA_COMMAND="ninja"
 fi

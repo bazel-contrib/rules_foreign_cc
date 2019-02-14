@@ -2,7 +2,16 @@ workspace(name = "rules_foreign_cc")
 
 load("//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
-rules_foreign_cc_dependencies()
+rules_foreign_cc_dependencies([
+    "@rules_foreign_cc_tests//:built_cmake_toolchain",
+    "@rules_foreign_cc_tests//:built_ninja_toolchain_osx",
+    "@rules_foreign_cc_tests//:built_ninja_toolchain_linux",
+])
+
+local_repository(
+    name = "rules_foreign_cc_tests",
+    path = "examples",
+)
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -27,6 +36,6 @@ load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
 
 gmaven_rules()
 
-load("//examples:examples_repositories.bzl", "include_examples_repositories")
+load("@rules_foreign_cc_tests//:examples_repositories.bzl", "include_examples_repositories")
 
 include_examples_repositories()

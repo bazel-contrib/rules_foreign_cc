@@ -11,7 +11,6 @@ load(
     impl_ForeignCcDeps = "ForeignCcDeps",
     impl_cc_external_rule_impl = "cc_external_rule_impl",
     impl_create_attrs = "create_attrs",
-    impl_detect_root = "detect_root",
     impl_get_foreign_cc_dep = "get_foreign_cc_dep",
 )
 
@@ -20,5 +19,4 @@ ForeignCcArtifact = impl_ForeignCcArtifact
 ForeignCcDeps = impl_ForeignCcDeps
 cc_external_rule_impl = impl_cc_external_rule_impl
 create_attrs = impl_create_attrs
-detect_root = impl_detect_root
 get_foreign_cc_dep = impl_get_foreign_cc_dep

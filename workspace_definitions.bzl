@@ -1,24 +1,19 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//for_workspace:repositories.bzl", "repositories")
-load("//for_workspace:os_info.bzl", "get_os_info")
 load("//for_workspace:starlark_api_change_support.bzl", "generate_implementation_fragments")
+load(
+    "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",
+    shell_toolchain_workspace_initalization = "workspace_part",
+)
 
-def _platform_dependent_init_impl(rctx):
-    os_name = rctx.os.name.lower()
-    host_os = get_os_info(os_name)
-
-    path_to_detect_root = rctx.path(Label("//tools/build_defs:detect_root.bzl"))
-    rctx.template("detect_root.bzl", path_to_detect_root)
-
-    rctx.file("WORKSPACE", """workspace(name='foreign_cc_platform_utils')""")
+def _read_build_options_impl(rctx):
     rctx.file("BUILD.bazel", "\n".join(
         [
-            _create_os_description(rctx, os_name),
-            _shell_utils_text(rctx, host_os),
-            _build_tools(rctx, host_os),
+            _build_tools(rctx),
             _build_mode(rctx),
         ],
     ))
+    rctx.file("bazel_version.bzl", "BAZEL_VERSION=\"{}\"".format(native.bazel_version))
 
 def _build_mode(rctx):
     path = rctx.path(Label("//for_workspace:compilation_mode.bzl"))
@@ -42,103 +37,70 @@ compilation_mode(
 )
 """
 
-def _create_os_description(rctx, os_name):
-    path = rctx.path(Label("//for_workspace:os_info.bzl"))
-    rctx.template("os_info.bzl", path, executable = True)
-    return "load(\":os_info.bzl\", \"define_os\")\ndefine_os(\"{}\")".format(os_name)
+def _build_tools(rctx):
+    rctx.file(
+        "tools.bzl",
+        """NINJA_USE_BUILT=False
+NINJA_COMMAND="ninja"
+NINJA_DEP=[]
+CMAKE_USE_BUILT=False
+CMAKE_COMMAND="cmake"
+CMAKE_DEP=[]
 
-def _shell_utils_text(rctx, host_os):
-    utils_name = "utils_unix.sh"
-    if host_os.is_osx:
-        utils_name = "utils_osx.sh"
-    if host_os.is_win:
-        utils_name = "utils_win.sh"
-
-    path = rctx.path(Label("//for_workspace:" + utils_name))
-    rctx.template(utils_name, path, executable = True)
-
-    return """
-sh_library(
-  name = "shell_utils",
-  srcs = ["{}"],
-  visibility = ["//visibility:public"]
-)
-""".format(utils_name)
-
-def _build_ninja(existing, rctx, host_os):
-    return existing == None
-
-def _build_cmake(existing, rctx, host_os):
-    is_ci = rctx.os.environ.get("CI")
-    return existing == None and is_ci != None
-
-_tools = {
-    "cmake": struct(
-        bin_path = "bin/cmake",
-        file = "cmake_build.bzl",
-        should_be_built = _build_cmake,
-        build_script = """
-load("//:cmake_build.bzl", "cmake_tool")
-cmake_tool(
-  name = "{name}_externally_built",
-  cmake_srcs = "@cmake//:all"
-)
+print("Please remove usage of @foreign_cc_platform_utils//:tools.bzl, as it is no longer needed.")
+print("To specify the custom cmake and/or ninja tool, use the toolchains registration with \
+rules_foreign_cc_dependencies() parameters.")
 """,
-    ),
-    "ninja": struct(
-        bin_path = "ninja",
-        file = "ninja_build.bzl",
-        should_be_built = _build_ninja,
-        build_script = """
-load("//:ninja_build.bzl", "ninja_tool")
+    )
 
-ninja_tool(
-    name = "{name}_externally_built",
-    ninja_srcs = "@ninja_build//:all",
-)
-""",
-    ),
-}
-
-def _build_tools(rctx, host_os):
-    build_text = []
-    tools_text = []
-    deps = []
-
-    for tool in _tools:
-        existing = rctx.which(tool)
-        descriptor = _tools[tool]
-
-        # define the rule for building the tool in any case
-        definition_path = rctx.path(Label("//for_workspace:" + descriptor.file))
-        rctx.template(descriptor.file, definition_path)
-        build_text += ["""
-sh_library(
- name = "{tool_name}",
- srcs = [":{tool_name}_externally_built"],
- visibility = ["//visibility:public"]
-)
-""".format(tool_name = tool) + descriptor.build_script.format(name = tool)]
-
-        value = tool
-        to_build_tool = descriptor.should_be_built(existing, rctx, host_os)
-        tool_deps = "[]"
-        if to_build_tool:
-            value = "$EXT_BUILD_DEPS/bin/{}/{}".format(tool, descriptor.bin_path)
-            tool_deps = "[\"@foreign_cc_platform_utils//:{}\"]".format(tool)
-        tools_text += ["{}_USE_BUILT={}".format(tool.upper(), to_build_tool)]
-        tools_text += ["{}_COMMAND=\"{}\"".format(tool.upper(), value)]
-        tools_text += ["{}_DEP={}".format(tool.upper(), tool_deps)]
-
-    rctx.file("tools.bzl", "\n".join(tools_text))
-    return "\n".join(build_text)
-
-_platform_dependent_init = repository_rule(
-    implementation = _platform_dependent_init_impl,
+_read_build_options = repository_rule(
+    implementation = _read_build_options_impl,
     environ = ["PATH"],
 )
 
-def rules_foreign_cc_dependencies():
+def rules_foreign_cc_dependencies(
+        native_tools_toolchains = [],
+        register_default_tools = True,
+        additonal_shell_toolchain_mappings = [],
+        additonal_shell_toolchain_package = None):
+    """ Call this function from the WORKSPACE file to initialize rules_foreign_cc
+     dependencies and let neccesary code generation happen
+     (Code generation is needed to support different variants of the C++ Starlark API.).
+
+     Args:
+        native_tools_toolchains: pass the toolchains for toolchain types
+        '@rules_foreign_cc//tools/build_defs:cmake_toolchain' and
+        '@rules_foreign_cc//tools/build_defs:ninja_toolchain' with the needed platform constraints.
+        If you do not pass anything, registered default toolchains will be selected (see below).
+
+        register_default_tools: if True, the cmake and ninja toolchains, calling corresponding
+        preinstalled binaries by name (cmake, ninja) will be registered after
+        'native_tools_toolchains' without any platform constraints.
+        The default is True.
+
+        additonal_shell_toolchain_mappings: mappings of the shell toolchain functions to
+        execution and target platforms constraints. Similar to what defined in
+        @rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:toolchain_mappings.bzl
+        in the TOOLCHAIN_MAPPINGS list.
+        Please refer to example in @rules_foreign_cc//toolchain_examples.
+
+        additonal_shell_toolchain_package: a package under which additional toolchains, referencing
+        the generated data for the passed additonal_shell_toolchain_mappings, will be defined.
+        This value is needed since register_toolchains() is called for these toolchains.
+        Please refer to example in @rules_foreign_cc//toolchain_examples.
+    """
     repositories()
-    _platform_dependent_init(name = "foreign_cc_platform_utils")
+    _read_build_options(name = "foreign_cc_platform_utils")
+
+    shell_toolchain_workspace_initalization(
+        additonal_shell_toolchain_mappings,
+        additonal_shell_toolchain_package,
+    )
     generate_implementation_fragments(name = "foreign_cc_impl")
+
+    native.register_toolchains(*native_tools_toolchains)
+    if register_default_tools:
+        native.register_toolchains(
+            "@rules_foreign_cc//tools/build_defs:preinstalled_cmake_toolchain",
+            "@rules_foreign_cc//tools/build_defs:preinstalled_ninja_toolchain",
+        )

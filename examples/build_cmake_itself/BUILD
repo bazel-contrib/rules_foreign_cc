@@ -1,4 +1,4 @@
-load("//tools/build_defs:cmake_build.bzl", "cmake_tool")
+load("@rules_foreign_cc//for_workspace:cmake_build.bzl", "cmake_tool")
 
 cmake_tool(
     name = "cmaketool",

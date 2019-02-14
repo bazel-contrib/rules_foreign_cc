@@ -73,7 +73,6 @@ def _create_libraries_to_link(ctx, files):
     )
 
     for name_ in names:
-        static_candidate = static_map.get(name_) or ""
         libs += [cc_common.create_library_to_link(
             actions = ctx.actions,
             feature_configuration = feature_configuration,
