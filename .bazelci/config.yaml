@@ -9,14 +9,14 @@ tasks:
     platform: ubuntu1604
     working_directory: examples
     test_targets:
-      - "//:tests"
+      - "//:tests_no_synthetic"
   macos:
     platform: macos
-    working_directory: examples
+    working_directory: cmake_tests
     test_targets:
       - "//:tests"
   windows:
     platform: windows
-    working_directory: examples
+    working_directory: win_tests
     test_targets:
       - "//:tests"
