@@ -12,11 +12,11 @@ tasks:
       - "//:tests_no_synthetic"
   macos:
     platform: macos
-    working_directory: cmake_tests
+    working_directory: examples
     test_targets:
-      - "//:tests"
+      - "//:cmake_tests"
   windows:
     platform: windows
-    working_directory: win_tests
+    working_directory: examples
     test_targets:
-      - "//:tests"
+      - "//:win_tests"
