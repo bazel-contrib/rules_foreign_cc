@@ -17,12 +17,6 @@ def repositories():
     )
 
     http_archive(
-        name = "build_bazel_rules_apple",
-        strip_prefix = "rules_apple-0.7.0",
-        url = "https://github.com/bazelbuild/rules_apple/archive/0.7.0.tar.gz",
-    )
-
-    http_archive(
         name = "ninja_build",
         build_file_content = _all_content,
         sha256 = "86b8700c3d0880c2b44c2ff67ce42774aaf8c28cbf57725cb881569288c1c6f4",
