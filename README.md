@@ -17,15 +17,12 @@ No flags are required, works on Windows.
 
 No flags are required, but unfortunately Bazel's Starlark C++ API **is broken on Windows**.
 
-**Bazel 0.20 - 0.21:**
-
-Pass the Bazel the following flag:
-```
---experimental_cc_skylark_api_enabled_packages=@rules_foreign_cc//tools/build_defs,tools/build_defs,@foreign_cc_impl
-```
-Where ```rules_foreign_cc``` is the name of this repository in your WORKSPACE file.
-
 ## News
+**March 2019:**
+- Support for versions earlier then 0.22 was removed.
+
+- Tests on Bazel CI are running in the nested workspace
+
 **January 2019:**
 - Bazel 0.22.0 is released, no flags are needed for this version, but it does not work on Windows (Bazel C++ API is broken).
 
