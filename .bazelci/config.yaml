@@ -20,3 +20,23 @@ tasks:
     working_directory: examples
     test_targets:
       - "//:win_tests"
+  ubuntu1804_flags:
+    platform: ubuntu1804
+    working_directory: test/standard_cxx_flags_test
+    test_targets:
+      - "//:flags_test"
+  ubuntu1604_flags:
+    platform: ubuntu1604
+    working_directory: test/standard_cxx_flags_test
+    test_targets:
+      - "//:flags_test"
+  macos_flags:
+    platform: macos
+    working_directory: test/standard_cxx_flags_test
+    test_targets:
+      - "//:flags_test"
+  windows_flags:
+    platform: windows
+    working_directory: test/standard_cxx_flags_test
+    test_targets:
+      - "//:flags_test"
