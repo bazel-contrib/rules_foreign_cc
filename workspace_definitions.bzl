@@ -1,6 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//for_workspace:repositories.bzl", "repositories")
-load("//for_workspace:starlark_api_change_support.bzl", "generate_implementation_fragments")
 load(
     "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",
     shell_toolchain_workspace_initalization = "workspace_part",
@@ -96,7 +95,6 @@ def rules_foreign_cc_dependencies(
         additonal_shell_toolchain_mappings,
         additonal_shell_toolchain_package,
     )
-    generate_implementation_fragments(name = "foreign_cc_impl")
 
     native.register_toolchains(*native_tools_toolchains)
     if register_default_tools:
