@@ -264,22 +264,24 @@ def get_flags_info(ctx):
     Args:
         ctx - rule context
     """
-    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain_ = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
-        cc_toolchain = cc_toolchain,
+        cc_toolchain = cc_toolchain_,
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
-    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else []
 
-    return CxxFlagsInfo(
+    copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts) or []
+    cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts) or []
+    linkopts = ctx.fragments.cpp.linkopts or []
+
+    flags = CxxFlagsInfo(
         cc = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
             action_name = C_COMPILE_ACTION_NAME,
             variables = cc_common.create_compile_variables(
                 feature_configuration = feature_configuration,
-                cc_toolchain = cc_toolchain,
-                user_compile_flags = copts,
+                cc_toolchain = cc_toolchain_,
             ),
         ),
         cxx = cc_common.get_memory_inefficient_command_line(
@@ -287,8 +289,7 @@ def get_flags_info(ctx):
             action_name = CPP_COMPILE_ACTION_NAME,
             variables = cc_common.create_compile_variables(
                 feature_configuration = feature_configuration,
-                cc_toolchain = cc_toolchain,
-                user_compile_flags = copts,
+                cc_toolchain = cc_toolchain_,
                 add_legacy_cxx_options = True,
             ),
         ),
@@ -296,7 +297,7 @@ def get_flags_info(ctx):
             feature_configuration = feature_configuration,
             action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
             variables = cc_common.create_link_variables(
-                cc_toolchain = cc_toolchain,
+                cc_toolchain = cc_toolchain_,
                 feature_configuration = feature_configuration,
                 is_using_linker = True,
                 is_linking_dynamic_library = True,
@@ -306,7 +307,7 @@ def get_flags_info(ctx):
             feature_configuration = feature_configuration,
             action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
             variables = cc_common.create_link_variables(
-                cc_toolchain = cc_toolchain,
+                cc_toolchain = cc_toolchain_,
                 feature_configuration = feature_configuration,
                 is_using_linker = False,
                 is_linking_dynamic_library = False,
@@ -316,7 +317,7 @@ def get_flags_info(ctx):
             feature_configuration = feature_configuration,
             action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
             variables = cc_common.create_link_variables(
-                cc_toolchain = cc_toolchain,
+                cc_toolchain = cc_toolchain_,
                 feature_configuration = feature_configuration,
                 is_using_linker = True,
                 is_linking_dynamic_library = False,
@@ -327,11 +328,29 @@ def get_flags_info(ctx):
             action_name = ASSEMBLE_ACTION_NAME,
             variables = cc_common.create_compile_variables(
                 feature_configuration = feature_configuration,
-                cc_toolchain = cc_toolchain,
-                user_compile_flags = copts,
+                cc_toolchain = cc_toolchain_,
             ),
         ),
     )
+    return CxxFlagsInfo(
+        cc = _add_if_needed(flags.cc, copts),
+        cxx = _add_if_needed(flags.cxx, cxxopts),
+        cxx_linker_shared = _add_if_needed(flags.cxx_linker_shared, linkopts),
+        cxx_linker_static = _add_if_needed(flags.cxx_linker_static, linkopts),
+        cxx_linker_executable = _add_if_needed(flags.cxx_linker_executable, linkopts),
+        assemble = _add_if_needed(flags.assemble, copts),
+    )
+
+def _add_if_needed(arr, add_arr):
+    filtered = []
+    for to_add in add_arr:
+        found = False
+        for existing in arr:
+            if existing == to_add:
+                found = True
+        if not found:
+            filtered += [to_add]
+    return arr + filtered
 
 def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     """ Replaces relative paths in [the middle of] 'text', prepending them with 'root_str'.
