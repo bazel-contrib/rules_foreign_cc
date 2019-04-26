@@ -103,8 +103,3 @@ def rules_foreign_cc_dependencies(
             "@rules_foreign_cc//tools/build_defs:preinstalled_cmake_toolchain",
             "@rules_foreign_cc//tools/build_defs:preinstalled_ninja_toolchain",
         )
-
-    native.register_toolchains(
-        "@bazel_skylib//toolchains/unittest:cmd_toolchain",
-        "@bazel_skylib//toolchains/unittest:bash_toolchain",
-    )
