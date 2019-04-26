@@ -17,11 +17,6 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
 
-native.register_toolchains(
-    "@bazel_skylib//toolchains/unittest:cmd_toolchain",
-    "@bazel_skylib//toolchains/unittest:bash_toolchain",
-)
-
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 android_sdk_repository(
