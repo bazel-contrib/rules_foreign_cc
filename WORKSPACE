@@ -6,8 +6,6 @@ rules_foreign_cc_dependencies([
     "@rules_foreign_cc_tests//:built_cmake_toolchain",
     "@rules_foreign_cc_tests//:built_ninja_toolchain_osx",
     "@rules_foreign_cc_tests//:built_ninja_toolchain_linux",
-    "@bazel_skylib//toolchains/unittest:cmd_toolchain",
-    "@bazel_skylib//toolchains/unittest:bash_toolchain",
 ])
 
 local_repository(
