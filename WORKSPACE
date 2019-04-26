@@ -8,6 +8,10 @@ rules_foreign_cc_dependencies([
     "@rules_foreign_cc_tests//:built_ninja_toolchain_linux",
 ])
 
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 local_repository(
     name = "rules_foreign_cc_tests",
     path = "examples",
