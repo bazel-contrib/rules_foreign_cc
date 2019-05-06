@@ -61,7 +61,8 @@ def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
         additonal_shell_toolchain_mappings = [],
-        additonal_shell_toolchain_package = None):
+        additonal_shell_toolchain_package = None,
+        ):
     """ Call this function from the WORKSPACE file to initialize rules_foreign_cc
      dependencies and let neccesary code generation happen
      (Code generation is needed to support different variants of the C++ Starlark API.).

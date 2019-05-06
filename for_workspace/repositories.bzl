@@ -7,19 +7,9 @@ def repositories():
 
     http_archive(
         name = "bazel_skylib",
-        build_file_content = _all_content,
-        sha256 = "eb5c57e4c12e68c0c20bc774bfbc60a568e800d025557bc4ea022c6479acc867",
-        strip_prefix = "bazel-skylib-0.6.0",
         type = "tar.gz",
-        urls = [
-            "https://github.com/bazelbuild/bazel-skylib/archive/0.6.0.tar.gz",
-        ],
-    )
-
-    http_archive(
-        name = "build_bazel_rules_apple",
-        strip_prefix = "rules_apple-0.7.0",
-        url = "https://github.com/bazelbuild/rules_apple/archive/0.7.0.tar.gz",
+        url = "https://github.com/bazelbuild/bazel-skylib/releases/download/0.8.0/bazel-skylib.0.8.0.tar.gz",
+        sha256 = "2ef429f5d7ce7111263289644d233707dba35e39696377ebab8b0bc701f7818e",
     )
 
     http_archive(

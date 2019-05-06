@@ -24,7 +24,7 @@ def _create_configure_script(configureParameters):
     return "\n".join([
         "cd $INSTALLDIR",
         "##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{}/. .".format(root),
-        "./bootstrap.sh".format(" ".join(ctx.attr.bootstrap_options)),
+        "./bootstrap.sh {}".format(" ".join(ctx.attr.bootstrap_options)),
     ])
 
 def _attrs():
