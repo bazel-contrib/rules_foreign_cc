@@ -55,7 +55,7 @@ def define_function(name, text):
 def replace_in_files(dir, from_, to_):
     return FunctionAndCall(
         text = """if [ -d "$1" ]; then
-  find -L $1 -print -type f \
+  find -L $1 -type f \
   \( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \) \
   -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
 fi

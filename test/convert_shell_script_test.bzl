@@ -40,7 +40,7 @@ def _replace_vars_test(ctx):
         result = replace_var_ref(case, shell_context)
         asserts.equals(env, cases[case], result)
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _replace_vars_win_test(ctx):
     env = unittest.begin(ctx)
@@ -65,7 +65,7 @@ def _replace_vars_win_test(ctx):
         result = replace_var_ref(case, shell_context)
         asserts.equals(env, cases[case], result)
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _funny_fun(a, b):
     return a + "_" + b
@@ -86,7 +86,7 @@ def _split_arguments_test(ctx):
         result = split_arguments(case)
         asserts.equals(env, cases[case], result)
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _export_var(name, value):
     return "export1 {}={}".format(
@@ -127,7 +127,7 @@ def _do_function_call_test(ctx):
         result = do_function_call(case, shell_context)
         asserts.equals(env, cases[case], result)
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _touch(path):
     text = "call_touch $1"
@@ -187,7 +187,7 @@ fi
         asserts.equals(env, cases[case]["call"], result)
         asserts.equals(env, cases[case]["text"], shell_context.prelude.values()[0])
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _symlink_contents_to_dir(source, target):
     text = """local target="$2"
@@ -266,7 +266,7 @@ symlink_contents_to_dir a b"""
     result = convert_shell_script_by_context(shell_context, script)
     asserts.equals(env, expected, result)
 
-    unittest.end(env)
+    return unittest.end(env)
 
 replace_vars_test = unittest.make(_replace_vars_test)
 replace_vars_win_test = unittest.make(_replace_vars_win_test)

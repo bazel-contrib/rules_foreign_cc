@@ -20,7 +20,7 @@ def _absolutize_test(ctx):
         res = export_for_test.absolutize("ws", case)
         asserts.equals(env, cases[case], res)
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _tail_extraction_test(ctx):
     env = unittest.begin(ctx)
@@ -34,7 +34,7 @@ def _tail_extraction_test(ctx):
     res = export_for_test.tail_if_starts_with("--option=value", "--option")
     asserts.equals(env, "=value", res)
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _find_flag_value_test(ctx):
     env = unittest.begin(ctx)
@@ -65,7 +65,7 @@ def _find_flag_value_test(ctx):
         res = export_for_test.find_flag_value(case, "gcc_toolchain")
         asserts.false(env, "/abc/def" == res, msg = "Equals: " + str(case))
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _fill_crossfile_from_toolchain_test(ctx):
     env = unittest.begin(ctx)
@@ -108,7 +108,7 @@ def _fill_crossfile_from_toolchain_test(ctx):
     for key in expected:
         asserts.equals(env, expected[key], res[key])
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _move_dict_values_test(ctx):
     env = unittest.begin(ctx)
@@ -149,7 +149,7 @@ def _move_dict_values_test(ctx):
     asserts.equals(env, 1, len(source_env))
     asserts.equals(env, 1, len(source_cache))
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _reverse_descriptor_dict_test(ctx):
     env = unittest.begin(ctx)
@@ -170,7 +170,7 @@ def _reverse_descriptor_dict_test(ctx):
     for key in expected:
         asserts.equals(env, expected[key], res[key])
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _merge_toolchain_and_user_values_test(ctx):
     env = unittest.begin(ctx)
@@ -202,7 +202,7 @@ def _merge_toolchain_and_user_values_test(ctx):
     for key in expected_target:
         asserts.equals(env, expected_target[key], res[key])
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _merge_flag_values_no_toolchain_file_test(ctx):
     env = unittest.begin(ctx)
@@ -232,7 +232,7 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
     expected = """CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CXXFLAGS=\"foo=\\\"bar\\\" -Fbat" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\"  $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected, script)
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _create_min_cmake_script_no_toolchain_file_test(ctx):
     env = unittest.begin(ctx)
@@ -261,7 +261,7 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
     expected = "CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" CXXFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" ASMFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_SHARED_LINKER_FLAGS=\"-shared -fuse-ld=gold\" -DCMAKE_EXE_LINKER_FLAGS=\"-fuse-ld=gold -Wl -no-as-needed\" -DNOFORTRAN=\"on\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS;/abc/def\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_BUILD_TYPE=\"DEBUG\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
     asserts.equals(env, expected, script)
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _create_min_cmake_script_toolchain_file_test(ctx):
     env = unittest.begin(ctx)
@@ -301,7 +301,7 @@ EOF
  cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_BUILD_TYPE=\"DEBUG\" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected.splitlines(), script.splitlines())
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _create_cmake_script_no_toolchain_file_test(ctx):
     env = unittest.begin(ctx)
@@ -338,7 +338,7 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
     expected = "CC=\"sink-cc-value\" CXX=\"sink-cxx-value\" CFLAGS=\"-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag\" CXXFLAGS=\"--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain\" ASMFLAGS=\"assemble assemble-user\" CUSTOM_ENV=\"YES\" cmake -DCMAKE_AR=\"/cxx_linker_static\" -DCMAKE_CXX_LINK_EXECUTABLE=\"became\" -DCMAKE_SHARED_LINKER_FLAGS=\"shared1 shared2\" -DCMAKE_EXE_LINKER_FLAGS=\"executable\" -DCUSTOM_CACHE=\"YES\" -DCMAKE_BUILD_TYPE=\"user_type\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
     asserts.equals(env, expected, script)
 
-    unittest.end(env)
+    return unittest.end(env)
 
 def _create_cmake_script_toolchain_file_test(ctx):
     env = unittest.begin(ctx)
@@ -390,7 +390,7 @@ EOF
 CUSTOM_ENV="YES" cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_BUILD_TYPE=\"DEBUG\" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected.splitlines(), script.splitlines())
 
-    unittest.end(env)
+    return unittest.end(env)
 
 absolutize_test = unittest.make(_absolutize_test)
 tail_extraction_test = unittest.make(_tail_extraction_test)
