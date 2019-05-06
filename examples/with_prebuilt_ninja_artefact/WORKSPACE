@@ -13,6 +13,10 @@ rules_foreign_cc_dependencies([
     "@prebuilt_ninja_artefact_example//:prebuilt_ninja_artefact_toolchain",
 ])
 
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 http_archive(
     name = "ninja_artefact",
     build_file_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])""",
