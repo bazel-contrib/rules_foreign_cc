@@ -121,3 +121,31 @@ def include_examples_repositories():
         strip_prefix = "bison-3.3",
         urls = ["http://ftp.gnu.org/gnu/bison/bison-3.3.tar.gz"],
     )
+
+    http_archive(
+        name = "apache_httpd",
+        build_file_content = all_content,
+        strip_prefix = "httpd-2.4.39",
+        urls = ["https://www-us.apache.org/dist/httpd/httpd-2.4.39.tar.gz"],
+    )
+
+    http_archive(
+        name = "pcre",
+        build_file_content = all_content,
+        strip_prefix = "pcre-8.43",
+        urls = ["https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz"],
+    )
+
+    http_archive(
+        name = "apr",
+        build_file_content = all_content,
+        strip_prefix = "apr-1.6.5",
+        urls = ["https://www-eu.apache.org/dist//apr/apr-1.6.5.tar.gz"],
+    )
+
+    http_archive(
+        name = "apr_util",
+        build_file_content = all_content,
+        strip_prefix = "apr-util-1.6.1",
+        urls = ["https://www-us.apache.org/dist//apr/apr-util-1.6.1.tar.gz"],
+    )
