@@ -12,7 +12,7 @@ configure_make(
     lib_source = "@apr_util//:all",
     deps = [":apr"],
     configure_options = [
-        "--with-apr=$EXT_BUILD_DEPS/apr",
+        "--with-apr=$$EXT_BUILD_DEPS$$/apr",
         ],
     static_libraries = ["libaprutil-1.a"],
     shared_libraries = ["libaprutil-1.so"],
@@ -28,9 +28,9 @@ configure_make(
 configure_make(
     name = "apache_httpd",
     configure_options = [
-        "--with-apr=$EXT_BUILD_DEPS/apr",
-        "--with-apr-util=$EXT_BUILD_DEPS/apr_util",
-        "--with-pcre=$EXT_BUILD_DEPS/pcre",
+        "--with-apr=$$EXT_BUILD_DEPS$$/apr",
+        "--with-apr-util=$$EXT_BUILD_DEPS$$/apr_util",
+        "--with-pcre=$$EXT_BUILD_DEPS$$/pcre",
         "CFLAGS='-Dredacted=\"redacted\"'",
     ],
     lib_source = "@apache_httpd//:all",
