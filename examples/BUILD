@@ -41,7 +41,7 @@ test_suite(
 
 test_suite(
     name = "tests_no_synthetic",
-    tests = tests + ["//configure_gnuplot:configure_libgd_tests"],
+    tests = tests,
 )
 
 # As Bazel 0.22.0 is broken for rules_foreign_cc on Windows, we do not want to run any tests
