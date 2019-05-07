@@ -77,6 +77,7 @@ def _create_configure_script(configureParameters):
         dict(ctx.attr.cache_entries),
         dict(ctx.attr.env_vars),
         ctx.attr.cmake_options,
+        inputs.include_dirs,
         is_debug_mode(ctx),
     )
     return define_install_prefix + configure_script

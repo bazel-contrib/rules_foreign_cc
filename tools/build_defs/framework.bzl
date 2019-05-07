@@ -449,10 +449,13 @@ def _symlink_contents_to_dir(dir_name, files_list):
 
     paths_list = []
     for file in files_list:
-        paths_list += [_file_path(file)]
+        paths_list += [_file_path(file).strip()]
 
     for path in paths_list:
-        lines += ["##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name)]
+        # Filter out empty subpaths
+        # (current directory may be passed as quote_includes, but we should not symlink it)
+        if path and path != ".":
+            lines += ["##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name)]
 
     return lines
 
@@ -599,7 +602,11 @@ def get_foreign_cc_dep(dep):
 
 # consider optimization here to do not iterate both collections
 def _get_headers(compilation_info):
-    include_dirs = collections.uniq(compilation_info.system_includes.to_list())
+    # NB: current directory (".") is passed by quote_includes;
+    # ignore it by now, will be filtered by symlinking code.
+    include_dirs = collections.uniq(compilation_info.system_includes.to_list() +
+                                    compilation_info.includes.to_list() +
+                                    compilation_info.quote_includes.to_list())
     headers = []
     for header in compilation_info.headers:
         path = header.path
@@ -635,17 +642,18 @@ def _define_out_cc_info(ctx, attrs, inputs, outputs):
 
     return cc_common.merge_cc_infos(cc_infos = [cc_info, inputs_info])
 
-def _extract_link_params(cc_linking):
+def _extract_libraries(library_to_link):
     return [
-        cc_linking.static_mode_params_for_dynamic_library,
-        cc_linking.static_mode_params_for_executable,
-        cc_linking.dynamic_mode_params_for_dynamic_library,
-        cc_linking.dynamic_mode_params_for_executable,
+        library_to_link.static_library,
+        library_to_link.pic_static_library,
+        library_to_link.dynamic_library,
+        library_to_link.interface_library,
     ]
 
 def _collect_libs(cc_linking):
     libs = []
-    for params in _extract_link_params(cc_linking):
-        libs += [lib.artifact() for lib in params.libraries_to_link]
-        libs += params.dynamic_libraries_for_runtime.to_list()
+    for library_to_link in cc_linking.libraries_to_link:
+        for library in _extract_libraries(library_to_link):
+            if library:
+                libs.append(library)
     return collections.uniq(libs)

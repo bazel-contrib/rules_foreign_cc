@@ -14,6 +14,7 @@ def create_cmake_script(
         user_cache,
         user_env,
         options,
+        include_dirs = [],
         is_debug_mode = True):
     """ Constructs CMake script to be passed to cc_external_rule_impl.
       Args:
@@ -29,7 +30,7 @@ def create_cmake_script(
         user_env - dictionary with user's values for CMake environment variables
         options - other CMake options specified by user
 """
-    merged_prefix_path = _merge_prefix_path(user_cache)
+    merged_prefix_path = _merge_prefix_path(user_cache, include_dirs)
 
     toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags)
     params = None
@@ -72,13 +73,14 @@ def wipe_empty_values(cache, user_cache):
             cache.pop(key)
 
 # From CMake documentation: ;-list of directories specifying installation prefixes to be searched...
-def _merge_prefix_path(user_cache):
+def _merge_prefix_path(user_cache, include_dirs):
     user_prefix = user_cache.get("CMAKE_PREFIX_PATH")
+    values = ["$EXT_BUILD_DEPS"] + include_dirs
     if user_prefix != None:
         # remove it, it is gonna be merged specifically
         user_cache.pop("CMAKE_PREFIX_PATH")
-        return "$EXT_BUILD_DEPS;" + user_prefix.strip("\"'")
-    return "$EXT_BUILD_DEPS"
+        values.append(user_prefix.strip("\"'"))
+    return ";".join(values)
 
 _CMAKE_ENV_VARS_FOR_CROSSTOOL = {
     "CC": struct(value = "CMAKE_C_COMPILER", replace = True),

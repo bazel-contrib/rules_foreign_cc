@@ -22,6 +22,7 @@ test_suite(
     name = "tests",
     tests = tests + [
         "//cmake_synthetic:test_libs",
+        "//cmake_synthetic:test_libs_bazel_transitive_from_cmake",
         "//configure_gnuplot:configure_libgd_tests",
         "//cmake_hello_world_lib/shared:test_libhello",
         "//cmake_hello_world_lib/binary:test_binary",
