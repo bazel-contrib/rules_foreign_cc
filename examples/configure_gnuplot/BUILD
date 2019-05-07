@@ -8,6 +8,9 @@ configure_make(
 
 configure_make(
     name = "libpng",
+    configure_options = [
+        "--with-zlib=\"$$EXT_BUILD_DEPS$$/libz\"",
+    ],
     lib_source = "@libpng//:all",
     out_include_dir = "include/libpng16",
     static_libraries = ["libpng16.a"],
@@ -16,13 +19,13 @@ configure_make(
 
 configure_make(
     name = "freetype",
-    lib_source = "@freetype//:all",
-    out_include_dir = "include/freetype2",
-    static_libraries = ["libfreetype.a"],
     configure_options = [
         "--with-png=\"$$EXT_BUILD_DEPS$$/libpng\"",
         "--with-zlib=\"$$EXT_BUILD_DEPS$$/libz\"",
     ],
+    lib_source = "@freetype//:all",
+    out_include_dir = "include/freetype2",
+    static_libraries = ["libfreetype.a"],
     deps = [
         ":libpng",
         ":libz",
