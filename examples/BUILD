@@ -26,6 +26,7 @@ test_suite(
         "//configure_gnuplot:configure_libgd_tests",
         "//cmake_hello_world_lib/shared:test_libhello",
         "//cmake_hello_world_lib/binary:test_binary",
+        "//configure_with_bazel_transitive:test",
     ],
 )
 
