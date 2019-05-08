@@ -41,19 +41,19 @@ def _create_configure_script(configureParameters):
     define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
 
     configure = create_configure_script(
-        ctx.workspace_name,
+        workspace_name = ctx.workspace_name,
         # as default, pass execution OS as target OS
-        os_name(ctx),
-        tools,
-        flags,
-        root,
-        ctx.attr.configure_options,
-        dict(ctx.attr.configure_env_vars),
-        is_debug_mode(ctx),
-        ctx.attr.configure_command,
-        ctx.attr.deps,
-        inputs,
-        ctx.attr.configure_in_place,
+        target_os = os_name(ctx),
+        tools = tools,
+        flags = flags,
+        root = root,
+        user_options = ctx.attr.configure_options,
+        user_vars = dict(ctx.attr.configure_env_vars),
+        is_debug = is_debug_mode(ctx),
+        configure_command = ctx.attr.configure_command,
+        deps = ctx.attr.deps,
+        inputs = inputs,
+        configure_in_place = ctx.attr.configure_in_place,
     )
     return "\n".join([define_install_prefix, configure])
 
