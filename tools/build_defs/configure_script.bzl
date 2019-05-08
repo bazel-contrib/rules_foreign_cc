@@ -18,8 +18,9 @@ def create_configure_script(
     deps_flags = _define_deps_flags(deps, inputs)
 
     vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
-    vars["CXXFLAGS"] = vars["CXXFLAGS"] + deps_flags.flags
-    vars["CFLAGS"] = vars["CFLAGS"] + deps_flags.flags
+
+    # -I flags should be pur into preprocessor flags, CPPFLAGS
+    vars["CPPFLAGS"] = deps_flags.flags
 
     env_vars_string = " ".join(["{}=\"{}\"".format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
 
@@ -59,11 +60,10 @@ def _define_deps_flags(deps, inputs):
     include_dirs_set = {}
     for include_dir in inputs.include_dirs:
         include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
-    for header_list in inputs.headers:
-        for header in header_list:
-            include_dir = header.dirname
-            if not include_dirs_set.get(include_dir):
-                include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
+    for header in inputs.headers:
+        include_dir = header.dirname
+        if not include_dirs_set.get(include_dir):
+            include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
     include_dirs = include_dirs_set.values()
 
     # For the external libraries, we need to refer to the places where
