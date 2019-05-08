@@ -18,8 +18,10 @@ def create_configure_script(
     deps_flags = _define_deps_flags(deps, inputs)
 
     vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
-    vars["CXXFLAGS"] = vars["CXXFLAGS"] + deps_flags.flags
-    vars["CFLAGS"] = vars["CFLAGS"] + deps_flags.flags
+
+    # -I flags should be put into preprocessor flags, CPPFLAGS
+    # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html
+    vars["CPPFLAGS"] = deps_flags.flags
 
     env_vars_string = " ".join(["{}=\"{}\"".format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
 
