@@ -59,11 +59,10 @@ def _define_deps_flags(deps, inputs):
     include_dirs_set = {}
     for include_dir in inputs.include_dirs:
         include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
-    for header_list in inputs.headers:
-        for header in header_list:
-            include_dir = header.dirname
-            if not include_dirs_set.get(include_dir):
-                include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
+    for header in inputs.headers:
+        include_dir = header.dirname
+        if not include_dirs_set.get(include_dir):
+            include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
     include_dirs = include_dirs_set.values()
 
     # For the external libraries, we need to refer to the places where
