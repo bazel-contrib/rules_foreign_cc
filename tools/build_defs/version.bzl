@@ -1,1 +1,1 @@
-VERSION = "0.0.7"  # output refactoring
+VERSION = "0.0.8"  # supports transitive dependencies bazel -> cmake -> bazel

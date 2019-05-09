@@ -1,11 +1,5 @@
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
-filegroup(
-    name = "b_srcs",
-    srcs = glob(["libb/**"]),
-    visibility = ["//visibility:public"],
-)
-
 generate_crosstool = select({
     "@bazel_tools//src/conditions:windows": True,
     "//conditions:default": False,
@@ -41,7 +35,7 @@ cc_test(
     ],
     tags = ["windows"],
     deps = [
-        ":liba",
+        # liba should come from transitive dependencies
         ":libb",
     ],
 )

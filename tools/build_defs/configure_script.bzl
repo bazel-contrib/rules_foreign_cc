@@ -17,9 +17,11 @@ def create_configure_script(
     vars = _get_configure_variables(tools, flags, user_vars)
     deps_flags = _define_deps_flags(deps, inputs)
 
-    vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags["LDFLAGS"]
-    vars["CPPFLAGS"] = deps_flags["CPPFLAGS"]
-    #    vars["SYSROOT"] = "$EXT_BUILD_DEPS"
+    vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
+
+    # -I flags should be put into preprocessor flags, CPPFLAGS
+    # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html
+    vars["CPPFLAGS"] = deps_flags.flags
 
     env_vars_string = " ".join(["{}=\"{}\"".format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
 
@@ -57,14 +59,12 @@ def _define_deps_flags(deps, inputs):
             lib_dirs += ["-L$$EXT_BUILD_ROOT$$/" + dir_]
 
     include_dirs_set = {}
-    for dir_list in inputs.include_dirs:
-        for include_dir in dir_list:
+    for include_dir in inputs.include_dirs:
+        include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
+    for header in inputs.headers:
+        include_dir = header.dirname
+        if not include_dirs_set.get(include_dir):
             include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
-    for header_list in inputs.headers:
-        for header in header_list:
-            include_dir = header.dirname
-            if not include_dirs_set.get(include_dir):
-                include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
     include_dirs = include_dirs_set.values()
 
     # For the external libraries, we need to refer to the places where
@@ -85,10 +85,10 @@ def _define_deps_flags(deps, inputs):
                     include_dirs += ["-I$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.include_dir_name)]
                     lib_dirs += ["-L$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name)]
 
-    return {
-        "LDFLAGS": lib_dirs,
-        "CPPFLAGS": include_dirs,
-    }
+    return struct(
+        libs = lib_dirs,
+        flags = include_dirs,
+    )
 
 # See https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
 _CONFIGURE_FLAGS = {

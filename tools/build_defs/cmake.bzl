@@ -65,19 +65,20 @@ def _create_configure_script(configureParameters):
 
     define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
     configure_script = create_cmake_script(
-        ctx.workspace_name,
+        workspace_name = ctx.workspace_name,
         # as default, pass execution OS as target OS
-        os_name(ctx),
-        configureParameters.attrs.cmake_path,
-        tools,
-        flags,
-        "$$INSTALL_PREFIX$$",
-        root,
-        no_toolchain_file,
-        dict(ctx.attr.cache_entries),
-        dict(ctx.attr.env_vars),
-        ctx.attr.cmake_options,
-        is_debug_mode(ctx),
+        target_os = os_name(ctx),
+        cmake_path = configureParameters.attrs.cmake_path,
+        tools = tools,
+        flags = flags,
+        install_prefix = "$$INSTALL_PREFIX$$",
+        root = root,
+        no_toolchain_file = no_toolchain_file,
+        user_cache = dict(ctx.attr.cache_entries),
+        user_env = dict(ctx.attr.env_vars),
+        options = ctx.attr.cmake_options,
+        include_dirs = inputs.include_dirs,
+        is_debug_mode = is_debug_mode(ctx),
     )
     return define_install_prefix + configure_script
 
