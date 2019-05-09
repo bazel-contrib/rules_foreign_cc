@@ -71,10 +71,12 @@ if [[ -f $1 ]]; then
   return 0
 fi
 
-local children=$($REAL_FIND $1 -maxdepth 1 -mindepth 1)
-for child in $children; do
-  ##symlink_to_dir## $child $target
-done
+if [[ -d $1 || -L $1 ]]; then
+  local children=$(find $1 -maxdepth 1 -mindepth 1)
+  for child in $children; do
+    ##symlink_to_dir## $child $target
+  done
+fi
 """
     return FunctionAndCall(text = text)
 

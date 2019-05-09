@@ -1,0 +1,5 @@
+ls "$EXT_BUILD_DEPS/lib"
+echo "CPPFLAGS = $CPPFLAGS" > Makefile
+echo "LDFLAGS = $LDFLAGS" >> Makefile
+echo "BUILT_WITH_BAZEL = $EXT_BUILD_DEPS/lib/libbuilt_with_bazel.a" >> Makefile
+cat Makefile.in >> Makefile

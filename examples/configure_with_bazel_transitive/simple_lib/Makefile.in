@@ -1,0 +1,7 @@
+simple: ./src/simple.c
+	gcc $(CPPFLAGS) $(LDFLAGS) -o simple.a -c ./src/simple.c -I./include -I.
+install:
+	mkdir -p simple
+	mkdir -p simple/lib
+	cp simple.a ./simple/lib/simple.a
+	cp -r ./include ./simple
