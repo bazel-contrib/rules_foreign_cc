@@ -90,10 +90,10 @@ def _get_install_prefix(ctx):
         # So if the user passed the absolute value, do not touch it.
         if (prefix.startswith("/")):
             return prefix
-        return prefix if prefix.startswith("./") else "./" + prefix
+        return prefix
     if ctx.attr.lib_name:
-        return "./" + ctx.attr.lib_name
-    return "./" + ctx.attr.name
+        return ctx.attr.lib_name
+    return ctx.attr.name
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
