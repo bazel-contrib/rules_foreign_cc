@@ -550,7 +550,6 @@ def _define_inputs(attrs):
     # This framework function-built libraries: copy result directories under
     # $EXT_BUILD_DEPS/lib-name
     ext_build_dirs = []
-    ext_build_dirs_set = {}
 
     for dep in attrs.deps:
         external_deps = get_foreign_cc_dep(dep)
@@ -558,15 +557,17 @@ def _define_inputs(attrs):
         cc_infos += [dep[CcInfo]]
 
         if external_deps:
-            for artifact in external_deps.artifacts.to_list():
-                if not ext_build_dirs_set.get(artifact.gen_dir):
-                    ext_build_dirs_set[artifact.gen_dir] = 1
-                    ext_build_dirs += [artifact.gen_dir]
+            ext_build_dirs += [artifact.gen_dir for artifact in external_deps.artifacts.to_list()]
         else:
             headers_info = _get_headers(dep[CcInfo].compilation_context)
             bazel_headers += headers_info.headers
             bazel_system_includes += headers_info.include_dirs
             bazel_libs += _collect_libs(dep[CcInfo].linking_context)
+
+    # Keep the order of the transitive foreign dependencies
+    # (the order is important for the correct linking),
+    # but filter out repeating directories
+    ext_build_dirs = uniq_list_keep_order(ext_build_dirs)
 
     tools_roots = []
     tools_files = []
@@ -596,6 +597,16 @@ def _define_inputs(attrs):
                           attrs.additional_inputs +
                           cc_info_merged.compilation_context.headers.to_list() + ext_build_dirs,
     )
+
+def uniq_list_keep_order(list):
+    result = []
+    contains_map = {}
+    for item in list:
+        if contains_map.get(item):
+            continue
+        contains_map[item] = 1
+        result.append(item)
+    return result
 
 def get_foreign_cc_dep(dep):
     return dep[ForeignCcDeps] if ForeignCcDeps in dep else None
