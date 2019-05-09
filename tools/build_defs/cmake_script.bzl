@@ -217,12 +217,15 @@ def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
 
     # Force convert tools paths to absolute using $EXT_BUILD_ROOT
     if tools.cc:
-        dict["CMAKE_C_COMPILER"] = _absolutize(workspace_name, tools.cc, True)
+        dict["CMAKE_C_COMPILER"] = _absolutize(workspace_name, tools.cc, False)
     if tools.cxx:
-        dict["CMAKE_CXX_COMPILER"] = _absolutize(workspace_name, tools.cxx, True)
+        dict["CMAKE_CXX_COMPILER"] = _absolutize(workspace_name, tools.cxx, False)
 
     if tools.cxx_linker_static:
-        dict["CMAKE_AR"] = _absolutize(workspace_name, tools.cxx_linker_static, True)
+        if tools.cxx_linker_static.endswith("""/ar""") or "ar" == tools.cxx_linker_static:
+            dict["CMAKE_AR"] = _absolutize(workspace_name, tools.cxx_linker_static, False)
+        if tools.cxx_linker_static.endswith("""/ranlib""") or "ranlib" == tools.cxx_linker_static:
+            dict["CMAKE_RANLIB"] = _absolutize(workspace_name, tools.cxx_linker_static, False)
 
     if tools.cxx_linker_executable and tools.cxx_linker_executable != tools.cxx:
         normalized_path = _absolutize(workspace_name, tools.cxx_linker_executable)

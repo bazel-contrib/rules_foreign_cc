@@ -73,7 +73,7 @@ def _fill_crossfile_from_toolchain_test(ctx):
     tools = CxxToolsInfo(
         cc = "/some-cc-value",
         cxx = "external/cxx-value",
-        cxx_linker_static = "/cxx_linker_static",
+        cxx_linker_static = "/usr/bin/ar",
         cxx_linker_executable = "ws/cxx_linker_executable",
     )
     flags = CxxFlagsInfo(
@@ -96,7 +96,7 @@ def _fill_crossfile_from_toolchain_test(ctx):
         "CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN": "cxx-toolchain",
         "CMAKE_C_COMPILER": "/some-cc-value",
         "CMAKE_CXX_COMPILER": "$EXT_BUILD_ROOT/external/cxx-value",
-        "CMAKE_AR": "/cxx_linker_static",
+        "CMAKE_AR": "/usr/bin/ar",
         "CMAKE_CXX_LINK_EXECUTABLE": "$EXT_BUILD_ROOT/ws/cxx_linker_executable <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>",
         "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
         "CMAKE_CXX_FLAGS_INIT": "--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain",
@@ -210,7 +210,7 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
     tools = CxxToolsInfo(
         cc = "/usr/bin/gcc",
         cxx = "/usr/bin/gcc",
-        cxx_linker_static = "/usr/bin/ar",
+        cxx_linker_static = "/usr/bin/ranlib",
         cxx_linker_executable = "/usr/bin/gcc",
     )
     flags = CxxFlagsInfo(
@@ -229,7 +229,7 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
     }
 
     script = create_cmake_script("ws", "linux", "cmake", tools, flags, "test_rule", "external/test_rule", True, user_cache, user_env, [])
-    expected = """CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CXXFLAGS=\"foo=\\\"bar\\\" -Fbat" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\"  $EXT_BUILD_ROOT/external/test_rule"""
+    expected = """CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CXXFLAGS=\"foo=\\\"bar\\\" -Fbat" cmake -DCMAKE_RANLIB=\"/usr/bin/ranlib\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\"  $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
@@ -309,7 +309,7 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
     tools = CxxToolsInfo(
         cc = "/some-cc-value",
         cxx = "external/cxx-value",
-        cxx_linker_static = "/cxx_linker_static",
+        cxx_linker_static = "/usr/bin/ar",
         cxx_linker_executable = "ws/cxx_linker_executable",
     )
     flags = CxxFlagsInfo(
@@ -335,7 +335,7 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
     }
 
     script = create_cmake_script("ws", "linux", "cmake", tools, flags, "test_rule", "external/test_rule", True, user_cache, user_env, ["-GNinja"])
-    expected = "CC=\"sink-cc-value\" CXX=\"sink-cxx-value\" CFLAGS=\"-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag\" CXXFLAGS=\"--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain\" ASMFLAGS=\"assemble assemble-user\" CUSTOM_ENV=\"YES\" cmake -DCMAKE_AR=\"/cxx_linker_static\" -DCMAKE_CXX_LINK_EXECUTABLE=\"became\" -DCMAKE_SHARED_LINKER_FLAGS=\"shared1 shared2\" -DCMAKE_EXE_LINKER_FLAGS=\"executable\" -DCUSTOM_CACHE=\"YES\" -DCMAKE_BUILD_TYPE=\"user_type\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
+    expected = "CC=\"sink-cc-value\" CXX=\"sink-cxx-value\" CFLAGS=\"-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag\" CXXFLAGS=\"--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain\" ASMFLAGS=\"assemble assemble-user\" CUSTOM_ENV=\"YES\" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_CXX_LINK_EXECUTABLE=\"became\" -DCMAKE_SHARED_LINKER_FLAGS=\"shared1 shared2\" -DCMAKE_EXE_LINKER_FLAGS=\"executable\" -DCUSTOM_CACHE=\"YES\" -DCMAKE_BUILD_TYPE=\"user_type\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
@@ -346,7 +346,7 @@ def _create_cmake_script_toolchain_file_test(ctx):
     tools = CxxToolsInfo(
         cc = "some-cc-value",
         cxx = "external/cxx-value",
-        cxx_linker_static = "/cxx_linker_static",
+        cxx_linker_static = "ar",
         cxx_linker_executable = "ws/cxx_linker_executable",
     )
     flags = CxxFlagsInfo(
@@ -378,7 +378,7 @@ set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "cc-toolchain")
 set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "cxx-toolchain")
 set(CMAKE_C_COMPILER "sink-cc-value")
 set(CMAKE_CXX_COMPILER "sink-cxx-value")
-set(CMAKE_AR "/cxx_linker_static" CACHE FILEPATH "Archiver")
+set(CMAKE_AR "ar" CACHE FILEPATH "Archiver")
 set(CMAKE_CXX_LINK_EXECUTABLE "became")
 set(CMAKE_C_FLAGS_INIT "-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag")
 set(CMAKE_CXX_FLAGS_INIT "--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain")
