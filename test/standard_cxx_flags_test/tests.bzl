@@ -16,8 +16,9 @@ def _impl(ctx):
 
     assert_contains_once(flags.cxx_linker_executable, "-fblah3")
     assert_contains_once(flags.cxx_linker_shared, "-fblah3")
-    if flags.cxx_linker_static != ["rcsD"]:
-        fail("static flags are not empty: '%s'" % flags.cxx_linker_static)
+    for item in flags.cxx_linker_static:
+        if item == "-fblah3":
+            fail("Static linker flags should not contain '-fblah3'")
 
 # to satisfy test rule requirement to be executable
     ctx.actions.write(
