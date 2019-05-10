@@ -5,29 +5,20 @@ def detect_root(source):
 
     root = ""
     sources = source.files.to_list()
-    if (root and len(root) > 0) or len(sources) == 0:
+
+    if len(sources) == 0:
         return root
 
-    root = ""
-    level = -1
-    num_at_level = 0
+    # is there a predefined maxint?
+    level = 999
 
     # find topmost directory
     for file in sources:
-        file_level = _get_level(file.path)
-        if level == -1 or level > file_level:
-            root = file.path
+        file_level = _get_level(file.dirname)
+        if level > file_level:
+            root = file.dirname
             level = file_level
-            num_at_level = 1
-        elif level == file_level:
-            num_at_level += 1
 
-    if num_at_level == 1:
-        return root
-
-    (before, sep, after) = root.rpartition("/")
-    if before and sep and after:
-        return before
     return root
 
 def _get_level(path):
