@@ -59,16 +59,10 @@ def _create_configure_script(configureParameters):
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:
-        prefix = ctx.attr.install_prefix
-
-        # If not in sandbox, or after the build, the value can be absolute.
-        # So if the user passed the absolute value, do not touch it.
-        if (prefix.startswith("/")):
-            return prefix
-        return prefix if prefix.startswith("./") else "./" + prefix
+        return ctx.attr.install_prefix
     if ctx.attr.lib_name:
-        return "./" + ctx.attr.lib_name
-    return "./" + ctx.attr.name
+        return ctx.attr.lib_name
+    return ctx.attr.name
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
