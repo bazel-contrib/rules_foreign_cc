@@ -67,6 +67,7 @@ def _create_libraries_to_link(ctx, files):
 
     cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
+        ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -178,6 +179,7 @@ def targets_windows(ctx, cc_toolchain):
     """
     toolchain = cc_toolchain if cc_toolchain else find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
+        ctx = ctx,
         cc_toolchain = toolchain,
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -204,6 +206,7 @@ def create_linking_info(ctx, user_link_flags, files):
 def get_env_vars(ctx):
     cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
+        ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -235,6 +238,7 @@ def get_tools_info(ctx):
     """
     cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
+        ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -266,6 +270,7 @@ def get_flags_info(ctx):
     """
     cc_toolchain_ = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
+        ctx = ctx,
         cc_toolchain = cc_toolchain_,
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
