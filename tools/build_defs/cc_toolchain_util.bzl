@@ -341,7 +341,7 @@ def get_flags_info(ctx):
         cc = _add_if_needed(flags.cc, copts),
         cxx = _add_if_needed(flags.cxx, cxxopts),
         cxx_linker_shared = _add_if_needed(flags.cxx_linker_shared, linkopts),
-        cxx_linker_static = _add_if_needed(flags.cxx_linker_static, linkopts),
+        cxx_linker_static = flags.cxx_linker_static,
         cxx_linker_executable = _add_if_needed(flags.cxx_linker_executable, linkopts),
         assemble = _add_if_needed(flags.assemble, copts),
     )

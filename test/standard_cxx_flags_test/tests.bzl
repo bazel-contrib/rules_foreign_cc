@@ -16,9 +16,10 @@ def _impl(ctx):
 
     assert_contains_once(flags.cxx_linker_executable, "-fblah3")
     assert_contains_once(flags.cxx_linker_shared, "-fblah3")
-    assert_contains_once(flags.cxx_linker_static, "-fblah3")
+    if "-fblah3" in flags.cxx_linker_static:
+        fail("Static linker flags should not contain '-fblah3'")
 
-# to satisfy test rule requirement to be executable
+    # to satisfy test rule requirement to be executable
     ctx.actions.write(
         output = ctx.outputs.executable,
         content = "",
