@@ -48,5 +48,6 @@ boost_build = rule(
     implementation = _boost_build,
     toolchains = [
         "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+        "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )
