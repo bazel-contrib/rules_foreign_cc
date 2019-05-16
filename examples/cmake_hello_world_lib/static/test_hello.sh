@@ -26,4 +26,4 @@ else
 fi
 # --- end runfiles.bash initialization ---
 
-$(rlocation rules_foreign_cc/examples/cmake_hello_world_lib/$1)
+$(rlocation $TEST_WORKSPACE/$1)
