@@ -91,6 +91,7 @@ sh_test(
     srcs = ["test_hello.sh"],
     args = ["libhello_example"],
     data = [":libhello_example"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
     tags = ["windows"],
     visibility = ["//:__pkg__"],
 )
