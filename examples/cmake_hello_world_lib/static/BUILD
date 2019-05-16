@@ -101,6 +101,7 @@ sh_test(
     srcs = ["test_hello.sh"],
     args = ["libhello_example_ninja"],
     data = [":libhello_example_ninja"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
     tags = ["windows"],
     visibility = ["//:__pkg__"],
 )
@@ -110,6 +111,7 @@ sh_test(
     srcs = ["test_hello.sh"],
     args = ["libhello_example_nmake"],
     data = [":libhello_example_nmake"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
     tags = ["windows"],
     visibility = ["//:__pkg__"],
 )
