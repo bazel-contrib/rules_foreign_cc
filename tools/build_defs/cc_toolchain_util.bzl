@@ -12,6 +12,8 @@ load(
     "C_COMPILE_ACTION_NAME",
 )
 load("@bazel_skylib//lib:collections.bzl", "collections")
+load("@bazel_skylib//lib:versions.bzl", "versions")
+load("@bazel_version//:def.bzl", "BAZEL_VERSION")
 
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
@@ -55,6 +57,22 @@ def _to_depset(element):
         return depset()
     return depset(element)
 
+def _configure_features(ctx, cc_toolchain):
+    if (len(BAZEL_VERSION) == 0 or
+        versions.is_at_least("0.25.2", BAZEL_VERSION)):
+        return cc_common.configure_features(
+            ctx = ctx,
+            cc_toolchain = cc_toolchain,
+            requested_features = ctx.features,
+            unsupported_features = ctx.disabled_features,
+        )
+    else:
+        return cc_common.configure_features(
+            cc_toolchain = cc_toolchain,
+            requested_features = ctx.features,
+            unsupported_features = ctx.disabled_features,
+        )
+
 def _create_libraries_to_link(ctx, files):
     libs = []
 
@@ -66,10 +84,10 @@ def _create_libraries_to_link(ctx, files):
     names = collections.uniq(static_map.keys() + pic_static_map.keys() + shared_map.keys() + interface_map.keys())
 
     cc_toolchain = find_cpp_toolchain(ctx)
-    feature_configuration = cc_common.configure_features(
+
+    feature_configuration = _configure_features(
+        ctx = ctx,
         cc_toolchain = cc_toolchain,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
     )
 
     for name_ in names:
@@ -177,10 +195,9 @@ def targets_windows(ctx, cc_toolchain):
         cc_toolchain - optional - Cc toolchain
     """
     toolchain = cc_toolchain if cc_toolchain else find_cpp_toolchain(ctx)
-    feature_configuration = cc_common.configure_features(
+    feature_configuration = _configure_features(
+        ctx = ctx,
         cc_toolchain = toolchain,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
     )
 
     return cc_common.is_enabled(
@@ -204,9 +221,8 @@ def create_linking_info(ctx, user_link_flags, files):
 def get_env_vars(ctx):
     cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
+        ctx = ctx,
         cc_toolchain = cc_toolchain,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
     )
     copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else []
 
@@ -235,9 +251,8 @@ def get_tools_info(ctx):
     """
     cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
+        ctx = ctx,
         cc_toolchain = cc_toolchain,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
     )
 
     return CxxToolsInfo(
@@ -266,9 +281,8 @@ def get_flags_info(ctx):
     """
     cc_toolchain_ = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
+        ctx = ctx,
         cc_toolchain = cc_toolchain_,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
     )
 
     copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts) or []
@@ -336,7 +350,7 @@ def get_flags_info(ctx):
         cc = _add_if_needed(flags.cc, copts),
         cxx = _add_if_needed(flags.cxx, cxxopts),
         cxx_linker_shared = _add_if_needed(flags.cxx_linker_shared, linkopts),
-        cxx_linker_static = _add_if_needed(flags.cxx_linker_static, linkopts),
+        cxx_linker_static = flags.cxx_linker_static,
         cxx_linker_executable = _add_if_needed(flags.cxx_linker_executable, linkopts),
         assemble = _add_if_needed(flags.assemble, copts),
     )

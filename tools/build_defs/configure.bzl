@@ -98,5 +98,8 @@ configure_make = rule(
     fragments = ["cpp"],
     output_to_genfiles = True,
     implementation = _configure_make,
-    toolchains = ["@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands"],
+    toolchains = [
+        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+        "@bazel_tools//tools/cpp:toolchain_type",
+    ],
 )
