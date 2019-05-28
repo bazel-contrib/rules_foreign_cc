@@ -220,7 +220,7 @@ def create_linking_info(ctx, user_link_flags, files):
 
 def get_env_vars(ctx):
     cc_toolchain = find_cpp_toolchain(ctx)
-    feature_configuration = cc_common.configure_features(
+    feature_configuration = _configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
     )
@@ -250,7 +250,7 @@ def get_tools_info(ctx):
         ctx - rule context
     """
     cc_toolchain = find_cpp_toolchain(ctx)
-    feature_configuration = cc_common.configure_features(
+    feature_configuration = _configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
     )
@@ -280,7 +280,7 @@ def get_flags_info(ctx):
         ctx - rule context
     """
     cc_toolchain_ = find_cpp_toolchain(ctx)
-    feature_configuration = cc_common.configure_features(
+    feature_configuration = _configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain_,
     )
