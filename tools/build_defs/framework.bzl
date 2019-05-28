@@ -608,7 +608,7 @@ def _get_headers(compilation_info):
                                     compilation_info.includes.to_list() +
                                     compilation_info.quote_includes.to_list())
     headers = []
-    for header in compilation_info.headers:
+    for header in compilation_info.headers.to_list():
         path = header.path
         included = False
         for dir_ in include_dirs:
