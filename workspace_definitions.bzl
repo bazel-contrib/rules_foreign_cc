@@ -4,6 +4,7 @@ load(
     "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",
     shell_toolchain_workspace_initalization = "workspace_part",
 )
+load("//for_workspace:bazel_version.bzl", "bazel_version")
 
 def _read_build_options_impl(rctx):
     rctx.file("BUILD.bazel", "\n".join(
@@ -91,6 +92,7 @@ def rules_foreign_cc_dependencies(
     """
     repositories()
     _read_build_options(name = "foreign_cc_platform_utils")
+    bazel_version(name="bazel_version")
 
     shell_toolchain_workspace_initalization(
         additonal_shell_toolchain_mappings,
