@@ -89,8 +89,9 @@ cc_binary(
 sh_test(
     name = "test_hello",
     srcs = ["test_hello.sh"],
-    args = ["libhello_example"],
+    args = ["$(location libhello_example)"],
     data = [":libhello_example"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
     tags = ["windows"],
     visibility = ["//:__pkg__"],
 )
@@ -98,8 +99,9 @@ sh_test(
 sh_test(
     name = "test_hello_ninja",
     srcs = ["test_hello.sh"],
-    args = ["libhello_example_ninja"],
+    args = ["$(location libhello_example_ninja)"],
     data = [":libhello_example_ninja"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
     tags = ["windows"],
     visibility = ["//:__pkg__"],
 )
@@ -107,8 +109,9 @@ sh_test(
 sh_test(
     name = "test_hello_nmake",
     srcs = ["test_hello.sh"],
-    args = ["libhello_example_nmake"],
+    args = ["$(location libhello_example_nmake)"],
     data = [":libhello_example_nmake"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
     tags = ["windows"],
     visibility = ["//:__pkg__"],
 )
