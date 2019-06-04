@@ -652,7 +652,11 @@ def _extract_libraries(library_to_link):
 
 def _collect_libs(cc_linking):
     libs = []
-    for library_to_link in cc_linking.libraries_to_link:
+    libraries_to_link = cc_linking.libraries_to_link
+    if type(libraries_to_link) == "depset":
+        libraries_to_link = libraries_to_link.to_list()
+
+    for library_to_link in libraries_to_link:
         for library in _extract_libraries(library_to_link):
             if library:
                 libs.append(library)
