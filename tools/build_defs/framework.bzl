@@ -652,7 +652,7 @@ def _extract_libraries(library_to_link):
 
 def _collect_libs(cc_linking):
     libs = []
-    for library_to_link in cc_linking.libraries_to_link:
+    for library_to_link in cc_linking.libraries_to_link.to_list():
         for library in _extract_libraries(library_to_link):
             if library:
                 libs.append(library)

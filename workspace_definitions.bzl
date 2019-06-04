@@ -7,12 +7,8 @@ load(
 load("//for_workspace:bazel_version.bzl", "bazel_version")
 
 def _read_build_options_impl(rctx):
-    rctx.file("BUILD.bazel", "\n".join(
-        [
-            _build_tools(rctx),
-            _build_mode(rctx),
-        ],
-    ))
+    _build_tools(rctx)
+    rctx.file("BUILD.bazel", _build_mode(rctx))
     rctx.file("bazel_version.bzl", "BAZEL_VERSION=\"{}\"".format(native.bazel_version))
 
 def _build_mode(rctx):
