@@ -608,7 +608,7 @@ def _get_headers(compilation_info):
                                     compilation_info.includes.to_list() +
                                     compilation_info.quote_includes.to_list())
     headers = []
-    for header in compilation_info.headers:
+    for header in compilation_info.headers.to_list():
         path = header.path
         included = False
         for dir_ in include_dirs:
@@ -652,7 +652,11 @@ def _extract_libraries(library_to_link):
 
 def _collect_libs(cc_linking):
     libs = []
-    for library_to_link in cc_linking.libraries_to_link:
+    libraries_to_link = cc_linking.libraries_to_link
+    if type(libraries_to_link) == "depset":
+        libraries_to_link = libraries_to_link.to_list()
+
+    for library_to_link in libraries_to_link:
         for library in _extract_libraries(library_to_link):
             if library:
                 libs.append(library)
