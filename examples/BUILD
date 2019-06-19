@@ -15,6 +15,7 @@ tests = [
     #    "//built_ninja:test_ninja_version",
     "@rules_foreign_cc//test:cmake_script_test_suite",
     "@rules_foreign_cc//test:shell_script_conversion_suite",
+    "@rules_foreign_cc//test:utils_test_suite",
     "//cc_configure_make:libevent_echosrv1",
 ]
 
