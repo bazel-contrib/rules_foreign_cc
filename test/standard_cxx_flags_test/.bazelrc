@@ -1,1 +1,1 @@
-build --copt="-fblah0" --cxxopt="-fblah1" --conlyopt="-fblah2" --linkopt="-fblah3"
+build --copt="-fblah0" --cxxopt="-fblah1" --conlyopt="-fblah2" --linkopt="-fblah3" --copt="-exclude_me" --cxxopt="-exclude_me" --conlyopt="-exclude_me" --linkopt="-exclude_me"

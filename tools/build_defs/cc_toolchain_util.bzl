@@ -276,18 +276,22 @@ def get_tools_info(ctx):
 
 def get_flags_info(ctx):
     """ Takes information about flags from cc_toolchain, returns CxxFlagsInfo
+
+    Uses ctx.attr.clear_transitive_flags array to get information, which flags to NOT add to result.
+
     Args:
         ctx - rule context
     """
+    exclude_flags = ctx.attr.clear_transitive_flags
     cc_toolchain_ = find_cpp_toolchain(ctx)
     feature_configuration = _configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain_,
     )
 
-    copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts) or []
-    cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts) or []
-    linkopts = ctx.fragments.cpp.linkopts or []
+    copts = exclude(ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts, exclude_flags) or []
+    cxxopts = exclude(ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts, exclude_flags) or []
+    linkopts = exclude(ctx.fragments.cpp.linkopts, exclude_flags) or []
 
     flags = CxxFlagsInfo(
         cc = cc_common.get_memory_inefficient_command_line(
@@ -346,6 +350,16 @@ def get_flags_info(ctx):
             ),
         ),
     )
+
+    flags = CxxFlagsInfo(
+            cc = exclude(flags.cc, exclude_flags),
+            cxx = exclude(flags.cxx, exclude_flags),
+            cxx_linker_shared = exclude(flags.cxx_linker_shared, exclude_flags),
+            cxx_linker_static = exclude(flags.cxx_linker_static, exclude_flags),
+            cxx_linker_executable = exclude(flags.cxx_linker_executable, exclude_flags),
+            assemble = exclude(flags.assemble, exclude_flags),
+        )
+
     return CxxFlagsInfo(
         cc = _add_if_needed(flags.cc, copts),
         cxx = _add_if_needed(flags.cxx, cxxopts),
@@ -355,16 +369,15 @@ def get_flags_info(ctx):
         assemble = _add_if_needed(flags.assemble, copts),
     )
 
-def _add_if_needed(arr, add_arr):
+def exclude(list, exclude_list):
     filtered = []
-    for to_add in add_arr:
-        found = False
-        for existing in arr:
-            if existing == to_add:
-                found = True
-        if not found:
-            filtered += [to_add]
-    return arr + filtered
+    for item in list:
+        if item not in exclude_list:
+            filtered.append(item)
+    return filtered
+
+def _add_if_needed(arr, add_arr):
+    return arr + exclude(add_arr, arr)
 
 def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     """ Replaces relative paths in [the middle of] 'text', prepending them with 'root_str'.

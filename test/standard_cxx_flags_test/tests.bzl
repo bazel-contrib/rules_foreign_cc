@@ -19,6 +19,17 @@ def _impl(ctx):
     if "-fblah3" in flags.cxx_linker_static:
         fail("Static linker flags should not contain '-fblah3'")
 
+    if "-exclude_me" in flags.cc:
+        fail("exclude_me should have been filtered out from flags.cc")
+    if "-exclude_me" in flags.cxx:
+        fail("exclude_me should have been filtered out from flags.cxx")
+    if "-exclude_me" in flags.cxx_linker_executable:
+        fail("exclude_me should have been filtered out from flags.cxx_linker_executable")
+    if "-exclude_me" in flags.cxx_linker_shared:
+        fail("exclude_me should have been filtered out from flags.cxx_linker_shared")
+    if "-exclude_me" in flags.cxx_linker_static:
+        fail("exclude_me should have been filtered out from flags.cxx_linker_static")
+
     exe = ctx.outputs.out
     ctx.actions.write(
         output = exe,
@@ -45,6 +56,7 @@ _flags_test = rule(
     attrs = {
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
         "out": attr.output(),
+        "clear_transitive_flags": attr.string_list(mandatory = False, default = ["-exclude_me"]),
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     fragments = ["cpp"],

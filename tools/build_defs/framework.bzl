@@ -91,6 +91,8 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "binaries": attr.string_list(mandatory = False),
     # Flag variable to indicate that the library produces only headers
     "headers_only": attr.bool(mandatory = False, default = False),
+    # Transitive flags to be filtered out and NOT APPLIED for building this target
+    "clear_transitive_flags": attr.string_list(mandatory = False, default = []),
     #
     "_is_debug": attr.label(
         default = "@foreign_cc_platform_utils//:compilation_mode",
