@@ -41,7 +41,7 @@ def create_cmake_script(
 
     build_type = params.cache.get(
         "CMAKE_BUILD_TYPE",
-        "DEBUG" if is_debug_mode else "RELEASE",
+        "Debug" if is_debug_mode else "Release",
     )
     params.cache.update({
         "CMAKE_PREFIX_PATH": merged_prefix_path,
