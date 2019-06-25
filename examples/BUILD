@@ -28,6 +28,7 @@ test_suite(
         "//cmake_hello_world_lib/shared:test_libhello",
         "//cmake_hello_world_lib/binary:test_binary",
         "//configure_with_bazel_transitive:test",
+        "//cmake_hello_world_variant:test_hello_world",
     ],
 )
 
@@ -56,6 +57,7 @@ windows_tests = select_windows_tests(
         #        "//cmake_synthetic:test_libs",
         #        "//configure_gnuplot:configure_libgd_tests",
         "//cmake_hello_world_lib/static:test_hello_ninja",
+        "//cmake_hello_world_variant:test_hello_world",
         #        "//cmake_hello_world_lib/static:test_hello_nmake",
     ],
     [":bazel_version"],
