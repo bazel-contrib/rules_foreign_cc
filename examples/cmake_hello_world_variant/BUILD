@@ -20,10 +20,10 @@ filegroup(
     name = "binary",
     srcs = [":hello_world"],
     output_group = select({
-                           "@bazel_tools//src/conditions:windows": "CMakeHelloWorld.exe",
-                           "@bazel_tools//src/conditions:darwin": "CMakeHelloWorld",
-                           "//conditions:default": "CMakeHelloWorld",
-                       }),
+        "@bazel_tools//src/conditions:windows": "CMakeHelloWorld.exe",
+        "@bazel_tools//src/conditions:darwin": "CMakeHelloWorld",
+        "//conditions:default": "CMakeHelloWorld",
+    }),
 )
 
 sh_test(
@@ -31,5 +31,6 @@ sh_test(
     srcs = ["test_hello_world.sh"],
     args = ["$(location binary)"],
     data = [":binary"],
+    tags = ["windows"],
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )
