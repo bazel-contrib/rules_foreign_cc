@@ -351,15 +351,6 @@ def get_flags_info(ctx):
         ),
     )
 
-    flags = CxxFlagsInfo(
-            cc = exclude(flags.cc, exclude_flags),
-            cxx = exclude(flags.cxx, exclude_flags),
-            cxx_linker_shared = exclude(flags.cxx_linker_shared, exclude_flags),
-            cxx_linker_static = exclude(flags.cxx_linker_static, exclude_flags),
-            cxx_linker_executable = exclude(flags.cxx_linker_executable, exclude_flags),
-            assemble = exclude(flags.assemble, exclude_flags),
-        )
-
     return CxxFlagsInfo(
         cc = _add_if_needed(flags.cc, copts),
         cxx = _add_if_needed(flags.cxx, cxxopts),
@@ -395,6 +386,7 @@ def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     new_text = _prefix(text, "external/", root_str)
     if new_text == text:
         new_text = _prefix(text, workspace_name + "/", root_str)
+
     # absolutize relative by adding our working directory
     # this works because we ru on windows under msys now
     if force and new_text == text and not text.startswith("/"):
