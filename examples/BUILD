@@ -17,7 +17,6 @@ tests = [
     "@rules_foreign_cc//test:shell_script_conversion_suite",
     "@rules_foreign_cc//test:utils_test_suite",
     "//cc_configure_make:libevent_echosrv1",
-    "//simple_make:test_lib",
 ]
 
 test_suite(
@@ -29,6 +28,7 @@ test_suite(
         "//cmake_hello_world_lib/shared:test_libhello",
         "//cmake_hello_world_lib/binary:test_binary",
         "//configure_with_bazel_transitive:test",
+        "//simple_make:test_lib",
     ],
 )
 
