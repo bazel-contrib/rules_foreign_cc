@@ -3,21 +3,29 @@ tasks:
   ubuntu1804:
     platform: ubuntu1804
     working_directory: examples
+    build_targets:
+      - "//cmake_android:app"
     test_targets:
     - "//:tests"
   ubuntu1604:
     platform: ubuntu1604
     working_directory: examples
+    build_targets:
+      - "//cmake_android:app"
     test_targets:
       - "//:tests_no_synthetic"
   macos:
     platform: macos
     working_directory: examples
+    build_targets:
+      - "//cmake_android:app"
     test_targets:
       - "//:cmake_tests"
   windows:
     platform: windows
     working_directory: examples
+    build_targets:
+      - "//cmake_android:app"
     test_targets:
       - "//:win_tests"
   ubuntu1804_flags:
