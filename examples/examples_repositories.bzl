@@ -149,3 +149,11 @@ def include_examples_repositories():
         strip_prefix = "apr-util-1.6.1",
         urls = ["https://www-us.apache.org/dist//apr/apr-util-1.6.1.tar.gz"],
     )
+
+    http_archive(
+        name = "cmake_hello_world_variant_src",
+        build_file_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])""",
+        strip_prefix = "cmake-hello-world-master",
+        urls = ["https://github.com/jameskbride/cmake-hello-world/archive/master.zip"],
+        sha256 = "d613cf222bbb05b8cff7a1c03c37345ed33744a4ebaf3a8bfd5f56a76e25ca08",
+    )
