@@ -1,5 +1,4 @@
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
-load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
 
 cmake_external(
     name = "libhello",
@@ -23,8 +22,8 @@ android_library(
     resource_files = glob(["res/**/*"]),
     deps = [
         ":hello_lib_usage_example",
-        gmaven_artifact("com.android.support:appcompat-v7:aar:26.1.0"),
-        gmaven_artifact("com.android.support.constraint:constraint-layout:aar:1.1.2"),
+        "@maven//:com_android_support_appcompat_v7",
+        "@maven//:com_android_support_constraint_constraint_layout",
     ],
 )
 

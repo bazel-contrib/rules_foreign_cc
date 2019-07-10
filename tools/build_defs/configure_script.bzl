@@ -14,16 +14,7 @@ def create_configure_script(
         deps,
         inputs,
         configure_in_place):
-    vars = _get_configure_variables(tools, flags, user_vars)
-    deps_flags = _define_deps_flags(deps, inputs)
-
-    vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
-
-    # -I flags should be put into preprocessor flags, CPPFLAGS
-    # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html
-    vars["CPPFLAGS"] = deps_flags.flags
-
-    env_vars_string = " ".join(["{}=\"{}\"".format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
+    env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
 
     script = []
     for ext_dir in inputs.ext_build_dirs:
@@ -45,6 +36,46 @@ def create_configure_script(
         user_options = " ".join(user_options),
     )]
     return "\n".join(script)
+
+def create_make_script(
+        workspace_name,
+        tools,
+        flags,
+        root,
+        user_vars,
+        deps,
+        inputs,
+        make_commands,
+        prefix):
+    env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
+    script = []
+    for ext_dir in inputs.ext_build_dirs:
+        script += ["##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path]
+
+    script += ["echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\""]
+
+    script += ["##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root)]
+    script += ["" + " & ".join(make_commands)]
+    return "\n".join(script)
+
+def get_env_vars(
+        workspace_name,
+        tools,
+        flags,
+        user_vars,
+        deps,
+        inputs):
+    vars = _get_configure_variables(tools, flags, user_vars)
+    deps_flags = _define_deps_flags(deps, inputs)
+
+    vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
+
+    # -I flags should be put into preprocessor flags, CPPFLAGS
+    # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html
+    vars["CPPFLAGS"] = deps_flags.flags
+
+    return " ".join(["{}=\"{}\""
+        .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
 
 def _define_deps_flags(deps, inputs):
     # It is very important to keep the order for the linker => put them into list
