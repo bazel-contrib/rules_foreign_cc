@@ -17,7 +17,6 @@ tests = [
     "@rules_foreign_cc//test:shell_script_conversion_suite",
     "@rules_foreign_cc//test:utils_test_suite",
     "//cc_configure_make:libevent_echosrv1",
-    "//simple_make:test_lib",
 ]
 
 test_suite(
