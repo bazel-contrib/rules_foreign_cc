@@ -24,8 +24,6 @@ tasks:
   windows:
     platform: windows
     working_directory: examples
-    build_targets:
-      - "//cmake_android:app"
     test_targets:
       - "//:win_tests"
   ubuntu1804_flags:
