@@ -67,7 +67,7 @@ local children=$(find $1 -maxdepth 1 -mindepth 1)
 local target="$2"
 mkdir -p ${target}
 for child in $children; do
-  cp -R $child ${target}
+  cp -R -L $child ${target}
 done
 """
     return FunctionAndCall(text = text)
