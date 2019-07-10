@@ -15,6 +15,7 @@ tests = [
     #    "//built_ninja:test_ninja_version",
     "@rules_foreign_cc//test:cmake_script_test_suite",
     "@rules_foreign_cc//test:shell_script_conversion_suite",
+    "@rules_foreign_cc//test:utils_test_suite",
     "//cc_configure_make:libevent_echosrv1",
 ]
 
@@ -27,6 +28,8 @@ test_suite(
         "//cmake_hello_world_lib/shared:test_libhello",
         "//cmake_hello_world_lib/binary:test_binary",
         "//configure_with_bazel_transitive:test",
+        "//simple_make:test_lib",
+        "//cmake_hello_world_variant:test_hello_world",
     ],
 )
 
@@ -55,6 +58,7 @@ windows_tests = select_windows_tests(
         #        "//cmake_synthetic:test_libs",
         #        "//configure_gnuplot:configure_libgd_tests",
         "//cmake_hello_world_lib/static:test_hello_ninja",
+        "//cmake_hello_world_variant:test_hello_world",
         #        "//cmake_hello_world_lib/static:test_hello_nmake",
     ],
     [":bazel_version"],
