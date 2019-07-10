@@ -1,5 +1,5 @@
 filegroup(
     name = "sources",
     srcs = glob(["**"]),
-    visibility = ["//visibility:public"],
+    visibility = ["//simple_make:__subpackages__"],
 )

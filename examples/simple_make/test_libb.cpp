@@ -5,7 +5,7 @@
 
 int main(int argc, char* argv[])
 {
-  std:: string result = hello_liba();
+  std::string result = hello_liba();
   if (result != "Hello from LIBA!") {
     throw std::runtime_error("Wrong result: " + result);
   }

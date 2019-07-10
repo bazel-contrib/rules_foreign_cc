@@ -12,10 +12,8 @@ load(
     "//tools/build_defs:cc_toolchain_util.bzl",
     "get_flags_info",
     "get_tools_info",
-    "is_debug_mode",
 )
 load(":configure_script.bzl", "create_make_script")
-load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
 
 def _make(ctx):
     attrs = create_attrs(
@@ -81,7 +79,7 @@ def _attrs():
     })
     return attrs
 
-""" Rule for building external libraries with GNU Make.
+"""Rule for building external libraries with GNU Make.
  GNU Make commands (make and make install by default) are invoked with prefix="install"
  (by default), and other environment variables for compilation and linking, taken from Bazel C/C++
  toolchain and passed dependencies.
