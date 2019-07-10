@@ -28,6 +28,7 @@ test_suite(
         "//cmake_hello_world_lib/shared:test_libhello",
         "//cmake_hello_world_lib/binary:test_binary",
         "//configure_with_bazel_transitive:test",
+        "//simple_make:test_lib",
         "//cmake_hello_world_variant:test_hello_world",
     ],
 )
