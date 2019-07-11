@@ -16,6 +16,7 @@ rules_foreign_cc_dependencies(register_default_tools = True)
 http_archive(
     name = "luajit",
     build_file_content = all_content,
+    sha256 = "409f7fe570d3c16558e594421c47bdd130238323c9d6fd6c83dedd2aaeb082a8",
     strip_prefix = "LuaJIT-2.1.0-beta3",
     urls = ["https://github.com/LuaJIT/LuaJIT/archive/v2.1.0-beta3.tar.gz"],
 )
