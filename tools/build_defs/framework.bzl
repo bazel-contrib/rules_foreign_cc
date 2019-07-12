@@ -462,16 +462,15 @@ def _symlink_contents_to_dir(dir_name, files_list):
 def _file_path(file):
     return file if type(file) == "string" else file.path
 
+_FORBIDDEN_FOR_FILENAME = ["\\", "/", ":", "*", "\"", "<", ">", "|"]
+
 def _check_file_name(var, name):
     if (len(var) == 0):
-        fail("{} can not be empty string.".format(name.capitalize()))
-
-    if (not var[0:1].isalpha()):
-        fail("{} should start with a letter.".format(name.capitalize()))
-    for index in range(1, len(var) - 1):
+        fail("{} can not be an empty string.".format(name.capitalize()))
+    for index in range(0, len(var) - 1):
         letter = var[index]
-        if not letter.isalnum() and letter != "_":
-            fail("{} should be alphanumeric or '_'.".format(name.capitalize()))
+        if letter in _FORBIDDEN_FOR_FILENAME:
+            fail("Symbol %s is forbidden in %s." % (letter, name.capitalize()))
 
 _Outputs = provider(
     doc = "Provider to keep different kinds of the external build output files and directories",
