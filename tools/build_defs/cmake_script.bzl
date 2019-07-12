@@ -61,6 +61,13 @@ def create_cmake_script(
     # CMAKE_BUILD_TYPE will not be passed to CMake
     wipe_empty_values(params.cache, keys_with_empty_values_in_user_cache)
 
+    # However, if no CMAKE_RANLIB was passed, pass the empty value for it explicitly,
+    # as it is legacy and autodetection of ranlib made by CMake automatically
+    # breaks some cross compilation builds,
+    # see https://github.com/envoyproxy/envoy/pull/6991
+    if not params.cache.get("CMAKE_RANLIB"):
+        params.cache.update({"CMAKE_RANLIB": ""})
+
     set_env_vars = " ".join([key + "=\"" + params.env[key] + "\"" for key in params.env])
     str_cmake_cache_entries = " ".join(["-D" + key + "=\"" + params.cache[key] + "\"" for key in params.cache])
     cmake_call = " ".join([
