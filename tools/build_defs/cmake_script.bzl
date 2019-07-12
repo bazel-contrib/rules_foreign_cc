@@ -34,6 +34,12 @@ def create_cmake_script(
 
     toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags)
     params = None
+
+    keys_with_empty_values_in_user_cache = []
+    for key in user_cache:
+        if len(user_cache.get(key)) == 0:
+            keys_with_empty_values_in_user_cache.append(key)
+
     if no_toolchain_file:
         params = _create_cache_entries_env_vars(toolchain_dict, user_cache, user_env)
     else:
@@ -53,7 +59,7 @@ def create_cmake_script(
     # or to suppress calculated CMAKE_BUILD_TYPE
     # If the user passes "CMAKE_BUILD_TYPE": "" (empty string),
     # CMAKE_BUILD_TYPE will not be passed to CMake
-    wipe_empty_values(params.cache, user_cache)
+    wipe_empty_values(params.cache, keys_with_empty_values_in_user_cache)
 
     set_env_vars = " ".join([key + "=\"" + params.env[key] + "\"" for key in params.env])
     str_cmake_cache_entries = " ".join(["-D" + key + "=\"" + params.cache[key] + "\"" for key in params.cache])
@@ -67,9 +73,9 @@ def create_cmake_script(
 
     return "\n".join(params.commands + [cmake_call])
 
-def wipe_empty_values(cache, user_cache):
-    for key in user_cache:
-        if len(user_cache.get(key)) == 0:
+def wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
+    for key in keys_with_empty_values_in_user_cache:
+        if cache.get(key) != None:
             cache.pop(key)
 
 # From CMake documentation: ;-list of directories specifying installation prefixes to be searched...

@@ -263,6 +263,38 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
 
     return unittest.end(env)
 
+def _create_min_cmake_script_wipe_toolchain_test(ctx):
+    env = unittest.begin(ctx)
+
+    tools = CxxToolsInfo(
+        cc = "/usr/bin/gcc",
+        cxx = "/usr/bin/gcc",
+        cxx_linker_static = "/usr/bin/ar",
+        cxx_linker_executable = "/usr/bin/gcc",
+    )
+    flags = CxxFlagsInfo(
+        cc = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
+        cxx = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
+        cxx_linker_shared = ["-shared", "-fuse-ld=gold"],
+        cxx_linker_static = ["static"],
+        cxx_linker_executable = ["-fuse-ld=gold", "-Wl", "-no-as-needed"],
+        assemble = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
+    )
+    user_env = {}
+    user_cache = {
+        "CMAKE_PREFIX_PATH": "/abc/def",
+        # These two flags/CMake cache entries must be wiped,
+        # but the second is not present in toolchain flags.
+        "CMAKE_SHARED_LINKER_FLAGS": "",
+        "WIPE_ME_IF_PRESENT": "",
+    }
+
+    script = create_cmake_script("ws", "linux", "cmake", tools, flags, "test_rule", "external/test_rule", True, user_cache, user_env, ["-GNinja"])
+    expected = "CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" CXXFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" ASMFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_EXE_LINKER_FLAGS=\"-fuse-ld=gold -Wl -no-as-needed\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS;/abc/def\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_BUILD_TYPE=\"Debug\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
+    asserts.equals(env, expected, script)
+
+    return unittest.end(env)
+
 def _create_min_cmake_script_toolchain_file_test(ctx):
     env = unittest.begin(ctx)
 
@@ -404,6 +436,7 @@ create_min_cmake_script_toolchain_file_test = unittest.make(_create_min_cmake_sc
 create_cmake_script_no_toolchain_file_test = unittest.make(_create_cmake_script_no_toolchain_file_test)
 create_cmake_script_toolchain_file_test = unittest.make(_create_cmake_script_toolchain_file_test)
 merge_flag_values_no_toolchain_file_test = unittest.make(_merge_flag_values_no_toolchain_file_test)
+create_min_cmake_script_wipe_toolchain_test = unittest.make(_create_min_cmake_script_wipe_toolchain_test)
 
 def cmake_script_test_suite():
     unittest.suite(
@@ -420,4 +453,5 @@ def cmake_script_test_suite():
         create_cmake_script_no_toolchain_file_test,
         create_cmake_script_toolchain_file_test,
         merge_flag_values_no_toolchain_file_test,
+        create_min_cmake_script_wipe_toolchain_test,
     )
