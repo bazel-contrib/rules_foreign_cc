@@ -224,12 +224,11 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
     user_env = {}
     user_cache = {
         "CMAKE_CXX_FLAGS": "-Fbat",
-        # test that the computed value is not used
-        "CMAKE_BUILD_TYPE": "",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
     }
 
     script = create_cmake_script("ws", "linux", "cmake", tools, flags, "test_rule", "external/test_rule", True, user_cache, user_env, [])
-    expected = """CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CXXFLAGS=\"foo=\\\"bar\\\" -Fbat" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_RANLIB=\"\"  $EXT_BUILD_ROOT/external/test_rule"""
+    expected = """CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CXXFLAGS=\"foo=\\\"bar\\\" -Fbat" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_RANLIB=\"\"  $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
