@@ -464,13 +464,13 @@ def _file_path(file):
 
 _FORBIDDEN_FOR_FILENAME = ["\\", "/", ":", "*", "\"", "<", ">", "|"]
 
-def _check_file_name(var, name):
+def _check_file_name(var):
     if (len(var) == 0):
-        fail("{} can not be an empty string.".format(name.capitalize()))
+        fail("Library name cannot be an empty string.")
     for index in range(0, len(var) - 1):
         letter = var[index]
         if letter in _FORBIDDEN_FOR_FILENAME:
-            fail("Symbol %s is forbidden in %s." % (letter, name.capitalize()))
+            fail("Symbol '%s' is forbidden in library name '%s'." % (letter, var))
 
 _Outputs = provider(
     doc = "Provider to keep different kinds of the external build output files and directories",
@@ -493,7 +493,7 @@ def _define_outputs(ctx, attrs, lib_name):
         else:
             static_libraries = attrs.static_libraries
 
-    _check_file_name(lib_name, "Library name")
+    _check_file_name(lib_name)
 
     out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
 
