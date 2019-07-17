@@ -9,11 +9,14 @@ cmake_external(
     name = "liba",
     cmake_options = ["-GNinja"],
     generate_crosstool_file = generate_crosstool,
+    # Demonstrate non-alphanumeric name
+    lib_name = "liba++",
     lib_source = "//cmake_synthetic/liba:a_srcs",
     make_commands = [
         "ninja",
         "ninja install",
     ],
+    postfix_script = "cp $$INSTALLDIR$$/lib/liba.a $$INSTALLDIR$$/lib/liba++.a",
 )
 
 cmake_external(
