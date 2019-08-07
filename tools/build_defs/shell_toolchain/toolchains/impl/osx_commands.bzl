@@ -82,7 +82,7 @@ if [[ -f $1 ]]; then
 fi
 
 if [[ -d $1 || -L $1 ]]; then
-  local children=$(find $1 -maxdepth 1 -mindepth 1)
+  local children=$(find -H $1 -maxdepth 1 -mindepth 1)
   for child in $children; do
     ##symlink_to_dir## $child $target
   done
