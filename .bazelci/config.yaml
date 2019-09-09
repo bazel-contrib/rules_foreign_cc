@@ -1,5 +1,4 @@
 ---
-bazel: last_rc
 tasks:
   ubuntu1804:
     platform: ubuntu1804
