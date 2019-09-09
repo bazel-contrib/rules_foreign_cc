@@ -9,6 +9,9 @@ configure_make(
     ],
     lib_source = "@libevent//:all",
     out_lib_dir = "lib",
+    configure_env_vars = {
+        "AR": "",
+    },
 )
 
 cc_test(
