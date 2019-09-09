@@ -60,7 +60,7 @@ def _create_configure_script(configureParameters):
     root = detect_root(ctx.attr.lib_source)
 
     tools = get_tools_info(ctx)
-    flags = get_flags_info(ctx)
+    flags = get_flags_info(ctx, "<TARGET>")
     no_toolchain_file = ctx.attr.cache_entries.get("CMAKE_TOOLCHAIN_FILE") or not ctx.attr.generate_crosstool_file
 
     define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
