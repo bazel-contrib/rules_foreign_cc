@@ -238,8 +238,8 @@ def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
         print("CMAKE_AR: " + str(tools.cxx_linker_static) + ", expanded: " + dict["CMAKE_AR"])
         # todo put -L flags here
         if tools.cxx_linker_static.endswith("/libtool"):
-            dict["CMAKE_C_ARCHIVE_CREATE"] = "<CMAKE_AR> -static -o <TARGET> -no_warning_for_no_symbols <LINK_FLAGS> <OBJECTS>"
-            dict["CMAKE_CXX_ARCHIVE_CREATE"] = "<CMAKE_AR> -static -o <TARGET> -no_warning_for_no_symbols <LINK_FLAGS> <OBJECTS>"
+            dict["CMAKE_C_ARCHIVE_CREATE"] = "<CMAKE_AR> --debug -static '-o <TARGET>' -no_warning_for_no_symbols <LINK_FLAGS> <OBJECTS>"
+            dict["CMAKE_CXX_ARCHIVE_CREATE"] = "<CMAKE_AR> --debug -static '-o <TARGET>' -no_warning_for_no_symbols <LINK_FLAGS> <OBJECTS>"
 
     if tools.cxx_linker_executable and tools.cxx_linker_executable != tools.cxx:
         normalized_path = _absolutize(workspace_name, tools.cxx_linker_executable)
