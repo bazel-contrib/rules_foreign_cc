@@ -104,6 +104,8 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
     "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
     "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
+    "CMAKE_C_ARCHIVE_CREATE": struct(value = "CMAKE_C_ARCHIVE_CREATE", replace = False),
+    "CMAKE_CXX_ARCHIVE_CREATE": struct(value = "CMAKE_CXX_ARCHIVE_CREATE", replace = False),
     "CMAKE_CXX_LINK_EXECUTABLE": struct(value = "CMAKE_CXX_LINK_EXECUTABLE", replace = True),
     "CMAKE_C_FLAGS": struct(value = "CMAKE_C_FLAGS_INIT", replace = False),
     "CMAKE_CXX_FLAGS": struct(value = "CMAKE_CXX_FLAGS_INIT", replace = False),
@@ -233,6 +235,9 @@ def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
 
     if tools.cxx_linker_static:
         dict["CMAKE_AR"] = _absolutize(workspace_name, tools.cxx_linker_static, True)
+        if tools.cxx_linker_static.endswith("/libtool"):
+            dict["CMAKE_C_ARCHIVE_CREATE"] = "<CMAKE_AR> -static -o <TARGET> <LINK_FLAGS> <OBJECTS>"
+            dict["CMAKE_CXX_ARCHIVE_CREATE"] = "<CMAKE_AR> -static -o <TARGET> <LINK_FLAGS> <OBJECTS>"
 
     if tools.cxx_linker_executable and tools.cxx_linker_executable != tools.cxx:
         normalized_path = _absolutize(workspace_name, tools.cxx_linker_executable)
