@@ -274,10 +274,12 @@ def get_tools_info(ctx):
         ),
     )
 
-def get_flags_info(ctx):
+def get_flags_info(ctx, link_output_file = None):
     """ Takes information about flags from cc_toolchain, returns CxxFlagsInfo
     Args:
         ctx - rule context
+        link_output_file - output file to be specified in the link command line
+        flags
     """
     cc_toolchain_ = find_cpp_toolchain(ctx)
     feature_configuration = _configure_features(
@@ -325,6 +327,7 @@ def get_flags_info(ctx):
                 feature_configuration = feature_configuration,
                 is_using_linker = False,
                 is_linking_dynamic_library = False,
+                output_file = link_output_file,
             ),
         ),
         cxx_linker_executable = cc_common.get_memory_inefficient_command_line(
