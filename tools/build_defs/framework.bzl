@@ -443,6 +443,7 @@ def _copy_deps_and_tools(files):
     return lines
 
 def _symlink_contents_to_dir(dir_name, files_list):
+    files_list = collections.uniq(files_list)
     if len(files_list) == 0:
         return []
     lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
