@@ -3,3 +3,12 @@ filegroup(
     srcs = glob(["**"]),
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "lib_b_bazel",
+    srcs = ["src/libb.cpp"],
+    hdrs = ["src/libb.h"],
+    includes = ["src"],
+    visibility = ["//visibility:public"],
+    deps = ["//cmake_synthetic/liba:lib_a_bazel"],
+)
