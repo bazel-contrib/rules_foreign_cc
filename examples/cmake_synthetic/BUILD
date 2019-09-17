@@ -1,4 +1,5 @@
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
 generate_crosstool = select({
     "@bazel_tools//src/conditions:windows": True,
@@ -46,6 +47,11 @@ cmake_external(
         "ninja install",
     ],
     deps = ["//cmake_synthetic/liba:lib_a_bazel", "//cmake_synthetic/libb:lib_b_bazel"],
+)
+
+build_test(
+    name = "test_bazel_transitive_deps",
+    targets = [":lib_with_duplicate_transitive_bazel_deps"],
 )
 
 cc_test(

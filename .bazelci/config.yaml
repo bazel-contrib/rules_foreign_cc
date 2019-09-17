@@ -5,7 +5,6 @@ tasks:
     working_directory: examples
     build_targets:
       - "//cmake_android:app"
-      - "//cmake_synthetic:lib_with_duplicate_transitive_bazel_deps"
     test_targets:
     - "//:tests"
   ubuntu1604:

@@ -30,6 +30,7 @@ test_suite(
         "//configure_with_bazel_transitive:test",
         "//simple_make:test_lib",
         "//cmake_hello_world_variant:test_hello_world",
+        "//cmake_synthetic:test_bazel_transitive_deps",
     ],
 )
 
