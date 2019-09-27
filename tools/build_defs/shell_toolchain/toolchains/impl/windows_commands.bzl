@@ -1,6 +1,6 @@
 load("@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
 
-_REPLACE_VALUE = "BAZEL_GEN_ROOT"
+_REPLACE_VALUE = "\$EXT_BUILD_DEPS"
 
 def os_name():
     return "windows"

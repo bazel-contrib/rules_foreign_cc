@@ -246,8 +246,6 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$INSTALLDIR$$",
         _print_env(),
         "\n".join(_copy_deps_and_tools(inputs)),
-        # replace placeholder with the dependencies root
-        "##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$",
         "cd $$BUILD_TMPDIR$$",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(attrs.make_commands),
