@@ -70,13 +70,13 @@ def symlink_contents_to_dir(source, target):
 mkdir -p $target
 if [[ -f $1 ]]; then
   ##symlink_to_dir## $1 $target
-  return 0
-fi
-
-if [[ -d $1 || -L $1 ]]; then
+elif [[ -L $1 ]]; then
+  local actual=$(readlink $1)
+  ##symlink_contents_to_dir## $actual $target
+elif [[ -d $1 ]]; then
   local children=$(find -H $1 -maxdepth 1 -mindepth 1)
   for child in $children; do
-    ##symlink_to_dir## $child $target
+    ##symlink_contents_to_dir## $child "$target/$(basename $1)"
   done
 fi
 """
