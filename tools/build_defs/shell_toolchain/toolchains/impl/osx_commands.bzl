@@ -73,8 +73,8 @@ done
     return FunctionAndCall(text = text)
 
 def symlink_contents_to_dir(source, target):
-    text = """
-local target="$2"
+    text = """local target="$2"
+
 mkdir -p $target
 if [[ -f $1 ]]; then
   ##symlink_to_dir## $1 $target
@@ -84,24 +84,26 @@ elif [[ -L $1 ]]; then
 elif [[ -d $1 ]]; then
   local children=$(find -H $1 -maxdepth 1 -mindepth 1)
   for child in $children; do
-    ##symlink_contents_to_dir## $child "$target/$(basename $1)"
+    ##symlink_to_dir## $child $target
   done
 fi
 """
     return FunctionAndCall(text = text)
 
 def symlink_to_dir(source, target):
-    text = """
-local target="$2"
-mkdir -p ${target}
+    text = """local target="$2"
+mkdir -p $target
 
-if [[ -d $1 ]]; then
-  local dir_name="$(basename "$1")"
-  ln -s $1 ${target}/${dir_name}
-elif [[ -f $1 ]]; then
-  ln -s $1 ${target}
+if [[ -f $1 ]]; then
+  ln -s -f -t $target $1
 elif [[ -L $1 ]]; then
-  cp $1 ${target}
+  local actual=$(readlink $1)
+  ##symlink_to_dir## $actual $target
+elif [[ -d $1 ]]; then
+  local children=$(find -H $1 -maxdepth 1 -mindepth 1)
+  for child in $children; do
+    ##symlink_to_dir## $child "$target/$(basename $1)"
+  done
 else
   echo "Can not copy $1"
 fi

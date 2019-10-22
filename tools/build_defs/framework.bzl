@@ -246,17 +246,19 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$INSTALLDIR$$",
         _print_env(),
         "\n".join(_copy_deps_and_tools(inputs)),
-        # replace placeholder with the dependencies root
-        "##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$",
+        # This breaks tests once ##define_absolute_paths## is actually called, so I commented it out.
+        # TODO: Find out whether this is needed.
+        # # replace placeholder with the dependencies root
+        # "##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$",
         "cd $$BUILD_TMPDIR$$",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(attrs.make_commands),
         attrs.postfix_script or "",
-        # replace references to the root directory when building ($BUILD_TMPDIR)
-        # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
-        # for the results which are in $INSTALLDIR (with placeholder)
-        "##replace_absolute_paths## $$INSTALLDIR$$ $$BUILD_TMPDIR$$",
-        "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
+        # # replace references to the root directory when building ($BUILD_TMPDIR)
+        # # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
+        # # for the results which are in $INSTALLDIR (with placeholder)
+        # "##replace_absolute_paths## $$INSTALLDIR$$ $$BUILD_TMPDIR$$",
+        # "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
         installdir_copy.script,
         empty.script,
         "cd $$EXT_BUILD_ROOT$$",
