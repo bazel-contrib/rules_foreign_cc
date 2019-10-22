@@ -60,22 +60,20 @@ def convert_shell_script_by_context(shell_context, script):
 
     script = new_script
 
-    # 1. call the functions or replace export statements
-    script = [do_function_call(line, shell_context) for line in script]
+    # In practice, infinite recursions are at most three levels deep.
+    for i in range(1, 3):
+        # 1. call the functions or replace export statements
+        script = [do_function_call(line, shell_context) for line in script]
 
-    # 2. make sure functions calls are replaced
-    # (it is known there is no deep recursion, do it only once)
-    script = [do_function_call(line, shell_context) for line in script]
+        # 2. same for function bodies
+        processed_prelude = {}
+        for key in shell_context.prelude.keys():
+            text = shell_context.prelude[key]
+            lines = text.splitlines()
+            processed_prelude[key] = "\n".join([do_function_call(line.strip(" "), shell_context) for line in lines])
 
-    # 3. same for function bodies
-    processed_prelude = {}
-    for key in shell_context.prelude.keys():
-        text = shell_context.prelude[key]
-        lines = text.splitlines()
-        processed_prelude[key] = "\n".join([do_function_call(line.strip(" "), shell_context) for line in lines])
-
-    for key in processed_prelude.keys():
-        shell_context.prelude[key] = processed_prelude[key]
+        for key in processed_prelude.keys():
+            shell_context.prelude[key] = processed_prelude[key]
 
     script = shell_context.prelude.values() + script
 
