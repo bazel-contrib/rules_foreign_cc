@@ -95,7 +95,7 @@ def symlink_to_dir(source, target):
 mkdir -p $target
 
 if [[ -f $1 ]]; then
-  ln -s -f -t $target $1
+  ln -s -f $target $1
 elif [[ -L $1 ]]; then
   local actual=$(readlink $1)
   ##symlink_to_dir## $actual $target
