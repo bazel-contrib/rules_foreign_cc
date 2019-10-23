@@ -13,7 +13,7 @@ load(
 )
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:versions.bzl", "versions")
-load("@bazel_version//:def.bzl", "BAZEL_VERSION")
+load("@rules_foreign_cc_bazel_version//:def.bzl", "BAZEL_VERSION")
 
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
