@@ -74,17 +74,16 @@ done
 
 def symlink_contents_to_dir(source, target):
     text = """local target="$2"
-
-mkdir -p $target
-if [[ -f $1 ]]; then
-  ##symlink_to_dir## $1 $target
-elif [[ -L $1 ]]; then
-  local actual=$(readlink $1)
-  ##symlink_contents_to_dir## $actual $target
-elif [[ -d $1 ]]; then
-  local children=$(find -H $1 -maxdepth 1 -mindepth 1)
+mkdir -p "$target"
+if [[ -f "$1" ]]; then
+  ##symlink_to_dir## "$1" "$target"
+elif [[ -L "$1" ]]; then
+  local actual=$(readlink "$1")
+  ##symlink_contents_to_dir## "$actual" "$target"
+elif [[ -d "$1" ]]; then
+  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
   for child in $children; do
-    ##symlink_to_dir## $child $target
+    ##symlink_to_dir## "$child" "$target"
   done
 fi
 """
@@ -92,17 +91,16 @@ fi
 
 def symlink_to_dir(source, target):
     text = """local target="$2"
-mkdir -p $target
-
-if [[ -f $1 ]]; then
-  ln -s -f $target $1
-elif [[ -L $1 ]]; then
-  local actual=$(readlink $1)
-  ##symlink_to_dir## $actual $target
-elif [[ -d $1 ]]; then
-  local children=$(find -H $1 -maxdepth 1 -mindepth 1)
+mkdir -p "$target"
+if [[ -f "$1" ]]; then
+  ln -s -f "$target" "$1"
+elif [[ -L "$1" ]]; then
+  local actual=$(readlink "$1")
+  ##symlink_to_dir## "$actual" "$target"
+elif [[ -d "$1" ]]; then
+  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
   for child in $children; do
-    ##symlink_to_dir## $child "$target/$(basename $1)"
+    ##symlink_to_dir## "$child" "$target/$(basename $1)"
   done
 else
   echo "Can not copy $1"
