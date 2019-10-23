@@ -232,7 +232,7 @@ def cc_external_rule_impl(ctx, attrs):
         set_cc_envs,
         "export EXT_BUILD_ROOT=##pwd##",
         "export BUILD_TMPDIR=##tmpdir##",
-        "export EXT_BUILD_DEPS=$$EXT_BUILD_ROOT$$/bazel_foreign_cc_deps_" + lib_name,
+        "export EXT_BUILD_DEPS=##tmpdir##",
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
     ]
 
@@ -243,12 +243,9 @@ def cc_external_rule_impl(ctx, attrs):
         "##script_prelude##",
         "\n".join(define_variables),
         "##path## $$EXT_BUILD_ROOT$$",
-        "##mkdirs## $$EXT_BUILD_DEPS$$",
         "##mkdirs## $$INSTALLDIR$$",
         _print_env(),
         "\n".join(_copy_deps_and_tools(inputs)),
-        # replace placeholder with the dependencies root
-        "##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$",
         "cd $$BUILD_TMPDIR$$",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(attrs.make_commands),
@@ -443,19 +440,18 @@ def _copy_deps_and_tools(files):
     return lines
 
 def _symlink_contents_to_dir(dir_name, files_list):
+    # It is possible that some duplicate libraries will be passed as inputs
+    # to cmake_external or configure_make. Filter duplicates out here.
+    files_list = collections.uniq(files_list)
     if len(files_list) == 0:
         return []
     lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
 
-    paths_list = []
     for file in files_list:
-        paths_list += [_file_path(file).strip()]
-
-    for path in paths_list:
-        # Filter out empty subpaths
-        # (current directory may be passed as quote_includes, but we should not symlink it)
-        if path and path != ".":
-            lines += ["##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name)]
+      path = _file_path(file).strip()
+      if path:
+        lines += ["##symlink_contents_to_dir## \
+$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name)]
 
     return lines
 
@@ -612,11 +608,11 @@ def get_foreign_cc_dep(dep):
 
 # consider optimization here to do not iterate both collections
 def _get_headers(compilation_info):
-    # NB: current directory (".") is passed by quote_includes;
-    # ignore it by now, will be filtered by symlinking code.
-    include_dirs = collections.uniq(compilation_info.system_includes.to_list() +
-                                    compilation_info.includes.to_list() +
-                                    compilation_info.quote_includes.to_list())
+    include_dirs = compilation_info.system_includes.to_list() + \
+      compilation_info.includes.to_list()
+    # do not use quote includes, currently they do not contain
+    # library-specific information
+    include_dirs = collections.uniq(include_dirs)
     headers = []
     for header in compilation_info.headers.to_list():
         path = header.path
