@@ -88,7 +88,7 @@ def rules_foreign_cc_dependencies(
     """
     repositories()
     _read_build_options(name = "foreign_cc_platform_utils")
-    bazel_version(name="bazel_version")
+    bazel_version(name="rules_foreign_cc_bazel_version")
 
     shell_toolchain_workspace_initalization(
         additonal_shell_toolchain_mappings,

@@ -34,6 +34,9 @@ def create_cmake_script(
 
     toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags)
     params = None
+
+    keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
+
     if no_toolchain_file:
         params = _create_cache_entries_env_vars(toolchain_dict, user_cache, user_env)
     else:
@@ -53,7 +56,14 @@ def create_cmake_script(
     # or to suppress calculated CMAKE_BUILD_TYPE
     # If the user passes "CMAKE_BUILD_TYPE": "" (empty string),
     # CMAKE_BUILD_TYPE will not be passed to CMake
-    wipe_empty_values(params.cache, user_cache)
+    wipe_empty_values(params.cache, keys_with_empty_values_in_user_cache)
+
+    # However, if no CMAKE_RANLIB was passed, pass the empty value for it explicitly,
+    # as it is legacy and autodetection of ranlib made by CMake automatically
+    # breaks some cross compilation builds,
+    # see https://github.com/envoyproxy/envoy/pull/6991
+    if not params.cache.get("CMAKE_RANLIB"):
+        params.cache.update({"CMAKE_RANLIB": ""})
 
     set_env_vars = " ".join([key + "=\"" + params.env[key] + "\"" for key in params.env])
     str_cmake_cache_entries = " ".join(["-D" + key + "=\"" + params.cache[key] + "\"" for key in params.cache])
@@ -67,9 +77,9 @@ def create_cmake_script(
 
     return "\n".join(params.commands + [cmake_call])
 
-def wipe_empty_values(cache, user_cache):
-    for key in user_cache:
-        if len(user_cache.get(key)) == 0:
+def wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
+    for key in keys_with_empty_values_in_user_cache:
+        if cache.get(key) != None:
             cache.pop(key)
 
 # From CMake documentation: ;-list of directories specifying installation prefixes to be searched...
@@ -94,6 +104,8 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
     "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
     "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
+    "CMAKE_C_ARCHIVE_CREATE": struct(value = "CMAKE_C_ARCHIVE_CREATE", replace = False),
+    "CMAKE_CXX_ARCHIVE_CREATE": struct(value = "CMAKE_CXX_ARCHIVE_CREATE", replace = False),
     "CMAKE_CXX_LINK_EXECUTABLE": struct(value = "CMAKE_CXX_LINK_EXECUTABLE", replace = True),
     "CMAKE_C_FLAGS": struct(value = "CMAKE_C_FLAGS_INIT", replace = False),
     "CMAKE_CXX_FLAGS": struct(value = "CMAKE_CXX_FLAGS_INIT", replace = False),
@@ -223,6 +235,11 @@ def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
 
     if tools.cxx_linker_static:
         dict["CMAKE_AR"] = _absolutize(workspace_name, tools.cxx_linker_static, True)
+        if tools.cxx_linker_static.endswith("/libtool"):
+            dict["CMAKE_C_ARCHIVE_CREATE"] = "<CMAKE_AR> %s <OBJECTS>" % \
+            " ".join(flags.cxx_linker_static)
+            dict["CMAKE_CXX_ARCHIVE_CREATE"] = "<CMAKE_AR> %s <OBJECTS>" % \
+            " ".join(flags.cxx_linker_static)
 
     if tools.cxx_linker_executable and tools.cxx_linker_executable != tools.cxx:
         normalized_path = _absolutize(workspace_name, tools.cxx_linker_executable)

@@ -9,6 +9,14 @@ configure_make(
     ],
     lib_source = "@libevent//:all",
     out_lib_dir = "lib",
+    # libevent script uses it's own libtool for linking;
+    # so do not specify linker tool for it
+    # (otherwise, if the libtool from bazel's toolchain is supplied,
+    # the build script has problems with passing output file to libtool)
+    # see #315
+    configure_env_vars = {
+        "AR": "",
+    },
 )
 
 cc_test(

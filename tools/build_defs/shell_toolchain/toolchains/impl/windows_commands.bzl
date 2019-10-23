@@ -1,12 +1,12 @@
 load("@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
 
-_REPLACE_VALUE = "BAZEL_GEN_ROOT"
+_REPLACE_VALUE = "\${EXT_BUILD_DEPS}"
 
 def os_name():
     return "windows"
 
 def pwd():
-    return "$(pwd -W)"
+    return "$(type -t cygpath > /dev/null && cygpath $(pwd) -w || pwd -W)"
 
 def echo(text):
     return "printf \"{text}\"".format(text = text)
@@ -74,7 +74,7 @@ if [[ -f $1 ]]; then
 fi
 
 if [[ -d $1 || -L $1 ]]; then
-  local children=$(find $1 -maxdepth 1 -mindepth 1)
+  local children=$(find -H $1 -maxdepth 1 -mindepth 1)
   for child in $children; do
     ##symlink_to_dir## $child $target
   done

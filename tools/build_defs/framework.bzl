@@ -232,7 +232,7 @@ def cc_external_rule_impl(ctx, attrs):
         set_cc_envs,
         "export EXT_BUILD_ROOT=##pwd##",
         "export BUILD_TMPDIR=##tmpdir##",
-        "export EXT_BUILD_DEPS=$$EXT_BUILD_ROOT$$/bazel_foreign_cc_deps_" + lib_name,
+        "export EXT_BUILD_DEPS=##tmpdir##",
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
     ]
 
@@ -243,12 +243,9 @@ def cc_external_rule_impl(ctx, attrs):
         "##script_prelude##",
         "\n".join(define_variables),
         "##path## $$EXT_BUILD_ROOT$$",
-        "##mkdirs## $$EXT_BUILD_DEPS$$",
         "##mkdirs## $$INSTALLDIR$$",
         _print_env(),
         "\n".join(_copy_deps_and_tools(inputs)),
-        # replace placeholder with the dependencies root
-        "##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$",
         "cd $$BUILD_TMPDIR$$",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(attrs.make_commands),
@@ -443,6 +440,9 @@ def _copy_deps_and_tools(files):
     return lines
 
 def _symlink_contents_to_dir(dir_name, files_list):
+    # It is possible that some duplicate libraries will be passed as inputs
+    # to cmake_external or configure_make. Filter duplicates out here.
+    files_list = collections.uniq(files_list)
     if len(files_list) == 0:
         return []
     lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
@@ -462,16 +462,15 @@ def _symlink_contents_to_dir(dir_name, files_list):
 def _file_path(file):
     return file if type(file) == "string" else file.path
 
-def _check_file_name(var, name):
-    if (len(var) == 0):
-        fail("{} can not be empty string.".format(name.capitalize()))
+_FORBIDDEN_FOR_FILENAME = ["\\", "/", ":", "*", "\"", "<", ">", "|"]
 
-    if (not var[0:1].isalpha()):
-        fail("{} should start with a letter.".format(name.capitalize()))
-    for index in range(1, len(var) - 1):
+def _check_file_name(var):
+    if (len(var) == 0):
+        fail("Library name cannot be an empty string.")
+    for index in range(0, len(var) - 1):
         letter = var[index]
-        if not letter.isalnum() and letter != "_":
-            fail("{} should be alphanumeric or '_'.".format(name.capitalize()))
+        if letter in _FORBIDDEN_FOR_FILENAME:
+            fail("Symbol '%s' is forbidden in library name '%s'." % (letter, var))
 
 _Outputs = provider(
     doc = "Provider to keep different kinds of the external build output files and directories",
@@ -494,7 +493,7 @@ def _define_outputs(ctx, attrs, lib_name):
         else:
             static_libraries = attrs.static_libraries
 
-    _check_file_name(lib_name, "Library name")
+    _check_file_name(lib_name)
 
     out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
 
