@@ -1,12 +1,5 @@
 load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
-cc_library(
-    name = "built_with_bazel",
-    srcs = ["builtWithBazel.c"],
-    hdrs = ["builtWithBazel.h"],
-    includes = ["."],
-)
-
 configure_make(
     name = "simple",
     configure_in_place = True,
@@ -15,7 +8,10 @@ configure_make(
         "make simple",
         "make install",
     ],
-    deps = [":built_with_bazel"],
+    deps = [
+        "//configure_with_bazel_transitive/built_with_bazel:built_with_bazel",
+        "//configure_with_bazel_transitive/built_with_bazel_2:built_with_bazel_2",
+    ],
 )
 
 cc_test(
