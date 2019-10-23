@@ -424,7 +424,7 @@ def _list(item):
 def _copy_deps_and_tools(files):
     lines = []
     lines += _symlink_contents_to_dir("lib", files.libs)
-    lines += _symlink_contents_to_dir("include", files.headers + files.include_dirs)
+    lines += _symlink_contents_to_dir("include", files.include_dirs)
 
     if files.tools_files:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
