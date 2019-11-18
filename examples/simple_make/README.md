@@ -1,0 +1,21 @@
+# Dependencies
+
+  * clang
+  * bazel
+
+# Executing the Example
+
+To execute the example, run
+
+   bazel test //simple_make:test_lib
+
+# Troubleshooting
+
+If you receive an error of the form:
+
+  ccache: FATAL: Failed to create /home/$USER/.ccache/2/f: Read-only file system
+
+This is likely because you're have ccache set as your compiler. You can either
+disable ccache, or allow the sandbox to write to ~/.ccache:
+
+  bazel test --sandbox_writable_path ~/.ccache //simple_make:test_lib
