@@ -8,7 +8,7 @@
 To execute the example, run
 
 ```bash
-   bazel test //simple_make:test_lib
+   bazel test ...
 ```
 
 # Troubleshooting
@@ -23,5 +23,5 @@ This is likely because you're have ccache set as your compiler. You can either
 disable ccache, or allow the sandbox to write to ~/.ccache:
 
 ```bash
-  bazel test --sandbox_writable_path ~/.ccache //simple_make:test_lib
+  bazel test --sandbox_writable_path ~/.ccache ...
 ```
