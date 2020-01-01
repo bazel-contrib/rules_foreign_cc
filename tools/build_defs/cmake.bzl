@@ -58,6 +58,8 @@ def _create_configure_script(configureParameters):
     inputs = configureParameters.inputs
 
     root = detect_root(ctx.attr.lib_source)
+    if ctx.attr.cmake_relative_root:
+        root += "/" + ctx.attr.cmake_relative_root
 
     tools = get_tools_info(ctx)
     # CMake will replace <TARGET> with the actual output file
@@ -112,6 +114,11 @@ def _attrs():
         # cache_entries - the rule makes only a poor guess about the target system,
         # it is better to specify it manually.
         "generate_crosstool_file": attr.bool(mandatory = False, default = False),
+        # When provided, invokes cmake in this location relative to the
+        # lib_source root. This is needed if the project houses its
+        # CMakeLists.txt file in a sub-directory and has peers (i.e. LLVM is
+        # such an example where "llvm" must be passed here).
+        "cmake_relative_root": attr.string(mandatory = False),
     })
     return attrs
 
