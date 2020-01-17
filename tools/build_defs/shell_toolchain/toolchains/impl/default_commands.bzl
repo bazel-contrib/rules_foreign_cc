@@ -1,6 +1,6 @@
 load("@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
 
-_REPLACE_VALUE = "\${EXT_BUILD_DEPS}"
+_REPLACE_VALUE = "BAZEL_GEN_ROOT"
 
 def os_name():
     return "linux"
@@ -94,6 +94,21 @@ elif [[ -L $1 ]]; then
   cp --no-target-directory $1 ${target}
 else
   echo "Can not copy $1"
+fi
+"""
+    return FunctionAndCall(text = text)
+
+def copy_to_dir(source, target):
+    text = """
+local target="$2"
+mkdir -p ${target}
+
+if [[ -d $1 ]]; then
+  cp -r $1 ${target}/
+elif [[ -f $1 ]]; then
+  cp $1 ${target}/
+else
+  echo "Cannot copy $1"
 fi
 """
     return FunctionAndCall(text = text)

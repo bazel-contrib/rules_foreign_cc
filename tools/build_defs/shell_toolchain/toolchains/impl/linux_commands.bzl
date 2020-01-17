@@ -1,6 +1,6 @@
 load("@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
 
-_REPLACE_VALUE = "\${EXT_BUILD_DEPS}"
+_REPLACE_VALUE = "BAZEL_GEN_ROOT"
 
 def os_name():
     return "linux"
@@ -60,7 +60,7 @@ def replace_in_files(dir, from_, to_):
   -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
 fi
 """,
-    )
+)
 
 def copy_dir_contents_to_dir(source, target):
     return """cp -L -r --no-target-directory "{}" "{}" """.format(source, target)
@@ -97,6 +97,22 @@ else
 fi
 """
     return FunctionAndCall(text = text)
+
+def copy_to_dir(source, target):
+    text = """
+local target="$2"
+mkdir -p ${target}
+
+if [[ -d $1 ]]; then
+  cp -r $1 ${target}/
+elif [[ -f $1 ]]; then
+  cp $1 ${target}/
+else
+  echo "Cannot copy $1"
+fi
+"""
+    return FunctionAndCall(text = text)
+
 
 def script_prelude():
     return "set -e"

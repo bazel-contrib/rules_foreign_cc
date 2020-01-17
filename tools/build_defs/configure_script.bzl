@@ -18,7 +18,7 @@ def create_configure_script(
 
     script = []
     for ext_dir in inputs.ext_build_dirs:
-        script += ["##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path]
+        script += ["##increment_pkg_config_path## $$EXT_BUILD_DEPS$$/" + ext_dir.basename]
 
     script += ["echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\""]
 
@@ -50,7 +50,7 @@ def create_make_script(
     env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
     script = []
     for ext_dir in inputs.ext_build_dirs:
-        script += ["##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path]
+        script += ["##increment_pkg_config_path## $$EXT_BUILD_DEPS$$/" + ext_dir.basename]
 
     script += ["echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\""]
 

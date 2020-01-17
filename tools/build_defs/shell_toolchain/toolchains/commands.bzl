@@ -130,6 +130,18 @@ If file is passed, symlink it into the target directory.""",
 Symlink all files from source directory to target directory (create the target directory if needed).
 NB symlinks from the source directory are copied.""",
     ),
+    "copy_to_dir": CommandInfo(
+        arguments = [
+            ArgumentInfo(
+                name = "source",
+                type_ = type(""),
+                doc = "Source directory",
+            ),
+            ArgumentInfo(name = "target", type_ = type(""), doc = "Target directory"),
+        ],
+        doc = """
+Copy all files from source directory to target directory (create the target directory if needed).""",
+    ),
     "script_prelude": CommandInfo(
         arguments = [],
         doc = "Function for setting necessary environment variables for the platform",

@@ -246,6 +246,8 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$INSTALLDIR$$",
         _print_env(),
         "\n".join(_copy_deps_and_tools(inputs)),
+        # replace placeholder with the dependencies root
+        "##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$",
         "cd $$BUILD_TMPDIR$$",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(attrs.make_commands),
@@ -432,7 +434,17 @@ def _copy_deps_and_tools(files):
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/".format(tool))
 
     for ext_dir in files.ext_build_dirs:
-        lines += ["##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir))]
+        # A foreign_cc-built dep could be included by multiple other foreign_cc
+        # targets. If these other targets are built in parallel, they could
+        # update the deps' BAZEL_GEN_ROOT values inside the .pc, .cmake, etc.,
+        # simulataneously. This could break the build in unpredictable ways.
+        #
+        # To fix this, each target must have a *copy* of the dep. A symlink of
+        # the dep is not sufficient.
+        #
+        # Having a copy also avoids permission eror with `sed` on MacOS where
+        # the bazel cache dir is write-once only.
+        lines += ["##copy_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir))]
 
     lines += ["##children_to_path## $$EXT_BUILD_DEPS$$/bin"]
     lines += ["##path## $$EXT_BUILD_DEPS$$/bin"]
