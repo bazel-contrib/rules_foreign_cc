@@ -31,7 +31,6 @@ configure_make(
         "--with-apr=$$EXT_BUILD_DEPS$$/apr",
         "--with-apr-util=$$EXT_BUILD_DEPS$$/apr_util",
         "--with-pcre=$$EXT_BUILD_DEPS$$/pcre",
-        "CFLAGS='-Dredacted=\"redacted\"'",
     ],
     lib_source = "@apache_httpd//:all",
     binaries = [

@@ -132,7 +132,7 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
         "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",
     })
     return struct(
-        commands = ["cat > crosstool_bazel.cmake <<EOF\n" + "\n".join(lines) + "\nEOF\n"],
+        commands = ["cat > crosstool_bazel.cmake <<'EOF'\n" + "\n".join(lines) + "\nEOF\n"],
         env = env_vars,
         cache = cache_entries,
     )
