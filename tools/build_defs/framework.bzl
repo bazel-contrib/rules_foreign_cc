@@ -312,9 +312,9 @@ def cc_external_rule_impl(ctx, attrs):
     define_variables = [
         set_cc_envs,
         "export EXT_BUILD_ROOT=##pwd##",
-        "export BUILD_TMPDIR=##tmpdir##",
-        "export EXT_BUILD_DEPS=##tmpdir##",
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
+        "export BUILD_TMPDIR=$$INSTALLDIR$$/_build_tmpdir",
+        "export EXT_BUILD_DEPS=$$INSTALLDIR$$/_ext_build_deps",
     ]
 
     make_commands = []
@@ -332,6 +332,8 @@ def cc_external_rule_impl(ctx, attrs):
         "\n".join(define_variables),
         "##path## $$EXT_BUILD_ROOT$$",
         "##mkdirs## $$INSTALLDIR$$",
+        "##mkdirs## $$BUILD_TMPDIR$$",
+        "##mkdirs## $$EXT_BUILD_DEPS$$",
         _print_env(),
         "\n".join(_copy_deps_and_tools(inputs)),
         "cd $$BUILD_TMPDIR$$",
