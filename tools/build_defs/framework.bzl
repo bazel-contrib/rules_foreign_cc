@@ -455,8 +455,7 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text):
     cleanup_on_success_function = create_function(
         ctx,
         "cleanup_on_success",
-        """##echo## \"rules_foreign_cc: Cleaning temp directories\"
-rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS""",
+        """rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS""",
     )
     cleanup_on_failure_function = create_function(
         ctx,
