@@ -35,11 +35,12 @@ test_suite(
 )
 
 test_suite(
-    name = "cmake_tests",
+    name = "mac_tests",
     tests = tests + [
         "//cmake_synthetic:test_libs",
         "//cmake_hello_world_lib/shared:test_libhello",
         "//cmake_hello_world_lib/binary:test_binary",
+        "//simple_make:test_lib",
     ],
 )
 

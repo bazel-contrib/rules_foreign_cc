@@ -20,7 +20,7 @@ tasks:
     build_targets:
       - "//cmake_android:app"
     test_targets:
-      - "//:cmake_tests"
+      - "//:mac_tests"
   windows:
     platform: windows
     working_directory: examples
