@@ -396,9 +396,9 @@ def _get_transitive_artifacts(deps):
 
 def _print_env():
     return "\n".join([
-        "##echo## \"Environment:______________\"",
+        "##echo## \"Environment:______________\\n\"",
         "##env##",
-        "##echo## \"__________________________\"",
+        "##echo## \"__________________________\\n\"",
     ])
 
 def _correct_path_variable(env):
