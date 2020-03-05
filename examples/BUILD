@@ -16,6 +16,7 @@ tests = [
     "@rules_foreign_cc//test:cmake_script_test_suite",
     "@rules_foreign_cc//test:shell_script_conversion_suite",
     "@rules_foreign_cc//test:utils_test_suite",
+    "@rules_foreign_cc//test:shell_script_inner_fun_test",
     "//cc_configure_make:libevent_echosrv1",
 ]
 

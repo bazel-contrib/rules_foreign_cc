@@ -69,10 +69,15 @@ def convert_shell_script_by_context(shell_context, script):
 
     # 3. same for function bodies
     processed_prelude = {}
-    for key in shell_context.prelude.keys():
-        text = shell_context.prelude[key]
-        lines = text.splitlines()
-        processed_prelude[key] = "\n".join([do_function_call(line.strip(" "), shell_context) for line in lines])
+    for i in range(1, 4):
+        for key in shell_context.prelude.keys():
+            text = shell_context.prelude[key]
+            lines = text.splitlines()
+            replaced = "\n".join([
+                do_function_call(line.strip(" "), shell_context)
+                for line in lines
+            ])
+            processed_prelude[key] = replaced
 
     for key in processed_prelude.keys():
         shell_context.prelude[key] = processed_prelude[key]
