@@ -16,8 +16,13 @@ shell_script_helper_test_rule(
     script = ["##symlink_contents_to_dir## $$SOURCE_DIR$$ $$TARGET_DIR$$"],
 )
 
+result_file = select({
+    "@bazel_tools//src/conditions:darwin": "expected/inner_fun_text_osx.txt",
+    "//conditions:default": "expected/inner_fun_text.txt",
+})
+
 diff_test(
     name = "shell_script_inner_fun_test",
     file1 = ":shell_script_inner_fun",
-    file2 = "expected/inner_fun_text.txt",
+    file2 = result_file,
 )
