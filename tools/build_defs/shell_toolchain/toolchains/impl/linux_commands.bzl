@@ -90,8 +90,9 @@ elif [[ -L "$1" ]]; then
   ##symlink_to_dir## "$actual" "$target"
 elif [[ -d "$1" ]]; then
   local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
+  local dirname=$(basename "$1")
   for child in $children; do
-    ##symlink_to_dir## "$child" "$target/$(basename $1)"
+    ##symlink_to_dir## "$child" "$target/$dirname"
   done
 else
   echo "Can not copy $1"
