@@ -93,6 +93,7 @@ elif [[ -d "$1" ]]; then
   local dirname=$(basename "$1")
   for child in $children; do
     ##symlink_to_dir## "$child" "$target/$dirname"
+  done
 else
   echo "Can not copy $1"
 fi
