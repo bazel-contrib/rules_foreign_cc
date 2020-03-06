@@ -95,8 +95,7 @@ mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ln -s -f "$target" "$1"
 elif [[ -L "$1" ]]; then
-  local actual=$(readlink "$1")
-  ##symlink_to_dir## "$actual" "$target"
+  cp $1 $2
 elif [[ -d "$1" ]]; then
   local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
   local dirname=$(basename "$1")
