@@ -436,7 +436,7 @@ def _copy_deps_and_tools(files):
         lines.append("if [ -d $$EXT_BUILD_ROOT$$/%s/bin ]; then ls -R $$EXT_BUILD_ROOT$$/%s/bin; fi" % (tool, tool))
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/".format(tool))
         lines.append("##echo## \"Debug, ls destination: \"")
-        lines.append("if [ -d $$EXT_BUILD_DEPS$$/bin/cmake/bin ]; then ls -R $$EXT_BUILD_DEPS$$/bin/cmake/bin; fi")
+        lines.append("if [ -d $$EXT_BUILD_DEPS$$/bin ]; then ls -R $$EXT_BUILD_DEPS$$/bin; fi")
 
     for ext_dir in files.ext_build_dirs:
         lines += ["##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir))]
