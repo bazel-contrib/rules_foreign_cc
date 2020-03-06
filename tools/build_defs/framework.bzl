@@ -345,6 +345,9 @@ rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS""",
 rules_foreign_cc: Printing build logs:\\n\\n_____ BEGIN BUILD LOGS _____\\n"
 ##cat## $$BUILD_LOG$$
 ##echo## "\\n_____ END BUILD LOGS _____\\n"
+##echo## "Printing build script:\\n\\n_____ BEGIN BUILD SCRIPT _____\\n"
+##cat## $$BUILD_SCRIPT$$
+##echo## "\\n_____ END BUILD SCRIPT _____\\n"
 ##echo## "rules_foreign_cc: Build script location: $$BUILD_SCRIPT$$\\n"
 ##echo## "rules_foreign_cc: Build log location: $$BUILD_LOG$$\\n\\n"
 """,
