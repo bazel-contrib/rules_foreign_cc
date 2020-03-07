@@ -57,7 +57,7 @@ def _create_configure_script(configureParameters):
     ctx = configureParameters.ctx
     inputs = configureParameters.inputs
 
-    root = detect_root(ctx.attr.lib_source)
+    root = detect_root(ctx.attr.lib_source, contains_file="CMakeLists.txt")
 
     tools = get_tools_info(ctx)
     # CMake will replace <TARGET> with the actual output file
