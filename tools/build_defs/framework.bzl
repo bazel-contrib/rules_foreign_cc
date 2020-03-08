@@ -236,6 +236,13 @@ def cc_external_rule_impl(ctx, attrs):
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
     ]
 
+    make_commands = []
+    for line in attrs.make_commands:
+        if line == "make" or line.startswith("make "):
+            make_commands.append(line.replace("make", attrs.make_path, 1))
+        else:
+            make_commands.append(line)
+
     script_lines = [
         "##echo## \"\"",
         "##echo## \"{}\"".format(version_and_lib),
@@ -248,7 +255,7 @@ def cc_external_rule_impl(ctx, attrs):
         "\n".join(_copy_deps_and_tools(inputs)),
         "cd $$BUILD_TMPDIR$$",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
-        "\n".join(attrs.make_commands),
+        "\n".join(make_commands),
         attrs.postfix_script or "",
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
