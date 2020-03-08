@@ -37,3 +37,9 @@ native_tool_toolchain(
     target = ":ninja_tool",
     visibility = ["//visibility:public"],
 )
+
+native_tool_toolchain(
+    name = "preinstalled_make",
+    path = "make",
+    visibility = ["//visibility:public"],
+)
