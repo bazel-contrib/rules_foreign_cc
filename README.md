@@ -88,15 +88,20 @@ load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependen
 #
 #  Args:
 #    native_tools_toolchains: pass the toolchains for toolchain types
+#      '@rules_foreign_cc//tools/build_defs:make_toolchain',
 #      '@rules_foreign_cc//tools/build_defs:cmake_toolchain' and
 #      '@rules_foreign_cc//tools/build_defs:ninja_toolchain' with the needed platform constraints.
 #      If you do not pass anything, registered default toolchains will be selected (see below).
 #  
-#    register_default_tools: if True, the cmake and ninja toolchains, calling corresponding
-#      preinstalled binaries by name (cmake, ninja) will be registered after
+#    register_default_tools: if True, the make, cmake and ninja toolchains, calling corresponding
+#      preinstalled binaries by name (make, cmake, ninja) will be registered after
 #      'native_tools_toolchains' without any platform constraints.
 #      The default is True.
-rules_foreign_cc_dependencies(["//:my_cmake_toolchain", "//:my_ninja_toolchain"])
+rules_foreign_cc_dependencies([
+    "//:my_make_toolchain",
+    "//:my_cmake_toolchain",
+    "//:my_ninja_toolchain",
+])
 
 # OpenBLAS source code repository
 http_archive(
