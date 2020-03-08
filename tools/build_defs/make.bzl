@@ -35,8 +35,12 @@ def _create_make_script(configureParameters):
     flags = get_flags_info(ctx)
 
     make_commands = ctx.attr.make_commands or [
-        "make %s -C $$EXT_BUILD_ROOT$$/%s" % ("-k" if ctx.attr.keep_going else "", root),
-        "make -C $$EXT_BUILD_ROOT$$/%s install PREFIX=%s" % (root, install_prefix),
+        "make {keep_going} -C $$EXT_BUILD_ROOT$$/{root}".format(
+            keep_going="-k" if ctx.attr.keep_going else "",
+            root=root),
+        "make -C $$EXT_BUILD_ROOT$$/{root} install PREFIX={prefix}".format(
+            root=root,
+            prefix=install_prefix),
     ]
 
     return create_make_script(
