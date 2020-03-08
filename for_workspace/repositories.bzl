@@ -15,6 +15,16 @@ def repositories():
     )
 
     http_archive(
+        name = "make",
+        build_file_content = _all_content,
+        sha256 = "e05fdde47c5f7ca45cb697e973894ff4f5d79e13b750ed57d7b66d8defc78e19",
+        strip_prefix = "make-4.3",
+        urls = [
+            "http://mirror.rit.edu/gnu/make/make-4.3.tar.gz",
+        ],
+    )
+
+    http_archive(
         name = "ninja_build",
         build_file_content = _all_content,
         sha256 = "3810318b08489435f8efc19c05525e80a993af5a55baa0dfeae0465a9d45f99f",
