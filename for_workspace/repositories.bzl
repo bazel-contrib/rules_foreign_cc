@@ -27,9 +27,9 @@ def repositories():
     http_archive(
         name = "cmake",
         build_file_content = _all_content,
-        sha256 = "019aa2afdf650d27bd70407e0a8183ce2f3fce0429e82d1ced234aed942c9a0b",
-        strip_prefix = "CMake-3.12.1",
+        sha256 = "fc77324c4f820a09052a7785549b8035ff8d3461ded5bbd80d252ae7d1cd3aa5",
+        strip_prefix = "cmake-3.17.2",
         urls = [
-            "https://github.com/Kitware/CMake/archive/v3.12.1.tar.gz",
+            "https://github.com/Kitware/CMake/releases/download/v3.17.2/cmake-3.17.2.tar.gz",
         ],
     )
