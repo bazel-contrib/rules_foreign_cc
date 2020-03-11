@@ -48,7 +48,7 @@ def create_make_script(
         make_commands,
         prefix):
     env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
-    script = []
+    script = [env_vars_string]
     for ext_dir in inputs.ext_build_dirs:
         script += ["##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path]
 
