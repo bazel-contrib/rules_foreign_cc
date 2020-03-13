@@ -53,9 +53,9 @@ def create_make_script(
         script += ["##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path]
 
     script += ["echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\""]
-
+    script += ["export " + env_vars_string]
     script += ["##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root)]
-    script += [env_vars_string + " " + " && ".join(make_commands)]
+    script += ["" + " && ".join(make_commands)]
     return "\n".join(script)
 
 def get_env_vars(
