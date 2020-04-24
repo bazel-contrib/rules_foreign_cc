@@ -58,6 +58,8 @@ def _create_configure_script(configureParameters):
     inputs = configureParameters.inputs
 
     root = detect_root(ctx.attr.lib_source)
+    if len(ctx.attr.working_directory) > 0:
+        root = root + "/" + ctx.attr.working_directory
 
     tools = get_tools_info(ctx)
     # CMake will replace <TARGET> with the actual output file
@@ -112,6 +114,9 @@ def _attrs():
         # cache_entries - the rule makes only a poor guess about the target system,
         # it is better to specify it manually.
         "generate_crosstool_file": attr.bool(mandatory = False, default = False),
+        # Working directory, with the main CMakeLists.txt
+        # (otherwise, the top directory of the lib_source label files is used.)
+        "working_directory": attr.string(mandatory = False, default = ""),
     })
     return attrs
 

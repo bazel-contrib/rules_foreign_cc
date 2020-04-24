@@ -240,6 +240,9 @@ attrs: {
     # cache_entries - the rule makes only a poor guess about the target system,
     # it is better to specify it manually.
     "generate_crosstool_file": attr.bool(mandatory = False, default = False),
+    # Working directory, with the main CMakeLists.txt
+    # (otherwise, the top directory of the lib_source label files is used.)
+    "working_directory": attr.string(mandatory = False, default = ""),
     #
     # From framework.bzl:
     # 
