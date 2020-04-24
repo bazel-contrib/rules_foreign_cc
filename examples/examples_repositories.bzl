@@ -162,6 +162,29 @@ def include_examples_repositories():
         ],
     )
 
+    thrift_version = "0.13.0"
+    http_archive(
+        name = "thrift",
+        build_file_content = all_content,
+        strip_prefix = "thrift-%s" % thrift_version,
+        urls = [
+            "https://ftp.cc.uoc.gr/mirrors/apache/thrift/%s/thrift-%s.tar.gz" % (thrift_version, thrift_version),
+            "https://apache.cs.utah.edu/thrift/%s/thrift-%s.tar.gz" % (thrift_version, thrift_version),
+        ],
+        # sha256 = "c336099532b765a6815173f62df0ed897528a9d551837d627c1f87fadad90428",
+    )
+
+    openssl_version = "1_1_1g"
+    http_archive(
+        name = "openssl",
+        build_file_content = all_content,
+        strip_prefix = "openssl-OpenSSL_%s" % openssl_version,
+        urls = [
+            "https://github.com/openssl/openssl/archive/OpenSSL_%s.tar.gz" % openssl_version,
+        ],
+        sha256 = "281e4f13142b53657bd154481e18195b2d477572fdffa8ed1065f73ef5a19777",
+    )
+
     http_archive(
         name = "pcre",
         build_file_content = all_content,
