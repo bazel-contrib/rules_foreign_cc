@@ -124,9 +124,9 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
     lines = []
     for key in toolchain_dict:
         if ("CMAKE_AR" == key):
-            lines += ["set({} \"{}\" {})".format(key, toolchain_dict[key], "CACHE FILEPATH \"Archiver\"")]
+            lines.append("set({} \"{}\" {})".format(key, toolchain_dict[key], "CACHE FILEPATH \"Archiver\""))
             continue
-        lines += ["set({} \"{}\")".format(key, toolchain_dict[key])]
+        lines.append("set({} \"{}\")".format(key, toolchain_dict[key]))
 
     cache_entries.update({
         "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",

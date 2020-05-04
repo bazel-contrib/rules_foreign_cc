@@ -46,10 +46,10 @@ fi
 
 def define_function(name, text):
     lines = []
-    lines += ["function " + name + "() {"]
+    lines.append("function " + name + "() {")
     for line_ in text.splitlines():
-        lines += ["  " + line_]
-    lines += ["}"]
+        lines.append("  " + line_)
+    lines.append("}")
     return "\n".join(lines)
 
 def replace_in_files(dir, from_, to_):

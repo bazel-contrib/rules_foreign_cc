@@ -1,13 +1,13 @@
 # example code is taken from https://github.com/Akagi201/learning-cmake/tree/master/hello-world-lib
 # for test only
 
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+
 filegroup(
     name = "srcs",
     srcs = glob(["**"]),
     visibility = ["//visibility:public"],
 )
-
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(
     name = "libhello",

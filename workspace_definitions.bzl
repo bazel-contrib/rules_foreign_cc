@@ -1,4 +1,3 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//for_workspace:repositories.bzl", "repositories")
 load(
     "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",

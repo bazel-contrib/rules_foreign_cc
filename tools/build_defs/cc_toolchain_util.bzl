@@ -91,7 +91,7 @@ def _create_libraries_to_link(ctx, files):
     )
 
     for name_ in names:
-        libs += [cc_common.create_library_to_link(
+        libs.append(cc_common.create_library_to_link(
             actions = ctx.actions,
             feature_configuration = feature_configuration,
             cc_toolchain = cc_toolchain,
@@ -100,7 +100,7 @@ def _create_libraries_to_link(ctx, files):
             dynamic_library = shared_map.get(name_),
             interface_library = interface_map.get(name_),
             alwayslink = ctx.attr.alwayslink,
-        )]
+        ))
 
     return libs
 
@@ -112,7 +112,7 @@ def _filter(list_, predicate, inverse):
     for elem in list_:
         check = predicate(elem)
         if not inverse and check or inverse and not check:
-            result += [elem]
+            result.append(elem)
     return result
 
 def _files_map(files_list):
@@ -366,7 +366,7 @@ def _add_if_needed(arr, add_arr):
             if existing == to_add:
                 found = True
         if not found:
-            filtered += [to_add]
+            filtered.append(to_add)
     return arr + filtered
 
 def absolutize_path_in_str(workspace_name, root_str, text, force = False):

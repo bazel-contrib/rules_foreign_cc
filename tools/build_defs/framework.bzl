@@ -391,7 +391,7 @@ def _get_transitive_artifacts(deps):
     for dep in deps:
         foreign_dep = get_foreign_cc_dep(dep)
         if foreign_dep:
-            artifacts += [foreign_dep.artifacts]
+            artifacts.append(foreign_dep.artifacts)
     return artifacts
 
 def _print_env():
@@ -432,10 +432,10 @@ def _copy_deps_and_tools(files):
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/".format(tool))
 
     for ext_dir in files.ext_build_dirs:
-        lines += ["##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir))]
+        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir)))
 
-    lines += ["##children_to_path## $$EXT_BUILD_DEPS$$/bin"]
-    lines += ["##path## $$EXT_BUILD_DEPS$$/bin"]
+    lines.append("##children_to_path## $$EXT_BUILD_DEPS$$/bin")
+    lines.append("##path## $$EXT_BUILD_DEPS$$/bin")
 
     return lines
 
@@ -450,8 +450,8 @@ def _symlink_contents_to_dir(dir_name, files_list):
     for file in files_list:
         path = _file_path(file).strip()
         if path:
-            lines += ["##symlink_contents_to_dir## \
-$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name)]
+            lines.append("##symlink_contents_to_dir## \
+$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name))
 
     return lines
 
@@ -549,7 +549,7 @@ def _define_inputs(attrs):
     for dep in attrs.deps:
         external_deps = get_foreign_cc_dep(dep)
 
-        cc_infos += [dep[CcInfo]]
+        cc_infos.append(dep[CcInfo])
 
         if external_deps:
             ext_build_dirs += [artifact.gen_dir for artifact in external_deps.artifacts.to_list()]
@@ -568,7 +568,7 @@ def _define_inputs(attrs):
     tools_files = []
     for tool in attrs.tools_deps:
         tool_root = detect_root(tool)
-        tools_roots += [tool_root]
+        tools_roots.append(tool_root)
         for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
@@ -643,7 +643,7 @@ def _get_headers(compilation_info):
                 included = True
                 break
         if not included:
-            headers += [header]
+            headers.append(header)
     return struct(
         headers = headers,
         include_dirs = include_dirs,

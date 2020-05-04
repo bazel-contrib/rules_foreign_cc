@@ -18,7 +18,6 @@ load(
     "is_debug_mode",
 )
 load(":cmake_script.bzl", "create_cmake_script")
-load("//tools/build_defs/shell_toolchain/toolchains:access.bzl", "create_context")
 load("//tools/build_defs/native_tools:tool_access.bzl", "get_cmake_data", "get_ninja_data")
 load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
 
