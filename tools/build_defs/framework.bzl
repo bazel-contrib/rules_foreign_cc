@@ -394,7 +394,7 @@ def _get_transitive_artifacts(deps):
     for dep in deps:
         foreign_dep = get_foreign_cc_dep(dep)
         if foreign_dep:
-            artifacts += [foreign_dep.artifacts]
+            artifacts.append(foreign_dep.artifacts)
     return artifacts
 
 def _print_env():
@@ -439,10 +439,10 @@ def _copy_deps_and_tools(files):
         lines.append("if [ -d $$EXT_BUILD_DEPS$$/bin ]; then ls -R $$EXT_BUILD_DEPS$$/bin; fi")
 
     for ext_dir in files.ext_build_dirs:
-        lines += ["##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir))]
+        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir)))
 
-    lines += ["##children_to_path## $$EXT_BUILD_DEPS$$/bin"]
-    lines += ["##path## $$EXT_BUILD_DEPS$$/bin"]
+    lines.append("##children_to_path## $$EXT_BUILD_DEPS$$/bin")
+    lines.append("##path## $$EXT_BUILD_DEPS$$/bin")
 
     return lines
 
@@ -455,10 +455,10 @@ def _symlink_contents_to_dir(dir_name, files_list):
     lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
 
     for file in files_list:
-      path = _file_path(file).strip()
-      if path:
-        lines += ["##symlink_contents_to_dir## \
-$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name)]
+        path = _file_path(file).strip()
+        if path:
+            lines.append("##symlink_contents_to_dir## \
+$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name))
 
     return lines
 
@@ -556,7 +556,7 @@ def _define_inputs(attrs):
     for dep in attrs.deps:
         external_deps = get_foreign_cc_dep(dep)
 
-        cc_infos += [dep[CcInfo]]
+        cc_infos.append(dep[CcInfo])
 
         if external_deps:
             ext_build_dirs += [artifact.gen_dir for artifact in external_deps.artifacts.to_list()]
@@ -575,7 +575,7 @@ def _define_inputs(attrs):
     tools_files = []
     for tool in attrs.tools_deps:
         tool_root = detect_root(tool)
-        tools_roots += [tool_root]
+        tools_roots.append(tool_root)
         for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
@@ -595,12 +595,12 @@ def _define_inputs(attrs):
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
-        declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list())
-            + bazel_libs
-            + tools_files
-            + attrs.additional_inputs
-            + cc_info_merged.compilation_context.headers.to_list()
-            + ext_build_dirs,
+        declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
+                          bazel_libs +
+                          tools_files +
+                          attrs.additional_inputs +
+                          cc_info_merged.compilation_context.headers.to_list() +
+                          ext_build_dirs,
     )
 
 """When the directories are also passed in the filegroup with the sources,
@@ -608,6 +608,7 @@ we get into a situation when we have containing in the sources list,
 which is not allowed by Bazel (execroot creation code fails).
 The parent directories will be created for us in the execroot anyway,
 so we filter them out."""
+
 def filter_containing_dirs_from_inputs(input_files_list):
     # This puts directories in front of their children in list
     sorted_list = sorted(input_files_list)
@@ -635,7 +636,8 @@ def get_foreign_cc_dep(dep):
 # consider optimization here to do not iterate both collections
 def _get_headers(compilation_info):
     include_dirs = compilation_info.system_includes.to_list() + \
-      compilation_info.includes.to_list()
+                   compilation_info.includes.to_list()
+
     # do not use quote includes, currently they do not contain
     # library-specific information
     include_dirs = collections.uniq(include_dirs)
@@ -648,7 +650,7 @@ def _get_headers(compilation_info):
                 included = True
                 break
         if not included:
-            headers += [header]
+            headers.append(header)
     return struct(
         headers = headers,
         include_dirs = include_dirs,

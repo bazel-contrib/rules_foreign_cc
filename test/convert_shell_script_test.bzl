@@ -5,7 +5,6 @@ load(
     "//tools/build_defs:shell_script_helper.bzl",
     "convert_shell_script_by_context",
     "do_function_call",
-    "replace_exports",
     "replace_var_ref",
     "split_arguments",
 )

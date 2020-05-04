@@ -7,10 +7,12 @@ def _generate_install_rule_impl(rctx):
     text = """workspace(name='{ws_name}')
 load("{init_file}", "{init_function}")
 {init_expression}
-""".format(ws_name = rctx.attr.name,
- init_file = rctx.attr.init_file,
-  init_function = rctx.attr.init_function,
-  init_expression = rctx.attr.init_expression)
+""".format(
+        ws_name = rctx.attr.name,
+        init_file = rctx.attr.init_file,
+        init_function = rctx.attr.init_function,
+        init_expression = rctx.attr.init_expression,
+    )
 
     rctx.file("WORKSPACE", text)
     rctx.file("BUILD", "")
@@ -35,5 +37,5 @@ def install_ws_dependency(repo_name, url, strip_prefix, init_file, init_function
         stripPrefix = strip_prefix,
         init_file = init_file,
         init_function = init_function,
-        init_expression = init_expression
+        init_expression = init_expression,
     )

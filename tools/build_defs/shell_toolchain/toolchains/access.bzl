@@ -1,4 +1,3 @@
-load("@bazel_skylib//lib:types.bzl", "types")
 load("//tools/build_defs/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
 load(":function_and_call.bzl", "FunctionAndCall")
 

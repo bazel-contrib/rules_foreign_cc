@@ -1,4 +1,4 @@
-load(":native_tools_toolchain.bzl", "ToolInfo", "access_tool")
+load(":native_tools_toolchain.bzl", "access_tool")
 
 def get_cmake_data(ctx):
     return _access_and_expect_label_copied("@rules_foreign_cc//tools/build_defs:cmake_toolchain", ctx, "cmake")
