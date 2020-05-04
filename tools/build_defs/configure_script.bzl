@@ -1,5 +1,5 @@
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
-load(":framework.bzl", "ForeignCcDeps", "get_foreign_cc_dep")
+load(":framework.bzl", "get_foreign_cc_dep")
 
 def create_configure_script(
         workspace_name,
@@ -18,23 +18,23 @@ def create_configure_script(
 
     script = []
     for ext_dir in inputs.ext_build_dirs:
-        script += ["##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path]
+        script.append("##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path)
 
-    script += ["echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\""]
+    script.append("echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\"")
 
     configure_path = "$$EXT_BUILD_ROOT$$/{root}/{configure}".format(
         root = root,
         configure = configure_command,
     )
     if (configure_in_place):
-        script += ["##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root)]
+        script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
         configure_path = "$$BUILD_TMPDIR$$/{}".format(configure_command)
 
-    script += ["{env_vars} \"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+    script.append("{env_vars} \"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
         env_vars = env_vars_string,
         configure = configure_path,
         user_options = " ".join(user_options),
-    )]
+    ))
     return "\n".join(script)
 
 def create_make_script(
@@ -50,12 +50,12 @@ def create_make_script(
     env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
     script = []
     for ext_dir in inputs.ext_build_dirs:
-        script += ["##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path]
+        script.append("##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path)
 
-    script += ["echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\""]
+    script.append("echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\"")
 
-    script += ["##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root)]
-    script += ["" + " && ".join(make_commands)]
+    script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
+    script.append("" + " && ".join(make_commands))
     return "\n".join(script)
 
 def get_env_vars(
@@ -87,7 +87,7 @@ def _define_deps_flags(deps, inputs):
         dir_ = lib.dirname
         if not gen_dirs_set.get(dir_):
             gen_dirs_set[dir_] = 1
-            lib_dirs += ["-L$$EXT_BUILD_ROOT$$/" + dir_]
+            lib_dirs.append("-L$$EXT_BUILD_ROOT$$/" + dir_)
 
     include_dirs_set = {}
     for include_dir in inputs.include_dirs:
@@ -113,8 +113,8 @@ def _define_deps_flags(deps, inputs):
                     gen_dirs_set[artifact.gen_dir] = 1
 
                     dir_name = artifact.gen_dir.basename
-                    include_dirs += ["-I$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.include_dir_name)]
-                    lib_dirs += ["-L$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name)]
+                    include_dirs.append("-I$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.include_dir_name))
+                    lib_dirs.append("-L$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name))
 
     return struct(
         libs = lib_dirs,

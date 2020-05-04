@@ -34,19 +34,22 @@ cmake_external(
 
 cmake_external(
     name = "lib_with_duplicate_transitive_bazel_deps",
-    lib_name = "libc",
-    cmake_options = ["-GNinja"],
     cache_entries = {
         "LIBA_DIR": "$$EXT_BUILD_DEPS$$",
         "LIBB_DIR": "$$EXT_BUILD_DEPS$$",
     },
+    cmake_options = ["-GNinja"],
     generate_crosstool_file = generate_crosstool,
+    lib_name = "libc",
     lib_source = "//cmake_synthetic/libc:c_srcs",
     make_commands = [
         "ninja",
         "ninja install",
     ],
-    deps = ["//cmake_synthetic/liba:lib_a_bazel", "//cmake_synthetic/libb:lib_b_bazel"],
+    deps = [
+        "//cmake_synthetic/liba:lib_a_bazel",
+        "//cmake_synthetic/libb:lib_b_bazel",
+    ],
 )
 
 build_test(

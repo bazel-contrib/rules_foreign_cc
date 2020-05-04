@@ -1,6 +1,6 @@
 load("@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
 
-_REPLACE_VALUE = "\${EXT_BUILD_DEPS}"
+_REPLACE_VALUE = "\\${EXT_BUILD_DEPS}"
 
 def os_name():
     return "linux"
@@ -46,18 +46,16 @@ fi
 
 def define_function(name, text):
     lines = []
-    lines += ["function " + name + "() {"]
+    lines.append("function " + name + "() {")
     for line_ in text.splitlines():
-        lines += ["  " + line_]
-    lines += ["}"]
+        lines.append("  " + line_)
+    lines.append("}")
     return "\n".join(lines)
 
 def replace_in_files(dir, from_, to_):
     return FunctionAndCall(
         text = """if [ -d "$1" ]; then
-  find -L $1 -type f \
-  \( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \) \
-  -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
+  find -L $1 -type f   \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \\)   -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
 fi
 """,
     )
