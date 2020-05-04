@@ -8,7 +8,7 @@ filegroup(
 )
 
 exports_files([
-    "hello_client.c"
+    "hello_client.c",
 ])
 
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")

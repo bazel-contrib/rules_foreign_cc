@@ -237,9 +237,9 @@ def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
         dict["CMAKE_AR"] = _absolutize(workspace_name, tools.cxx_linker_static, True)
         if tools.cxx_linker_static.endswith("/libtool"):
             dict["CMAKE_C_ARCHIVE_CREATE"] = "<CMAKE_AR> %s <OBJECTS>" % \
-            " ".join(flags.cxx_linker_static)
+                                             " ".join(flags.cxx_linker_static)
             dict["CMAKE_CXX_ARCHIVE_CREATE"] = "<CMAKE_AR> %s <OBJECTS>" % \
-            " ".join(flags.cxx_linker_static)
+                                               " ".join(flags.cxx_linker_static)
 
     if tools.cxx_linker_executable and tools.cxx_linker_executable != tools.cxx:
         normalized_path = _absolutize(workspace_name, tools.cxx_linker_executable)

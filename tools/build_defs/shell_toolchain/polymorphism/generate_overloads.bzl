@@ -30,8 +30,8 @@ def _load_and_wrapper_text(id, file_path, symbols):
     wrapper_statement = "wrapper_{id} = dict({data})".format(id = id, data = data)
     return struct(
         load_ = load_statement,
-        wrapper = wrapper_statement
-      )
+        wrapper = wrapper_statement,
+    )
 
 def id_from_file(file_name):
     (before, middle, after) = file_name.partition(".")

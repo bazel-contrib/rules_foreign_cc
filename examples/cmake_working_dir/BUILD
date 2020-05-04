@@ -2,7 +2,10 @@ load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 filegroup(
     name = "sources",
-    srcs = glob(["source_root/**"], exclude_directories = 0),
+    srcs = glob(
+        ["source_root/**"],
+        exclude_directories = 0,
+    ),
 )
 
 cmake_external(

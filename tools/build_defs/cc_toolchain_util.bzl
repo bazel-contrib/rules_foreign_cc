@@ -385,6 +385,7 @@ def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     new_text = _prefix(text, "external/", root_str)
     if new_text == text:
         new_text = _prefix(text, workspace_name + "/", root_str)
+
     # absolutize relative by adding our working directory
     # this works because we ru on windows under msys now
     if force and new_text == text and not text.startswith("/"):

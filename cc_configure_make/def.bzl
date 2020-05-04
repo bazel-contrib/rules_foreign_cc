@@ -18,20 +18,20 @@ def _cc_configure_make_impl(ctx):
     outputs = [out_includes, out_lib]
 
     cpp_fragment = ctx.fragments.cpp
-    compiler_options = [] # cpp_fragment.compiler_options(ctx.features)
+    compiler_options = []  # cpp_fragment.compiler_options(ctx.features)
     c_options = compiler_options + cpp_fragment.c_options
     cxx_options = compiler_options + cpp_fragment.cxx_options(ctx.features)
 
-    CFLAGS = "\"{}\"".format(' '.join(c_options))
-    CXXFLAGS = "\"{}\"".format(' '.join(cxx_options))
+    CFLAGS = "\"{}\"".format(" ".join(c_options))
+    CXXFLAGS = "\"{}\"".format(" ".join(cxx_options))
 
     # Run ./configure && make from a temporary directory, and install into another temporary directory.
     # Finally, copy the results into the directory artifact declared in out_includes.
     ctx.actions.run_shell(
-        mnemonic="ConfigureMake",
+        mnemonic = "ConfigureMake",
         inputs = ctx.attr.src.files,
         outputs = outputs,
-        command = '\n'.join([
+        command = "\n".join([
             "set -e",
             "P=$(pwd)",
             "tmpdir=$(mktemp -d)",
@@ -39,16 +39,25 @@ def _cc_configure_make_impl(ctx):
             "trap \"{ rm -rf $tmpdir $tmpinstalldir; }\" EXIT",
             "pushd $tmpdir",
             "CFLAGS={} CXXFLAGS={} $P/{}/configure --prefix=$tmpinstalldir {}".format(
-                CFLAGS, CXXFLAGS, ctx.attr.src.label.workspace_root, ' '.join(ctx.attr.configure_flags)),
+                CFLAGS,
+                CXXFLAGS,
+                ctx.attr.src.label.workspace_root,
+                " ".join(ctx.attr.configure_flags),
+            ),
             "CFLAGS={} CXXFLAGS={} make install".format(CFLAGS, CXXFLAGS),
             "popd",
             "cp $tmpinstalldir/{} {}".format(ctx.attr.out_lib_path, out_lib.path),
-            "cp -R $tmpinstalldir/include/ {}".format(out_includes.path)]),
-        execution_requirements = {"block-network": ""}
+            "cp -R $tmpinstalldir/include/ {}".format(out_includes.path),
+        ]),
+        execution_requirements = {"block-network": ""},
     )
-    return [DefaultInfo(files = depset(direct=outputs)),
-            OutputGroupInfo(headers = depset([out_includes]),
-                          libfile = depset([out_lib]))]
+    return [
+        DefaultInfo(files = depset(direct = outputs)),
+        OutputGroupInfo(
+            headers = depset([out_includes]),
+            libfile = depset([out_lib]),
+        ),
+    ]
 
 _cc_configure_make_rule = rule(
     attrs = {
@@ -62,28 +71,28 @@ _cc_configure_make_rule = rule(
 )
 
 def cc_configure_make(name, configure_flags, src, out_lib_path):
-    name_cmr = '_{}_cc_configure_make_rule'.format(name)
+    name_cmr = "_{}_cc_configure_make_rule".format(name)
     _cc_configure_make_rule(
         name = name_cmr,
         configure_flags = configure_flags,
         src = src,
-        out_lib_path = out_lib_path
+        out_lib_path = out_lib_path,
     )
 
-    name_libfile_fg = '_{}_libfile_fg'.format(name)
+    name_libfile_fg = "_{}_libfile_fg".format(name)
     native.filegroup(
         name = name_libfile_fg,
         srcs = [name_cmr],
         output_group = "libfile",
     )
 
-    name_libfile_import = '_{}_libfile_import'.format(name)
+    name_libfile_import = "_{}_libfile_import".format(name)
     native.cc_import(
         name = name_libfile_import,
         static_library = name_libfile_fg,
     )
 
-    name_headers_fg = '_{}_headers_fg'.format(name)
+    name_headers_fg = "_{}_headers_fg".format(name)
     native.filegroup(
         name = name_headers_fg,
         srcs = [name_cmr],

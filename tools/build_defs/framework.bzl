@@ -448,9 +448,9 @@ def _symlink_contents_to_dir(dir_name, files_list):
     lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
 
     for file in files_list:
-      path = _file_path(file).strip()
-      if path:
-        lines += ["##symlink_contents_to_dir## \
+        path = _file_path(file).strip()
+        if path:
+            lines += ["##symlink_contents_to_dir## \
 $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name)]
 
     return lines
@@ -588,12 +588,12 @@ def _define_inputs(attrs):
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
-        declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list())
-            + bazel_libs
-            + tools_files
-            + attrs.additional_inputs
-            + cc_info_merged.compilation_context.headers.to_list()
-            + ext_build_dirs,
+        declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
+                          bazel_libs +
+                          tools_files +
+                          attrs.additional_inputs +
+                          cc_info_merged.compilation_context.headers.to_list() +
+                          ext_build_dirs,
     )
 
 """When the directories are also passed in the filegroup with the sources,
@@ -601,6 +601,7 @@ we get into a situation when we have containing in the sources list,
 which is not allowed by Bazel (execroot creation code fails).
 The parent directories will be created for us in the execroot anyway,
 so we filter them out."""
+
 def filter_containing_dirs_from_inputs(input_files_list):
     # This puts directories in front of their children in list
     sorted_list = sorted(input_files_list)
@@ -628,7 +629,8 @@ def get_foreign_cc_dep(dep):
 # consider optimization here to do not iterate both collections
 def _get_headers(compilation_info):
     include_dirs = compilation_info.system_includes.to_list() + \
-      compilation_info.includes.to_list()
+                   compilation_info.includes.to_list()
+
     # do not use quote includes, currently they do not contain
     # library-specific information
     include_dirs = collections.uniq(include_dirs)

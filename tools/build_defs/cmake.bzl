@@ -62,6 +62,7 @@ def _create_configure_script(configureParameters):
         root = root + "/" + ctx.attr.working_directory
 
     tools = get_tools_info(ctx)
+
     # CMake will replace <TARGET> with the actual output file
     flags = get_flags_info(ctx, "<TARGET>")
     no_toolchain_file = ctx.attr.cache_entries.get("CMAKE_TOOLCHAIN_FILE") or not ctx.attr.generate_crosstool_file
