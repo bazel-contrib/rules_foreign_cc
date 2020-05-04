@@ -401,5 +401,5 @@ def _prefix(text, from_str, prefix):
     return before + prefix + middle + after
 
 def _file_name_no_ext(basename):
-    (before, separator, after) = basename.partition(".")
+    (before, separator, after) = basename.rpartition(".")
     return before
