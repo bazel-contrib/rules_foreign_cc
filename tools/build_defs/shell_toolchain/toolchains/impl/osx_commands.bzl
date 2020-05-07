@@ -61,14 +61,7 @@ fi
     )
 
 def copy_dir_contents_to_dir(source, target):
-    text = """
-local children=$(find "$1" -maxdepth 1 -mindepth 1)
-local target="$2"
-mkdir -p "${target}"
-for child in $children; do
-  cp -R -L "$child" "${target}"
-done
-"""
+    text = """cp -L -R "$1" "$2" """
     return FunctionAndCall(text = text)
 
 def symlink_contents_to_dir(source, target):
