@@ -72,15 +72,16 @@ for child in $children; do
     local $actual=$(readlink "$child")
     if [[ -f "$actual" ]]; then
       cp "$actual" "$target"
-    elif
+    else
       local dirn=$(basename "$actual")
       mkdir -p "$target/$dirn"
       ##copy_dir_contents_to_dir## "$actual" "$target/$dirn"
-    elif [[ -d "$child" ]]; then
-      local dirn=$(basename "$child")
-      mkdir -p "$target/$dirn"
-      ##copy_dir_contents_to_dir## "$child" "$target/$dirn"
     fi
+  elif [[ -d "$child" ]]; then
+    local dirn=$(basename "$child")
+    mkdir -p "$target/$dirn"
+    ##copy_dir_contents_to_dir## "$child" "$target/$dirn"
+  fi
 done
 """
     return FunctionAndCall(text = text)
