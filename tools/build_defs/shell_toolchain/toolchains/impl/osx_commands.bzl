@@ -61,7 +61,7 @@ fi
     )
 
 def copy_dir_contents_to_dir(source, target):
-    text = """cp -L -R "$1" "$2" """
+    text = """cp -L -R "$1/" "$2" """
     return FunctionAndCall(text = text)
 
 def symlink_contents_to_dir(source, target):
