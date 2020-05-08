@@ -95,7 +95,7 @@ elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
   ##symlink_contents_to_dir## "$actual" "$target"
 elif [[ -d "$1" ]]; then
-  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
+  local children=$(find "$1" -maxdepth 1 -mindepth 1)
   for child in $children; do
     ##symlink_to_dir## "$child" "$target"
   done
@@ -111,7 +111,7 @@ if [[ -f "$1" ]]; then
 elif [[ -L "$1" ]]; then
   cp $1 $2
 elif [[ -d "$1" ]]; then
-  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
+  local children=$(find "$1" -maxdepth 1 -mindepth 1)
   local dirname=$(basename "$1")
   mkdir -p "$target/$dirname"
   for child in $children; do
