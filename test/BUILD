@@ -22,6 +22,11 @@ result_file = select({
     "//conditions:default": "expected/inner_fun_text.txt",
 })
 
+result_file_symlink_dirs = select({
+    "@bazel_tools//src/conditions:darwin": "expected/out_symlinked_dirs_osx.txt",
+    "//conditions:default": "expected/out_symlinked_dirs.txt",
+})
+
 diff_test(
     name = "shell_script_inner_fun_test",
     file1 = ":shell_script_inner_fun",
@@ -47,6 +52,6 @@ symlink_contents_to_dir_test_rule(
 
 diff_test(
     name = "shell_method_symlink_contents_to_dir_test",
-    file1 = "expected/out_symlinked_dirs.txt",
+    file1 = result_file_symlink_dirs,
     file2 = ":symlink_dirs",
 )

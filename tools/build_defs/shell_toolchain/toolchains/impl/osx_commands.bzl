@@ -107,7 +107,7 @@ def symlink_to_dir(source, target):
     text = """local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
-  ln -s -f "$target" "$1"
+  ln -s -f "$1" "$target"
 elif [[ -L "$1" ]]; then
   cp $1 $2
 elif [[ -d "$1" ]]; then
