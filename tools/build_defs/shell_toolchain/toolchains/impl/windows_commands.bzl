@@ -72,7 +72,7 @@ elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
   ##symlink_contents_to_dir## "$actual" "$target"
 elif [[ -d "$1" ]]; then
-  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
+  local children=$($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1)
   for child in $children; do
     ##symlink_to_dir## "$child" "$target"
   done
@@ -89,7 +89,7 @@ elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
   ##symlink_to_dir## "$actual" "$target"
 elif [[ -d "$1" ]]; then
-  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
+  local children=$($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1)
   for child in $children; do
     ##symlink_to_dir## "$child" "$target/$(basename $1)"
   done
