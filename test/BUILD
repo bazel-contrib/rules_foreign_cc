@@ -28,11 +28,21 @@ diff_test(
     file2 = result_file,
 )
 
+filegroup(
+    name = "dir1_fg",
+    srcs = glob(["dir1/**"], exclude_directories = 0),
+)
+
+filegroup(
+    name = "dir2_fg",
+    srcs = glob(["dir2/**"], exclude_directories = 0),
+)
+
 symlink_contents_to_dir_test_rule(
     name = "symlink_dirs",
     out = "out_symlinked_dirs.txt",
-    dir1 = "dir1",
-    dir2 = "dir2",
+    dir1 = ":dir1_fg",
+    dir2 = ":dir2_fg",
 )
 
 diff_test(
