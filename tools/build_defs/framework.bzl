@@ -11,7 +11,7 @@ load(
     "get_env_vars",
     "targets_windows",
 )
-load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root")
+load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 load(
     "@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl",
     "copy_directory",
@@ -345,6 +345,9 @@ rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS""",
 rules_foreign_cc: Printing build logs:\\n\\n_____ BEGIN BUILD LOGS _____\\n"
 ##cat## $$BUILD_LOG$$
 ##echo## "\\n_____ END BUILD LOGS _____\\n"
+##echo## "Printing build script:\\n\\n_____ BEGIN BUILD SCRIPT _____\\n"
+##cat## $$BUILD_SCRIPT$$
+##echo## "\\n_____ END BUILD SCRIPT _____\\n"
 ##echo## "rules_foreign_cc: Build script location: $$BUILD_SCRIPT$$\\n"
 ##echo## "rules_foreign_cc: Build log location: $$BUILD_LOG$$\\n\\n"
 """,
@@ -595,23 +598,6 @@ def _define_inputs(attrs):
                           cc_info_merged.compilation_context.headers.to_list() +
                           ext_build_dirs,
     )
-
-"""When the directories are also passed in the filegroup with the sources,
-we get into a situation when we have containing in the sources list,
-which is not allowed by Bazel (execroot creation code fails).
-The parent directories will be created for us in the execroot anyway,
-so we filter them out."""
-
-def filter_containing_dirs_from_inputs(input_files_list):
-    # This puts directories in front of their children in list
-    sorted_list = sorted(input_files_list)
-    contains_map = {}
-    for input in input_files_list:
-        # If the immediate parent directory is already in the list, remove it
-        if contains_map.get(input.dirname):
-            contains_map.pop(input.dirname)
-        contains_map[input.path] = input
-    return contains_map.values()
 
 def uniq_list_keep_order(list):
     result = []

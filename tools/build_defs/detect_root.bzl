@@ -39,3 +39,20 @@ def _get_level(path):
         normalized = new_normalized
 
     return normalized.count("/")
+
+"""When the directories are also passed in the filegroup with the sources,
+we get into a situation when we have containing in the sources list,
+which is not allowed by Bazel (execroot creation code fails).
+The parent directories will be created for us in the execroot anyway,
+so we filter them out."""
+
+def filter_containing_dirs_from_inputs(input_files_list):
+    # This puts directories in front of their children in list
+    sorted_list = sorted(input_files_list)
+    contains_map = {}
+    for input in input_files_list:
+        # If the immediate parent directory is already in the list, remove it
+        if contains_map.get(input.dirname):
+            contains_map.pop(input.dirname)
+        contains_map[input.path] = input
+    return contains_map.values()
