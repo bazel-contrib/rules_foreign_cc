@@ -182,7 +182,7 @@ def split_arguments(text):
         before = before.strip(" ")
         if before:
             parts += before.split(" ")
-        parts.append(quoted)
+        parts.append("\"" + quoted + "\"")
         current = after2
 
     return parts

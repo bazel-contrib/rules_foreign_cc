@@ -70,7 +70,7 @@ def _funny_fun(a, b):
     return a + "_" + b
 
 def _echo(text):
-    return "echo1 \"" + text + "\""
+    return "echo1 " + text
 
 def _split_arguments_test(ctx):
     env = unittest.begin(ctx)
@@ -78,8 +78,8 @@ def _split_arguments_test(ctx):
     cases = {
         " 1 2 3": ["1", "2", "3"],
         "1 2": ["1", "2"],
-        " \"\ntext\n\"": ["\ntext\n"],
-        " usual \"quoted argument\"": ["usual", "quoted argument"],
+        " \"\ntext\n\"": ["\"\ntext\n\""],
+        " usual \"quoted argument\"": ["usual", "\"quoted argument\""],
     }
     for case in cases:
         result = split_arguments(case)
@@ -135,15 +135,20 @@ def _touch(path):
 def _define_function(name, text):
     return "function " + name + "() {\n  " + text + "\n}"
 
+def _unquote(arg):
+    if arg.startswith("\"") and arg.endswith("\""):
+        return arg[1:len(arg) - 1]
+    return arg
+
 def _cleanup_function(message_cleaning, message_keeping):
     text = "\n".join([
         "local ecode=$?",
         "if [ $ecode -eq 0 ]; then",
-        message_cleaning,
+        _unquote(message_cleaning),
         "rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS",
         "else",
         "echo \"\"",
-        message_keeping,
+        _unquote(message_keeping),
         "echo \"\"",
         "fi",
     ])

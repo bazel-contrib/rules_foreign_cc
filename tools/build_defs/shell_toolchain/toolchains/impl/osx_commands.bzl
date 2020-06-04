@@ -62,10 +62,13 @@ fi
 
 def copy_dir_contents_to_dir(source, target):
     text = """
-local children=$(find "$1" -maxdepth 1 -mindepth 1)
+SAVEIFS=$IFS
+IFS=$'\n'
+local children=($(find "$1" -maxdepth 1 -mindepth 1))
+IFS=$SAVEIFS
 local target="$2"
 mkdir -p "${target}"
-for child in $children; do
+for child in "${children[@]}"; do
   if [[ -f "$child" ]]; then
     cp "$child" "$target"
   elif [[ -L "$child" ]]; then
@@ -91,12 +94,15 @@ def symlink_contents_to_dir(source, target):
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ##symlink_to_dir## "$1" "$target"
-elif [[ -L "$1" ]]; then
+elif [[ -L "$1" && ! -d "$1" ]]; then
   local actual=$(readlink "$1")
   ##symlink_contents_to_dir## "$actual" "$target"
 elif [[ -d "$1" ]]; then
-  local children=$(find "$1" -maxdepth 1 -mindepth 1)
-  for child in $children; do
+  SAVEIFS=$IFS
+  IFS=$'\n'
+  local children=($(find "$1" -maxdepth 1 -mindepth 1))
+  IFS=$SAVEIFS
+  for child in "${children[@]}"; do
     ##symlink_to_dir## "$child" "$target"
   done
 fi
@@ -108,13 +114,16 @@ def symlink_to_dir(source, target):
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ln -s -f "$1" "$target"
-elif [[ -L "$1" ]]; then
-  cp $1 $2
+elif [[ -L "$1" && ! -d "$1" ]]; then
+  cp "$1" "$2"
 elif [[ -d "$1" ]]; then
-  local children=$(find "$1" -maxdepth 1 -mindepth 1)
+  SAVEIFS=$IFS
+  IFS=$'\n'
+  local children=($(find "$1" -maxdepth 1 -mindepth 1))
+  IFS=$SAVEIFS
   local dirname=$(basename "$1")
   mkdir -p "$target/$dirname"
-  for child in $children; do
+  for child in "${children[@]}"; do
     ##symlink_to_dir## "$child" "$target/$dirname"
   done
 else
