@@ -54,6 +54,13 @@ def _create_configure_script(configureParameters):
         deps = ctx.attr.deps,
         inputs = inputs,
         configure_in_place = ctx.attr.configure_in_place,
+        autoreconf = ctx.attr.autoreconf,
+        autoreconf_options = ctx.attr.autoreconf_options,
+        autoreconf_env_vars = ctx.attr.autoreconf_env_vars,
+        autogen = ctx.attr.autogen,
+        autogen_command = ctx.attr.autogen_command,
+        autogen_options = ctx.attr.autogen_options,
+        autogen_env_vars = ctx.attr.autogen_env_vars,
     )
     return "\n".join([define_install_prefix, configure])
 
@@ -80,6 +87,24 @@ def _attrs():
         # Set to True if 'configure' should be invoked in place, i.e. from its enclosing
         # directory.
         "configure_in_place": attr.bool(mandatory = False, default = False),
+        # Set to True if 'autoreconf' should be invoked before 'configure.',
+        # currently requires 'configure_in_place' to be True.
+        "autoreconf": attr.bool(mandatory = False, default = False),
+        # Any options to be put in the 'autoreconf.sh' command line.
+        "autoreconf_options": attr.string_list(),
+        # Environment variables to be set for 'autoreconf' invocation.
+        "autoreconf_env_vars": attr.string_dict(),
+        # Set to True if 'autogen.sh' should be invoked before 'configure',
+        # currently requires 'configure_in_place' to be True.
+        "autogen": attr.bool(mandatory = False, default = False),
+        # The name of the autogen script file, default: autogen.sh.
+        # Many projects use autogen.sh however the Autotools FAQ recommends bootstrap
+        # so we provide this option to support that.
+        "autogen_command": attr.string(default = "autogen.sh"),
+        # Any options to be put in the 'autogen.sh' command line.
+        "autogen_options": attr.string_list(),
+        # Environment variables to be set for 'autogen' invocation.
+        "autogen_env_vars": attr.string_dict(),
     })
     return attrs
 
