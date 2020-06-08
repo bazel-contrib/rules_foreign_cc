@@ -13,10 +13,10 @@ cc_library(
 
 cmake_external(
     name = "hello_cmake",
-    lib_source = "//static:srcs",
     generate_crosstool_file = True,
-    static_libraries = ["libhello.a"],
+    lib_source = "//static:srcs",
     out_include_dir = "include/version123",
+    static_libraries = ["libhello.a"],
 )
 
 # I do not make it a test, since it is a cross-compilation example,

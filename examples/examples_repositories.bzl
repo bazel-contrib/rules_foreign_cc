@@ -82,7 +82,7 @@ def include_examples_repositories():
         name = "nghttp2",
         build_file_content = all_content,
         patch_args = ["-p1"],
-        patch_cmds = ["find . -name '*.sh' -exec sed -i.orig '1s|#!/usr/bin/env sh\$|/bin/sh\$|' {} +"],
+        patch_cmds = ["find . -name '*.sh' -exec sed -i.orig '1s|#!/usr/bin/env sh\\$|/bin/sh\\$|' {} +"],
         patches = ["@rules_foreign_cc_tests//:nghttp2.patch"],
         strip_prefix = "nghttp2-e5b3f9addd49bca27e2f99c5c65a564eb5c0cf6d",
         urls = [
@@ -201,4 +201,48 @@ def include_examples_repositories():
             "https://github.com/jameskbride/cmake-hello-world/archive/master.zip",
         ],
         sha256 = "d613cf222bbb05b8cff7a1c03c37345ed33744a4ebaf3a8bfd5f56a76e25ca08",
+    )
+
+    http_archive(
+        name = "gmp",
+        build_file_content = all_content,
+        strip_prefix = "gmp-6.2.0",
+        urls = [
+            "https://mirror.bazel.build/gmplib.org/download/gmp/gmp-6.2.0.tar.gz",
+            "https://gmplib.org/download/gmp/gmp-6.2.0.tar.gz",
+        ],
+        sha256 = "cadd49052b740ccc3d8075c24ceaefbe5128d44246d91d0ecc818b2f78b0ec9c",
+    )
+
+    http_archive(
+        name = "mpfr",
+        build_file_content = all_content,
+        strip_prefix = "mpfr-4.0.2",
+        urls = [
+            "https://mirror.bazel.build/www.mpfr.org/mpfr-current/mpfr-4.0.2.tar.gz",
+            "https://www.mpfr.org/mpfr-current/mpfr-4.0.2.tar.gz",
+        ],
+        sha256 = "ae26cace63a498f07047a784cd3b0e4d010b44d2b193bab82af693de57a19a78",
+    )
+
+    http_archive(
+        name = "mpc",
+        build_file_content = all_content,
+        strip_prefix = "mpc-1.1.0",
+        urls = [
+            "https://mirror.bazel.build/ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz",
+            "https://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz",
+        ],
+        sha256 = "6985c538143c1208dcb1ac42cedad6ff52e267b47e5f970183a3e75125b43c2e",
+    )
+
+    http_archive(
+        name = "libunwind",
+        build_file_content = all_content,
+        strip_prefix = "libunwind-9165d2a150d707d3037c2045f2cdc0fabd5fee98",
+        urls = [
+            "https://mirror.bazel.build/github.com/libunwind/libunwind/archive/9165d2a150d707d3037c2045f2cdc0fabd5fee98.zip",
+            "https://github.com/libunwind/libunwind/archive/9165d2a150d707d3037c2045f2cdc0fabd5fee98.zip",
+        ],
+        sha256 = "f83c604cde80a49af91345a1ff3f4558958202989fb768e6508963e24ea2524c",
     )

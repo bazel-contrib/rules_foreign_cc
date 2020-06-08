@@ -1,6 +1,6 @@
 load("@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
 
-_REPLACE_VALUE = "\${EXT_BUILD_DEPS}"
+_REPLACE_VALUE = "\\${EXT_BUILD_DEPS}"
 
 def os_name():
     return "osx"
@@ -46,62 +46,77 @@ fi
 
 def define_function(name, text):
     lines = []
-    lines += ["function " + name + "() {"]
+    lines.append("function " + name + "() {")
     for line_ in text.splitlines():
-        lines += ["  " + line_]
-    lines += ["}"]
+        lines.append("  " + line_)
+    lines.append("}")
     return "\n".join(lines)
 
 def replace_in_files(dir, from_, to_):
     return FunctionAndCall(
         text = """if [ -d "$1" ]; then
-    find -L -f $1 \( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \) \
-    -exec sed -i -e 's@'"$2"'@'"$3"'@g' {} ';'
+    find -L -f $1 \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \\)     -exec sed -i -e 's@'"$2"'@'"$3"'@g' {} ';'
 fi
 """,
     )
 
 def copy_dir_contents_to_dir(source, target):
     text = """
-local children=$(find $1 -maxdepth 1 -mindepth 1)
+local children=$(find "$1" -maxdepth 1 -mindepth 1)
 local target="$2"
-mkdir -p ${target}
+mkdir -p "${target}"
 for child in $children; do
-  cp -R -L $child ${target}
+  if [[ -f "$child" ]]; then
+    cp "$child" "$target"
+  elif [[ -L "$child" ]]; then
+    local $actual=$(readlink "$child")
+    if [[ -f "$actual" ]]; then
+      cp "$actual" "$target"
+    else
+      local dirn=$(basename "$actual")
+      mkdir -p "$target/$dirn"
+      ##copy_dir_contents_to_dir## "$actual" "$target/$dirn"
+    fi
+  elif [[ -d "$child" ]]; then
+    local dirn=$(basename "$child")
+    mkdir -p "$target/$dirn"
+    ##copy_dir_contents_to_dir## "$child" "$target/$dirn"
+  fi
 done
 """
     return FunctionAndCall(text = text)
 
 def symlink_contents_to_dir(source, target):
-    text = """
-local target="$2"
-mkdir -p $target
-if [[ -f $1 ]]; then
-  ##symlink_to_dir## $1 $target
-  return 0
-fi
-
-if [[ -d $1 || -L $1 ]]; then
-  local children=$(find -H $1 -maxdepth 1 -mindepth 1)
+    text = """local target="$2"
+mkdir -p "$target"
+if [[ -f "$1" ]]; then
+  ##symlink_to_dir## "$1" "$target"
+elif [[ -L "$1" ]]; then
+  local actual=$(readlink "$1")
+  ##symlink_contents_to_dir## "$actual" "$target"
+elif [[ -d "$1" ]]; then
+  local children=$(find "$1" -maxdepth 1 -mindepth 1)
   for child in $children; do
-    ##symlink_to_dir## $child $target
+    ##symlink_to_dir## "$child" "$target"
   done
 fi
 """
     return FunctionAndCall(text = text)
 
 def symlink_to_dir(source, target):
-    text = """
-local target="$2"
-mkdir -p ${target}
-
-if [[ -d $1 ]]; then
-  local dir_name="$(basename "$1")"
-  ln -s $1 ${target}/${dir_name}
-elif [[ -f $1 ]]; then
-  ln -s $1 ${target}
-elif [[ -L $1 ]]; then
-  cp $1 ${target}
+    text = """local target="$2"
+mkdir -p "$target"
+if [[ -f "$1" ]]; then
+  ln -s -f "$1" "$target"
+elif [[ -L "$1" ]]; then
+  cp $1 $2
+elif [[ -d "$1" ]]; then
+  local children=$(find "$1" -maxdepth 1 -mindepth 1)
+  local dirname=$(basename "$1")
+  mkdir -p "$target/$dirname"
+  for child in $children; do
+    ##symlink_to_dir## "$child" "$target/$dirname"
+  done
 else
   echo "Can not copy $1"
 fi
