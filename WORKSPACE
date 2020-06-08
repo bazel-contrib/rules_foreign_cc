@@ -25,12 +25,13 @@ android_ndk_repository(
 
 # TODO(jin): replace legacy gmaven_rules targets with `maven_install` from the new rules_jvm_external
 RULES_JVM_EXTERNAL_TAG = "1.0"
+
 RULES_JVM_EXTERNAL_SHA = "48e0f1aab74fabba98feb8825459ef08dcc75618d381dff63ec9d4dd9860deaa"
 
 http_archive(
     name = "gmaven_rules",
-    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     sha256 = RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
 )
 

@@ -16,6 +16,8 @@ tests = [
     "@rules_foreign_cc//test:cmake_script_test_suite",
     "@rules_foreign_cc//test:shell_script_conversion_suite",
     "@rules_foreign_cc//test:utils_test_suite",
+    "@rules_foreign_cc//test:shell_script_inner_fun_test",
+    "@rules_foreign_cc//test:shell_method_symlink_contents_to_dir_test",
     "//cc_configure_make:libevent_echosrv1",
 ]
 
@@ -25,12 +27,15 @@ test_suite(
         "//cmake_synthetic:test_libs",
         "//cmake_with_bazel_transitive:test",
         "//configure_gnuplot:configure_libgd_tests",
+        "//configure_libunwind:configure_libunwind_tests",
+        "//configure_mpc:configure_mpc_tests",
         "//cmake_hello_world_lib/shared:test_libhello",
         "//cmake_hello_world_lib/binary:test_binary",
         "//configure_with_bazel_transitive:test",
         "//simple_make:test_lib",
         "//cmake_hello_world_variant:test_hello_world",
         "//cmake_synthetic:test_bazel_transitive_deps",
+        "//cmake_working_dir:test_lib",
     ],
 )
 
@@ -77,17 +82,6 @@ sh_test(
     srcs = ["print_bazel_version.sh"],
     args = [BAZEL_VERSION],
     tags = ["windows"],
-)
-
-# On Bazel CI Mac machines, we are using cmake built from sources
-toolchain(
-    name = "built_cmake_toolchain",
-    exec_compatible_with = [
-        "@bazel_tools//platforms:osx",
-        "@bazel_tools//platforms:x86_64",
-    ],
-    toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:built_cmake",
-    toolchain_type = "@rules_foreign_cc//tools/build_defs:cmake_toolchain",
 )
 
 # On Bazel CI Mac machines, we are using ninja built from sources

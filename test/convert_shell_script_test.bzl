@@ -5,7 +5,6 @@ load(
     "//tools/build_defs:shell_script_helper.bzl",
     "convert_shell_script_by_context",
     "do_function_call",
-    "replace_exports",
     "replace_var_ref",
     "split_arguments",
 )
@@ -238,22 +237,21 @@ done
 
 }
 function symlink_to_dir() {
-  local target="$2"
+local target="$2"
 mkdir -p ${target}
 
 if [[ -d $1 ]]; then
-  ln -s -t ${target} $1
+ln -s -t ${target} $1
 elif [[ -f $1 ]]; then
-  ln -s -t ${target} $1
+ln -s -t ${target} $1
 elif [[ -L $1 ]]; then
-  cp --no-target-directory $1 ${target}
+cp --no-target-directory $1 ${target}
 else
-  echo "Can not copy $1"
+echo "Can not copy $1"
 fi
 
 }
 symlink_contents_to_dir a b"""
-
     shell_ = struct(
         symlink_contents_to_dir = _symlink_contents_to_dir,
         symlink_to_dir = _symlink_to_dir,

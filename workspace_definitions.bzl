@@ -1,4 +1,3 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//for_workspace:repositories.bzl", "repositories")
 load(
     "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",
@@ -58,8 +57,7 @@ def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
         additonal_shell_toolchain_mappings = [],
-        additonal_shell_toolchain_package = None,
-        ):
+        additonal_shell_toolchain_package = None):
     """ Call this function from the WORKSPACE file to initialize rules_foreign_cc
      dependencies and let neccesary code generation happen
      (Code generation is needed to support different variants of the C++ Starlark API.).
@@ -88,7 +86,7 @@ def rules_foreign_cc_dependencies(
     """
     repositories()
     _read_build_options(name = "foreign_cc_platform_utils")
-    bazel_version(name="rules_foreign_cc_bazel_version")
+    bazel_version(name = "rules_foreign_cc_bazel_version")
 
     shell_toolchain_workspace_initalization(
         additonal_shell_toolchain_mappings,
