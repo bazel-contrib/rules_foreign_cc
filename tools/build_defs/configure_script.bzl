@@ -13,7 +13,14 @@ def create_configure_script(
         configure_command,
         deps,
         inputs,
-        configure_in_place):
+        configure_in_place,
+        autoreconf,
+        autoreconf_options,
+        autoreconf_env_vars,
+        autogen,
+        autogen_command,
+        autogen_options,
+        autogen_env_vars):
     env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
 
     script = []
@@ -22,13 +29,29 @@ def create_configure_script(
 
     script.append("echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\"")
 
-    configure_path = "$$EXT_BUILD_ROOT$$/{root}/{configure}".format(
-        root = root,
-        configure = configure_command,
-    )
-    if (configure_in_place):
+    root_path = "$$EXT_BUILD_ROOT$$/{}".format(root)
+    configure_path = "{}/{}".format(root_path, configure_command)
+    if configure_in_place:
         script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
-        configure_path = "$$BUILD_TMPDIR$$/{}".format(configure_command)
+        root_path = "$$BUILD_TMPDIR$$"
+        configure_path = "{}/{}".format(root_path, configure_command)
+
+    if autogen and configure_in_place:
+        # NOCONFIGURE is pseudo standard and tells the script to not invoke configure.
+        # We explicitly invoke configure later.
+        autogen_env_vars = _get_autogen_env_vars(autogen_env_vars)
+        script.append("{} \"{}/{}\" {}".format(
+            " ".join(["{}=\"{}\"".format(key, autogen_env_vars[key]) for key in autogen_env_vars]),
+            root_path,
+            autogen_command,
+            " ".join(autogen_options),
+        ).lstrip())
+
+    if autoreconf and configure_in_place:
+        script.append("{} autoreconf {}".format(
+            " ".join(["{}=\"{}\"".format(key, autoreconf_env_vars[key]) for key in autoreconf_env_vars]),
+            " ".join(autoreconf_options),
+        ).lstrip())
 
     script.append("{env_vars} \"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
         env_vars = env_vars_string,
@@ -68,7 +91,10 @@ def get_env_vars(
     vars = _get_configure_variables(tools, flags, user_vars)
     deps_flags = _define_deps_flags(deps, inputs)
 
-    vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
+    if "LDFLAGS" in vars.keys():
+      vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
+    else:
+      vars["LDFLAGS"] = deps_flags.libs
 
     # -I flags should be put into preprocessor flags, CPPFLAGS
     # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html
@@ -76,6 +102,16 @@ def get_env_vars(
 
     return " ".join(["{}=\"{}\""
         .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
+
+def _get_autogen_env_vars(autogen_env_vars):
+    # Make a copy if necessary so we can set NOCONFIGURE.
+    if autogen_env_vars.get("NOCONFIGURE"):
+        return autogen_env_vars
+    vars = {}
+    for key in autogen_env_vars:
+        vars[key] = autogen_env_vars.get(key)
+    vars["NOCONFIGURE"] = "1"
+    return vars
 
 def _define_deps_flags(deps, inputs):
     # It is very important to keep the order for the linker => put them into list
