@@ -46,10 +46,10 @@ fi
 
 def define_function(name, text):
     lines = []
-    lines += ["function " + name + "() {"]
+    lines.append("function " + name + "() {")
     for line_ in text.splitlines():
-        lines += ["  " + line_]
-    lines += ["}"]
+        lines.append("  " + line_)
+    lines.append("}")
     return "\n".join(lines)
 
 def replace_in_files(dir, from_, to_):
@@ -67,16 +67,16 @@ def copy_dir_contents_to_dir(source, target):
 
 def symlink_contents_to_dir(source, target):
     text = """local target="$2"
-mkdir -p $target
-if [[ -f $1 ]]; then
-  ##symlink_to_dir## $1 $target
-  return 0
-fi
-
-if [[ -d $1 || -L $1 ]]; then
-  local children=$(find -H $1 -maxdepth 1 -mindepth 1)
+mkdir -p "$target"
+if [[ -f "$1" ]]; then
+  ##symlink_to_dir## "$1" "$target"
+elif [[ -L "$1" ]]; then
+  local actual=$(readlink "$1")
+  ##symlink_contents_to_dir## "$actual" "$target"
+elif [[ -d "$1" ]]; then
+  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
   for child in $children; do
-    ##symlink_to_dir## $child $target
+    ##symlink_to_dir## "$child" "$target"
   done
 fi
 """
@@ -84,14 +84,18 @@ fi
 
 def symlink_to_dir(source, target):
     text = """local target="$2"
-mkdir -p ${target}
-
-if [[ -d $1 ]]; then
-  gln -s -t ${target} $1
-elif [[ -f $1 ]]; then
-  gln -s -t ${target} $1
-elif [[ -L $1 ]]; then
-  gcp --no-target-directory $1 ${target}
+mkdir -p "$target"
+if [[ -f "$1" ]]; then
+  gln -s -t "$target" "$1"
+elif [[ -L "$1" ]]; then
+  gcp $1 $2
+elif [[ -d "$1" ]]; then
+  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
+  local dirname=$(basename "$1")
+  mkdir -p "$target/$dirname"
+  for child in $children; do
+    ##symlink_to_dir## "$child" "$target/$dirname"
+  done
 else
   echo "Can not copy $1"
 fi
