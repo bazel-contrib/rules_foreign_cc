@@ -260,7 +260,7 @@ def cc_external_rule_impl(ctx, attrs):
         "cd $$EXT_BUILD_ROOT$$",
     ]
 
-    script_text = convert_shell_script(ctx, script_lines)
+    script_text = "#!/usr/bin/env bash\n" + convert_shell_script(ctx, script_lines)
     wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
 
     rule_outputs = outputs.declared_outputs + [installdir_copy.file]
@@ -367,7 +367,7 @@ rules_foreign_cc: Printing build logs:\\n\\n_____ BEGIN BUILD LOGS _____\\n"
         "##touch## $$BUILD_LOG$$",
         "##redirect_out_err## $$BUILD_SCRIPT$$ $$BUILD_LOG$$",
     ]
-    build_command = convert_shell_script(ctx, build_command_lines)
+    build_command = "#!/usr/bin/env bash\n" + convert_shell_script(ctx, build_command_lines)
 
     wrapper_script_file = ctx.actions.declare_file("{}/logs/wrapper_script.sh".format(lib_name))
     ctx.actions.write(

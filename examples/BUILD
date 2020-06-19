@@ -27,6 +27,8 @@ test_suite(
         "//cmake_synthetic:test_libs",
         "//cmake_with_bazel_transitive:test",
         "//configure_gnuplot:configure_libgd_tests",
+        "//configure_libunwind:configure_libunwind_tests",
+        "//configure_mpc:configure_mpc_tests",
         "//cmake_hello_world_lib/shared:test_libhello",
         "//cmake_hello_world_lib/binary:test_binary",
         "//configure_with_bazel_transitive:test",
