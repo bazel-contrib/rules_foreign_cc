@@ -324,6 +324,10 @@ def cc_external_rule_impl(ctx, attrs):
         else:
             make_commands.append(line)
 
+    ld_library_path = _define_ld_library_path(attrs.deps)
+    if len(ld_library_path) > 0:
+        define_variables.append("export LD_LIBRARY_PATH=\"{}\"".format(":".join(ld_library_path)))
+
     script_lines = [
         "##echo## \"\"",
         "##echo## \"{}\"".format(version_and_lib),
@@ -410,6 +414,33 @@ def cc_external_rule_impl(ctx, attrs):
             linking_context = out_cc_info.linking_context,
         ),
     ]
+
+def _define_ld_library_path(deps):
+    """Return a list of library paths for all transitive dependencies.
+
+    Linux (and perhaps other platforms) can have trouble resolving libraries
+    that aren't in standard paths [0,1,2].  Some [1] configure scripts actually
+    compile test programs to test system configuration and on Linux, without
+    LD_LIBRARY_PATH set these configure scripts fail.  I (bshi) haven't had
+    issues with this on MacOS and ideally we'd constrain to OS's for which this
+    is a known issue but see [3].
+
+    [0] https://github.com/bazelbuild/rules_foreign_cc/issues/241
+    [1] https://www.postgresql.org/message-id/23645.1437968936%40sss.pgh.pa.us
+    [2] https://github.com/bazelbuild/rules_foreign_cc/pull/247
+    [3] https://github.com/bazelbuild/bazel/issues/11107.
+    """
+    gen_dirs_set = {}
+    ld_library_path = []
+    for dep in deps:
+        external_deps = get_foreign_cc_dep(dep)
+        if external_deps:
+            for artifact in external_deps.artifacts.to_list():
+                if not gen_dirs_set.get(artifact.gen_dir):
+                    gen_dirs_set[artifact.gen_dir] = 1
+                    dir_name = artifact.gen_dir.basename
+                    ld_library_path.append("$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name))
+    return ld_library_path
 
 # buildifier: disable=name-conventions
 WrappedOutputs = provider(
@@ -789,3 +820,32 @@ def _collect_libs(cc_linking):
                 if library:
                     libs.append(library)
     return collections.uniq(libs)
+
+def _foreign_runtime_impl(ctx):
+    all_deps, lib_dirs = [], []
+    for artifact in [d[ForeignCcDeps].artifacts for d in ctx.attr.srcs]:
+        for struct in artifact.to_list():
+            all_deps.append(struct.gen_dir)
+            lib_dirs.append("/".join((struct.gen_dir.short_path, struct.lib_dir_name)))
+
+    ld_manifest = ctx.actions.declare_file(ctx.attr.name + ".LD_LIBRARY_PATH")
+    ctx.actions.write(
+        output = ld_manifest,
+        content = "\n".join(lib_dirs),
+    )
+    all_deps.append(ld_manifest)
+
+    return [DefaultInfo(runfiles = ctx.runfiles(files = all_deps))]
+
+foreign_runtime = rule(
+    doc = (
+        "This rule bundles the output artifacts of the transitive closure " +
+        "of the input sources and produces a manifest file suitable for " +
+        "constructing an LD_LIBRARY_PATH environment variable at runtime. " +
+        "This is an alternative for filegroup(..., output_group = gen_dir')."
+    ),
+    implementation = _foreign_runtime_impl,
+    attrs = {
+        "srcs": attr.label_list(),
+    },
+)

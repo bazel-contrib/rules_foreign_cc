@@ -285,3 +285,35 @@ def repositories():
         ],
         sha256 = "f83c604cde80a49af91345a1ff3f4558958202989fb768e6508963e24ea2524c",
     )
+
+    http_archive(
+        name = "postgres",
+        urls = ["https://ftp.postgresql.org/pub/source/v12.5/postgresql-12.5.tar.bz2"],
+        build_file_content = all_content,
+        sha256 = "bd0d25341d9578b5473c9506300022de26370879581f5fddd243a886ce79ff95",
+        strip_prefix = "postgresql-12.5",
+    )
+
+    http_archive(
+        name = "readline",
+        urls = ["https://ftp.gnu.org/gnu/readline/readline-8.0.tar.gz"],
+        build_file_content = all_content,
+        strip_prefix = "readline-8.0",
+        sha256 = "e339f51971478d369f8a053a330a190781acb9864cf4c541060f12078948e461",
+    )
+
+    http_archive(
+        name = "ncurses",
+        urls = ["https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.2.tar.gz"],
+        build_file_content = all_content,
+        strip_prefix = "ncurses-6.2",
+        sha256 = "30306e0c76e0f9f1f0de987cf1c82a5c21e1ce6568b9227f7da5b71cbea86c9d",
+    )
+
+    http_archive(
+        name = "openssl",
+        urls = ["https://github.com/openssl/openssl/archive/OpenSSL_1_1_1i.tar.gz"],
+        strip_prefix = "openssl-OpenSSL_1_1_1i",
+        build_file_content = all_content,
+        sha256 = "728d537d466a062e94705d44ee8c13c7b82d1b66f59f4e948e0cbf1cd7c461d8",
+    )
