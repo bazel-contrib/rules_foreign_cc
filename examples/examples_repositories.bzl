@@ -217,12 +217,12 @@ def include_examples_repositories():
     http_archive(
         name = "mpfr",
         build_file_content = all_content,
-        strip_prefix = "mpfr-4.0.2",
+        strip_prefix = "mpfr-4.1.0",
         urls = [
-            "https://mirror.bazel.build/www.mpfr.org/mpfr-current/mpfr-4.0.2.tar.gz",
-            "https://www.mpfr.org/mpfr-current/mpfr-4.0.2.tar.gz",
+            "https://mirror.bazel.build/www.mpfr.org/mpfr-current/mpfr-4.1.0.tar.gz",
+            "https://www.mpfr.org/mpfr-current/mpfr-4.1.0.tar.gz",
         ],
-        sha256 = "ae26cace63a498f07047a784cd3b0e4d010b44d2b193bab82af693de57a19a78",
+        sha256 = "3127fe813218f3a1f0adf4e8899de23df33b4cf4b4b3831a5314f78e65ffa2d6",
     )
 
     http_archive(
