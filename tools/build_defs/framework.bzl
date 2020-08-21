@@ -62,7 +62,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "deps": attr.label_list(mandatory = False, allow_files = True, default = []),
     # Optional tools to be copied into the directory structure.
     # Similar to deps, those directly required for the external building of the library/binaries.
-    "tools_deps": attr.label_list(mandatory = False, allow_files = True, default = []),
+    "tools_deps": attr.label_list(mandatory = False, allow_files = True, cfg = "host", default = []),
     #
     # Optional name of the output subdirectory with the header files, defaults to 'include'.
     "out_include_dir": attr.string(mandatory = False, default = "include"),
