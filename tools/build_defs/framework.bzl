@@ -265,6 +265,10 @@ def cc_external_rule_impl(ctx, attrs):
 
     rule_outputs = outputs.declared_outputs + [installdir_copy.file]
 
+    execution_requirements = {"block-network": ""}
+    if "requires-network" in ctx.attr.tags:
+        execution_requirements = {"requires-network": ""}
+
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs, transitive = [ctx.attr._cc_toolchain.files]),
@@ -278,7 +282,7 @@ def cc_external_rule_impl(ctx, attrs):
         # for shell commands
         use_default_shell_env = execution_os_name != "osx",
         command = wrapped_outputs.wrapper_script,
-        execution_requirements = {"block-network": ""},
+        execution_requirements = execution_requirements,
         # this is ignored if use_default_shell_env = True
         env = cc_env,
     )
