@@ -15,9 +15,14 @@ load(
     "is_debug_mode",
 )
 load(":configure_script.bzl", "create_configure_script")
+load("//tools/build_defs/native_tools:tool_access.bzl", "get_make_data")
 load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
 
 def _configure_make(ctx):
+    make_data = get_make_data(ctx)
+
+    tools_deps = ctx.attr.tools_deps + make_data.deps
+
     copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
 
     attrs = create_attrs(
@@ -25,6 +30,8 @@ def _configure_make(ctx):
         configure_name = "Configure",
         create_configure_script = _create_configure_script,
         postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
+        tools_deps = tools_deps,
+        make_path = make_data.path,
     )
     return cc_external_rule_impl(ctx, attrs)
 
@@ -124,6 +131,7 @@ configure_make = rule(
     output_to_genfiles = True,
     implementation = _configure_make,
     toolchains = [
+        "@rules_foreign_cc//tools/build_defs:make_toolchain",
         "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],

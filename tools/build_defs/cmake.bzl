@@ -18,13 +18,20 @@ load(
     "is_debug_mode",
 )
 load(":cmake_script.bzl", "create_cmake_script")
-load("//tools/build_defs/native_tools:tool_access.bzl", "get_cmake_data", "get_ninja_data")
+load("//tools/build_defs/shell_toolchain/toolchains:access.bzl", "create_context")
+load(
+    "//tools/build_defs/native_tools:tool_access.bzl",
+    "get_cmake_data",
+    "get_ninja_data",
+    "get_make_data",
+)
 load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
 
 def _cmake_external(ctx):
     cmake_data = get_cmake_data(ctx)
+    make_data = get_make_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + cmake_data.deps
+    tools_deps = ctx.attr.tools_deps + cmake_data.deps + make_data.deps
 
     ninja_data = get_ninja_data(ctx)
     make_commands = ctx.attr.make_commands
@@ -40,6 +47,7 @@ def _cmake_external(ctx):
         tools_deps = tools_deps,
         cmake_path = cmake_data.path,
         ninja_path = ninja_data.path,
+        make_path = make_data.path,
         make_commands = make_commands,
     )
 
@@ -133,6 +141,7 @@ cmake_external = rule(
     toolchains = [
         "@rules_foreign_cc//tools/build_defs:cmake_toolchain",
         "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
+        "@rules_foreign_cc//tools/build_defs:make_toolchain",
         "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],

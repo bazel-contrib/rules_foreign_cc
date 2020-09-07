@@ -14,12 +14,19 @@ load(
     "get_tools_info",
 )
 load(":configure_script.bzl", "create_make_script")
+load("//tools/build_defs/native_tools:tool_access.bzl", "get_make_data")
 
 def _make(ctx):
+    make_data = get_make_data(ctx)
+
+    tools_deps = ctx.attr.tools_deps + make_data.deps
+
     attrs = create_attrs(
         ctx.attr,
         configure_name = "GNUMake",
         create_configure_script = _create_make_script,
+        tools_deps = tools_deps,
+        make_path = make_data.path,
         make_commands = [],
     )
     return cc_external_rule_impl(ctx, attrs)
@@ -35,8 +42,14 @@ def _create_make_script(configureParameters):
     flags = get_flags_info(ctx)
 
     make_commands = ctx.attr.make_commands or [
-        "make %s -C $$EXT_BUILD_ROOT$$/%s" % ("-k" if ctx.attr.keep_going else "", root),
-        "make -C $$EXT_BUILD_ROOT$$/%s install PREFIX=%s" % (root, install_prefix),
+        "{make} {keep_going} -C $$EXT_BUILD_ROOT$$/{root}".format(
+            make=configureParameters.attrs.make_path,
+            keep_going="-k" if ctx.attr.keep_going else "",
+            root=root),
+        "{make} -C $$EXT_BUILD_ROOT$$/{root} install PREFIX={prefix}".format(
+            make=configureParameters.attrs.make_path,
+            root=root,
+            prefix=install_prefix),
     ]
 
     return create_make_script(
@@ -94,6 +107,7 @@ make = rule(
     output_to_genfiles = True,
     implementation = _make,
     toolchains = [
+        "@rules_foreign_cc//tools/build_defs:make_toolchain",
         "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
