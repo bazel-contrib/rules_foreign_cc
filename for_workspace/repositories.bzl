@@ -7,10 +7,10 @@ def repositories():
 
     http_archive(
         name = "bazel_skylib",
-        sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
+        sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
-            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
         ],
     )
 
@@ -27,19 +27,19 @@ def repositories():
     http_archive(
         name = "ninja_build",
         build_file_content = _all_content,
-        sha256 = "3810318b08489435f8efc19c05525e80a993af5a55baa0dfeae0465a9d45f99f",
-        strip_prefix = "ninja-1.10.0",
+        sha256 = "a6b6f7ac360d4aabd54e299cc1d8fa7b234cd81b9401693da21221c62569a23e",
+        strip_prefix = "ninja-1.10.1",
         urls = [
-            "https://github.com/ninja-build/ninja/archive/v1.10.0.tar.gz",
+            "https://github.com/ninja-build/ninja/archive/v1.10.1.tar.gz",
         ],
     )
 
     http_archive(
         name = "cmake",
         build_file_content = _all_content,
-        sha256 = "fc77324c4f820a09052a7785549b8035ff8d3461ded5bbd80d252ae7d1cd3aa5",
-        strip_prefix = "cmake-3.17.2",
+        sha256 = "5d4e40fc775d3d828c72e5c45906b4d9b59003c9433ff1b36a1cb552bbd51d7e",
+        strip_prefix = "cmake-3.18.2",
         urls = [
-            "https://github.com/Kitware/CMake/releases/download/v3.17.2/cmake-3.17.2.tar.gz",
+            "https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2.tar.gz",
         ],
     )
