@@ -1,0 +1,38 @@
+load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
+
+filegroup(
+    name = "all",
+    srcs = glob(["**"], exclude = ["configure"]) + [
+        "//:configure.modified",
+    ],
+)
+
+genrule(
+    name = "modified_configure",
+    srcs = [
+        "configure",
+    ],
+    outs = ["configure.modified"],
+    cmd = "\n".join([
+        "cp $< $@",
+        "sed -i 's|ASFLAGS=\"$$ASFLAGS -DARCH_X86_64|ASFLAGS=\"$$NASMFLAGS -DARCH_X86_64|g' $@",
+    ]),
+)
+
+x264_prefix_script = """
+find -L $$EXT_BUILD_ROOT$$ -type f -name "*.modified" -exec sh -c "cp {} $$EXT_BUILD_ROOT$$/external/x264/\$(basename {} .modified)" \;
+"""
+
+configure_make(
+    name = "library",
+    lib_source = ":all",
+    configure_options = [
+        "--enable-shared",
+        "--extra-cflags='-Dredacted=\"\\\"redacted\\\"\"'",
+    ],
+    prefix_script = x264_prefix_script,
+    shared_libraries = [
+        "libx264.so",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -270,6 +270,9 @@ attrs: {
     # Not used by the shell script part in cc_external_rule_impl.
     "additional_tools": attr.label_list(mandatory = False, allow_files = True, default = []),
     #
+    # Optional part of the shell script to be added before the configure command
+    "prefix_script": attr.string(mandatory = False),
+    #
     # Optional part of the shell script to be added after the make commands
     "postfix_script": attr.string(mandatory = False),
     # Optinal make commands, defaults to ["make", "make install"]

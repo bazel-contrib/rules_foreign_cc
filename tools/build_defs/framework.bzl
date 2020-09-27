@@ -50,6 +50,9 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     # Not used by the shell script part in cc_external_rule_impl.
     "additional_tools": attr.label_list(mandatory = False, allow_files = True, default = []),
     #
+    # Optional part of the shell script to be added before the configure command
+    "prefix_script": attr.string(mandatory = False),
+    #
     # Optional part of the shell script to be added after the make commands
     "postfix_script": attr.string(mandatory = False),
     # Optinal make commands, defaults to ["make", "make install"]
@@ -185,10 +188,11 @@ def cc_external_rule_impl(ctx, attrs):
         will be installed
 
         These variables should be used by the calling rule to refer to the created directory structure.
-     4) calls 'attrs.create_configure_script'
-     5) calls 'attrs.make_commands'
-     6) calls 'attrs.postfix_script'
-     7) replaces absolute paths in possibly created scripts with a placeholder value
+     4) calls 'attrs.prefix_script'
+     5) calls 'attrs.create_configure_script'
+     6) calls 'attrs.make_commands'
+     7) calls 'attrs.postfix_script'
+     8) replaces absolute paths in possibly created scripts with a placeholder value
 
      Please see cmake.bzl for example usage.
 
@@ -254,6 +258,7 @@ def cc_external_rule_impl(ctx, attrs):
         _print_env(),
         "\n".join(_copy_deps_and_tools(inputs)),
         "cd $$BUILD_TMPDIR$$",
+        attrs.prefix_script or "",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(make_commands),
         attrs.postfix_script or "",
