@@ -102,7 +102,7 @@ def _create_libraries_to_link(ctx, files):
             alwayslink = ctx.attr.alwayslink,
         ))
 
-    return libs
+    return depset(direct = libs)
 
 def _is_position_independent(file):
     return file.basename.endswith(".pic.a")
@@ -214,8 +214,13 @@ def create_linking_info(ctx, user_link_flags, files):
     """
 
     return cc_common.create_linking_context(
-        user_link_flags = user_link_flags,
-        libraries_to_link = _create_libraries_to_link(ctx, files),
+        linker_inputs = depset(direct = [
+            cc_common.create_linker_input(
+                owner = ctx.label,
+                libraries = _create_libraries_to_link(ctx, files),
+                user_link_flags = depset(direct = user_link_flags),
+            ),
+        ]),
     )
 
 def get_env_vars(ctx):

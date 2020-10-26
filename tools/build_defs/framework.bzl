@@ -676,12 +676,9 @@ def _extract_libraries(library_to_link):
 
 def _collect_libs(cc_linking):
     libs = []
-    libraries_to_link = cc_linking.libraries_to_link
-    if type(libraries_to_link) == "depset":
-        libraries_to_link = libraries_to_link.to_list()
-
-    for library_to_link in libraries_to_link:
-        for library in _extract_libraries(library_to_link):
-            if library:
-                libs.append(library)
+    for li in cc_linking.linker_inputs.to_list():
+        for library_to_link in li.libraries:
+            for library in _extract_libraries(library_to_link):
+                if library:
+                    libs.append(library)
     return collections.uniq(libs)
