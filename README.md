@@ -8,7 +8,7 @@ This is **not an officially supported Google product**
 
 ## Bazel versions compatibility
 
-Works with Bazel after 0.23 without any flags.
+Works with Bazel after 3.0.0 without any flags.
 
 ## News
 **March 2019:**
