@@ -76,6 +76,8 @@ def _create_configure_script(configureParameters):
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
         cmake_path = configureParameters.attrs.cmake_path,
+        make_path = configureParameters.attrs.make_path,
+        ninja_path = configureParameters.attrs.ninja_path,
         tools = tools,
         flags = flags,
         install_prefix = "$$INSTALL_PREFIX$$",

@@ -238,6 +238,8 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
     script = create_cmake_script(
         "ws",
         "cmake",
+        "make",
+        "ninja",
         tools,
         flags,
         "test_rule",
@@ -278,6 +280,8 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
     script = create_cmake_script(
         "ws",
         "cmake",
+        "make",
+        "ninja",
         tools,
         flags,
         "test_rule",
@@ -321,6 +325,8 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
     script = create_cmake_script(
         "ws",
         "cmake",
+        "make",
+        "ninja",
         tools,
         flags,
         "test_rule",
@@ -360,6 +366,8 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
     script = create_cmake_script(
         "ws",
         "cmake",
+        "make",
+        "ninja",
         tools,
         flags,
         "test_rule",
@@ -424,6 +432,8 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
     script = create_cmake_script(
         "ws",
         "cmake",
+        "make",
+        "ninja",
         tools,
         flags,
         "test_rule",
@@ -476,6 +486,8 @@ def _create_cmake_script_toolchain_file_test(ctx):
     script = create_cmake_script(
         "ws",
         "cmake",
+        "make",
+        "ninja",
         tools,
         flags,
         "test_rule",

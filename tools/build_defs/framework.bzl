@@ -40,15 +40,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         allow_files = True,
         default = [],
     ),
-    "additional_tools": attr.label_list(
-        doc = (
-            "Optional additional tools needed for the building. " +
-            "Not used by the shell script part in cc_external_rule_impl."
-        ),
-        mandatory = False,
-        allow_files = True,
-        default = [],
-    ),
     "alwayslink": attr.bool(
         doc = (
             "Optional. if true, link all the object files from the static library, " +
@@ -89,9 +80,9 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "env": attr.string_dict(
         doc = (
             "Environment variables to set during the build. " +
-            "$(execpath) macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, " +
+            "$(execpath) macros may be used to point at files which are listed as data deps or tools " +
             "but unlike with other rules, these will be replaced with absolute paths to those files, " +
-            "because the build does not run in the exec root. " +
+            "because the build does not run in the execroot. " +
             "No other macros are supported."
         ),
     ),
@@ -153,7 +144,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "shared_libraries": attr.string_list(
         doc = "Optional names of the resulting shared libraries.",
         mandatory = False,
-    ),
+),
     #
     # Output files names parameters. If any of them is defined, only these files are passed to
     # Bazel providers.
@@ -163,14 +154,13 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Optional names of the resulting static libraries.",
         mandatory = False,
     ),
-    "tools_deps": attr.label_list(
+    "tools": attr.label_list(
         doc = (
-            "Optional tools to be copied into the directory structure. " +
-            "Similar to deps, those directly required for the external building of the library/binaries."
+            "Tools that are needed to build the library/binaries."
         ),
         mandatory = False,
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = [],
     ),
     # we need to declare this attribute to access cc_toolchain
@@ -199,7 +189,10 @@ def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs)
     attrs["create_configure_script"] = create_configure_script
 
     for arg in kwargs:
-        attrs[arg] = kwargs[arg]
+        if hasattr(attrs, arg):
+            attrs[arg] += kwargs[arg]
+        else:
+            attrs[arg] = kwargs[arg]
     return struct(**attrs)
 
 # buildifier: disable=name-conventions
@@ -293,7 +286,7 @@ def cc_external_rule_impl(ctx, attrs):
     """
     lib_name = attrs.lib_name or ctx.attr.name
 
-    inputs = _define_inputs(attrs)
+    inputs = _define_inputs(ctx, attrs)
     outputs = _define_outputs(ctx, attrs, lib_name)
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
@@ -383,7 +376,7 @@ def cc_external_rule_impl(ctx, attrs):
     # We need to create a native batch script on windows to ensure the wrapper
     # script can correctly be envoked with bash.
     wrapper = wrapped_outputs.wrapper_script_file
-    extra_tools = []
+    extra_tools = [wrapped_outputs.script_file]
     if "win" in execution_os_name:
         batch_wrapper = ctx.actions.declare_file(wrapper.short_path + ".bat")
         ctx.actions.write(
@@ -398,6 +391,7 @@ def cc_external_rule_impl(ctx, attrs):
         extra_tools.append(wrapper)
         wrapper = batch_wrapper
 
+    inputs_from_tools, manifests_from_tools = ctx.resolve_tools(tools = attrs.tools)
     ctx.actions.run(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
@@ -405,10 +399,8 @@ def cc_external_rule_impl(ctx, attrs):
             empty.file,
             wrapped_outputs.log_file,
         ],
-        tools = depset(
-            [wrapped_outputs.script_file] + extra_tools + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
-            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
-        ),
+        input_manifests = manifests_from_tools,
+        tools = depset(extra_tools, transitive = [inputs.tools_files, inputs_from_tools, cc_toolchain.all_files]),
         # TODO: Default to never using the default shell environment to make builds more hermetic. For now, every platform
         # but MacOS will take the default PATH passed by Bazel, not that from cc_toolchain.
         use_default_shell_env = execution_os_name != "osx",
@@ -564,16 +556,6 @@ def _correct_path_variable(env):
     env["PATH"] = "$PATH:" + value
     return env
 
-def _depset(item):
-    if item == None:
-        return depset()
-    return depset([item])
-
-def _list(item):
-    if item:
-        return [item]
-    return []
-
 def _copy_deps_and_tools(files):
     lines = []
     lines += _symlink_contents_to_dir("lib", files.libs)
@@ -581,8 +563,8 @@ def _copy_deps_and_tools(files):
 
     if files.tools_files:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
-    for tool in files.tools_files:
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/".format(tool))
+    for tool in files.tools_files.to_list():
+        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/".format(_file_path(tool)))
 
     for ext_dir in files.ext_build_dirs:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir)))
@@ -697,7 +679,7 @@ InputFiles = provider(
     ),
 )
 
-def _define_inputs(attrs):
+def _define_inputs(ctx, attrs):
     cc_infos = []
 
     bazel_headers = []
@@ -726,37 +708,25 @@ def _define_inputs(attrs):
     # but filter out repeating directories
     ext_build_dirs = uniq_list_keep_order(ext_build_dirs)
 
-    tools_roots = []
-    tools_files = []
     input_files = []
-    for tool in attrs.tools_deps:
-        tool_root = detect_root(tool)
-        tools_roots.append(tool_root)
-        for file_list in tool.files.to_list():
-            tools_files += _list(file_list)
-
-    for tool in attrs.additional_tools:
-        for file_list in tool.files.to_list():
-            tools_files += _list(file_list)
-
     for input in attrs.additional_inputs:
         for file_list in input.files.to_list():
-            input_files += _list(file_list)
+            input_files += list(file_list)
 
-    # These variables are needed for correct C/C++ providers constraction,
+    tools_files, manifests_from_tools = ctx.resolve_tools(tools = ctx.attr.tools_deps + attrs.additional_tools)
+    # These variables are needed for correct C/C++ providers construction,
     # they should contain all libraries and include directories.
     cc_info_merged = cc_common.merge_cc_infos(cc_infos = cc_infos)
     return InputFiles(
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
-        tools_files = tools_roots,
+        tools_files = tools_files,
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
         declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
                           bazel_libs +
-                          tools_files +
                           input_files +
                           cc_info_merged.compilation_context.headers.to_list() +
                           ext_build_dirs,
