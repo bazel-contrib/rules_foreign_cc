@@ -86,7 +86,7 @@ mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ln -s -f -t "$target" "$1"
 elif [[ -L "$1" ]]; then
-  cp $1 $2
+  cp --no-target-directory "$1" "$target"
 elif [[ -d "$1" ]]; then
   local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
   local dirname=$(basename "$1")
