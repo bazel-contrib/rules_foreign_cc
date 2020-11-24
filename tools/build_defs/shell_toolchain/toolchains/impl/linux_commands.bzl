@@ -100,26 +100,6 @@ fi
 """
     return FunctionAndCall(text = text)
 
-# def symlink_to_dir(source, target):
-#     text = """local target="$2"
-# mkdir -p "$target"
-# if [[ -d "$1" ]]; then
-#   local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
-#   local dirname=$(basename "$1")
-#   mkdir -p "$target/$dirname"
-#   for child in $children; do
-#     ##symlink_to_dir## "$child" "$target/$dirname"
-#   done
-# elif [[ -f "$1" ]]; then
-#   ln -s -f -t "$target" "$1"
-# elif [[ -L "$1" ]]; then
-#   cp --no-target-directory "$1" "$target"
-# else
-#   echo "Can not copy $1"
-# fi
-# """
-#     return FunctionAndCall(text = text)
-
 def script_prelude():
     return "set -e"
 
