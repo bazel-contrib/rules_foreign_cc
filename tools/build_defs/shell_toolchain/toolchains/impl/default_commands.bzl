@@ -83,17 +83,17 @@ fi
 def symlink_to_dir(source, target):
     text = """local target="$2"
 mkdir -p "$target"
-if [[ -f "$1" ]]; then
-  ln -s -f -t "$target" "$1"
-elif [[ -L "$1" ]]; then
-  local actual=$(readlink "$1")
-  ##symlink_to_dir## "$actual" "$target"
-elif [[ -d "$1" ]]; then
+if [[ -d "$1" ]]; then
   local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
   local dirname=$(basename "$1")
   for child in $children; do
     ##symlink_to_dir## "$child" "$target/$dirname"
   done
+elif [[ -f "$1" ]]; then
+  ln -s -f -t "$target" "$1"
+elif [[ -L "$1" ]]; then
+  local actual=$(readlink "$1")
+  ##symlink_to_dir## "$actual" "$target"
 else
   echo "Can not copy $1"
 fi
