@@ -107,12 +107,8 @@ def symlink_to_dir(source, target):
     text = """local target="$2"
 mkdir -p "$target"
 if [[ -d "$1" ]]; then
-  local children=$(find "$1" -maxdepth 1 -mindepth 1)
-  local dirname=$(basename "$1")
-  mkdir -p "$target/$dirname"
-  for child in $children; do
-    ##symlink_to_dir## "$child" "$target/$dirname"
-  done
+  local dir_name="$(basename "$1")"
+  ln -s $1 ${target}/${dir_name}
 elif [[ -f "$1" ]]; then
   ln -s -f "$1" "$target"
 elif [[ -L "$1" ]]; then
