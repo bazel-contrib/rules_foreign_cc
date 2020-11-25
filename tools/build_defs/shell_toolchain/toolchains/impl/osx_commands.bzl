@@ -62,61 +62,43 @@ fi
 
 def copy_dir_contents_to_dir(source, target):
     text = """
-local children=$(find "$1" -maxdepth 1 -mindepth 1)
+local children=$(find $1 -maxdepth 1 -mindepth 1)
 local target="$2"
-mkdir -p "${target}"
+mkdir -p ${target}
 for child in $children; do
-  if [[ -f "$child" ]]; then
-    cp -R -L "$child" "$target"
-  elif [[ -L "$child" ]]; then
-    local $actual=$(readlink "$child")
-    if [[ -f "$actual" ]]; then
-      cp -R -L "$actual" "$target"
-    else
-      local dirn=$(basename "$actual")
-      mkdir -p "$target/$dirn"
-      ##copy_dir_contents_to_dir## "$actual" "$target/$dirn"
-    fi
-  elif [[ -d "$child" ]]; then
-    local dirn=$(basename "$child")
-    mkdir -p "$target/$dirn"
-    ##copy_dir_contents_to_dir## "$child" "$target/$dirn"
-  fi
+  cp -R -L $child ${target}
 done
 """
     return FunctionAndCall(text = text)
 
 def symlink_contents_to_dir(source, target):
-    text = """local target="$2"
-mkdir -p "$target"
-if [[ -f "$1" ]]; then
-  ##symlink_to_dir## "$1" "$target"
-elif [[ -L "$1" ]]; then
-  local actual=$(readlink "$1")
-  ##symlink_contents_to_dir## "$actual" "$target"
-elif [[ -d "$1" ]]; then
-  local children=$(find "$1" -maxdepth 1 -mindepth 1)
+    text = """
+local target="$2"
+mkdir -p $target
+if [[ -f $1 ]]; then
+  ##symlink_to_dir## $1 $target
+  return 0
+fi
+if [[ -d $1 || -L $1 ]]; then
+  local children=$(find -H $1 -maxdepth 1 -mindepth 1)
   for child in $children; do
-    ##symlink_to_dir## "$child" "$target"
+    ##symlink_to_dir## $child $target
   done
 fi
 """
     return FunctionAndCall(text = text)
 
 def symlink_to_dir(source, target):
-    text = """local target="$2"
-mkdir -p "$target"
-if [[ -d "$1" ]]; then
-  local children=$(find "$1" -maxdepth 1 -mindepth 1)
-  local dirname=$(basename "$1")
-  mkdir -p "$target/$dirname"
-  for child in $children; do
-    ##symlink_to_dir## "$child" "$target/$dirname"
-  done
-elif [[ -f "$1" ]]; then
-  ln -s -f "$1" "$target"
-elif [[ -L "$1" ]]; then
-  cp $1 $2
+    text = """
+local target="$2"
+mkdir -p ${target}
+if [[ -d $1 ]]; then
+  local dir_name="$(basename "$1")"
+  ln -s $1 ${target}/${dir_name}
+elif [[ -f $1 ]]; then
+  ln -s $1 ${target}
+elif [[ -L $1 ]]; then
+  cp $1 ${target}
 else
   echo "Can not copy $1"
 fi
