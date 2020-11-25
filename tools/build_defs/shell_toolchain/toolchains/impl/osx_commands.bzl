@@ -62,11 +62,26 @@ fi
 
 def copy_dir_contents_to_dir(source, target):
     text = """
-local children=$(find $1 -maxdepth 1 -mindepth 1)
+local children=$(find "$1" -maxdepth 1 -mindepth 1)
 local target="$2"
-mkdir -p ${target}
+mkdir -p "${target}"
 for child in $children; do
-  cp -R -L $child ${target}
+  if [[ -f "$child" ]]; then
+    cp "$child" "$target"
+  elif [[ -L "$child" ]]; then
+    local $actual=$(readlink "$child")
+    if [[ -f "$actual" ]]; then
+      cp "$actual" "$target"
+    else
+      local dirn=$(basename "$actual")
+      mkdir -p "$target/$dirn"
+      ##copy_dir_contents_to_dir## "$actual" "$target/$dirn"
+    fi
+  elif [[ -d "$child" ]]; then
+    local dirn=$(basename "$child")
+    mkdir -p "$target/$dirn"
+    ##copy_dir_contents_to_dir## "$child" "$target/$dirn"
+  fi
 done
 """
     return FunctionAndCall(text = text)
