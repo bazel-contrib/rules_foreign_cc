@@ -72,10 +72,9 @@ elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
   ##symlink_contents_to_dir## "$actual" "$target"
 elif [[ -d "$1" ]]; then
-  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
-  for child in $children; do
+  while IFS= read -r -d '' child; do
     ##symlink_to_dir## "$child" "$target"
-  done
+  done < <(find -H "$1" -maxdepth 1 -mindepth 1 -print0)
 fi
 """
     return FunctionAndCall(text = text)
@@ -88,12 +87,11 @@ if [[ -f "$1" ]]; then
 elif [[ -L "$1" ]]; then
   cp $1 $2
 elif [[ -d "$1" ]]; then
-  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
   local dirname=$(basename "$1")
   mkdir -p "$target/$dirname"
-  for child in $children; do
+  while IFS= read -r -d '' child; do
     ##symlink_to_dir## "$child" "$target/$dirname"
-  done
+  done < <(find -H "$1" -maxdepth 1 -mindepth 1 -print0)
 else
   echo "Can not copy $1"
 fi
@@ -104,12 +102,12 @@ def script_prelude():
     return "set -e"
 
 def increment_pkg_config_path(source):
-    text = """local children=$(find $1 -mindepth 1 -name '*.pc')
-# assume there is only one directory with pkg config
-for child in $children; do
+    text = """
+while IFS= read -r -d '' child; do
+  # assume there is only one directory with pkg config
   export PKG_CONFIG_PATH="$$PKG_CONFIG_PATH$$:$(dirname $child)"
   return
-done
+done < <(find $1 -mindepth 1 -name '*.pc' -print0)
 """
     return FunctionAndCall(text = text)
 
@@ -135,13 +133,11 @@ def cleanup_function(on_success, on_failure):
 
 def children_to_path(dir_):
     text = """if [ -d {dir_} ]; then
-  local tools=$(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)
-  for tool in $tools;
-  do
-    if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then
-      export PATH=$PATH:$tool
+  while IFS= read -r -d '' tool; do
+    if  [[ -d "$tool" ]] || [[ -L "$tool" ]]; then
+      export PATH="$PATH:$tool"
     fi
-  done
+  done < <(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1 -print0)
 fi""".format(dir_ = dir_)
     return FunctionAndCall(text = text)
 
