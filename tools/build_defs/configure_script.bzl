@@ -11,6 +11,7 @@ def create_configure_script(
         user_vars,
         is_debug,
         configure_command,
+        configure_script,
         deps,
         inputs,
         configure_in_place,
@@ -30,11 +31,11 @@ def create_configure_script(
     script.append("echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\"")
 
     root_path = "$$EXT_BUILD_ROOT$$/{}".format(root)
-    configure_path = "{}/{}".format(root_path, configure_command)
+    configure_path = "{}/{}".format(root_path, configure_script)
     if configure_in_place:
         script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
         root_path = "$$BUILD_TMPDIR$$"
-        configure_path = "{}/{}".format(root_path, configure_command)
+        configure_path = "{}/{}".format(root_path, configure_script)
 
     if autogen and configure_in_place:
         # NOCONFIGURE is pseudo standard and tells the script to not invoke configure.
