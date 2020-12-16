@@ -82,6 +82,8 @@ def _get_install_prefix(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
+        # The configure command, prioritise 'configure_script'
+        # Set either 'configure_command' or 'configure_script'
         "configure_command": attr.string(),
         # The name of the configuration script file, default: configure.
         # The file must be in the root of the source directory.
