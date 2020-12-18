@@ -80,11 +80,10 @@ def create_make_script(
         make_commands,
         prefix):
     env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
-    script = []
-    for ext_dir in inputs.ext_build_dirs:
-        script.append("##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path)
 
-    script.append("echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\"")
+    ext_build_dirs = inputs.ext_build_dirs
+
+    script = _pkgconfig_script(ext_build_dirs)
 
     script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
     script.append("" + " && ".join(make_commands))
