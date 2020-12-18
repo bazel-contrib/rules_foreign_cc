@@ -52,8 +52,8 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     #
     # Optional part of the shell script to be added after the make commands
     "postfix_script": attr.string(mandatory = False),
-    # Optinal make commands, defaults to ["make", "make install"]
-    "make_commands": attr.string_list(mandatory = False, default = ["make", "make install"]),
+    # Optinal make commands, defaults to ["make -j`nproc`", "make install"]
+    "make_commands": attr.string_list(mandatory = False, default = ["make -j`nproc`", "make install"]),
     #
     # Optional dependencies to be copied into the directory structure.
     # Typically those directly required for the external building of the library/binaries.
