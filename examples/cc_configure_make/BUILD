@@ -2,7 +2,7 @@ load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
 configure_make(
     name = "libevent",
-    # libevent script uses it's own libtool for linking;
+    # libevent script uses its own libtool for linking;
     # so do not specify linker tool for it
     # (otherwise, if the libtool from bazel's toolchain is supplied,
     # the build script has problems with passing output file to libtool)
