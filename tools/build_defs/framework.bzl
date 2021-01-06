@@ -650,6 +650,7 @@ def _define_inputs(attrs):
 
     tools_roots = []
     tools_files = []
+    input_files = []
     for tool in attrs.tools_deps:
         tool_root = detect_root(tool)
         tools_roots.append(tool_root)
@@ -660,15 +661,13 @@ def _define_inputs(attrs):
         for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
+    for input in attrs.additional_inputs:
+        for file_list in input.files.to_list():
+            input_files += _list(file_list)
+
     # These variables are needed for correct C/C++ providers constraction,
     # they should contain all libraries and include directories.
     cc_info_merged = cc_common.merge_cc_infos(cc_infos = cc_infos)
-    additional_inputs = []
-    for input in attrs.additional_inputs:
-        if type(input) == "Target":
-            additional_inputs += input.files.to_list()
-        else:
-            additional_inputs.append(input)
     return InputFiles(
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
@@ -680,7 +679,7 @@ def _define_inputs(attrs):
         declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
                           bazel_libs +
                           tools_files +
-                          additional_inputs +
+                          input_files +
                           cc_info_merged.compilation_context.headers.to_list() +
                           ext_build_dirs,
     )
