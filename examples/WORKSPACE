@@ -54,3 +54,11 @@ maven_install(
 load(":examples_repositories.bzl", "include_examples_repositories")
 
 include_examples_repositories()
+
+load("//docs:stardoc_repository.bzl", "stardoc_repository")
+
+stardoc_repository()
+
+load("//docs:stardoc_deps.bzl", "stardoc_deps")
+
+stardoc_deps()

@@ -1,3 +1,5 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 toolchain_type(
     name = "cmake_toolchain",
     visibility = ["//visibility:public"],
@@ -35,4 +37,19 @@ toolchain(
     name = "preinstalled_make_toolchain",
     toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:preinstalled_make",
     toolchain_type = "@rules_foreign_cc//tools/build_defs:make_toolchain",
+)
+
+bzl_library(
+    name = "bzl_srcs",
+    srcs = glob(["**/*.bzl"]) + [
+        "@rules_foreign_cc_bazel_version//:def.bzl",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "@bazel_skylib//lib:collections",
+        "@bazel_skylib//lib:versions",
+        "//tools/build_defs/native_tools:bzl_srcs",
+        "//tools/build_defs/shell_toolchain/polymorphism:bzl_srcs",
+        "//tools/build_defs/shell_toolchain/toolchains:bzl_srcs",
+    ],
 )
