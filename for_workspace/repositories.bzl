@@ -1,6 +1,6 @@
 """ Remote repositories, used by this project itself """
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 def repositories():
     _all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
@@ -42,4 +42,12 @@ def repositories():
         urls = [
             "https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2.tar.gz",
         ],
+    )
+
+    http_file(
+        name = "waf",
+        downloaded_file_path = "waf",
+        executable = True,
+        urls = ["https://waf.io/waf-2.0.21"],
+        sha256 = "7cebf2c5efe53cbb9a4b5bdc4b49ae90ecd64a8fce7a3222d58e591b58215306",
     )

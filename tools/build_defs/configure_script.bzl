@@ -15,13 +15,13 @@ def create_configure_script(
         deps,
         inputs,
         configure_in_place,
-        autoreconf,
-        autoreconf_options,
-        autoreconf_env_vars,
-        autogen,
-        autogen_command,
-        autogen_options,
-        autogen_env_vars):
+        autoreconf = False,
+        autoreconf_options = [],
+        autoreconf_env_vars = {},
+        autogen = False,
+        autogen_command = "",
+        autogen_options = [],
+        autogen_env_vars = {}):
     env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
 
     script = []

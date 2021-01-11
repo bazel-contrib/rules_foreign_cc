@@ -13,6 +13,11 @@ toolchain_type(
     visibility = ["//visibility:public"],
 )
 
+toolchain_type(
+    name = "waf_toolchain",
+    visibility = ["//visibility:public"],
+)
+
 # Preinstalled cmake will always be the default, if toolchain with more exact constraints
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(
@@ -35,4 +40,10 @@ toolchain(
     name = "preinstalled_make_toolchain",
     toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:preinstalled_make",
     toolchain_type = "@rules_foreign_cc//tools/build_defs:make_toolchain",
+)
+
+toolchain(
+    name = "downloaded_waf_toolchain",
+    toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:downloaded_waf",
+    toolchain_type = "@rules_foreign_cc//tools/build_defs:waf_toolchain",
 )

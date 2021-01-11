@@ -9,6 +9,9 @@ def get_ninja_data(ctx):
 def get_make_data(ctx):
     return _access_and_expect_label_copied("@rules_foreign_cc//tools/build_defs:make_toolchain", ctx, "make")
 
+def get_waf_data(ctx):
+    return _access_and_expect_label_copied("@rules_foreign_cc//tools/build_defs:waf_toolchain", ctx, "waf")
+
 def _access_and_expect_label_copied(toolchain_type_, ctx, tool_name):
     tool_data = access_tool(toolchain_type_, ctx, tool_name)
     if tool_data.target:

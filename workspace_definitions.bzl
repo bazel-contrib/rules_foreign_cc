@@ -99,4 +99,5 @@ def rules_foreign_cc_dependencies(
             "@rules_foreign_cc//tools/build_defs:preinstalled_cmake_toolchain",
             "@rules_foreign_cc//tools/build_defs:preinstalled_ninja_toolchain",
             "@rules_foreign_cc//tools/build_defs:preinstalled_make_toolchain",
+            "@rules_foreign_cc//tools/build_defs:downloaded_waf_toolchain",
         )

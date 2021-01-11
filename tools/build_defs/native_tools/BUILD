@@ -56,3 +56,10 @@ native_tool_toolchain(
     target = ":ninja_tool",
     visibility = ["//visibility:public"],
 )
+
+native_tool_toolchain(
+    name = "downloaded_waf",
+    path = "waf",
+    target = "@waf//file",
+    visibility = ["//visibility:public"],
+)
