@@ -57,8 +57,8 @@ def _create_configure_script(configureParameters):
         user_options = ctx.attr.configure_options,
         user_vars = dict(ctx.attr.configure_env_vars),
         is_debug = is_debug_mode(ctx),
-        configure_command = ctx.attr.configure_command,
-        configure_script = ctx.attr.configure_script,
+        configure_command = "",
+        configure_script = ctx.attr.configure_command,
         deps = ctx.attr.deps,
         inputs = inputs,
         configure_in_place = ctx.attr.configure_in_place,
@@ -82,12 +82,9 @@ def _get_install_prefix(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
-        # The configure command, prioritise 'configure_script'
-        # Set either 'configure_command' or 'configure_script'
-        "configure_command": attr.string(),
         # The name of the configuration script file, default: configure.
         # The file must be in the root of the source directory.
-        "configure_script": attr.string(default = "configure"),
+        "configure_command": attr.string(default = "configure"),
         # Any options to be put on the 'configure' command line.
         "configure_options": attr.string_list(),
         # Environment variables to be set for the 'configure' invocation.
