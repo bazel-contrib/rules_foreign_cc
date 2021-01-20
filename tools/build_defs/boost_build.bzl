@@ -30,18 +30,19 @@ def _create_configure_script(configureParameters):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
-        # any additional flags to pass to bootstrap.sh
-        "bootstrap_options": attr.string_list(mandatory = False),
-        # any additional flags to pass to b2
-        "user_options": attr.string_list(mandatory = False),
+        "bootstrap_options": attr.string_list(
+            doc = "any additional flags to pass to bootstrap.sh",
+            mandatory = False,
+        ),
+        "user_options": attr.string_list(
+            doc = "any additional flags to pass to b2",
+            mandatory = False,
+        ),
     })
     return attrs
 
-""" Rule for building Boost. Invokes bootstrap.sh and then b2 install.
-  Attributes:
-    boost_srcs - target with the boost sources
-"""
 boost_build = rule(
+    doc = "Rule for building Boost. Invokes bootstrap.sh and then b2 install.",
     attrs = _attrs(),
     fragments = ["cpp"],
     output_to_genfiles = True,
