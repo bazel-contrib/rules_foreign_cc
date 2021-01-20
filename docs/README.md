@@ -22,7 +22,7 @@
 
 <pre>
 boost_build(<a href="#boost_build-name">name</a>, <a href="#boost_build-additional_inputs">additional_inputs</a>, <a href="#boost_build-additional_tools">additional_tools</a>, <a href="#boost_build-alwayslink">alwayslink</a>, <a href="#boost_build-binaries">binaries</a>, <a href="#boost_build-bootstrap_options">bootstrap_options</a>,
-            <a href="#boost_build-defines">defines</a>, <a href="#boost_build-deps">deps</a>, <a href="#boost_build-headers_only">headers_only</a>, <a href="#boost_build-interface_libraries">interface_libraries</a>, <a href="#boost_build-lib_name">lib_name</a>, <a href="#boost_build-lib_source">lib_source</a>, <a href="#boost_build-linkopts">linkopts</a>,
+            <a href="#boost_build-data">data</a>, <a href="#boost_build-defines">defines</a>, <a href="#boost_build-deps">deps</a>, <a href="#boost_build-headers_only">headers_only</a>, <a href="#boost_build-interface_libraries">interface_libraries</a>, <a href="#boost_build-lib_name">lib_name</a>, <a href="#boost_build-lib_source">lib_source</a>, <a href="#boost_build-linkopts">linkopts</a>,
             <a href="#boost_build-make_commands">make_commands</a>, <a href="#boost_build-out_bin_dir">out_bin_dir</a>, <a href="#boost_build-out_include_dir">out_include_dir</a>, <a href="#boost_build-out_lib_dir">out_lib_dir</a>, <a href="#boost_build-postfix_script">postfix_script</a>,
             <a href="#boost_build-shared_libraries">shared_libraries</a>, <a href="#boost_build-static_libraries">static_libraries</a>, <a href="#boost_build-tools_deps">tools_deps</a>, <a href="#boost_build-user_options">user_options</a>)
 </pre>
@@ -40,6 +40,7 @@ Rule for building Boost. Invokes bootstrap.sh and then b2 install.
 | <a id="boost_build-alwayslink"></a>alwayslink |  Optional. if true, link all the object files from the static library, even if they are not used.   | Boolean | optional | False |
 | <a id="boost_build-binaries"></a>binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
 | <a id="boost_build-bootstrap_options"></a>bootstrap_options |  any additional flags to pass to bootstrap.sh   | List of strings | optional | [] |
+| <a id="boost_build-data"></a>data |  Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="boost_build-defines"></a>defines |  Optional compilation definitions to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.   | List of strings | optional | [] |
 | <a id="boost_build-deps"></a>deps |  Optional dependencies to be copied into the directory structure. Typically those directly required for the external building of the library/binaries. (i.e. those that the external buidl system will be looking for and paths to which are provided by the calling rule)   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="boost_build-headers_only"></a>headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
@@ -64,7 +65,7 @@ Rule for building Boost. Invokes bootstrap.sh and then b2 install.
 
 <pre>
 cmake_external(<a href="#cmake_external-name">name</a>, <a href="#cmake_external-additional_inputs">additional_inputs</a>, <a href="#cmake_external-additional_tools">additional_tools</a>, <a href="#cmake_external-alwayslink">alwayslink</a>, <a href="#cmake_external-binaries">binaries</a>, <a href="#cmake_external-cache_entries">cache_entries</a>,
-               <a href="#cmake_external-cmake_options">cmake_options</a>, <a href="#cmake_external-defines">defines</a>, <a href="#cmake_external-deps">deps</a>, <a href="#cmake_external-env_vars">env_vars</a>, <a href="#cmake_external-generate_crosstool_file">generate_crosstool_file</a>, <a href="#cmake_external-headers_only">headers_only</a>,
+               <a href="#cmake_external-cmake_options">cmake_options</a>, <a href="#cmake_external-data">data</a>, <a href="#cmake_external-defines">defines</a>, <a href="#cmake_external-deps">deps</a>, <a href="#cmake_external-env_vars">env_vars</a>, <a href="#cmake_external-generate_crosstool_file">generate_crosstool_file</a>, <a href="#cmake_external-headers_only">headers_only</a>,
                <a href="#cmake_external-install_prefix">install_prefix</a>, <a href="#cmake_external-interface_libraries">interface_libraries</a>, <a href="#cmake_external-lib_name">lib_name</a>, <a href="#cmake_external-lib_source">lib_source</a>, <a href="#cmake_external-linkopts">linkopts</a>, <a href="#cmake_external-make_commands">make_commands</a>,
                <a href="#cmake_external-out_bin_dir">out_bin_dir</a>, <a href="#cmake_external-out_include_dir">out_include_dir</a>, <a href="#cmake_external-out_lib_dir">out_lib_dir</a>, <a href="#cmake_external-postfix_script">postfix_script</a>, <a href="#cmake_external-shared_libraries">shared_libraries</a>,
                <a href="#cmake_external-static_libraries">static_libraries</a>, <a href="#cmake_external-tools_deps">tools_deps</a>, <a href="#cmake_external-working_directory">working_directory</a>)
@@ -84,6 +85,7 @@ Rule for building external library with CMake.
 | <a id="cmake_external-binaries"></a>binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
 | <a id="cmake_external-cache_entries"></a>cache_entries |  CMake cache entries to initialize (they will be passed with -Dkey=value) Values, defined by the toolchain, will be joined with the values, passed here. (Toolchain values come first)   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 | <a id="cmake_external-cmake_options"></a>cmake_options |  Other CMake options   | List of strings | optional | [] |
+| <a id="cmake_external-data"></a>data |  Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="cmake_external-defines"></a>defines |  Optional compilation definitions to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.   | List of strings | optional | [] |
 | <a id="cmake_external-deps"></a>deps |  Optional dependencies to be copied into the directory structure. Typically those directly required for the external building of the library/binaries. (i.e. those that the external buidl system will be looking for and paths to which are provided by the calling rule)   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="cmake_external-env_vars"></a>env_vars |  CMake environment variable values to join with toolchain-defined. For example, additional CXXFLAGS.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
@@ -132,9 +134,9 @@ Rule for building CMake. Invokes bootstrap script and make install.
 configure_make(<a href="#configure_make-name">name</a>, <a href="#configure_make-additional_inputs">additional_inputs</a>, <a href="#configure_make-additional_tools">additional_tools</a>, <a href="#configure_make-alwayslink">alwayslink</a>, <a href="#configure_make-autogen">autogen</a>, <a href="#configure_make-autogen_command">autogen_command</a>,
                <a href="#configure_make-autogen_env_vars">autogen_env_vars</a>, <a href="#configure_make-autogen_options">autogen_options</a>, <a href="#configure_make-autoreconf">autoreconf</a>, <a href="#configure_make-autoreconf_env_vars">autoreconf_env_vars</a>, <a href="#configure_make-autoreconf_options">autoreconf_options</a>,
                <a href="#configure_make-binaries">binaries</a>, <a href="#configure_make-configure_command">configure_command</a>, <a href="#configure_make-configure_env_vars">configure_env_vars</a>, <a href="#configure_make-configure_in_place">configure_in_place</a>, <a href="#configure_make-configure_options">configure_options</a>,
-               <a href="#configure_make-defines">defines</a>, <a href="#configure_make-deps">deps</a>, <a href="#configure_make-headers_only">headers_only</a>, <a href="#configure_make-install_prefix">install_prefix</a>, <a href="#configure_make-interface_libraries">interface_libraries</a>, <a href="#configure_make-lib_name">lib_name</a>, <a href="#configure_make-lib_source">lib_source</a>,
-               <a href="#configure_make-linkopts">linkopts</a>, <a href="#configure_make-make_commands">make_commands</a>, <a href="#configure_make-out_bin_dir">out_bin_dir</a>, <a href="#configure_make-out_include_dir">out_include_dir</a>, <a href="#configure_make-out_lib_dir">out_lib_dir</a>, <a href="#configure_make-postfix_script">postfix_script</a>,
-               <a href="#configure_make-shared_libraries">shared_libraries</a>, <a href="#configure_make-static_libraries">static_libraries</a>, <a href="#configure_make-tools_deps">tools_deps</a>)
+               <a href="#configure_make-data">data</a>, <a href="#configure_make-defines">defines</a>, <a href="#configure_make-deps">deps</a>, <a href="#configure_make-headers_only">headers_only</a>, <a href="#configure_make-install_prefix">install_prefix</a>, <a href="#configure_make-interface_libraries">interface_libraries</a>, <a href="#configure_make-lib_name">lib_name</a>,
+               <a href="#configure_make-lib_source">lib_source</a>, <a href="#configure_make-linkopts">linkopts</a>, <a href="#configure_make-make_commands">make_commands</a>, <a href="#configure_make-out_bin_dir">out_bin_dir</a>, <a href="#configure_make-out_include_dir">out_include_dir</a>, <a href="#configure_make-out_lib_dir">out_lib_dir</a>,
+               <a href="#configure_make-postfix_script">postfix_script</a>, <a href="#configure_make-shared_libraries">shared_libraries</a>, <a href="#configure_make-static_libraries">static_libraries</a>, <a href="#configure_make-tools_deps">tools_deps</a>)
 </pre>
 
 Rule for building external libraries with configure-make pattern. Some 'configure' script is invoked with --prefix=install (by default), and other parameters for compilation and linking, taken from Bazel C/C++ toolchain and passed dependencies. After configuration, GNU Make is called.
@@ -160,6 +162,7 @@ Rule for building external libraries with configure-make pattern. Some 'configur
 | <a id="configure_make-configure_env_vars"></a>configure_env_vars |  Environment variables to be set for the 'configure' invocation.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 | <a id="configure_make-configure_in_place"></a>configure_in_place |  Set to True if 'configure' should be invoked in place, i.e. from its enclosing directory.   | Boolean | optional | False |
 | <a id="configure_make-configure_options"></a>configure_options |  Any options to be put on the 'configure' command line.   | List of strings | optional | [] |
+| <a id="configure_make-data"></a>data |  Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="configure_make-defines"></a>defines |  Optional compilation definitions to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.   | List of strings | optional | [] |
 | <a id="configure_make-deps"></a>deps |  Optional dependencies to be copied into the directory structure. Typically those directly required for the external building of the library/binaries. (i.e. those that the external buidl system will be looking for and paths to which are provided by the calling rule)   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="configure_make-headers_only"></a>headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
@@ -183,10 +186,10 @@ Rule for building external libraries with configure-make pattern. Some 'configur
 ## make
 
 <pre>
-make(<a href="#make-name">name</a>, <a href="#make-additional_inputs">additional_inputs</a>, <a href="#make-additional_tools">additional_tools</a>, <a href="#make-alwayslink">alwayslink</a>, <a href="#make-binaries">binaries</a>, <a href="#make-defines">defines</a>, <a href="#make-deps">deps</a>, <a href="#make-headers_only">headers_only</a>,
-     <a href="#make-interface_libraries">interface_libraries</a>, <a href="#make-keep_going">keep_going</a>, <a href="#make-lib_name">lib_name</a>, <a href="#make-lib_source">lib_source</a>, <a href="#make-linkopts">linkopts</a>, <a href="#make-make_commands">make_commands</a>, <a href="#make-make_env_vars">make_env_vars</a>,
-     <a href="#make-out_bin_dir">out_bin_dir</a>, <a href="#make-out_include_dir">out_include_dir</a>, <a href="#make-out_lib_dir">out_lib_dir</a>, <a href="#make-postfix_script">postfix_script</a>, <a href="#make-prefix">prefix</a>, <a href="#make-shared_libraries">shared_libraries</a>,
-     <a href="#make-static_libraries">static_libraries</a>, <a href="#make-tools_deps">tools_deps</a>)
+make(<a href="#make-name">name</a>, <a href="#make-additional_inputs">additional_inputs</a>, <a href="#make-additional_tools">additional_tools</a>, <a href="#make-alwayslink">alwayslink</a>, <a href="#make-binaries">binaries</a>, <a href="#make-data">data</a>, <a href="#make-defines">defines</a>, <a href="#make-deps">deps</a>,
+     <a href="#make-headers_only">headers_only</a>, <a href="#make-interface_libraries">interface_libraries</a>, <a href="#make-keep_going">keep_going</a>, <a href="#make-lib_name">lib_name</a>, <a href="#make-lib_source">lib_source</a>, <a href="#make-linkopts">linkopts</a>, <a href="#make-make_commands">make_commands</a>,
+     <a href="#make-make_env_vars">make_env_vars</a>, <a href="#make-out_bin_dir">out_bin_dir</a>, <a href="#make-out_include_dir">out_include_dir</a>, <a href="#make-out_lib_dir">out_lib_dir</a>, <a href="#make-postfix_script">postfix_script</a>, <a href="#make-prefix">prefix</a>,
+     <a href="#make-shared_libraries">shared_libraries</a>, <a href="#make-static_libraries">static_libraries</a>, <a href="#make-tools_deps">tools_deps</a>)
 </pre>
 
 Rule for building external libraries with GNU Make. GNU Make commands (make and make install by default) are invoked with prefix="install" (by default), and other environment variables for compilation and linking, taken from Bazel C/C++ toolchain and passed dependencies.
@@ -201,6 +204,7 @@ Rule for building external libraries with GNU Make. GNU Make commands (make and 
 | <a id="make-additional_tools"></a>additional_tools |  Optional additional tools needed for the building. Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="make-alwayslink"></a>alwayslink |  Optional. if true, link all the object files from the static library, even if they are not used.   | Boolean | optional | False |
 | <a id="make-binaries"></a>binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="make-data"></a>data |  Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="make-defines"></a>defines |  Optional compilation definitions to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.   | List of strings | optional | [] |
 | <a id="make-deps"></a>deps |  Optional dependencies to be copied into the directory structure. Typically those directly required for the external building of the library/binaries. (i.e. those that the external buidl system will be looking for and paths to which are provided by the calling rule)   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="make-headers_only"></a>headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
@@ -237,7 +241,7 @@ Rule for building Make. Invokes configure script and make install.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="make_tool-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-| <a id="make_tool-make_srcs"></a>make_srcs |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="make_tool-make_srcs"></a>make_srcs |  target with the Make sources   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
 
 
 <a id="#native_tool_toolchain"></a>

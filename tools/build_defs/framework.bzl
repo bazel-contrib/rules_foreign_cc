@@ -386,7 +386,7 @@ def cc_external_rule_impl(ctx, attrs):
     return [
         DefaultInfo(
             files = depset(direct = rule_outputs + wrapped_files),
-            runfiles = ctx.runfiles(attrs.data),
+            runfiles = ctx.runfiles(ctx.files.data),
         ),
         OutputGroupInfo(**output_groups),
         ForeignCcDeps(artifacts = depset(
