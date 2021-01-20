@@ -95,6 +95,12 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         allow_files = True,
         default = [],
     ),
+    "data": attr.label_list(
+        doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
+        mandatory = False,
+        allow_files = True,
+        default = [],
+    ),
     "tools_deps": attr.label_list(
         doc = (
             "Optional tools to be copied into the directory structure. " +
@@ -353,7 +359,7 @@ def cc_external_rule_impl(ctx, attrs):
             empty.file,
             wrapped_outputs.log_file,
         ],
-        tools = [wrapped_outputs.script_file],
+        tools = depset([wrapped_outputs.script_file] + ctx.files.data),
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
         # for shell commands
@@ -378,7 +384,10 @@ def cc_external_rule_impl(ctx, attrs):
     ]
     output_groups[attrs.configure_name + "_logs"] = wrapped_files
     return [
-        DefaultInfo(files = depset(direct = rule_outputs + wrapped_files)),
+        DefaultInfo(
+            files = depset(direct = rule_outputs + wrapped_files),
+            runfiles = ctx.runfiles(attrs.data),
+        ),
         OutputGroupInfo(**output_groups),
         ForeignCcDeps(artifacts = depset(
             [externally_built],
