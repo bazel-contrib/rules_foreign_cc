@@ -92,9 +92,9 @@ def get_env_vars(
     deps_flags = _define_deps_flags(deps, inputs)
 
     if "LDFLAGS" in vars.keys():
-      vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
+        vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
     else:
-      vars["LDFLAGS"] = deps_flags.libs
+        vars["LDFLAGS"] = deps_flags.libs
 
     # -I flags should be put into preprocessor flags, CPPFLAGS
     # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html
