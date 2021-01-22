@@ -82,7 +82,7 @@ def rules_foreign_cc_dependencies(
             the generated data for the passed additonal_shell_toolchain_mappings, will be defined.
             This value is needed since register_toolchains() is called for these toolchains.
             Please refer to example in @rules_foreign_cc//toolchain_examples.
-    """    
+    """
     repositories()
     _read_build_options(name = "foreign_cc_platform_utils")
     bazel_version(name = "rules_foreign_cc_bazel_version")

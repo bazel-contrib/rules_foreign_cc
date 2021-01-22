@@ -46,10 +46,10 @@ bzl_library(
     ],
     visibility = ["//:__subpackages__"],
     deps = [
-        "@bazel_skylib//lib:collections",
-        "@bazel_skylib//lib:versions",
         "//tools/build_defs/native_tools:bzl_srcs",
         "//tools/build_defs/shell_toolchain/polymorphism:bzl_srcs",
         "//tools/build_defs/shell_toolchain/toolchains:bzl_srcs",
+        "@bazel_skylib//lib:collections",
+        "@bazel_skylib//lib:versions",
     ],
 )
