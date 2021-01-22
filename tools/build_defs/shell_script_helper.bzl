@@ -53,26 +53,37 @@ def convert_shell_script(ctx, script):
     return convert_shell_script_by_context(create_context(ctx), script)
 
 def convert_shell_script_by_context(shell_context, script):
-    # 0. split in lines merged fragments
+    # 0. Split in lines merged fragments.
     new_script = []
     for fragment in script:
         new_script += fragment.splitlines()
 
     script = new_script
 
-    # 1. call the functions or replace export statements
+    # 1. Call the functions or replace export statements.
     script = [do_function_call(line, shell_context) for line in script]
 
-    # 2. make sure functions calls are replaced
+    # 2. Make sure functions calls are replaced.
     # (it is known there is no deep recursion, do it only once)
     script = [do_function_call(line, shell_context) for line in script]
 
-    # 3. same for function bodies
+    # 3. Same for function bodies.
+    #
+    # Since we have some function bodies containing calls to other functions,
+    # we need to replace calls to the new functions and add the text
+    # of those functions to shell_context.prelude several times,
+    # and 4 times is enough for our toolchain.
+    # Example of such function: 'symlink_contents_to_dir'.
     processed_prelude = {}
-    for key in shell_context.prelude.keys():
-        text = shell_context.prelude[key]
-        lines = text.splitlines()
-        processed_prelude[key] = "\n".join([do_function_call(line.strip(" "), shell_context) for line in lines])
+    for i in range(1, 4):
+        for key in shell_context.prelude.keys():
+            text = shell_context.prelude[key]
+            lines = text.splitlines()
+            replaced = "\n".join([
+                do_function_call(line.strip(" "), shell_context)
+                for line in lines
+            ])
+            processed_prelude[key] = replaced
 
     for key in processed_prelude.keys():
         shell_context.prelude[key] = processed_prelude[key]

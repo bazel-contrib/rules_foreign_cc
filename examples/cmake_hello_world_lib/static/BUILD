@@ -1,13 +1,13 @@
 # example code is taken from https://github.com/Akagi201/learning-cmake/tree/master/hello-world-lib
 # for test only
 
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+
 filegroup(
     name = "srcs",
     srcs = glob(["**"]),
     visibility = ["//visibility:public"],
 )
-
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(
     name = "libhello",
@@ -18,7 +18,7 @@ cmake_external(
 
 cmake_external(
     name = "libhello_win",
-    cmake_options = ["-G \"Visual Studio 14 2015 Win64\""],
+    cmake_options = ["-G \"Visual Studio 15 2017\" -A x64"],
     generate_crosstool_file = True,
     lib_name = "libhello",
     lib_source = ":srcs",
@@ -91,9 +91,9 @@ sh_test(
     srcs = ["test_hello.sh"],
     args = ["$(location libhello_example)"],
     data = [":libhello_example"],
-    deps = ["@bazel_tools//tools/bash/runfiles"],
     tags = ["windows"],
     visibility = ["//:__pkg__"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
 )
 
 sh_test(
@@ -101,9 +101,9 @@ sh_test(
     srcs = ["test_hello.sh"],
     args = ["$(location libhello_example_ninja)"],
     data = [":libhello_example_ninja"],
-    deps = ["@bazel_tools//tools/bash/runfiles"],
     tags = ["windows"],
     visibility = ["//:__pkg__"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
 )
 
 sh_test(
@@ -111,9 +111,9 @@ sh_test(
     srcs = ["test_hello.sh"],
     args = ["$(location libhello_example_nmake)"],
     data = [":libhello_example_nmake"],
-    deps = ["@bazel_tools//tools/bash/runfiles"],
     tags = ["windows"],
     visibility = ["//:__pkg__"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
 )
 
 cmake_external(

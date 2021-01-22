@@ -11,7 +11,7 @@ load(
     "get_env_vars",
     "targets_windows",
 )
-load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root")
+load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 load(
     "@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl",
     "copy_directory",
@@ -32,72 +32,140 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
  description dict. See cmake.bzl as an example.
 """
 CC_EXTERNAL_RULE_ATTRIBUTES = {
-    # Library name. Defines the name of the install directory and the name of the static library,
-    # if no output files parameters are defined (any of static_libraries, shared_libraries,
-    # interface_libraries, binaries_names)
-    # Optional. If not defined, defaults to the target's name.
-    "lib_name": attr.string(mandatory = False),
-    # Label with source code to build. Typically a filegroup for the source of remote repository.
-    # Mandatory.
-    "lib_source": attr.label(mandatory = True, allow_files = True),
-    # Optional compilation definitions to be passed to the dependencies of this library.
-    # They are NOT passed to the compiler, you should duplicate them in the configuration options.
-    "defines": attr.string_list(mandatory = False, default = []),
-    #
-    # Optional additional inputs to be declared as needed for the shell script action.
-    # Not used by the shell script part in cc_external_rule_impl.
-    "additional_inputs": attr.label_list(mandatory = False, allow_files = True, default = []),
-    # Optional additional tools needed for the building.
-    # Not used by the shell script part in cc_external_rule_impl.
-    "additional_tools": attr.label_list(mandatory = False, allow_files = True, default = []),
-    #
-    # Optional part of the shell script to be added after the make commands
-    "postfix_script": attr.string(mandatory = False),
-    # Optinal make commands, defaults to ["make", "make install"]
-    "make_commands": attr.string_list(mandatory = False, default = ["make", "make install"]),
-    #
-    # Optional dependencies to be copied into the directory structure.
-    # Typically those directly required for the external building of the library/binaries.
-    # (i.e. those that the external buidl system will be looking for and paths to which are
-    # provided by the calling rule)
-    "deps": attr.label_list(mandatory = False, allow_files = True, default = []),
-    # Optional tools to be copied into the directory structure.
-    # Similar to deps, those directly required for the external building of the library/binaries.
-    "tools_deps": attr.label_list(mandatory = False, allow_files = True, default = []),
-    #
-    # Optional name of the output subdirectory with the header files, defaults to 'include'.
-    "out_include_dir": attr.string(mandatory = False, default = "include"),
-    # Optional name of the output subdirectory with the library files, defaults to 'lib'.
-    "out_lib_dir": attr.string(mandatory = False, default = "lib"),
-    # Optional name of the output subdirectory with the binary files, defaults to 'bin'.
-    "out_bin_dir": attr.string(mandatory = False, default = "bin"),
-    #
-    # Optional. if true, link all the object files from the static library,
-    # even if they are not used.
-    "alwayslink": attr.bool(mandatory = False, default = False),
-    # Optional link options to be passed up to the dependencies of this library
-    "linkopts": attr.string_list(mandatory = False, default = []),
+    "lib_name": attr.string(
+        doc = (
+            "Library name. Defines the name of the install directory and the name of the static library, " +
+            "if no output files parameters are defined (any of static_libraries, shared_libraries, " +
+            "interface_libraries, binaries_names) " +
+            "Optional. If not defined, defaults to the target's name."
+        ),
+        mandatory = False,
+    ),
+    "lib_source": attr.label(
+        doc = (
+            "Label with source code to build. Typically a filegroup for the source of remote repository. " +
+            "Mandatory."
+        ),
+        mandatory = True,
+        allow_files = True,
+    ),
+    "defines": attr.string_list(
+        doc = (
+            "Optional compilation definitions to be passed to the dependencies of this library. " +
+            "They are NOT passed to the compiler, you should duplicate them in the configuration options."
+        ),
+        mandatory = False,
+        default = [],
+    ),
+    "additional_inputs": attr.label_list(
+        doc = (
+            "Optional additional inputs to be declared as needed for the shell script action." +
+            "Not used by the shell script part in cc_external_rule_impl."
+        ),
+        mandatory = False,
+        allow_files = True,
+        default = [],
+    ),
+    "additional_tools": attr.label_list(
+        doc = (
+            "Optional additional tools needed for the building. " +
+            "Not used by the shell script part in cc_external_rule_impl."
+        ),
+        mandatory = False,
+        allow_files = True,
+        default = [],
+    ),
+    "postfix_script": attr.string(
+        doc = "Optional part of the shell script to be added after the make commands",
+        mandatory = False,
+    ),
+    "make_commands": attr.string_list(
+        doc = "Optinal make commands, defaults to [\"make\", \"make install\"]",
+        mandatory = False,
+        default = ["make", "make install"],
+    ),
+    "deps": attr.label_list(
+        doc = (
+            "Optional dependencies to be copied into the directory structure. " +
+            "Typically those directly required for the external building of the library/binaries. " +
+            "(i.e. those that the external buidl system will be looking for and paths to which are " +
+            "provided by the calling rule)"
+        ),
+        mandatory = False,
+        allow_files = True,
+        default = [],
+    ),
+    "tools_deps": attr.label_list(
+        doc = (
+            "Optional tools to be copied into the directory structure. " +
+            "Similar to deps, those directly required for the external building of the library/binaries."
+        ),
+        mandatory = False,
+        allow_files = True,
+        cfg = "host",
+        default = [],
+    ),
+    "out_include_dir": attr.string(
+        doc = "Optional name of the output subdirectory with the header files, defaults to 'include'.",
+        mandatory = False,
+        default = "include",
+    ),
+    "out_lib_dir": attr.string(
+        doc = "Optional name of the output subdirectory with the library files, defaults to 'lib'.",
+        mandatory = False,
+        default = "lib",
+    ),
+    "out_bin_dir": attr.string(
+        doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'.",
+        mandatory = False,
+        default = "bin",
+    ),
+    "alwayslink": attr.bool(
+        doc = (
+            "Optional. if true, link all the object files from the static library, " +
+            "even if they are not used."
+        ),
+        mandatory = False,
+        default = False,
+    ),
+    "linkopts": attr.string_list(
+        doc = "Optional link options to be passed up to the dependencies of this library",
+        mandatory = False,
+        default = [],
+    ),
     #
     # Output files names parameters. If any of them is defined, only these files are passed to
     # Bazel providers.
     # if no of them is defined, default lib_name.a/lib_name.lib static library is assumed.
     #
-    # Optional names of the resulting static libraries.
-    "static_libraries": attr.string_list(mandatory = False),
-    # Optional names of the resulting shared libraries.
-    "shared_libraries": attr.string_list(mandatory = False),
-    # Optional names of the resulting interface libraries.
-    "interface_libraries": attr.string_list(mandatory = False),
-    # Optional names of the resulting binaries.
-    "binaries": attr.string_list(mandatory = False),
-    # Flag variable to indicate that the library produces only headers
-    "headers_only": attr.bool(mandatory = False, default = False),
-    #
+    "static_libraries": attr.string_list(
+        doc = "Optional names of the resulting static libraries.",
+        mandatory = False,
+    ),
+    "shared_libraries": attr.string_list(
+        doc = "Optional names of the resulting shared libraries.",
+        mandatory = False,
+    ),
+    "interface_libraries": attr.string_list(
+        doc = "Optional names of the resulting interface libraries.",
+        mandatory = False,
+    ),
+    "binaries": attr.string_list(
+        doc = "Optional names of the resulting binaries.",
+        mandatory = False,
+    ),
+    "headers_only": attr.bool(
+        doc = "Flag variable to indicate that the library produces only headers",
+        mandatory = False,
+        default = False,
+    ),
     "_is_debug": attr.label(
         default = "@foreign_cc_platform_utils//:compilation_mode",
     ),
     # we need to declare this attribute to access cc_toolchain
-    "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+    "_cc_toolchain": attr.label(
+        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+    ),
 }
 
 def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs):
@@ -237,6 +305,13 @@ def cc_external_rule_impl(ctx, attrs):
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
     ]
 
+    make_commands = []
+    for line in attrs.make_commands:
+        if line == "make" or line.startswith("make "):
+            make_commands.append(line.replace("make", attrs.make_path, 1))
+        else:
+            make_commands.append(line)
+
     script_lines = [
         "##echo## \"\"",
         "##echo## \"{}\"".format(version_and_lib),
@@ -249,7 +324,7 @@ def cc_external_rule_impl(ctx, attrs):
         "\n".join(_copy_deps_and_tools(inputs)),
         "cd $$BUILD_TMPDIR$$",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
-        "\n".join(attrs.make_commands),
+        "\n".join(make_commands),
         attrs.postfix_script or "",
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
@@ -261,11 +336,15 @@ def cc_external_rule_impl(ctx, attrs):
         "cd $$EXT_BUILD_ROOT$$",
     ]
 
-    script_text = convert_shell_script(ctx, script_lines)
+    script_text = "#!/usr/bin/env bash\n" + convert_shell_script(ctx, script_lines)
     wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
 
     rule_outputs = outputs.declared_outputs + [installdir_copy.file]
     cc_toolchain = find_cpp_toolchain(ctx)
+
+    execution_requirements = {"block-network": ""}
+    if "requires-network" in ctx.attr.tags:
+        execution_requirements = {"requires-network": ""}
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
@@ -280,7 +359,7 @@ def cc_external_rule_impl(ctx, attrs):
         # for shell commands
         use_default_shell_env = execution_os_name != "osx",
         command = wrapped_outputs.wrapper_script,
-        execution_requirements = {"block-network": ""},
+        execution_requirements = execution_requirements,
         # this is ignored if use_default_shell_env = True
         env = cc_env,
     )
@@ -347,6 +426,9 @@ rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS""",
 rules_foreign_cc: Printing build logs:\\n\\n_____ BEGIN BUILD LOGS _____\\n"
 ##cat## $$BUILD_LOG$$
 ##echo## "\\n_____ END BUILD LOGS _____\\n"
+##echo## "Printing build script:\\n\\n_____ BEGIN BUILD SCRIPT _____\\n"
+##cat## $$BUILD_SCRIPT$$
+##echo## "\\n_____ END BUILD SCRIPT _____\\n"
 ##echo## "rules_foreign_cc: Build script location: $$BUILD_SCRIPT$$\\n"
 ##echo## "rules_foreign_cc: Build log location: $$BUILD_LOG$$\\n\\n"
 """,
@@ -366,7 +448,7 @@ rules_foreign_cc: Printing build logs:\\n\\n_____ BEGIN BUILD LOGS _____\\n"
         "##touch## $$BUILD_LOG$$",
         "##redirect_out_err## $$BUILD_SCRIPT$$ $$BUILD_LOG$$",
     ]
-    build_command = convert_shell_script(ctx, build_command_lines)
+    build_command = "#!/usr/bin/env bash\n" + convert_shell_script(ctx, build_command_lines)
 
     wrapper_script_file = ctx.actions.declare_file("{}/logs/wrapper_script.sh".format(lib_name))
     ctx.actions.write(
@@ -393,14 +475,14 @@ def _get_transitive_artifacts(deps):
     for dep in deps:
         foreign_dep = get_foreign_cc_dep(dep)
         if foreign_dep:
-            artifacts += [foreign_dep.artifacts]
+            artifacts.append(foreign_dep.artifacts)
     return artifacts
 
 def _print_env():
     return "\n".join([
-        "##echo## \"Environment:______________\"",
+        "##echo## \"Environment:______________\\n\"",
         "##env##",
-        "##echo## \"__________________________\"",
+        "##echo## \"__________________________\\n\"",
     ])
 
 def _correct_path_variable(env):
@@ -434,10 +516,10 @@ def _copy_deps_and_tools(files):
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/".format(tool))
 
     for ext_dir in files.ext_build_dirs:
-        lines += ["##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir))]
+        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir)))
 
-    lines += ["##children_to_path## $$EXT_BUILD_DEPS$$/bin"]
-    lines += ["##path## $$EXT_BUILD_DEPS$$/bin"]
+    lines.append("##children_to_path## $$EXT_BUILD_DEPS$$/bin")
+    lines.append("##path## $$EXT_BUILD_DEPS$$/bin")
 
     return lines
 
@@ -450,10 +532,10 @@ def _symlink_contents_to_dir(dir_name, files_list):
     lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
 
     for file in files_list:
-      path = _file_path(file).strip()
-      if path:
-        lines += ["##symlink_contents_to_dir## \
-$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name)]
+        path = _file_path(file).strip()
+        if path:
+            lines.append("##symlink_contents_to_dir## \
+$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name))
 
     return lines
 
@@ -551,7 +633,7 @@ def _define_inputs(attrs):
     for dep in attrs.deps:
         external_deps = get_foreign_cc_dep(dep)
 
-        cc_infos += [dep[CcInfo]]
+        cc_infos.append(dep[CcInfo])
 
         if external_deps:
             ext_build_dirs += [artifact.gen_dir for artifact in external_deps.artifacts.to_list()]
@@ -570,7 +652,7 @@ def _define_inputs(attrs):
     tools_files = []
     for tool in attrs.tools_deps:
         tool_root = detect_root(tool)
-        tools_roots += [tool_root]
+        tools_roots.append(tool_root)
         for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
@@ -590,9 +672,12 @@ def _define_inputs(attrs):
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
-        declared_inputs = attrs.lib_source.files.to_list() + bazel_libs + tools_files +
+        declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
+                          bazel_libs +
+                          tools_files +
                           attrs.additional_inputs +
-                          cc_info_merged.compilation_context.headers.to_list() + ext_build_dirs,
+                          cc_info_merged.compilation_context.headers.to_list() +
+                          ext_build_dirs,
     )
 
 def uniq_list_keep_order(list):
@@ -611,7 +696,8 @@ def get_foreign_cc_dep(dep):
 # consider optimization here to do not iterate both collections
 def _get_headers(compilation_info):
     include_dirs = compilation_info.system_includes.to_list() + \
-      compilation_info.includes.to_list()
+                   compilation_info.includes.to_list()
+
     # do not use quote includes, currently they do not contain
     # library-specific information
     include_dirs = collections.uniq(include_dirs)
@@ -624,7 +710,7 @@ def _get_headers(compilation_info):
                 included = True
                 break
         if not included:
-            headers += [header]
+            headers.append(header)
     return struct(
         headers = headers,
         include_dirs = include_dirs,
@@ -660,12 +746,9 @@ def _extract_libraries(library_to_link):
 
 def _collect_libs(cc_linking):
     libs = []
-    libraries_to_link = cc_linking.libraries_to_link
-    if type(libraries_to_link) == "depset":
-        libraries_to_link = libraries_to_link.to_list()
-
-    for library_to_link in libraries_to_link:
-        for library in _extract_libraries(library_to_link):
-            if library:
-                libs.append(library)
+    for li in cc_linking.linker_inputs.to_list():
+        for library_to_link in li.libraries:
+            for library in _extract_libraries(library_to_link):
+                if library:
+                    libs.append(library)
     return collections.uniq(libs)

@@ -20,7 +20,7 @@ def get(file_name):
 def _mapping_text(ids):
     data_ = []
     for id in ids:
-        data_ += ["{id} = wrapper_{id}".format(id = id)]
+        data_.append("{id} = wrapper_{id}".format(id = id))
     return "_MAPPING = dict(\n{data}\n)".format(data = ",\n".join(data_))
 
 def _load_and_wrapper_text(id, file_path, symbols):
@@ -30,8 +30,8 @@ def _load_and_wrapper_text(id, file_path, symbols):
     wrapper_statement = "wrapper_{id} = dict({data})".format(id = id, data = data)
     return struct(
         load_ = load_statement,
-        wrapper = wrapper_statement
-      )
+        wrapper = wrapper_statement,
+    )
 
 def id_from_file(file_name):
     (before, middle, after) = file_name.partition(".")
@@ -47,6 +47,15 @@ def _copy_file(rctx, src):
     rctx.template(copy_path, src_path)
     return copy_path
 
+_BUILD_FILE = """\
+exports_files(
+    [
+        "toolchain_data_defs.bzl",
+    ],
+    visibility = ["//visibility:public"],
+)
+"""
+
 def _generate_overloads(rctx):
     symbols = rctx.attr.symbols
     ids = []
@@ -55,19 +64,19 @@ def _generate_overloads(rctx):
     wrappers = []
     for file_ in rctx.attr.files:
         id = id_from_file(file_.name)
-        ids += [id]
+        ids.append(id)
         copy = _copy_file(rctx, file_)
         load_and_wrapper = _load_and_wrapper_text(id, copy, symbols)
-        loads += [load_and_wrapper.load_]
-        wrappers += [load_and_wrapper.wrapper]
+        loads.append(load_and_wrapper.load_)
+        wrappers.append(load_and_wrapper.wrapper)
     lines += loads
     lines += wrappers
-    lines += [_mapping_text(ids)]
-    lines += [_provider_text(symbols)]
-    lines += [_getter_text()]
+    lines.append(_mapping_text(ids))
+    lines.append(_provider_text(symbols))
+    lines.append(_getter_text())
 
     rctx.file("toolchain_data_defs.bzl", "\n".join(lines))
-    rctx.file("BUILD", "")
+    rctx.file("BUILD", _BUILD_FILE)
 
 generate_overloads = repository_rule(
     implementation = _generate_overloads,

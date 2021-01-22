@@ -20,7 +20,7 @@ tasks:
     build_targets:
       - "//cmake_android:app"
     test_targets:
-      - "//:cmake_tests"
+      - "//:mac_tests"
   windows:
     platform: windows
     working_directory: examples
@@ -46,3 +46,23 @@ tasks:
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
+  ubuntu1804_detect_root:
+    platform: ubuntu1804
+    working_directory: test/detect_root_test
+    test_targets:
+      - "//:tests"
+  ubuntu1604_detect_root:
+    platform: ubuntu1604
+    working_directory: test/detect_root_test
+    test_targets:
+      - "//:tests"
+  macos_detect_root:
+    platform: macos
+    working_directory: test/detect_root_test
+    test_targets:
+      - "//:tests"
+  windows_detect_root:
+    platform: windows
+    working_directory: test/detect_root_test
+    test_targets:
+      - "//:tests"

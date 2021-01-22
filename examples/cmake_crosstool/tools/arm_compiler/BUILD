@@ -72,7 +72,6 @@ filegroup(
 
 cc_toolchain(
     name = "cc-compiler-armeabi-v7a",
-    toolchain_identifier = "armeabi-v7a",
     all_files = ":linaro_linux_all_files",
     ar_files = "//tools/arm_compiler/linaro_linux_gcc:ar",
     as_files = "//tools/arm_compiler/linaro_linux_gcc:as",
@@ -85,12 +84,12 @@ cc_toolchain(
     static_runtime_libs = [":empty"],
     strip_files = "//tools/arm_compiler/linaro_linux_gcc:strip",
     supports_param_files = 1,
+    toolchain_identifier = "armeabi-v7a",
     visibility = ["//visibility:public"],
 )
 
 cc_toolchain(
     name = "cc-compiler-k8",
-    toolchain_identifier = "local",
     all_files = ":empty",
     ar_files = ":empty",
     as_files = ":empty",
@@ -103,5 +102,6 @@ cc_toolchain(
     static_runtime_libs = [":empty"],
     strip_files = ":empty",
     supports_param_files = 1,
+    toolchain_identifier = "local",
     visibility = ["//visibility:public"],
 )

@@ -91,7 +91,7 @@ def _create_libraries_to_link(ctx, files):
     )
 
     for name_ in names:
-        libs += [cc_common.create_library_to_link(
+        libs.append(cc_common.create_library_to_link(
             actions = ctx.actions,
             feature_configuration = feature_configuration,
             cc_toolchain = cc_toolchain,
@@ -100,9 +100,9 @@ def _create_libraries_to_link(ctx, files):
             dynamic_library = shared_map.get(name_),
             interface_library = interface_map.get(name_),
             alwayslink = ctx.attr.alwayslink,
-        )]
+        ))
 
-    return libs
+    return depset(direct = libs)
 
 def _is_position_independent(file):
     return file.basename.endswith(".pic.a")
@@ -112,7 +112,7 @@ def _filter(list_, predicate, inverse):
     for elem in list_:
         check = predicate(elem)
         if not inverse and check or inverse and not check:
-            result += [elem]
+            result.append(elem)
     return result
 
 def _files_map(files_list):
@@ -214,8 +214,13 @@ def create_linking_info(ctx, user_link_flags, files):
     """
 
     return cc_common.create_linking_context(
-        user_link_flags = user_link_flags,
-        libraries_to_link = _create_libraries_to_link(ctx, files),
+        linker_inputs = depset(direct = [
+            cc_common.create_linker_input(
+                owner = ctx.label,
+                libraries = _create_libraries_to_link(ctx, files),
+                user_link_flags = depset(direct = user_link_flags),
+            ),
+        ]),
     )
 
 def get_env_vars(ctx):
@@ -366,7 +371,7 @@ def _add_if_needed(arr, add_arr):
             if existing == to_add:
                 found = True
         if not found:
-            filtered += [to_add]
+            filtered.append(to_add)
     return arr + filtered
 
 def absolutize_path_in_str(workspace_name, root_str, text, force = False):
@@ -385,6 +390,7 @@ def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     new_text = _prefix(text, "external/", root_str)
     if new_text == text:
         new_text = _prefix(text, workspace_name + "/", root_str)
+
     # absolutize relative by adding our working directory
     # this works because we ru on windows under msys now
     if force and new_text == text and not text.startswith("/"):
@@ -400,5 +406,5 @@ def _prefix(text, from_str, prefix):
     return before + prefix + middle + after
 
 def _file_name_no_ext(basename):
-    (before, separator, after) = basename.partition(".")
+    (before, separator, after) = basename.rpartition(".")
     return before
