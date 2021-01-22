@@ -23,7 +23,7 @@ genrule(
     cmd = """cat << EOF > $@
 #!/bin/bash
 set -e
-cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //docs:docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/docs/README.md
+cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/README.md
 """,
 )
 
