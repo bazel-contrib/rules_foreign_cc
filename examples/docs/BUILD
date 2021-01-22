@@ -1,0 +1,34 @@
+load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+
+stardoc(
+    name = "docs",
+    out = "docs.md",
+    input = "docs.bzl",
+    deps = ["@rules_foreign_cc//:bzl_srcs"],
+)
+
+build_test(
+    name = "docs_build_test",
+    targets = [
+        ":docs",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "generate_docs_src",
+    srcs = [":docs"],
+    outs = ["generate_docs.sh"],
+    cmd = """cat << EOF > $@
+#!/bin/bash
+set -e
+cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //docs:docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/docs/README.md
+""",
+)
+
+sh_binary(
+    name = "generate_docs",
+    srcs = [":generate_docs_src"],
+    data = [":docs"],
+)
