@@ -22,8 +22,8 @@ load("//tools/build_defs/shell_toolchain/toolchains:access.bzl", "create_context
 load(
     "//tools/build_defs/native_tools:tool_access.bzl",
     "get_cmake_data",
-    "get_ninja_data",
     "get_make_data",
+    "get_ninja_data",
 )
 load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
 
