@@ -23,6 +23,7 @@ load(
     "create_function",
     "os_name",
 )
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 """ Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
  Many of the attributes have default values.
@@ -339,6 +340,7 @@ def cc_external_rule_impl(ctx, attrs):
     wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
 
     rule_outputs = outputs.declared_outputs + [installdir_copy.file]
+    cc_toolchain = find_cpp_toolchain(ctx)
 
     execution_requirements = {"block-network": ""}
     if "requires-network" in ctx.attr.tags:
@@ -346,7 +348,7 @@ def cc_external_rule_impl(ctx, attrs):
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
-        inputs = depset(inputs.declared_inputs, transitive = [ctx.attr._cc_toolchain.files]),
+        inputs = depset(inputs.declared_inputs, transitive = [cc_toolchain.all_files]),
         outputs = rule_outputs + [
             empty.file,
             wrapped_outputs.log_file,
