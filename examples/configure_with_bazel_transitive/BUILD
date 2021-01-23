@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
 cc_library(
