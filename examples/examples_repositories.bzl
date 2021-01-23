@@ -206,12 +206,12 @@ def include_examples_repositories():
     http_archive(
         name = "gmp",
         build_file_content = all_content,
-        strip_prefix = "gmp-6.2.0",
+        strip_prefix = "gmp-6.2.1",
         urls = [
-            "https://mirror.bazel.build/gmplib.org/download/gmp/gmp-6.2.0.tar.gz",
-            "https://gmplib.org/download/gmp/gmp-6.2.0.tar.gz",
+            "https://mirror.bazel.build/gmplib.org/download/gmp/gmp-6.2.1.tar.xz",
+            "https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz",
         ],
-        sha256 = "cadd49052b740ccc3d8075c24ceaefbe5128d44246d91d0ecc818b2f78b0ec9c",
+        sha256 = "fd4829912cddd12f84181c3451cc752be224643e87fac497b69edddadc49b4f2",
     )
 
     http_archive(
