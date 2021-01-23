@@ -20,13 +20,9 @@ load("//deps:repositories.bzl", "repositories")
 
 repositories()
 
-android_sdk_repository(
-    name = "androidsdk",
-)
+load("//deps:deps_android.bzl", "deps_android")
 
-android_ndk_repository(
-    name = "androidndk",
-)
+deps_android()
 
 load("//deps:deps_jvm_external.bzl", "deps_jvm_external")
 

@@ -6,6 +6,13 @@ all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//v
 def repositories():
     """Load all repositories needed for the targets of rules_foreign_cc_tests"""
 
+    http_archive(
+        name = "rules_android",
+        urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
+        sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
+        strip_prefix = "rules_android-0.1.1",
+    )
+
     RULES_JVM_EXTERNAL_TAG = "4.0"
     RULES_JVM_EXTERNAL_SHA = "31701ad93dbfe544d597dbe62c9a1fdd76d81d8a9150c2bf1ecf928ecdf97169"
 

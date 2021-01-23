@@ -13,13 +13,9 @@ load("@rules_foreign_cc_tests//deps:repositories.bzl", examples_repositories = "
 
 examples_repositories()
 
-android_sdk_repository(
-    name = "androidsdk",
-)
+load("@rules_foreign_cc_tests//deps:deps_android.bzl", examples_deps_android = "deps_android")
 
-android_ndk_repository(
-    name = "androidndk",
-)
+examples_deps_android()
 
 load("@rules_foreign_cc_tests//deps:deps_jvm_external.bzl", examples_deps_jvm_external = "deps_jvm_external")
 
