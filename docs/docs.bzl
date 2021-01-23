@@ -22,7 +22,7 @@ load(
     _WrappedOutputs = "WrappedOutputs",
 )
 
-# Rules
+# Rules Foreign CC symbols
 boost_build = _boost_build
 cmake_external = _cmake_external
 cmake_tool = _cmake_tool
@@ -33,7 +33,6 @@ native_tool_toolchain = _native_tool_toolchain
 ninja_tool = _ninja_tool
 rules_foreign_cc_dependencies = _rules_foreign_cc_dependencies
 
-# Providers
 # buildifier: disable=name-conventions
 ConfigureParameters = _ConfigureParameters
 

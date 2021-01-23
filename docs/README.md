@@ -1,4 +1,20 @@
-<!-- Generated with Stardoc: http://skydoc.bazel.build -->
+# Rules Foreign CC
+
+- [boost_build](#boost_build)
+- [cmake_external](#cmake_external)
+- [cmake_tool](#cmake_tool)
+- [ConfigureParameters](#ConfigureParameters)
+- [configure_make](#configure_make)
+- [ForeignCcArtifact](#ForeignCcArtifact)
+- [ForeignCcDeps](#ForeignCcDeps)
+- [InputFiles](#InputFiles)
+- [make](#make)
+- [make_tool](#make_tool)
+- [native_tool_toolchain](#native_tool_toolchain)
+- [ninja_tool](#ninja_tool)
+- [rules_foreign_cc_dependencies](#rules_foreign_cc_dependencies)
+- [ToolInfo](#ToolInfo)
+- [WrappedOutputs](#WrappedOutputs)
 
 <a id="#boost_build"></a>
 
