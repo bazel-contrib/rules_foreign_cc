@@ -33,7 +33,7 @@ configure_make(
 )
 
 libgd_name = select({
-    "@bazel_tools//src/conditions:windows": ["libgd.lib"],
+    "@platforms//os:windows": ["libgd.lib"],
     "//conditions:default": ["libgd.a"],
 })
 
