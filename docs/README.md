@@ -89,6 +89,25 @@ Rule for building external library with CMake.
 | <a id="cmake_external-working_directory"></a>working_directory |  Working directory, with the main CMakeLists.txt (otherwise, the top directory of the lib_source label files is used.)   | String | optional | "" |
 
 
+<a id="#cmake_tool"></a>
+
+## cmake_tool
+
+<pre>
+cmake_tool(<a href="#cmake_tool-name">name</a>, <a href="#cmake_tool-cmake_srcs">cmake_srcs</a>)
+</pre>
+
+Rule for building CMake. Invokes bootstrap script and make install.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cmake_tool-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="cmake_tool-cmake_srcs"></a>cmake_srcs |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+
+
 <a id="#configure_make"></a>
 
 ## configure_make
@@ -186,6 +205,64 @@ Rule for building external libraries with GNU Make. GNU Make commands (make and 
 | <a id="make-tools_deps"></a>tools_deps |  Optional tools to be copied into the directory structure. Similar to deps, those directly required for the external building of the library/binaries.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
+<a id="#make_tool"></a>
+
+## make_tool
+
+<pre>
+make_tool(<a href="#make_tool-name">name</a>, <a href="#make_tool-make_srcs">make_srcs</a>)
+</pre>
+
+Rule for building Make. Invokes configure script and make install.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="make_tool-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="make_tool-make_srcs"></a>make_srcs |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+
+
+<a id="#native_tool_toolchain"></a>
+
+## native_tool_toolchain
+
+<pre>
+native_tool_toolchain(<a href="#native_tool_toolchain-name">name</a>, <a href="#native_tool_toolchain-path">path</a>, <a href="#native_tool_toolchain-target">target</a>)
+</pre>
+
+Rule for defining the toolchain data of the native tools (cmake, ninja), to be used by rules_foreign_cc with toolchain types `@rules_foreign_cc//tools/build_defs:cmake_toolchain` and `@rules_foreign_cc//tools/build_defs:ninja_toolchain`.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="native_tool_toolchain-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="native_tool_toolchain-path"></a>path |  Absolute path to the tool in case the tool is preinstalled on the machine. Relative path to the tool in case the tool is built as part of a build; the path should be relative to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree artifact. (Please see the example <code>//examples:built_cmake_toolchain</code>)   | String | optional | "" |
+| <a id="native_tool_toolchain-target"></a>target |  If the tool is preinstalled, must be None. If the tool is built as part of the build, the corresponding build target, which should produce the tree artifact with the binary to call.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#ninja_tool"></a>
+
+## ninja_tool
+
+<pre>
+ninja_tool(<a href="#ninja_tool-name">name</a>, <a href="#ninja_tool-ninja_srcs">ninja_srcs</a>)
+</pre>
+
+Rule for building Ninja. Invokes configure script and make install.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ninja_tool-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ninja_tool-ninja_srcs"></a>ninja_srcs |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+
+
 <a id="#ConfigureParameters"></a>
 
 ## ConfigureParameters
@@ -278,6 +355,25 @@ and C/C++ compilation and linking info from dependencies
 | <a id="InputFiles-deps_compilation_info"></a>deps_compilation_info |  Merged CcCompilationInfo from deps attribute    |
 | <a id="InputFiles-deps_linking_info"></a>deps_linking_info |  Merged CcLinkingInfo from deps attribute    |
 | <a id="InputFiles-declared_inputs"></a>declared_inputs |  All files and directories that must be declared as action inputs    |
+
+
+<a id="#ToolInfo"></a>
+
+## ToolInfo
+
+<pre>
+ToolInfo(<a href="#ToolInfo-path">path</a>, <a href="#ToolInfo-target">target</a>)
+</pre>
+
+Information about the native tool
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="ToolInfo-path"></a>path |  Absolute path to the tool in case the tool is preinstalled on the machine. Relative path to the tool in case the tool is built as part of a build; the path should be relative to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree artifact. (Please see the example <code>//examples:built_cmake_toolchain</code>)    |
+| <a id="ToolInfo-target"></a>target |  If the tool is preinstalled, must be None. If the tool is built as part of the build, the corresponding build target, which should produce the tree artifact with the binary to call.    |
 
 
 <a id="#WrappedOutputs"></a>
