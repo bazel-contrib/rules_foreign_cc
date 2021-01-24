@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load(
     "//tools/build_defs:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
@@ -130,8 +131,8 @@ def _attrs():
             mandatory = False,
             default = False,
             doc = (
-              "Set to True if 'autoconf' should be invoked before 'configure', " +
-              "currently requires 'configure_in_place' to be True."
+                "Set to True if 'autoconf' should be invoked before 'configure', " +
+                "currently requires 'configure_in_place' to be True."
             ),
         ),
         "autoconf_options": attr.string_list(
@@ -140,7 +141,6 @@ def _attrs():
         "autoconf_env_vars": attr.string_dict(
             doc = "Environment variables to be set for 'autoconf' invocation.",
         ),
-
         "autogen": attr.bool(
             doc = (
                 "Set to True if 'autogen.sh' should be invoked before 'configure', " +

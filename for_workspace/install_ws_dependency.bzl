@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 def _generate_install_rule_impl(rctx):
     rctx.download_and_extract(
         url = rctx.attr.url,

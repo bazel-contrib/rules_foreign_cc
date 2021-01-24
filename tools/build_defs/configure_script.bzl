@@ -1,6 +1,8 @@
+# buildifier: disable=module-docstring
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 load(":framework.bzl", "get_foreign_cc_dep")
 
+# buildifier: disable=function-docstring
 def create_configure_script(
         workspace_name,
         target_os,
@@ -69,6 +71,7 @@ def create_configure_script(
     ))
     return "\n".join(script)
 
+# buildifier: disable=function-docstring
 def create_make_script(
         workspace_name,
         tools,
@@ -90,6 +93,7 @@ def create_make_script(
     script.append("" + " && ".join(make_commands))
     return "\n".join(script)
 
+# buildifier: disable=function-docstring
 def get_env_vars(
         workspace_name,
         tools,

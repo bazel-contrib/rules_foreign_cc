@@ -1,34 +1,34 @@
-""" Contains functions for conversion from intermediate multiplatform notation for defining
- the shell script into the actual shell script for the concrete platform.
+"""Contains functions for conversion from intermediate multiplatform notation for defining
+the shell script into the actual shell script for the concrete platform.
 
- Notation:
+Notation:
 
- 1) export <varname>=<value>
- Define the environment variable with the name <varname> and value <value>.
- If the <value> contains the toolchain command call (see 3), the call is replaced with needed value.
+1. `export <varname>=<value>`
+Define the environment variable with the name <varname> and value <value>.
+If the <value> contains the toolchain command call (see 3), the call is replaced with needed value.
 
- 2) $$<varname>$$
- Refer the environment variable with the name <varname>,
- i.e. this will become $<varname> on Linux/MacOS, and %<varname>% on Windows.
+2. `$$<varname>$$`
+Refer the environment variable with the name <varname>,
+i.e. this will become $<varname> on Linux/MacOS, and %<varname>% on Windows.
 
- 3) ##<funname>## <arg1> ... <argn>
- Find the shell toolchain command Starlark method with the name <funname> for that command
- in a toolchain, and call it, passing <arg1> .. <argn>.
- (see ./shell_toolchain/commands.bzl, ./shell_toolchain/impl/linux_commands.bzl etc.)
- The arguments are space-separated; if the argument is quoted, the spaces inside the quites are
- ignored.
- ! Escaping of the quotes inside the quoted argument is not supported, as it was not needed for now.
- (quoted arguments are used for paths and never for any arbitrary string.)
+3. `##<funname>## <arg1> ... <argn>`
+Find the shell toolchain command Starlark method with the name <funname> for that command
+in a toolchain, and call it, passing <arg1> .. <argn>.
+(see ./shell_toolchain/commands.bzl, ./shell_toolchain/impl/linux_commands.bzl etc.)
+The arguments are space-separated; if the argument is quoted, the spaces inside the quites are
+ignored.
+! Escaping of the quotes inside the quoted argument is not supported, as it was not needed for now.
+(quoted arguments are used for paths and never for any arbitrary string.)
 
- The call of a shell toolchain Starlark method is performed through
- //tools/build_defs/shell_toolchain/toolchains:access.bzl; please refer there for the details.
+The call of a shell toolchain Starlark method is performed through
+//tools/build_defs/shell_toolchain/toolchains:access.bzl; please refer there for the details.
 
- Here what is important is that the Starlark method can also add some text (function definitions)
- into a "prelude" part of the shell_context.
- The resulting script is constructed from the prelude part with function definitions and
- the actual translated script part.
- Since function definitions can call other functions, we perform the fictive translation
- of the function bodies to populate the "prelude" part of the script.
+Here what is important is that the Starlark method can also add some text (function definitions)
+into a "prelude" part of the shell_context.
+The resulting script is constructed from the prelude part with function definitions and
+the actual translated script part.
+Since function definitions can call other functions, we perform the fictive translation
+of the function bodies to populate the "prelude" part of the script.
 """
 
 load("//tools/build_defs/shell_toolchain/toolchains:access.bzl", "call_shell", "create_context")
@@ -42,16 +42,19 @@ def create_function(ctx, name, text):
 
 def convert_shell_script(ctx, script):
     """ Converts shell script from the intermediate notation to actual schell script.
+
     Please see the file header for the notation description.
 
-    Arguments:
-      ctx - rule context
-      script - the array of script strings, each string can be of multiple lines
+    Args:
+        ctx: rule context
+        script: the array of script strings, each string can be of multiple lines
 
-    Output: the string with the shell script for the current execution platform
+    Returns:
+        the string with the shell script for the current execution platform
     """
     return convert_shell_script_by_context(create_context(ctx), script)
 
+# buildifier: disable=function-docstring
 def convert_shell_script_by_context(shell_context, script):
     # 0. Split in lines merged fragments.
     new_script = []
@@ -96,6 +99,7 @@ def convert_shell_script_by_context(shell_context, script):
     result = "\n".join(script)
     return result
 
+# buildifier: disable=function-docstring
 def replace_var_ref(text, shell_context):
     parts = []
     current = text
@@ -112,6 +116,7 @@ def replace_var_ref(text, shell_context):
 
     return "".join(parts)
 
+# buildifier: disable=function-docstring
 def replace_exports(text, shell_context):
     text = text.strip(" ")
     (varname, separator, value) = text.partition("=")
@@ -125,6 +130,7 @@ def replace_exports(text, shell_context):
 
     return call_shell(shell_context, "export_var", varname, value)
 
+# buildifier: disable=function-docstring
 def get_function_name(text):
     (funname, separator, after) = text.partition(" ")
 
@@ -140,6 +146,7 @@ def get_function_name(text):
 
     return (None, None)
 
+# buildifier: disable=function-docstring
 def extract_wrapped(text, prefix, postfix = None):
     postfix = postfix or prefix
     (before, separator, after) = text.partition(prefix)
@@ -150,6 +157,7 @@ def extract_wrapped(text, prefix, postfix = None):
         fail("Variable or function name is not marked correctly in fragment: {}".format(text))
     return (before, varname, after2)
 
+# buildifier: disable=function-docstring
 def do_function_call(text, shell_context):
     (funname, after) = get_function_name(text.strip(" "))
     if not funname:
@@ -161,6 +169,7 @@ def do_function_call(text, shell_context):
     arguments = split_arguments(after.strip(" ")) if after else []
     return call_shell(shell_context, funname, *arguments)
 
+# buildifier: disable=function-docstring
 def split_arguments(text):
     parts = []
     current = text.strip(" ")

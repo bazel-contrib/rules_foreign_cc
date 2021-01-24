@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load(
     "//tools/build_defs/shell_toolchain/polymorphism:generate_overloads.bzl",
     "generate_overloads",
@@ -6,6 +7,8 @@ load(
 load("//tools/build_defs/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
 load(":toolchain_mappings.bzl", "TOOLCHAIN_MAPPINGS")
 
+# buildifier: disable=unnamed-macro
+# buildifier: disable=function-docstring
 def workspace_part(
         additional_toolchain_mappings = [],
         additonal_shell_toolchain_package = None):
