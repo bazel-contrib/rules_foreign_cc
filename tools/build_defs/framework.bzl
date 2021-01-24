@@ -165,9 +165,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = False,
     ),
-    "_is_debug": attr.label(
-        default = "@foreign_cc_platform_utils//:compilation_mode",
-    ),
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),

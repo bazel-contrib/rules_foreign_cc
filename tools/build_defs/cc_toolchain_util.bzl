@@ -246,8 +246,9 @@ def get_env_vars(ctx):
     return vars
 
 def is_debug_mode(ctx):
-    # see workspace_definitions.bzl
-    return str(True) == ctx.attr._is_debug[config_common.FeatureFlagInfo].value
+    # Compilation mode currently defaults to fastbuild. Use that if for some reason the variable is not set
+    # https://docs.bazel.build/versions/master/command-line-reference.html#flag--compilation_mode
+    return ctx.var.get("COMPILATION_MODE", "fastbuild") == "dbg"
 
 def get_tools_info(ctx):
     """ Takes information about tools paths from cc_toolchain, returns CxxToolsInfo
