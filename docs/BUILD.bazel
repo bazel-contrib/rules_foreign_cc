@@ -1,9 +1,21 @@
 load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
+genrule(
+    name = "flatten_header_vm",
+    srcs = [
+        "gen_header.sh",
+        "docs.bzl",
+    ],
+    outs = ["flatten_header.vm"],
+    cmd = "$(location gen_header.sh) $(location docs.bzl) $@",
+    output_to_bindir = True,
+)
+
 stardoc(
     name = "docs",
     out = "docs.md",
+    header_template = ":flatten_header_vm",
     input = "docs.bzl",
     deps = ["@rules_foreign_cc//:bzl_srcs"],
 )
@@ -23,7 +35,7 @@ genrule(
     cmd = """cat << EOF > $@
 #!/bin/bash
 set -e
-cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //docs:docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/docs/README.md
+cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/README.md
 """,
 )
 

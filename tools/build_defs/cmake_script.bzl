@@ -16,20 +16,28 @@ def create_cmake_script(
         options,
         include_dirs = [],
         is_debug_mode = True):
-    """ Constructs CMake script to be passed to cc_external_rule_impl.
-      Args:
-        workspace_name - current workspace name
-        target_os - OSInfo with target operating system information, used for CMAKE_SYSTEM_NAME in
-    CMake toolchain file
-        tools - cc_toolchain tools (CxxToolsInfo)
-        flags - cc_toolchain flags (CxxFlagsInfo)
-        install_prefix - value ot pass to CMAKE_INSTALL_PREFIX
-        root - sources root relative to the $EXT_BUILD_ROOT
-        no_toolchain_file - if False, CMake toolchain file will be generated, otherwise not
-        user_cache - dictionary with user's values of cache initializers
-        user_env - dictionary with user's values for CMake environment variables
-        options - other CMake options specified by user
-"""
+    """Constructs CMake script to be passed to cc_external_rule_impl.
+
+    Args:
+        workspace_name: current workspace name
+        target_os: OSInfo with target operating system information, used for CMAKE_SYSTEM_NAME in
+            CMake toolchain file
+        cmake_path: The path to the cmake executable
+        tools: cc_toolchain tools (CxxToolsInfo)
+        flags: cc_toolchain flags (CxxFlagsInfo)
+        install_prefix: value ot pass to CMAKE_INSTALL_PREFIX
+        root: sources root relative to the $EXT_BUILD_ROOT
+        no_toolchain_file: if False, CMake toolchain file will be generated, otherwise not
+        user_cache: dictionary with user's values of cache initializers
+        user_env: dictionary with user's values for CMake environment variables
+        options: other CMake options specified by user
+        include_dirs: Optional additional include directories. Defaults to [].
+        is_debug_mode: If the compilation mode is `debug`. Defaults to True.
+
+    Returns:
+        string: A formatted string of the generated build command
+    """        
+
     merged_prefix_path = _merge_prefix_path(user_cache, include_dirs)
 
     toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags)
