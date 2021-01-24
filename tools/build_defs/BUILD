@@ -41,9 +41,7 @@ toolchain(
 
 bzl_library(
     name = "bzl_srcs",
-    srcs = glob(["**/*.bzl"]) + [
-        "@rules_foreign_cc_bazel_version//:def.bzl",
-    ],
+    srcs = glob(["**/*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
         "//tools/build_defs/native_tools:bzl_srcs",

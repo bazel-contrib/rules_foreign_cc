@@ -12,8 +12,6 @@ load(
     "C_COMPILE_ACTION_NAME",
 )
 load("@bazel_skylib//lib:collections.bzl", "collections")
-load("@bazel_skylib//lib:versions.bzl", "versions")
-load("@rules_foreign_cc_bazel_version//:def.bzl", "BAZEL_VERSION")
 
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
@@ -58,20 +56,12 @@ def _to_depset(element):
     return depset(element)
 
 def _configure_features(ctx, cc_toolchain):
-    if (len(BAZEL_VERSION) == 0 or
-        versions.is_at_least("0.25.2", BAZEL_VERSION)):
-        return cc_common.configure_features(
-            ctx = ctx,
-            cc_toolchain = cc_toolchain,
-            requested_features = ctx.features,
-            unsupported_features = ctx.disabled_features,
-        )
-    else:
-        return cc_common.configure_features(
-            cc_toolchain = cc_toolchain,
-            requested_features = ctx.features,
-            unsupported_features = ctx.disabled_features,
-        )
+    return cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
 
 def _create_libraries_to_link(ctx, files):
     libs = []

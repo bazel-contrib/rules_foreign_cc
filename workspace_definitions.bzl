@@ -5,7 +5,6 @@ load(
     "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",
     shell_toolchain_workspace_initalization = "workspace_part",
 )
-load("//for_workspace:bazel_version.bzl", "bazel_version")
 
 # buildifier: disable=unnamed-macro
 def rules_foreign_cc_dependencies(
@@ -38,7 +37,6 @@ def rules_foreign_cc_dependencies(
             Please refer to example in @rules_foreign_cc//toolchain_examples.
     """
     repositories()
-    bazel_version(name = "rules_foreign_cc_bazel_version")
 
     shell_toolchain_workspace_initalization(
         additonal_shell_toolchain_mappings,
