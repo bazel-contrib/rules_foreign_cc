@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+_DEPRECATION_NOTICE = """\
+`cc_configure_make` is deprecated and will soon be removed. Please use \
+configure_make rule defined in `@rules_foreign_cc//tools/build_defs:configure.bzl` \
+for configure-make builds.
+"""
+
 def _cc_configure_make_impl(ctx):
     out_includes = ctx.actions.declare_directory(ctx.attr.name + "-includes.h")
     out_lib = ctx.actions.declare_file("{}.a".format(ctx.attr.name))
@@ -68,9 +74,11 @@ _cc_configure_make_rule = rule(
     fragments = ["cpp"],
     output_to_genfiles = True,
     implementation = _cc_configure_make_impl,
+    deprecation = _DEPRECATION_NOTICE,
 )
 
 def cc_configure_make(name, configure_flags, src, out_lib_path):
+    print("WARNING: " + _DEPRECATION_NOTICE)
     name_cmr = "_{}_cc_configure_make_rule".format(name)
     _cc_configure_make_rule(
         name = name_cmr,
