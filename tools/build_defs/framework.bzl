@@ -657,7 +657,7 @@ def _define_inputs(attrs):
             tools_files += _list(file_list)
 
     for tool in attrs.additional_tools:
-        for file_list in tool.files:
+        for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
     # These variables are needed for correct C/C++ providers constraction,
