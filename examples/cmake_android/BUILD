@@ -1,3 +1,4 @@
+load("@rules_android//android:rules.bzl", "android_binary", "android_library")
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(

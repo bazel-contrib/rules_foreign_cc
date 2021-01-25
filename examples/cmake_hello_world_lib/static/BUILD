@@ -1,6 +1,7 @@
 # example code is taken from https://github.com/Akagi201/learning-cmake/tree/master/hello-world-lib
 # for test only
 
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 filegroup(
@@ -61,7 +62,7 @@ cc_binary(
     # includes just hello.h, include directory: "include/version123"
     srcs = ["hello_client.c"],
     deps = select({
-        "@bazel_tools//src/conditions:windows": [":libhello_win"],
+        "//:windows": [":libhello_win"],
         "//conditions:default": [":libhello"],
     }),
 )
@@ -71,7 +72,7 @@ cc_binary(
     # includes just hello.h, include directory: "include/version123"
     srcs = ["hello_client.c"],
     deps = select({
-        "@bazel_tools//src/conditions:windows": [":libhello_win_ninja"],
+        "//:windows": [":libhello_win_ninja"],
         "//conditions:default": [":libhello"],
     }),
 )
@@ -81,7 +82,7 @@ cc_binary(
     # includes just hello.h, include directory: "include/version123"
     srcs = ["hello_client.c"],
     deps = select({
-        "@bazel_tools//src/conditions:windows": [":libhello_win_nmake"],
+        "//:windows": [":libhello_win_nmake"],
         "//conditions:default": [":libhello"],
     }),
 )
