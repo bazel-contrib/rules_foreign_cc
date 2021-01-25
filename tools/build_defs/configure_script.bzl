@@ -14,6 +14,9 @@ def create_configure_script(
         deps,
         inputs,
         configure_in_place,
+        autoconf,
+        autoconf_options,
+        autoconf_env_vars,
         autoreconf,
         autoreconf_options,
         autoreconf_env_vars,
@@ -45,6 +48,12 @@ def create_configure_script(
             root_path,
             autogen_command,
             " ".join(autogen_options),
+        ).lstrip())
+
+    if autoconf and configure_in_place:
+        script.append("{} autoconf {}".format(
+            " ".join(["{}=\"{}\"".format(key, autoconf_env_vars[key]) for key in autoconf_env_vars]),
+            " ".join(autoconf_options),
         ).lstrip())
 
     if autoreconf and configure_in_place:
