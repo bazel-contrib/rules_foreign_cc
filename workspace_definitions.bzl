@@ -1,4 +1,4 @@
-"""A module for defining WORKSPACE dependencies requried for rules_foreign_cc"""
+"""A module for defining WORKSPACE dependencies required for rules_foreign_cc"""
 
 load("//for_workspace:repositories.bzl", "repositories")
 load(
