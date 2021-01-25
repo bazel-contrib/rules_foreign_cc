@@ -22,7 +22,7 @@ TOOLCHAIN_MAPPINGS = [
     ),
     ToolchainMapping(
         exec_compatible_with = [
-            "@platforms//os:osx",
+            "@platforms//os:macos",
         ],
         file = "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains/impl:osx_commands.bzl",
     ),

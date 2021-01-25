@@ -18,12 +18,12 @@ shell_script_helper_test_rule(
 )
 
 result_file = select({
-    "@bazel_tools//src/conditions:darwin": "expected/inner_fun_text_osx.txt",
+    "@platforms//os:macos": "expected/inner_fun_text_osx.txt",
     "//conditions:default": "expected/inner_fun_text.txt",
 })
 
 result_file_symlink_dirs = select({
-    "@bazel_tools//src/conditions:darwin": "expected/out_symlinked_dirs_osx.txt",
+    "@platforms//os:macos": "expected/out_symlinked_dirs_osx.txt",
     "//conditions:default": "expected/out_symlinked_dirs.txt",
 })
 
