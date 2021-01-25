@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 # Example of the cmake_external target built with Bazel-built dependency
