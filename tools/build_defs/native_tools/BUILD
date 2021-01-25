@@ -13,6 +13,7 @@ native_tool_toolchain(
 make_tool(
     name = "make_tool",
     make_srcs = "@make//:all",
+    tags = ["manual"],
 )
 
 native_tool_toolchain(
@@ -31,6 +32,7 @@ native_tool_toolchain(
 cmake_tool(
     name = "cmake_tool",
     cmake_srcs = "@cmake//:all",
+    tags = ["manual"],
 )
 
 native_tool_toolchain(
@@ -49,6 +51,7 @@ native_tool_toolchain(
 ninja_tool(
     name = "ninja_tool",
     ninja_srcs = "@ninja_build//:all",
+    tags = ["manual"],
 )
 
 native_tool_toolchain(
