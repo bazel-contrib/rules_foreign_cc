@@ -27,11 +27,8 @@ def _ninja_tool(ctx):
 
     return [DefaultInfo(files = depset([ninja]))]
 
-""" Rule for building Ninja. Invokes configure script and make install.
-  Attributes:
-    ninja_srcs - target with the Ninja sources
-"""
 ninja_tool = rule(
+    doc = "Rule for building Ninja. Invokes configure script and make install.",
     attrs = {
         "ninja_srcs": attr.label(mandatory = True),
     },

@@ -66,3 +66,9 @@ tasks:
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
+  docs_linux:
+    name: Docs
+    platform: ubuntu2004
+    working_directory: docs
+    build_targets:
+    - //...
