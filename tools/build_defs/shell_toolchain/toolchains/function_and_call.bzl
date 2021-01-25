@@ -1,3 +1,5 @@
+# buildifier: disable=module-docstring
+# buildifier: disable=name-conventions
 FunctionAndCall = provider(
     doc = "Wrapper to pass function definition and (if custom) function call",
     fields = {

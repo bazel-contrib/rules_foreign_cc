@@ -36,7 +36,7 @@ def create_cmake_script(
 
     Returns:
         string: A formatted string of the generated build command
-    """        
+    """
 
     merged_prefix_path = _merge_prefix_path(user_cache, include_dirs)
 
@@ -299,6 +299,7 @@ def _find_flag_value(list, flag_name_no_dashes):
             return _tail.lstrip(" =")
         if _tail != None:
             check_for_value = True
+    return None
 
 def _tail_if_starts_with(str, start):
     if (str.startswith(start)):

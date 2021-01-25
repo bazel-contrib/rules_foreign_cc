@@ -1,3 +1,5 @@
+# buildifier: disable=module-docstring
+# buildifier: disable=name-conventions
 ToolchainMapping = provider(
     doc = "Mapping of toolchain definition files to platform constraints",
     fields = {

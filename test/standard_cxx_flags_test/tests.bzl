@@ -1,5 +1,4 @@
-""" TODO """
-
+# buildifier: disable=module-docstring
 load("@rules_foreign_cc//tools/build_defs:cc_toolchain_util.bzl", "get_flags_info")
 
 def _impl(ctx):
@@ -30,6 +29,7 @@ def _impl(ctx):
 
     return [DefaultInfo(files = depset([exe]), executable = exe)]
 
+# buildifier: disable=function-docstring
 def assert_contains_once(arr, value):
     cnt = 0
     for elem in arr:

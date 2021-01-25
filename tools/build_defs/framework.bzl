@@ -25,12 +25,12 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
-""" Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
- Many of the attributes have default values.
-
- Typically, the concrete external library rule will use this structure to create the attributes
- description dict. See cmake.bzl as an example.
-"""
+# Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
+# Many of the attributes have default values.
+#
+# Typically, the concrete external library rule will use this structure to create the attributes
+# description dict. See cmake.bzl as an example.
+#
 CC_EXTERNAL_RULE_ATTRIBUTES = {
     "lib_name": attr.string(
         doc = (
@@ -171,8 +171,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     ),
 }
 
+# buildifier: disable=function-docstring-header
+# buildifier: disable=function-docstring-args
+# buildifier: disable=function-docstring-return
 def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs):
-    """ Function for adding/modifying context attributes struct (originally from ctx.attr),
+    """Function for adding/modifying context attributes struct (originally from ctx.attr),
      provided by user, to be passed to the cc_external_rule_impl function as a struct.
 
      Copies a struct 'attr_struct' values (with attributes from CC_EXTERNAL_RULE_ATTRIBUTES)
@@ -191,11 +194,13 @@ def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs)
         attrs[arg] = kwargs[arg]
     return struct(**attrs)
 
+# buildifier: disable=name-conventions
 ForeignCcDeps = provider(
     doc = """Provider to pass transitive information about external libraries.""",
     fields = {"artifacts": "Depset of ForeignCcArtifact"},
 )
 
+# buildifier: disable=name-conventions
 ForeignCcArtifact = provider(
     doc = """Groups information about the external library install directory,
 and relative bin, include and lib directories.
@@ -212,6 +217,7 @@ Instances of ForeignCcArtifact are incapsulated in a depset ForeignCcDeps#artifa
     },
 )
 
+# buildifier: disable=name-conventions
 ConfigureParameters = provider(
     doc = """Parameters of create_configure_script callback function, called by
 cc_external_rule_impl function. create_configure_script creates the configuration part
@@ -226,28 +232,28 @@ dependencies.""",
 )
 
 def cc_external_rule_impl(ctx, attrs):
-    """ Framework function for performing external C/C++ building.
+    """Framework function for performing external C/C++ building.
 
-     To be used to build external libraries or/and binaries with CMake, configure/make, autotools etc.,
-     and use results in Bazel.
-     It is possible to use it to build a group of external libraries, that depend on each other or on
-     Bazel library, and pass nessesary tools.
+    To be used to build external libraries or/and binaries with CMake, configure/make, autotools etc.,
+    and use results in Bazel.
+    It is possible to use it to build a group of external libraries, that depend on each other or on
+    Bazel library, and pass nessesary tools.
 
-     Accepts the actual commands for build configuration/execution in attrs.
+    Accepts the actual commands for build configuration/execution in attrs.
 
-     Creates and runs a shell script, which:
+    Creates and runs a shell script, which:
 
-     1) prepares directory structure with sources, dependencies, and tools symlinked into subdirectories
-      of the execroot directory. Adds tools into PATH.
-     2) defines the correct absolute paths in tools with the script paths, see 7
-     3) defines the following environment variables:
+    1. prepares directory structure with sources, dependencies, and tools symlinked into subdirectories
+        of the execroot directory. Adds tools into PATH.
+    2. defines the correct absolute paths in tools with the script paths, see 7
+    3. defines the following environment variables:
         EXT_BUILD_ROOT: execroot directory
         EXT_BUILD_DEPS: subdirectory of execroot, which contains the following subdirectories:
 
-          For cmake_external built dependencies:
+        For cmake_external built dependencies:
             symlinked install directories of the dependencies
 
-          for Bazel built/imported dependencies:
+            for Bazel built/imported dependencies:
 
             include - here the include directories are symlinked
             lib - here the library files are symlinked
@@ -257,22 +263,25 @@ def cc_external_rule_impl(ctx, attrs):
         will be installed
 
         These variables should be used by the calling rule to refer to the created directory structure.
-     4) calls 'attrs.create_configure_script'
-     5) calls 'attrs.make_commands'
-     6) calls 'attrs.postfix_script'
-     7) replaces absolute paths in possibly created scripts with a placeholder value
+    4. calls 'attrs.create_configure_script'
+    5. calls 'attrs.make_commands'
+    6. calls 'attrs.postfix_script'
+    7. replaces absolute paths in possibly created scripts with a placeholder value
 
-     Please see cmake.bzl for example usage.
+    Please see cmake.bzl for example usage.
 
-     Args:
-       ctx: calling rule context
-       attrs: attributes struct, created by create_attrs function above.
-         Contains fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there),
-         two mandatory fields:
-         -  configure_name: name of the configuration tool, to be used in action mnemonic,
-         -  create_configure_script(ConfigureParameters): function that creates configuration
-            script, accepts ConfigureParameters
-         and some other fields provided by the rule, which have been passed to create_attrs.
+    Args:
+        ctx: calling rule context
+        attrs: attributes struct, created by create_attrs function above.
+            Contains fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there),
+            two mandatory fields:
+                - configure_name: name of the configuration tool, to be used in action mnemonic,
+                - create_configure_script(ConfigureParameters): function that creates configuration
+                    script, accepts ConfigureParameters
+            and some other fields provided by the rule, which have been passed to create_attrs.
+
+    Returns:
+        A list of providers
     """
     lib_name = attrs.lib_name or ctx.attr.name
 
@@ -402,6 +411,7 @@ def cc_external_rule_impl(ctx, attrs):
         ),
     ]
 
+# buildifier: disable=name-conventions
 WrappedOutputs = provider(
     doc = "Structure for passing the log and scripts file information, and wrapper script text.",
     fields = {
@@ -412,6 +422,7 @@ WrappedOutputs = provider(
     },
 )
 
+# buildifier: disable=function-docstring
 def wrap_outputs(ctx, lib_name, configure_name, script_text):
     build_script_file = ctx.actions.declare_file("{}/logs/{}_script.sh".format(lib_name, configure_name))
     ctx.actions.write(
@@ -564,6 +575,7 @@ def _check_file_name(var):
         if letter in _FORBIDDEN_FOR_FILENAME:
             fail("Symbol '%s' is forbidden in library name '%s'." % (letter, var))
 
+# buildifier: disable=name-conventions
 _Outputs = provider(
     doc = "Provider to keep different kinds of the external build output files and directories",
     fields = dict(
@@ -612,19 +624,27 @@ def _declare_out(ctx, lib_name, dir_, files):
         return [ctx.actions.declare_file("/".join([lib_name, dir_, file])) for file in files]
     return []
 
+# buildifier: disable=name-conventions
 InputFiles = provider(
-    doc = """Provider to keep different kinds of input files, directories,
-and C/C++ compilation and linking info from dependencies""",
+    doc = (
+        "Provider to keep different kinds of input files, directories, " +
+        "and C/C++ compilation and linking info from dependencies"
+    ),
     fields = dict(
-        headers = """Include files built by Bazel. Will be copied into $EXT_BUILD_DEPS/include.""",
-        include_dirs = """Include directories built by Bazel.
-Will be copied into $EXT_BUILD_DEPS/include.""",
-        libs = """Library files built by Bazel.
-Will be copied into $EXT_BUILD_DEPS/lib.""",
-        tools_files = """Files and directories with tools needed for configuration/building
-to be copied into the bin folder, which is added to the PATH""",
-        ext_build_dirs = """Directories with libraries, built by framework function.
-This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents.""",
+        headers = "Include files built by Bazel. Will be copied into $EXT_BUILD_DEPS/include.",
+        include_dirs = (
+            "Include directories built by Bazel. Will be copied " +
+            "into $EXT_BUILD_DEPS/include."
+        ),
+        libs = "Library files built by Bazel. Will be copied into $EXT_BUILD_DEPS/lib.",
+        tools_files = (
+            "Files and directories with tools needed for configuration/building " +
+            "to be copied into the bin folder, which is added to the PATH"
+        ),
+        ext_build_dirs = (
+            "Directories with libraries, built by framework function. " +
+            "This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents."
+        ),
         deps_compilation_info = "Merged CcCompilationInfo from deps attribute",
         deps_linking_info = "Merged CcLinkingInfo from deps attribute",
         declared_inputs = "All files and directories that must be declared as action inputs",
@@ -696,6 +716,7 @@ def _define_inputs(attrs):
                           ext_build_dirs,
     )
 
+# buildifier: disable=function-docstring
 def uniq_list_keep_order(list):
     result = []
     contains_map = {}

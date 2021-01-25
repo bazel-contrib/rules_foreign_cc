@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(
@@ -25,7 +26,10 @@ cmake_external(
     lib_source = "//cmake_with_data/lib_a:srcs",
     make_commands = select({
         "@bazel_tools//src/conditions:windows": ["MSBuild.exe INSTALL.vcxproj"],
-        "//conditions:default": ["make", "make install"],
+        "//conditions:default": [
+            "make",
+            "make install",
+        ],
     }),
     static_libraries = select({
         "@bazel_tools//src/conditions:windows": ["lib_a.lib"],

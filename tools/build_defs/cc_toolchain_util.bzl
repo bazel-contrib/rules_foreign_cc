@@ -179,10 +179,11 @@ def _build_cc_link_params(
     }
 
 def targets_windows(ctx, cc_toolchain):
-    """ Returns true if build is targeting Windows
+    """Returns true if build is targeting Windows
+
     Args:
-        ctx - rule context
-        cc_toolchain - optional - Cc toolchain
+        ctx: rule context
+        cc_toolchain: optional - Cc toolchain
     """
     toolchain = cc_toolchain if cc_toolchain else find_cpp_toolchain(ctx)
     feature_configuration = _configure_features(
@@ -196,11 +197,12 @@ def targets_windows(ctx, cc_toolchain):
     )
 
 def create_linking_info(ctx, user_link_flags, files):
-    """ Creates CcLinkingInfo for the passed user link options and libraries.
+    """Creates CcLinkingInfo for the passed user link options and libraries.
+
     Args:
-        ctx - rule context
-        user_link_flags - (list of strings) link optins, provided by user
-        files - (LibrariesToLink) provider with the library files
+        ctx (ctx): rule context
+        user_link_flags (list of strings): link optins, provided by user
+        files (LibrariesToLink): provider with the library files
     """
 
     return cc_common.create_linking_context(
@@ -213,6 +215,7 @@ def create_linking_info(ctx, user_link_flags, files):
         ]),
     )
 
+# buildifier: disable=function-docstring
 def get_env_vars(ctx):
     cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = _configure_features(
@@ -241,9 +244,10 @@ def is_debug_mode(ctx):
     return ctx.var.get("COMPILATION_MODE", "fastbuild") == "dbg"
 
 def get_tools_info(ctx):
-    """ Takes information about tools paths from cc_toolchain, returns CxxToolsInfo
+    """Takes information about tools paths from cc_toolchain, returns CxxToolsInfo
+
     Args:
-        ctx - rule context
+        ctx: rule context
     """
     cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = _configure_features(
@@ -271,11 +275,15 @@ def get_tools_info(ctx):
     )
 
 def get_flags_info(ctx, link_output_file = None):
-    """ Takes information about flags from cc_toolchain, returns CxxFlagsInfo
+    """Takes information about flags from cc_toolchain, returns CxxFlagsInfo
+
     Args:
-        ctx - rule context
-        link_output_file - output file to be specified in the link command line
-        flags
+        ctx: rule context
+        link_output_file: output file to be specified in the link command line
+            flags
+
+    Returns:
+        CxxFlagsInfo: A provider containing Cxx flags
     """
     cc_toolchain_ = find_cpp_toolchain(ctx)
     feature_configuration = _configure_features(
@@ -366,17 +374,20 @@ def _add_if_needed(arr, add_arr):
     return arr + filtered
 
 def absolutize_path_in_str(workspace_name, root_str, text, force = False):
-    """ Replaces relative paths in [the middle of] 'text', prepending them with 'root_str'.
-    If there is nothing to replace, returns the 'text'.
+    """Replaces relative paths in [the middle of] 'text', prepending them with 'root_str'. If there is nothing to replace, returns the 'text'.
 
     We only will replace relative paths starting with either 'external/' or '<top-package-name>/',
     because we only want to point with absolute paths to external repositories or inside our
     current workspace. (And also to limit the possibility of error with such not exact replacing.)
 
     Args:
-        workspace_name - workspace name
-        text - the text to do replacement in
-        root_str - the text to prepend to the found relative path
+        workspace_name: workspace name
+        text: the text to do replacement in
+        root_str: the text to prepend to the found relative path
+        force: If true, the `root_str` will always be prepended
+
+    Returns:
+        string: A formatted string
     """
     new_text = _prefix(text, "external/", root_str)
     if new_text == text:

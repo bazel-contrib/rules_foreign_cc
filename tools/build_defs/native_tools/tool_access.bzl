@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load(":native_tools_toolchain.bzl", "access_tool")
 
 def get_cmake_data(ctx):

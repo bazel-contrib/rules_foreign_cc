@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load("@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
 
 _REPLACE_VALUE = "BAZEL_GEN_ROOT"
@@ -44,6 +45,7 @@ else
 fi
 """.format(condition = condition, if_text = if_text, else_text = else_text)
 
+# buildifier: disable=function-docstring
 def define_function(name, text):
     lines = []
     lines.append("function " + name + "() {")

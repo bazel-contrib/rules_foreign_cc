@@ -124,3 +124,5 @@ tasks:
       - "//cmake_android:app"
     test_targets:
       - "//:tests_no_synthetic"
+
+buildifier: latest
