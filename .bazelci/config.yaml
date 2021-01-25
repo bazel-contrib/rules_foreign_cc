@@ -55,13 +55,13 @@ tasks:
       - "//:win_tests"
   ubuntu2004_flags:
     name: Flags
-    platform: ubuntu1804
+    platform: ubuntu2004
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
   ubuntu1804_flags:
     name: Flags
-    platform: ubuntu1604
+    platform: ubuntu1804
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
@@ -79,13 +79,13 @@ tasks:
       - "//:flags_test"
   ubuntu2004_detect_root:
     name: Detect root
-    platform: ubuntu1804
+    platform: ubuntu2004
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
   ubuntu1804_detect_root:
     name: Detect root
-    platform: ubuntu1604
+    platform: ubuntu1804
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
