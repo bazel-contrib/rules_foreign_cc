@@ -89,7 +89,7 @@ sh_test(
 toolchain(
     name = "built_ninja_toolchain_osx",
     exec_compatible_with = [
-        "@platforms//os:osx",
+        "@platforms//os:macos",
         "@platforms//cpu:x86_64",
     ],
     toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:built_ninja",

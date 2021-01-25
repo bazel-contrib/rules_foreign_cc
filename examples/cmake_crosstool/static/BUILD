@@ -66,7 +66,7 @@ cc_binary(
     # includes just hello.h, include directory: "include/version123"
     srcs = ["hello_client.c"],
     deps = select({
-        "@bazel_tools//src/conditions:windows": [":libhello_win"],
+        "@platforms//os:windows": [":libhello_win"],
         "//conditions:default": [":libhello"],
     }),
 )
@@ -76,7 +76,7 @@ cc_binary(
     # includes just hello.h, include directory: "include/version123"
     srcs = ["hello_client.c"],
     deps = select({
-        "@bazel_tools//src/conditions:windows": [":libhello_win_ninja"],
+        "@platforms//os:windows": [":libhello_win_ninja"],
         "//conditions:default": [":libhello"],
     }),
 )
@@ -86,7 +86,7 @@ cc_binary(
     # includes just hello.h, include directory: "include/version123"
     srcs = ["hello_client.c"],
     deps = select({
-        "@bazel_tools//src/conditions:windows": [":libhello_win_nmake"],
+        "@platforms//os:windows": [":libhello_win_nmake"],
         "//conditions:default": [":libhello"],
     }),
 )
