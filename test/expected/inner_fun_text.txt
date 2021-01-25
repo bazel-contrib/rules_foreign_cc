@@ -32,4 +32,3 @@ echo "Can not copy $1"
 fi
 }
 symlink_contents_to_dir $SOURCE_DIR $TARGET_DIR
-
