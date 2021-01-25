@@ -27,14 +27,18 @@ tasks:
     working_directory: examples
     build_targets:
       - "//cmake_android:app"
+      - "//boost:boost_regex"
+      - "//boost:boost_filesystem"
     test_targets:
-    - "//:tests"
+      - "//:tests"
   ubuntu1804_examples:
     name: Examples
     platform: ubuntu1804
     working_directory: examples
     build_targets:
       - "//cmake_android:app"
+      - "//boost:boost_regex"
+      - "//boost:boost_filesystem"
     test_targets:
       - "//:tests_no_synthetic"
   macos_examples:
@@ -43,6 +47,8 @@ tasks:
     working_directory: examples
     build_targets:
       - "//cmake_android:app"
+      - "//boost:boost_regex"
+      #- "//boost:boost_filesystem"
     test_targets:
       - "//:mac_tests"
   windows_examples:
@@ -51,6 +57,8 @@ tasks:
     working_directory: examples
     test_flags:
       - "--enable_runfiles"
+    build_targets:
+      - "//boost:boost_filesystem"
     test_targets:
       - "//:win_tests"
   ubuntu2004_flags:
