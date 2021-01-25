@@ -61,6 +61,9 @@ def _create_configure_script(configureParameters):
         deps = ctx.attr.deps,
         inputs = inputs,
         configure_in_place = ctx.attr.configure_in_place,
+        autoconf = ctx.attr.autoconf,
+        autoconf_options = ctx.attr.autoconf_options,
+        autoconf_env_vars = ctx.attr.autoconf_env_vars,
         autoreconf = ctx.attr.autoreconf,
         autoreconf_options = ctx.attr.autoreconf_options,
         autoreconf_env_vars = ctx.attr.autoreconf_env_vars,
@@ -123,6 +126,21 @@ def _attrs():
         "autoreconf_env_vars": attr.string_dict(
             doc = "Environment variables to be set for 'autoreconf' invocation.",
         ),
+        "autoconf": attr.bool(
+            mandatory = False,
+            default = False,
+            doc = (
+              "Set to True if 'autoconf' should be invoked before 'configure', " +
+              "currently requires 'configure_in_place' to be True."
+            ),
+        ),
+        "autoconf_options": attr.string_list(
+            doc = "Any options to be put in the 'autoconf.sh' command line.",
+        ),
+        "autoconf_env_vars": attr.string_dict(
+            doc = "Environment variables to be set for 'autoconf' invocation.",
+        ),
+
         "autogen": attr.bool(
             doc = (
                 "Set to True if 'autogen.sh' should be invoked before 'configure', " +
