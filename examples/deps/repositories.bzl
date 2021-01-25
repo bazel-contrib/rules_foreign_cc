@@ -1,8 +1,36 @@
+# buildifier: disable=module-docstring
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
 
-def include_examples_repositories():
+def repositories():
+    """Load all repositories needed for the targets of rules_foreign_cc_tests"""
+
+    http_archive(
+        name = "rules_cc",
+        strip_prefix = "rules_cc-b1c40e1de81913a3c40e5948f78719c28152486d",
+        url = "https://github.com/bazelbuild/rules_cc/archive/b1c40e1de81913a3c40e5948f78719c28152486d.zip",
+        sha256 = "d0c573b94a6ef20ef6ff20154a23d0efcb409fb0e1ff0979cec318dfe42f0cdd",
+        type = "zip",
+    )
+
+    http_archive(
+        name = "rules_android",
+        urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
+        sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
+        strip_prefix = "rules_android-0.1.1",
+    )
+
+    RULES_JVM_EXTERNAL_TAG = "4.0"
+    RULES_JVM_EXTERNAL_SHA = "31701ad93dbfe544d597dbe62c9a1fdd76d81d8a9150c2bf1ecf928ecdf97169"
+
+    http_archive(
+        name = "rules_jvm_external",
+        strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+        sha256 = RULES_JVM_EXTERNAL_SHA,
+        url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
+    )
+
     http_archive(
         name = "libevent",
         build_file_content = all_content,
@@ -11,6 +39,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz",
             "https://github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz",
         ],
+        sha256 = "965cc5a8bb46ce4199a47e9b2c9e1cae3b137e8356ffdad6d94d3b9069b71dc2",
     )
 
     http_archive(
@@ -65,6 +94,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/github.com/pybind/pybind11/archive/v2.2.3.tar.gz",
             "https://github.com/pybind/pybind11/archive/v2.2.3.tar.gz",
         ],
+        sha256 = "3a3b7b651afab1c5ba557f4c37d785a522b8030dfc765da26adc2ecd1de940ea",
     )
 
     http_archive(
@@ -89,6 +119,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/github.com/nghttp2/nghttp2/archive/e5b3f9addd49bca27e2f99c5c65a564eb5c0cf6d.tar.gz",
             "https://github.com/nghttp2/nghttp2/archive/e5b3f9addd49bca27e2f99c5c65a564eb5c0cf6d.tar.gz",
         ],
+        sha256 = "d3012f33384f6ff980ebbe75efcb6fc5402dca5f82f092d21200b3b12425d3f5",
     )
 
     http_archive(
@@ -99,6 +130,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/github.com/eigenteam/eigen-git-mirror/archive/3.3.5.tar.gz",
             "https://github.com/eigenteam/eigen-git-mirror/archive/3.3.5.tar.gz",
         ],
+        sha256 = "992855522dfdd0dea74d903dcd082cdb01c1ae72be5145e2fe646a0892989e43",
     )
 
     http_archive(
@@ -109,6 +141,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/github.com/xianyi/OpenBLAS/archive/v0.3.2.tar.gz",
             "https://github.com/xianyi/OpenBLAS/archive/v0.3.2.tar.gz",
         ],
+        sha256 = "e8ba64f6b103c511ae13736100347deb7121ba9b41ba82052b1a018a65c0cb15",
     )
 
     http_archive(
@@ -119,6 +152,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/github.com/mariusmuja/flann/archive/1.9.1.tar.gz",
             "https://github.com/mariusmuja/flann/archive/1.9.1.tar.gz",
         ],
+        sha256 = "b23b5f4e71139faa3bcb39e6bbcc76967fbaf308c4ee9d4f5bfbeceaa76cc5d3",
     )
 
     http_archive(
@@ -129,6 +163,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/github.com/PointCloudLibrary/pcl/archive/pcl-1.8.1.tar.gz",
             "https://github.com/PointCloudLibrary/pcl/archive/pcl-1.8.1.tar.gz",
         ],
+        sha256 = "5a102a2fbe2ba77c775bf92c4a5d2e3d8170be53a68c3a76cfc72434ff7b9783",
     )
 
     http_archive(
@@ -150,6 +185,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/ftp.gnu.org/gnu/bison/bison-3.3.tar.gz",
             "http://ftp.gnu.org/gnu/bison/bison-3.3.tar.gz",
         ],
+        sha256 = "fdeafb7fffade05604a61e66b8c040af4b2b5cbb1021dcfe498ed657ac970efd",
     )
 
     http_archive(
@@ -160,6 +196,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/www-us.apache.org/dist/httpd/httpd-2.4.39.tar.gz",
             "https://www-us.apache.org/dist/httpd/httpd-2.4.39.tar.gz",
         ],
+        sha256 = "8b95fe249f3a6c50aad3ca125eef3e02d619116cde242e1bc3c266b7b5c37c30",
     )
 
     http_archive(
@@ -170,6 +207,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz",
             "https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz",
         ],
+        sha256 = "0b8e7465dc5e98c757cc3650a20a7843ee4c3edf50aaf60bb33fd879690d2c73",
     )
 
     http_archive(
@@ -180,6 +218,7 @@ def include_examples_repositories():
             "https://mirror.bazel.build/www-eu.apache.org/dist//apr/apr-1.6.5.tar.gz",
             "https://www-eu.apache.org/dist//apr/apr-1.6.5.tar.gz",
         ],
+        sha256 = "70dcf9102066a2ff2ffc47e93c289c8e54c95d8dda23b503f9e61bb0cbd2d105",
     )
 
     http_archive(
@@ -206,12 +245,12 @@ def include_examples_repositories():
     http_archive(
         name = "gmp",
         build_file_content = all_content,
-        strip_prefix = "gmp-6.2.0",
+        strip_prefix = "gmp-6.2.1",
         urls = [
-            "https://mirror.bazel.build/gmplib.org/download/gmp/gmp-6.2.0.tar.gz",
-            "https://gmplib.org/download/gmp/gmp-6.2.0.tar.gz",
+            "https://mirror.bazel.build/gmplib.org/download/gmp/gmp-6.2.1.tar.xz",
+            "https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz",
         ],
-        sha256 = "cadd49052b740ccc3d8075c24ceaefbe5128d44246d91d0ecc818b2f78b0ec9c",
+        sha256 = "fd4829912cddd12f84181c3451cc752be224643e87fac497b69edddadc49b4f2",
     )
 
     http_archive(

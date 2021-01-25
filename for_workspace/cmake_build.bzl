@@ -33,11 +33,8 @@ def _cmake_tool(ctx):
 
     return [DefaultInfo(files = depset([cmake]))]
 
-""" Rule for building CMake. Invokes bootstrap script and make install.
-  Attributes:
-    cmake_srcs - target with the CMake sources
-"""
 cmake_tool = rule(
+    doc = "Rule for building CMake. Invokes bootstrap script and make install.",
     attrs = {
         "cmake_srcs": attr.label(mandatory = True),
     },

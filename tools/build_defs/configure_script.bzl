@@ -1,7 +1,9 @@
+# buildifier: disable=module-docstring
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 load(":framework.bzl", "get_foreign_cc_dep")
 
 def _pkgconfig_script(ext_build_dirs):
+    """Create a script fragment to configure pkg-config"""
     script = []
     for ext_dir in ext_build_dirs:
         script.append("##increment_pkg_config_path## $$EXT_BUILD_DEPS$$/" + ext_dir.basename)
@@ -12,6 +14,7 @@ def _pkgconfig_script(ext_build_dirs):
 
     return script
 
+# buildifier: disable=function-docstring
 def create_configure_script(
         workspace_name,
         target_os,
@@ -25,6 +28,9 @@ def create_configure_script(
         deps,
         inputs,
         configure_in_place,
+        autoconf,
+        autoconf_options,
+        autoconf_env_vars,
         autoreconf,
         autoreconf_options,
         autoreconf_env_vars,
@@ -56,6 +62,12 @@ def create_configure_script(
             " ".join(autogen_options),
         ).lstrip())
 
+    if autoconf and configure_in_place:
+        script.append("{} autoconf {}".format(
+            " ".join(["{}=\"{}\"".format(key, autoconf_env_vars[key]) for key in autoconf_env_vars]),
+            " ".join(autoconf_options),
+        ).lstrip())
+
     if autoreconf and configure_in_place:
         script.append("{} autoreconf {}".format(
             " ".join(["{}=\"{}\"".format(key, autoreconf_env_vars[key]) for key in autoreconf_env_vars]),
@@ -69,6 +81,7 @@ def create_configure_script(
     ))
     return "\n".join(script)
 
+# buildifier: disable=function-docstring
 def create_make_script(
         workspace_name,
         tools,
@@ -89,6 +102,7 @@ def create_make_script(
     script.append("" + " && ".join(make_commands))
     return "\n".join(script)
 
+# buildifier: disable=function-docstring
 def get_env_vars(
         workspace_name,
         tools,
@@ -100,9 +114,9 @@ def get_env_vars(
     deps_flags = _define_deps_flags(deps, inputs)
 
     if "LDFLAGS" in vars.keys():
-      vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
+        vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
     else:
-      vars["LDFLAGS"] = deps_flags.libs
+        vars["LDFLAGS"] = deps_flags.libs
 
     # -I flags should be put into preprocessor flags, CPPFLAGS
     # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html

@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 def _provider_text(symbols):
     return """
 WRAPPER = provider(
@@ -47,6 +48,15 @@ def _copy_file(rctx, src):
     rctx.template(copy_path, src_path)
     return copy_path
 
+_BUILD_FILE = """\
+exports_files(
+    [
+        "toolchain_data_defs.bzl",
+    ],
+    visibility = ["//visibility:public"],
+)
+"""
+
 def _generate_overloads(rctx):
     symbols = rctx.attr.symbols
     ids = []
@@ -67,7 +77,7 @@ def _generate_overloads(rctx):
     lines.append(_getter_text())
 
     rctx.file("toolchain_data_defs.bzl", "\n".join(lines))
-    rctx.file("BUILD", "")
+    rctx.file("BUILD", _BUILD_FILE)
 
 generate_overloads = repository_rule(
     implementation = _generate_overloads,

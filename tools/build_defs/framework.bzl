@@ -23,84 +23,159 @@ load(
     "create_function",
     "os_name",
 )
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
-""" Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
- Many of the attributes have default values.
-
- Typically, the concrete external library rule will use this structure to create the attributes
- description dict. See cmake.bzl as an example.
-"""
+# Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
+# Many of the attributes have default values.
+#
+# Typically, the concrete external library rule will use this structure to create the attributes
+# description dict. See cmake.bzl as an example.
+#
 CC_EXTERNAL_RULE_ATTRIBUTES = {
-    # Library name. Defines the name of the install directory and the name of the static library,
-    # if no output files parameters are defined (any of static_libraries, shared_libraries,
-    # interface_libraries, binaries_names)
-    # Optional. If not defined, defaults to the target's name.
-    "lib_name": attr.string(mandatory = False),
-    # Label with source code to build. Typically a filegroup for the source of remote repository.
-    # Mandatory.
-    "lib_source": attr.label(mandatory = True, allow_files = True),
-    # Optional compilation definitions to be passed to the dependencies of this library.
-    # They are NOT passed to the compiler, you should duplicate them in the configuration options.
-    "defines": attr.string_list(mandatory = False, default = []),
-    #
-    # Optional additional inputs to be declared as needed for the shell script action.
-    # Not used by the shell script part in cc_external_rule_impl.
-    "additional_inputs": attr.label_list(mandatory = False, allow_files = True, default = []),
-    # Optional additional tools needed for the building.
-    # Not used by the shell script part in cc_external_rule_impl.
-    "additional_tools": attr.label_list(mandatory = False, allow_files = True, default = []),
-    #
-    # Optional part of the shell script to be added after the make commands
-    "postfix_script": attr.string(mandatory = False),
-    # Optinal make commands, defaults to ["make", "make install"]
-    "make_commands": attr.string_list(mandatory = False, default = ["make", "make install"]),
-    #
-    # Optional dependencies to be copied into the directory structure.
-    # Typically those directly required for the external building of the library/binaries.
-    # (i.e. those that the external buidl system will be looking for and paths to which are
-    # provided by the calling rule)
-    "deps": attr.label_list(mandatory = False, allow_files = True, default = []),
-    # Optional tools to be copied into the directory structure.
-    # Similar to deps, those directly required for the external building of the library/binaries.
-    "tools_deps": attr.label_list(mandatory = False, allow_files = True, cfg = "host", default = []),
-    #
-    # Optional name of the output subdirectory with the header files, defaults to 'include'.
-    "out_include_dir": attr.string(mandatory = False, default = "include"),
-    # Optional name of the output subdirectory with the library files, defaults to 'lib'.
-    "out_lib_dir": attr.string(mandatory = False, default = "lib"),
-    # Optional name of the output subdirectory with the binary files, defaults to 'bin'.
-    "out_bin_dir": attr.string(mandatory = False, default = "bin"),
-    #
-    # Optional. if true, link all the object files from the static library,
-    # even if they are not used.
-    "alwayslink": attr.bool(mandatory = False, default = False),
-    # Optional link options to be passed up to the dependencies of this library
-    "linkopts": attr.string_list(mandatory = False, default = []),
+    "lib_name": attr.string(
+        doc = (
+            "Library name. Defines the name of the install directory and the name of the static library, " +
+            "if no output files parameters are defined (any of static_libraries, shared_libraries, " +
+            "interface_libraries, binaries_names) " +
+            "Optional. If not defined, defaults to the target's name."
+        ),
+        mandatory = False,
+    ),
+    "lib_source": attr.label(
+        doc = (
+            "Label with source code to build. Typically a filegroup for the source of remote repository. " +
+            "Mandatory."
+        ),
+        mandatory = True,
+        allow_files = True,
+    ),
+    "defines": attr.string_list(
+        doc = (
+            "Optional compilation definitions to be passed to the dependencies of this library. " +
+            "They are NOT passed to the compiler, you should duplicate them in the configuration options."
+        ),
+        mandatory = False,
+        default = [],
+    ),
+    "additional_inputs": attr.label_list(
+        doc = (
+            "Optional additional inputs to be declared as needed for the shell script action." +
+            "Not used by the shell script part in cc_external_rule_impl."
+        ),
+        mandatory = False,
+        allow_files = True,
+        default = [],
+    ),
+    "additional_tools": attr.label_list(
+        doc = (
+            "Optional additional tools needed for the building. " +
+            "Not used by the shell script part in cc_external_rule_impl."
+        ),
+        mandatory = False,
+        allow_files = True,
+        default = [],
+    ),
+    "postfix_script": attr.string(
+        doc = "Optional part of the shell script to be added after the make commands",
+        mandatory = False,
+    ),
+    "make_commands": attr.string_list(
+        doc = "Optinal make commands, defaults to [\"make\", \"make install\"]",
+        mandatory = False,
+        default = ["make", "make install"],
+    ),
+    "deps": attr.label_list(
+        doc = (
+            "Optional dependencies to be copied into the directory structure. " +
+            "Typically those directly required for the external building of the library/binaries. " +
+            "(i.e. those that the external buidl system will be looking for and paths to which are " +
+            "provided by the calling rule)"
+        ),
+        mandatory = False,
+        allow_files = True,
+        default = [],
+    ),
+    "data": attr.label_list(
+        doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
+        mandatory = False,
+        allow_files = True,
+        default = [],
+    ),
+    "tools_deps": attr.label_list(
+        doc = (
+            "Optional tools to be copied into the directory structure. " +
+            "Similar to deps, those directly required for the external building of the library/binaries."
+        ),
+        mandatory = False,
+        allow_files = True,
+        cfg = "host",
+        default = [],
+    ),
+    "out_include_dir": attr.string(
+        doc = "Optional name of the output subdirectory with the header files, defaults to 'include'.",
+        mandatory = False,
+        default = "include",
+    ),
+    "out_lib_dir": attr.string(
+        doc = "Optional name of the output subdirectory with the library files, defaults to 'lib'.",
+        mandatory = False,
+        default = "lib",
+    ),
+    "out_bin_dir": attr.string(
+        doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'.",
+        mandatory = False,
+        default = "bin",
+    ),
+    "alwayslink": attr.bool(
+        doc = (
+            "Optional. if true, link all the object files from the static library, " +
+            "even if they are not used."
+        ),
+        mandatory = False,
+        default = False,
+    ),
+    "linkopts": attr.string_list(
+        doc = "Optional link options to be passed up to the dependencies of this library",
+        mandatory = False,
+        default = [],
+    ),
     #
     # Output files names parameters. If any of them is defined, only these files are passed to
     # Bazel providers.
     # if no of them is defined, default lib_name.a/lib_name.lib static library is assumed.
     #
-    # Optional names of the resulting static libraries.
-    "static_libraries": attr.string_list(mandatory = False),
-    # Optional names of the resulting shared libraries.
-    "shared_libraries": attr.string_list(mandatory = False),
-    # Optional names of the resulting interface libraries.
-    "interface_libraries": attr.string_list(mandatory = False),
-    # Optional names of the resulting binaries.
-    "binaries": attr.string_list(mandatory = False),
-    # Flag variable to indicate that the library produces only headers
-    "headers_only": attr.bool(mandatory = False, default = False),
-    #
-    "_is_debug": attr.label(
-        default = "@foreign_cc_platform_utils//:compilation_mode",
+    "static_libraries": attr.string_list(
+        doc = "Optional names of the resulting static libraries.",
+        mandatory = False,
+    ),
+    "shared_libraries": attr.string_list(
+        doc = "Optional names of the resulting shared libraries.",
+        mandatory = False,
+    ),
+    "interface_libraries": attr.string_list(
+        doc = "Optional names of the resulting interface libraries.",
+        mandatory = False,
+    ),
+    "binaries": attr.string_list(
+        doc = "Optional names of the resulting binaries.",
+        mandatory = False,
+    ),
+    "headers_only": attr.bool(
+        doc = "Flag variable to indicate that the library produces only headers",
+        mandatory = False,
+        default = False,
     ),
     # we need to declare this attribute to access cc_toolchain
-    "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+    "_cc_toolchain": attr.label(
+        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+    ),
 }
 
+# buildifier: disable=function-docstring-header
+# buildifier: disable=function-docstring-args
+# buildifier: disable=function-docstring-return
 def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs):
-    """ Function for adding/modifying context attributes struct (originally from ctx.attr),
+    """Function for adding/modifying context attributes struct (originally from ctx.attr),
      provided by user, to be passed to the cc_external_rule_impl function as a struct.
 
      Copies a struct 'attr_struct' values (with attributes from CC_EXTERNAL_RULE_ATTRIBUTES)
@@ -119,11 +194,13 @@ def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs)
         attrs[arg] = kwargs[arg]
     return struct(**attrs)
 
+# buildifier: disable=name-conventions
 ForeignCcDeps = provider(
     doc = """Provider to pass transitive information about external libraries.""",
     fields = {"artifacts": "Depset of ForeignCcArtifact"},
 )
 
+# buildifier: disable=name-conventions
 ForeignCcArtifact = provider(
     doc = """Groups information about the external library install directory,
 and relative bin, include and lib directories.
@@ -140,6 +217,7 @@ Instances of ForeignCcArtifact are incapsulated in a depset ForeignCcDeps#artifa
     },
 )
 
+# buildifier: disable=name-conventions
 ConfigureParameters = provider(
     doc = """Parameters of create_configure_script callback function, called by
 cc_external_rule_impl function. create_configure_script creates the configuration part
@@ -154,28 +232,28 @@ dependencies.""",
 )
 
 def cc_external_rule_impl(ctx, attrs):
-    """ Framework function for performing external C/C++ building.
+    """Framework function for performing external C/C++ building.
 
-     To be used to build external libraries or/and binaries with CMake, configure/make, autotools etc.,
-     and use results in Bazel.
-     It is possible to use it to build a group of external libraries, that depend on each other or on
-     Bazel library, and pass nessesary tools.
+    To be used to build external libraries or/and binaries with CMake, configure/make, autotools etc.,
+    and use results in Bazel.
+    It is possible to use it to build a group of external libraries, that depend on each other or on
+    Bazel library, and pass nessesary tools.
 
-     Accepts the actual commands for build configuration/execution in attrs.
+    Accepts the actual commands for build configuration/execution in attrs.
 
-     Creates and runs a shell script, which:
+    Creates and runs a shell script, which:
 
-     1) prepares directory structure with sources, dependencies, and tools symlinked into subdirectories
-      of the execroot directory. Adds tools into PATH.
-     2) defines the correct absolute paths in tools with the script paths, see 7
-     3) defines the following environment variables:
+    1. prepares directory structure with sources, dependencies, and tools symlinked into subdirectories
+        of the execroot directory. Adds tools into PATH.
+    2. defines the correct absolute paths in tools with the script paths, see 7
+    3. defines the following environment variables:
         EXT_BUILD_ROOT: execroot directory
         EXT_BUILD_DEPS: subdirectory of execroot, which contains the following subdirectories:
 
-          For cmake_external built dependencies:
+        For cmake_external built dependencies:
             symlinked install directories of the dependencies
 
-          for Bazel built/imported dependencies:
+            for Bazel built/imported dependencies:
 
             include - here the include directories are symlinked
             lib - here the library files are symlinked
@@ -185,22 +263,25 @@ def cc_external_rule_impl(ctx, attrs):
         will be installed
 
         These variables should be used by the calling rule to refer to the created directory structure.
-     4) calls 'attrs.create_configure_script'
-     5) calls 'attrs.make_commands'
-     6) calls 'attrs.postfix_script'
-     7) replaces absolute paths in possibly created scripts with a placeholder value
+    4. calls 'attrs.create_configure_script'
+    5. calls 'attrs.make_commands'
+    6. calls 'attrs.postfix_script'
+    7. replaces absolute paths in possibly created scripts with a placeholder value
 
-     Please see cmake.bzl for example usage.
+    Please see cmake.bzl for example usage.
 
-     Args:
-       ctx: calling rule context
-       attrs: attributes struct, created by create_attrs function above.
-         Contains fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there),
-         two mandatory fields:
-         -  configure_name: name of the configuration tool, to be used in action mnemonic,
-         -  create_configure_script(ConfigureParameters): function that creates configuration
-            script, accepts ConfigureParameters
-         and some other fields provided by the rule, which have been passed to create_attrs.
+    Args:
+        ctx: calling rule context
+        attrs: attributes struct, created by create_attrs function above.
+            Contains fields from CC_EXTERNAL_RULE_ATTRIBUTES (see descriptions there),
+            two mandatory fields:
+                - configure_name: name of the configuration tool, to be used in action mnemonic,
+                - create_configure_script(ConfigureParameters): function that creates configuration
+                    script, accepts ConfigureParameters
+            and some other fields provided by the rule, which have been passed to create_attrs.
+
+    Returns:
+        A list of providers
     """
     lib_name = attrs.lib_name or ctx.attr.name
 
@@ -271,6 +352,7 @@ def cc_external_rule_impl(ctx, attrs):
     wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
 
     rule_outputs = outputs.declared_outputs + [installdir_copy.file]
+    cc_toolchain = find_cpp_toolchain(ctx)
 
     execution_requirements = {"block-network": ""}
     if "requires-network" in ctx.attr.tags:
@@ -278,12 +360,12 @@ def cc_external_rule_impl(ctx, attrs):
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
-        inputs = depset(inputs.declared_inputs, transitive = [ctx.attr._cc_toolchain.files]),
+        inputs = depset(inputs.declared_inputs, transitive = [cc_toolchain.all_files]),
         outputs = rule_outputs + [
             empty.file,
             wrapped_outputs.log_file,
         ],
-        tools = [wrapped_outputs.script_file],
+        tools = depset([wrapped_outputs.script_file] + ctx.files.data),
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
         # for shell commands
@@ -293,6 +375,12 @@ def cc_external_rule_impl(ctx, attrs):
         # this is ignored if use_default_shell_env = True
         env = cc_env,
     )
+
+    # Gather runfiles transitively as per the documentation in:
+    # https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
+    runfiles = ctx.runfiles(files = ctx.files.data)
+    for target in [ctx.attr.lib_source] + ctx.attr.additional_inputs + ctx.attr.deps + ctx.attr.data:
+        runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
 
     externally_built = ForeignCcArtifact(
         gen_dir = installdir_copy.file,
@@ -308,7 +396,10 @@ def cc_external_rule_impl(ctx, attrs):
     ]
     output_groups[attrs.configure_name + "_logs"] = wrapped_files
     return [
-        DefaultInfo(files = depset(direct = rule_outputs + wrapped_files)),
+        DefaultInfo(
+            files = depset(direct = rule_outputs + wrapped_files),
+            runfiles = runfiles,
+        ),
         OutputGroupInfo(**output_groups),
         ForeignCcDeps(artifacts = depset(
             [externally_built],
@@ -320,6 +411,7 @@ def cc_external_rule_impl(ctx, attrs):
         ),
     ]
 
+# buildifier: disable=name-conventions
 WrappedOutputs = provider(
     doc = "Structure for passing the log and scripts file information, and wrapper script text.",
     fields = {
@@ -330,6 +422,7 @@ WrappedOutputs = provider(
     },
 )
 
+# buildifier: disable=function-docstring
 def wrap_outputs(ctx, lib_name, configure_name, script_text):
     build_script_file = ctx.actions.declare_file("{}/logs/{}_script.sh".format(lib_name, configure_name))
     ctx.actions.write(
@@ -482,6 +575,7 @@ def _check_file_name(var):
         if letter in _FORBIDDEN_FOR_FILENAME:
             fail("Symbol '%s' is forbidden in library name '%s'." % (letter, var))
 
+# buildifier: disable=name-conventions
 _Outputs = provider(
     doc = "Provider to keep different kinds of the external build output files and directories",
     fields = dict(
@@ -530,19 +624,27 @@ def _declare_out(ctx, lib_name, dir_, files):
         return [ctx.actions.declare_file("/".join([lib_name, dir_, file])) for file in files]
     return []
 
+# buildifier: disable=name-conventions
 InputFiles = provider(
-    doc = """Provider to keep different kinds of input files, directories,
-and C/C++ compilation and linking info from dependencies""",
+    doc = (
+        "Provider to keep different kinds of input files, directories, " +
+        "and C/C++ compilation and linking info from dependencies"
+    ),
     fields = dict(
-        headers = """Include files built by Bazel. Will be copied into $EXT_BUILD_DEPS/include.""",
-        include_dirs = """Include directories built by Bazel.
-Will be copied into $EXT_BUILD_DEPS/include.""",
-        libs = """Library files built by Bazel.
-Will be copied into $EXT_BUILD_DEPS/lib.""",
-        tools_files = """Files and directories with tools needed for configuration/building
-to be copied into the bin folder, which is added to the PATH""",
-        ext_build_dirs = """Directories with libraries, built by framework function.
-This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents.""",
+        headers = "Include files built by Bazel. Will be copied into $EXT_BUILD_DEPS/include.",
+        include_dirs = (
+            "Include directories built by Bazel. Will be copied " +
+            "into $EXT_BUILD_DEPS/include."
+        ),
+        libs = "Library files built by Bazel. Will be copied into $EXT_BUILD_DEPS/lib.",
+        tools_files = (
+            "Files and directories with tools needed for configuration/building " +
+            "to be copied into the bin folder, which is added to the PATH"
+        ),
+        ext_build_dirs = (
+            "Directories with libraries, built by framework function. " +
+            "This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents."
+        ),
         deps_compilation_info = "Merged CcCompilationInfo from deps attribute",
         deps_linking_info = "Merged CcLinkingInfo from deps attribute",
         declared_inputs = "All files and directories that must be declared as action inputs",
@@ -580,6 +682,7 @@ def _define_inputs(attrs):
 
     tools_roots = []
     tools_files = []
+    input_files = []
     for tool in attrs.tools_deps:
         tool_root = detect_root(tool)
         tools_roots.append(tool_root)
@@ -587,13 +690,16 @@ def _define_inputs(attrs):
             tools_files += _list(file_list)
 
     for tool in attrs.additional_tools:
-        for file_list in tool.files:
+        for file_list in tool.files.to_list():
             tools_files += _list(file_list)
+
+    for input in attrs.additional_inputs:
+        for file_list in input.files.to_list():
+            input_files += _list(file_list)
 
     # These variables are needed for correct C/C++ providers constraction,
     # they should contain all libraries and include directories.
     cc_info_merged = cc_common.merge_cc_infos(cc_infos = cc_infos)
-
     return InputFiles(
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
@@ -605,11 +711,12 @@ def _define_inputs(attrs):
         declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
                           bazel_libs +
                           tools_files +
-                          attrs.additional_inputs +
+                          input_files +
                           cc_info_merged.compilation_context.headers.to_list() +
                           ext_build_dirs,
     )
 
+# buildifier: disable=function-docstring
 def uniq_list_keep_order(list):
     result = []
     contains_map = {}

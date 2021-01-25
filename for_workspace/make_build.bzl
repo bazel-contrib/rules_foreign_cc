@@ -30,13 +30,13 @@ def _make_tool(ctx):
 
     return [DefaultInfo(files = depset([make]))]
 
-""" Rule for building Make. Invokes configure script and make install.
-  Attributes:
-    make_srcs - target with the Make sources
-"""
 make_tool = rule(
+    doc = "Rule for building Make. Invokes configure script and make install.",
     attrs = {
-        "make_srcs": attr.label(mandatory = True),
+        "make_srcs": attr.label(
+            doc = "target with the Make sources",
+            mandatory = True,
+        ),
     },
     fragments = ["cpp"],
     output_to_genfiles = True,

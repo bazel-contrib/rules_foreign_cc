@@ -18,12 +18,11 @@ load(
     "is_debug_mode",
 )
 load(":cmake_script.bzl", "create_cmake_script")
-load("//tools/build_defs/shell_toolchain/toolchains:access.bzl", "create_context")
 load(
     "//tools/build_defs/native_tools:tool_access.bzl",
     "get_cmake_data",
-    "get_ninja_data",
     "get_make_data",
+    "get_ninja_data",
 )
 load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
 
@@ -103,37 +102,58 @@ def _get_install_prefix(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
-        # Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX
-        "install_prefix": attr.string(mandatory = False),
-        # CMake cache entries to initialize (they will be passed with -Dkey=value)
-        # Values, defined by the toolchain, will be joined with the values, passed here.
-        # (Toolchain values come first)
-        "cache_entries": attr.string_dict(mandatory = False, default = {}),
-        # CMake environment variable values to join with toolchain-defined.
-        # For example, additional CXXFLAGS.
-        "env_vars": attr.string_dict(mandatory = False, default = {}),
-        # Other CMake options
-        "cmake_options": attr.string_list(mandatory = False, default = []),
-        # When True, CMake crosstool file will be generated from the toolchain values,
-        # provided cache-entries and env_vars (some values will still be passed as -Dkey=value
-        # and environment variables).
-        # If CMAKE_TOOLCHAIN_FILE cache entry is passed, specified crosstool file will be used
-        # When using this option, it makes sense to specify CMAKE_SYSTEM_NAME in the
-        # cache_entries - the rule makes only a poor guess about the target system,
-        # it is better to specify it manually.
-        "generate_crosstool_file": attr.bool(mandatory = False, default = False),
-        # Working directory, with the main CMakeLists.txt
-        # (otherwise, the top directory of the lib_source label files is used.)
-        "working_directory": attr.string(mandatory = False, default = ""),
+        "install_prefix": attr.string(
+            doc = "Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX",
+            mandatory = False,
+        ),
+        "cache_entries": attr.string_dict(
+            doc = (
+                "CMake cache entries to initialize (they will be passed with -Dkey=value) " +
+                "Values, defined by the toolchain, will be joined with the values, passed here. " +
+                "(Toolchain values come first)"
+            ),
+            mandatory = False,
+            default = {},
+        ),
+        "env_vars": attr.string_dict(
+            doc = (
+                "CMake environment variable values to join with toolchain-defined. " +
+                "For example, additional CXXFLAGS."
+            ),
+            mandatory = False,
+            default = {},
+        ),
+        "cmake_options": attr.string_list(
+            doc = "Other CMake options",
+            mandatory = False,
+            default = [],
+        ),
+        "generate_crosstool_file": attr.bool(
+            doc = (
+                "When True, CMake crosstool file will be generated from the toolchain values, " +
+                "provided cache-entries and env_vars (some values will still be passed as -Dkey=value " +
+                "and environment variables). " +
+                "If CMAKE_TOOLCHAIN_FILE cache entry is passed, specified crosstool file will be used " +
+                "When using this option, it makes sense to specify CMAKE_SYSTEM_NAME in the " +
+                "cache_entries - the rule makes only a poor guess about the target system, " +
+                "it is better to specify it manually."
+            ),
+            mandatory = False,
+            default = False,
+        ),
+        "working_directory": attr.string(
+            doc = (
+                "Working directory, with the main CMakeLists.txt " +
+                "(otherwise, the top directory of the lib_source label files is used.)"
+            ),
+            mandatory = False,
+            default = "",
+        ),
     })
     return attrs
 
-""" Rule for building external library with CMake.
- Attributes:
-   See line comments in _attrs() method.
- Other attributes are documented in framework.bzl:CC_EXTERNAL_RULE_ATTRIBUTES
-"""
 cmake_external = rule(
+    doc = "Rule for building external library with CMake.",
     attrs = _attrs(),
     fragments = ["cpp"],
     output_to_genfiles = True,

@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load("@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:toolchain_mappings.bzl", "ToolchainMapping")
 
 ADD_TOOLCHAIN_MAPPINGS = [

@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load(
     "@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl",
     "convert_shell_script",

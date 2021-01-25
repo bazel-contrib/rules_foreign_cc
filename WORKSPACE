@@ -2,43 +2,25 @@ workspace(name = "rules_foreign_cc")
 
 load("//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
-rules_foreign_cc_dependencies([
-    "@rules_foreign_cc_tests//:built_cmake_toolchain",
-    "@rules_foreign_cc_tests//:built_ninja_toolchain_osx",
-    "@rules_foreign_cc_tests//:built_ninja_toolchain_linux",
-])
+rules_foreign_cc_dependencies()
 
 local_repository(
     name = "rules_foreign_cc_tests",
     path = "examples",
 )
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@rules_foreign_cc_tests//deps:repositories.bzl", examples_repositories = "repositories")
 
-android_sdk_repository(
-    name = "androidsdk",
-)
+examples_repositories()
 
-android_ndk_repository(
-    name = "androidndk",
-)
+load("@rules_foreign_cc_tests//deps:deps_android.bzl", examples_deps_android = "deps_android")
 
-# TODO(jin): replace legacy gmaven_rules targets with `maven_install` from the new rules_jvm_external
-RULES_JVM_EXTERNAL_TAG = "1.0"
+examples_deps_android()
 
-RULES_JVM_EXTERNAL_SHA = "48e0f1aab74fabba98feb8825459ef08dcc75618d381dff63ec9d4dd9860deaa"
+load("@rules_foreign_cc_tests//deps:deps_jvm_external.bzl", examples_deps_jvm_external = "deps_jvm_external")
 
-http_archive(
-    name = "gmaven_rules",
-    sha256 = RULES_JVM_EXTERNAL_SHA,
-    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
-    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
-)
+examples_deps_jvm_external()
 
-load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
-gmaven_rules()
-
-load("@rules_foreign_cc_tests//:examples_repositories.bzl", "include_examples_repositories")
-
-include_examples_repositories()
+bazel_skylib_workspace()
