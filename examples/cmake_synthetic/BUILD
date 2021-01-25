@@ -3,7 +3,7 @@ load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
 generate_crosstool = select({
-    "@platforms//os:windows": True,
+    "//:windows": True,
     "//conditions:default": False,
 })
 

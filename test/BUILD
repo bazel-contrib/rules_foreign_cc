@@ -17,13 +17,25 @@ shell_script_helper_test_rule(
     script = ["##symlink_contents_to_dir## $$SOURCE_DIR$$ $$TARGET_DIR$$"],
 )
 
+# TODO: This should not be necessary but there appears to be some inconsistent
+# behavior with the use of `constraint_value`s in `select` statements. A support
+# thread was started at the end of https://github.com/bazelbuild/bazel/pull/12071
+# Once it is possible to replace `:macos` with `@platforms//os:macos` that
+# should be done for this file. Note actioning on this will set the minimum
+# supported version of Bazel to 4.0.0 for these examples.
+config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+    visibility = ["//visibility:private"],
+)
+
 result_file = select({
-    "@platforms//os:macos": "expected/inner_fun_text_osx.txt",
+    ":macos": "expected/inner_fun_text_osx.txt",
     "//conditions:default": "expected/inner_fun_text.txt",
 })
 
 result_file_symlink_dirs = select({
-    "@platforms//os:macos": "expected/out_symlinked_dirs_osx.txt",
+    ":macos": "expected/out_symlinked_dirs_osx.txt",
     "//conditions:default": "expected/out_symlinked_dirs.txt",
 })
 

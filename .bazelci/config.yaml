@@ -1,69 +1,102 @@
 ---
 tasks:
-  ubuntu1804:
+  ubuntu2004:
+    platform: ubuntu2004
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+  macos:
+    platform: macos
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+  windows:
+    platform: windows
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+      # TODO: TODO make issue
+      - "-//test:shell_method_symlink_contents_to_dir_test"
+      - "-//test:shell_script_inner_fun_test"
+  ubuntu2004_examples:
+    name: Examples
+    platform: ubuntu2004
+    working_directory: examples
+    build_targets:
+      - "//cmake_android:app"
+    test_targets:
+    - "//:tests"
+  ubuntu1804_examples:
+    name: Examples
     platform: ubuntu1804
     working_directory: examples
     build_targets:
       - "//cmake_android:app"
     test_targets:
-      - "//:tests"
-  ubuntu1604:
-    platform: ubuntu1604
-    working_directory: examples
-    build_targets:
-      - "//cmake_android:app"
-    test_targets:
       - "//:tests_no_synthetic"
-  macos:
+  macos_examples:
+    name: Examples
     platform: macos
     working_directory: examples
     build_targets:
       - "//cmake_android:app"
     test_targets:
       - "//:mac_tests"
-  windows:
+  windows_examples:
+    name: Examples
     platform: windows
     working_directory: examples
     test_flags:
       - "--enable_runfiles"
     test_targets:
       - "//:win_tests"
+  ubuntu2004_flags:
+    name: Flags
+    platform: ubuntu2004
+    working_directory: test/standard_cxx_flags_test
+    test_targets:
+      - "//:flags_test"
   ubuntu1804_flags:
+    name: Flags
     platform: ubuntu1804
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
-  ubuntu1604_flags:
-    platform: ubuntu1604
-    working_directory: test/standard_cxx_flags_test
-    test_targets:
-      - "//:flags_test"
   macos_flags:
+    name: Flags
     platform: macos
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
   windows_flags:
+    name: Flags
     platform: windows
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
+  ubuntu2004_detect_root:
+    name: Detect root
+    platform: ubuntu2004
+    working_directory: test/detect_root_test
+    test_targets:
+      - "//:tests"
   ubuntu1804_detect_root:
+    name: Detect root
     platform: ubuntu1804
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
-  ubuntu1604_detect_root:
-    platform: ubuntu1604
-    working_directory: test/detect_root_test
-    test_targets:
-      - "//:tests"
   macos_detect_root:
+    name: Detect root
     platform: macos
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
   windows_detect_root:
+    name: Detect root
     platform: windows
     working_directory: test/detect_root_test
     test_targets:
@@ -74,3 +107,20 @@ tasks:
     working_directory: docs
     build_targets:
     - //...
+  min_supported_version:
+    name: "Minimum Supported Version"
+    bazel: "3.4.0"
+    platform: ubuntu1604
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+  min_supported_version_examples:
+    name: "Minimum Supported Version Examples"
+    bazel: "3.4.0"
+    platform: ubuntu1604
+    working_directory: examples
+    build_targets:
+      - "//cmake_android:app"
+    test_targets:
+      - "//:tests_no_synthetic"

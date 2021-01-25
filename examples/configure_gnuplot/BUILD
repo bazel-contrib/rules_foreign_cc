@@ -34,7 +34,7 @@ configure_make(
 )
 
 libgd_name = select({
-    "@platforms//os:windows": ["libgd.lib"],
+    "//:windows": ["libgd.lib"],
     "//conditions:default": ["libgd.a"],
 })
 
