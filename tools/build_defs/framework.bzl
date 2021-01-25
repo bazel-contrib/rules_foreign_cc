@@ -370,6 +370,12 @@ def cc_external_rule_impl(ctx, attrs):
         env = cc_env,
     )
 
+    # Gather runfiles transitively as per the documentation in:
+    # https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
+    runfiles = ctx.runfiles(files = ctx.files.data)
+    for target in [ctx.attr.lib_source] + ctx.attr.additional_inputs + ctx.attr.deps + ctx.attr.data:
+        runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
+
     externally_built = ForeignCcArtifact(
         gen_dir = installdir_copy.file,
         bin_dir_name = attrs.out_bin_dir,
@@ -386,7 +392,7 @@ def cc_external_rule_impl(ctx, attrs):
     return [
         DefaultInfo(
             files = depset(direct = rule_outputs + wrapped_files),
-            runfiles = ctx.runfiles(ctx.files.data),
+            runfiles = runfiles,
         ),
         OutputGroupInfo(**output_groups),
         ForeignCcDeps(artifacts = depset(
