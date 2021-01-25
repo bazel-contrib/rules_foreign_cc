@@ -19,6 +19,7 @@ tests = [
     "@rules_foreign_cc//test:shell_script_inner_fun_test",
     "@rules_foreign_cc//test:shell_method_symlink_contents_to_dir_test",
     "//cc_configure_make:libevent_echosrv1",
+    "//cmake_with_data:data_attr_tests",
 ]
 
 test_suite(
