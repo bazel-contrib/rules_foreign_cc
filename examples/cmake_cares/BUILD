@@ -1,9 +1,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
-# This should NOT be used anymore. However, keeping it here to test backwards-compatibility.
-load("@foreign_cc_platform_utils//:tools.bzl", "NINJA_COMMAND", "NINJA_DEP")
-
 cmake_external(
     name = "old_cares",
     cache_entries = {
@@ -13,11 +10,10 @@ cmake_external(
     cmake_options = ["-GNinja"],
     lib_source = "@cares//:all",
     make_commands = [
-        NINJA_COMMAND,
-        NINJA_COMMAND + " install",
+        "ninja",
+        "ninja install",
     ],
     static_libraries = ["libcares.a"],
-    tools_deps = NINJA_DEP,
 )
 
 cmake_external(

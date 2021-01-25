@@ -1,6 +1,3 @@
-load("@foreign_cc_platform_utils//:bazel_version.bzl", "BAZEL_VERSION")
-load(":select_windows_tests.bzl", "select_windows_tests")
-
 # TODO: This should not be necessary but there appears to be some inconsistent
 # behavior with the use of `constraint_value`s in `select` statements. A support
 # thread was started at the end of https://github.com/bazelbuild/bazel/pull/12071
@@ -68,34 +65,16 @@ test_suite(
     tests = tests + ["//configure_gnuplot:configure_libgd_tests"],
 )
 
-# As Bazel 0.22.0 is broken for rules_foreign_cc on Windows, we do not want to run any tests
-# with this version on CI
-# So we are selecting the list of tests to run according to recorded-in-workspace
-# Bazel version.
-# But list of tests can not be empty! Instead, have a test that just prints the Bazel version.
-windows_tests = select_windows_tests(
-    BAZEL_VERSION,
-    tests + [
+test_suite(
+    name = "win_tests",
+    tags = ["windows"],
+    tests = tests + [
         #        "//cmake_synthetic:test_libs",
         #        "//configure_gnuplot:configure_libgd_tests",
         "//cmake_hello_world_lib/static:test_hello_ninja",
         "//cmake_hello_world_variant:test_hello_world",
         #        "//cmake_hello_world_lib/static:test_hello_nmake",
     ],
-    [":bazel_version"],
-)
-
-test_suite(
-    name = "win_tests",
-    tags = ["windows"],
-    tests = windows_tests,
-)
-
-sh_test(
-    name = "bazel_version",
-    srcs = ["print_bazel_version.sh"],
-    args = [BAZEL_VERSION],
-    tags = ["windows"],
 )
 
 # On Bazel CI Mac machines, we are using ninja built from sources
