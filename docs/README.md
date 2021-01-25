@@ -131,12 +131,13 @@ Rule for building CMake. Invokes bootstrap script and make install.
 ## configure_make
 
 <pre>
-configure_make(<a href="#configure_make-name">name</a>, <a href="#configure_make-additional_inputs">additional_inputs</a>, <a href="#configure_make-additional_tools">additional_tools</a>, <a href="#configure_make-alwayslink">alwayslink</a>, <a href="#configure_make-autogen">autogen</a>, <a href="#configure_make-autogen_command">autogen_command</a>,
-               <a href="#configure_make-autogen_env_vars">autogen_env_vars</a>, <a href="#configure_make-autogen_options">autogen_options</a>, <a href="#configure_make-autoreconf">autoreconf</a>, <a href="#configure_make-autoreconf_env_vars">autoreconf_env_vars</a>, <a href="#configure_make-autoreconf_options">autoreconf_options</a>,
-               <a href="#configure_make-binaries">binaries</a>, <a href="#configure_make-configure_command">configure_command</a>, <a href="#configure_make-configure_env_vars">configure_env_vars</a>, <a href="#configure_make-configure_in_place">configure_in_place</a>, <a href="#configure_make-configure_options">configure_options</a>,
-               <a href="#configure_make-data">data</a>, <a href="#configure_make-defines">defines</a>, <a href="#configure_make-deps">deps</a>, <a href="#configure_make-headers_only">headers_only</a>, <a href="#configure_make-install_prefix">install_prefix</a>, <a href="#configure_make-interface_libraries">interface_libraries</a>, <a href="#configure_make-lib_name">lib_name</a>,
-               <a href="#configure_make-lib_source">lib_source</a>, <a href="#configure_make-linkopts">linkopts</a>, <a href="#configure_make-make_commands">make_commands</a>, <a href="#configure_make-out_bin_dir">out_bin_dir</a>, <a href="#configure_make-out_include_dir">out_include_dir</a>, <a href="#configure_make-out_lib_dir">out_lib_dir</a>,
-               <a href="#configure_make-postfix_script">postfix_script</a>, <a href="#configure_make-shared_libraries">shared_libraries</a>, <a href="#configure_make-static_libraries">static_libraries</a>, <a href="#configure_make-tools_deps">tools_deps</a>)
+configure_make(<a href="#configure_make-name">name</a>, <a href="#configure_make-additional_inputs">additional_inputs</a>, <a href="#configure_make-additional_tools">additional_tools</a>, <a href="#configure_make-alwayslink">alwayslink</a>, <a href="#configure_make-autoconf">autoconf</a>, <a href="#configure_make-autoconf_env_vars">autoconf_env_vars</a>,
+               <a href="#configure_make-autoconf_options">autoconf_options</a>, <a href="#configure_make-autogen">autogen</a>, <a href="#configure_make-autogen_command">autogen_command</a>, <a href="#configure_make-autogen_env_vars">autogen_env_vars</a>, <a href="#configure_make-autogen_options">autogen_options</a>,
+               <a href="#configure_make-autoreconf">autoreconf</a>, <a href="#configure_make-autoreconf_env_vars">autoreconf_env_vars</a>, <a href="#configure_make-autoreconf_options">autoreconf_options</a>, <a href="#configure_make-binaries">binaries</a>, <a href="#configure_make-configure_command">configure_command</a>,
+               <a href="#configure_make-configure_env_vars">configure_env_vars</a>, <a href="#configure_make-configure_in_place">configure_in_place</a>, <a href="#configure_make-configure_options">configure_options</a>, <a href="#configure_make-data">data</a>, <a href="#configure_make-defines">defines</a>, <a href="#configure_make-deps">deps</a>,
+               <a href="#configure_make-headers_only">headers_only</a>, <a href="#configure_make-install_prefix">install_prefix</a>, <a href="#configure_make-interface_libraries">interface_libraries</a>, <a href="#configure_make-lib_name">lib_name</a>, <a href="#configure_make-lib_source">lib_source</a>, <a href="#configure_make-linkopts">linkopts</a>,
+               <a href="#configure_make-make_commands">make_commands</a>, <a href="#configure_make-out_bin_dir">out_bin_dir</a>, <a href="#configure_make-out_include_dir">out_include_dir</a>, <a href="#configure_make-out_lib_dir">out_lib_dir</a>, <a href="#configure_make-postfix_script">postfix_script</a>,
+               <a href="#configure_make-shared_libraries">shared_libraries</a>, <a href="#configure_make-static_libraries">static_libraries</a>, <a href="#configure_make-tools_deps">tools_deps</a>)
 </pre>
 
 Rule for building external libraries with configure-make pattern. Some 'configure' script is invoked with --prefix=install (by default), and other parameters for compilation and linking, taken from Bazel C/C++ toolchain and passed dependencies. After configuration, GNU Make is called.
@@ -150,6 +151,9 @@ Rule for building external libraries with configure-make pattern. Some 'configur
 | <a id="configure_make-additional_inputs"></a>additional_inputs |  Optional additional inputs to be declared as needed for the shell script action.Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="configure_make-additional_tools"></a>additional_tools |  Optional additional tools needed for the building. Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="configure_make-alwayslink"></a>alwayslink |  Optional. if true, link all the object files from the static library, even if they are not used.   | Boolean | optional | False |
+| <a id="configure_make-autoconf"></a>autoconf |  Set to True if 'autoconf' should be invoked before 'configure', currently requires 'configure_in_place' to be True.   | Boolean | optional | False |
+| <a id="configure_make-autoconf_env_vars"></a>autoconf_env_vars |  Environment variables to be set for 'autoconf' invocation.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="configure_make-autoconf_options"></a>autoconf_options |  Any options to be put in the 'autoconf.sh' command line.   | List of strings | optional | [] |
 | <a id="configure_make-autogen"></a>autogen |  Set to True if 'autogen.sh' should be invoked before 'configure', currently requires 'configure_in_place' to be True.   | Boolean | optional | False |
 | <a id="configure_make-autogen_command"></a>autogen_command |  The name of the autogen script file, default: autogen.sh. Many projects use autogen.sh however the Autotools FAQ recommends bootstrap so we provide this option to support that.   | String | optional | "autogen.sh" |
 | <a id="configure_make-autogen_env_vars"></a>autogen_env_vars |  Environment variables to be set for 'autogen' invocation.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
@@ -359,8 +363,7 @@ InputFiles(<a href="#InputFiles-headers">headers</a>, <a href="#InputFiles-inclu
            <a href="#InputFiles-deps_linking_info">deps_linking_info</a>, <a href="#InputFiles-declared_inputs">declared_inputs</a>)
 </pre>
 
-Provider to keep different kinds of input files, directories,
-and C/C++ compilation and linking info from dependencies
+Provider to keep different kinds of input files, directories, and C/C++ compilation and linking info from dependencies
 
 **FIELDS**
 
