@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_toolchain", "cc_toolchain_suite")
+
 # This is the entry point for --crosstool_top.  Toolchains are found
 # by lopping off the name of --crosstool_top and searching for
 # 'cc-compiler-${CPU}' in this BUILD file, where CPU is the target CPU

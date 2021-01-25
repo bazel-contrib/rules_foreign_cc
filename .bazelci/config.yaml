@@ -6,7 +6,7 @@ tasks:
     build_targets:
       - "//cmake_android:app"
     test_targets:
-    - "//:tests"
+      - "//:tests"
   ubuntu1604:
     platform: ubuntu1604
     working_directory: examples
@@ -24,6 +24,8 @@ tasks:
   windows:
     platform: windows
     working_directory: examples
+    test_flags:
+      - "--enable_runfiles"
     test_targets:
       - "//:win_tests"
   ubuntu1804_flags:

@@ -19,6 +19,7 @@ tests = [
     "@rules_foreign_cc//test:shell_script_inner_fun_test",
     "@rules_foreign_cc//test:shell_method_symlink_contents_to_dir_test",
     "//cc_configure_make:libevent_echosrv1",
+    "//cmake_with_data:data_attr_tests",
 ]
 
 test_suite(
@@ -88,7 +89,7 @@ sh_test(
 toolchain(
     name = "built_ninja_toolchain_osx",
     exec_compatible_with = [
-        "@platforms//os:osx",
+        "@platforms//os:macos",
         "@platforms//cpu:x86_64",
     ],
     toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:built_ninja",

@@ -1,11 +1,14 @@
 """ Remote repositories, used by this project itself """
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 def repositories():
+    """Declare repositories used by `rules_foreign_cc`"""
     _all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
 
-    http_archive(
+    maybe(
+        http_archive,
         name = "bazel_skylib",
         sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
         urls = [
@@ -14,7 +17,8 @@ def repositories():
         ],
     )
 
-    http_archive(
+    maybe(
+        http_archive,
         name = "make",
         build_file_content = _all_content,
         sha256 = "e05fdde47c5f7ca45cb697e973894ff4f5d79e13b750ed57d7b66d8defc78e19",
@@ -24,7 +28,8 @@ def repositories():
         ],
     )
 
-    http_archive(
+    maybe(
+        http_archive,
         name = "ninja_build",
         build_file_content = _all_content,
         sha256 = "a6b6f7ac360d4aabd54e299cc1d8fa7b234cd81b9401693da21221c62569a23e",
@@ -34,7 +39,8 @@ def repositories():
         ],
     )
 
-    http_archive(
+    maybe(
+        http_archive,
         name = "cmake",
         build_file_content = _all_content,
         sha256 = "5d4e40fc775d3d828c72e5c45906b4d9b59003c9433ff1b36a1cb552bbd51d7e",
