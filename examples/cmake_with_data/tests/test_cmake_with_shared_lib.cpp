@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 {
     // Make sure the expectd shared library is available
 #ifdef _WIN32
-    test_opening_file(".\\cmake_with_data\\lib_b\\lib_b.lib");
+    test_opening_file(".\\cmake_with_data\\lib_b\\lib_b.dll");
 #else
     test_opening_file("./cmake_with_data/lib_b/liblib_b.so");
 #endif
