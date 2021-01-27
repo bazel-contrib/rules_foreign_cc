@@ -10,8 +10,8 @@ def _uniq_list_keep_order_test(ctx):
     filtered = uniq_list_keep_order(list)
     asserts.equals(env, [1, 2, 3, 4, 5, 7], filtered)
 
-    filteredEmpty = uniq_list_keep_order([])
-    asserts.equals(env, [], filteredEmpty)
+    filtered_empty = uniq_list_keep_order([])
+    asserts.equals(env, [], filtered_empty)
 
     return unittest.end(env)
 

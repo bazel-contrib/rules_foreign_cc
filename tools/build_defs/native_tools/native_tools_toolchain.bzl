@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 ToolInfo = provider(
     doc = "Information about the native tool",
     fields = {

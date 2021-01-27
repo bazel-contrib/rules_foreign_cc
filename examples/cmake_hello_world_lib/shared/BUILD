@@ -1,6 +1,7 @@
 # example code is taken from https://github.com/Akagi201/learning-cmake/tree/master/hello-world-lib
 # for test only
 
+load("@rules_cc//cc:defs.bzl", "cc_test")
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 filegroup(
@@ -18,8 +19,8 @@ cmake_external(
     },
     lib_source = ":srcs",
     shared_libraries = select({
-        "@bazel_tools//src/conditions:windows": ["libhello.dll"],
-        "@bazel_tools//src/conditions:darwin": ["libhello.dylib"],
+        "//:windows": ["libhello.dll"],
+        "//:macos": ["libhello.dylib"],
         "//conditions:default": ["libhello.so"],
     }),
 )

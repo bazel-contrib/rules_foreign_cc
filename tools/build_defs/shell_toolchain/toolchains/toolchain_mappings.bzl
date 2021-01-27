@@ -1,3 +1,5 @@
+# buildifier: disable=module-docstring
+# buildifier: disable=name-conventions
 ToolchainMapping = provider(
     doc = "Mapping of toolchain definition files to platform constraints",
     fields = {
@@ -22,7 +24,7 @@ TOOLCHAIN_MAPPINGS = [
     ),
     ToolchainMapping(
         exec_compatible_with = [
-            "@platforms//os:osx",
+            "@platforms//os:macos",
         ],
         file = "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains/impl:osx_commands.bzl",
     ),

@@ -9,7 +9,6 @@ bzl_library(
 bzl_library(
     name = "bzl_srcs",
     srcs = glob(["**/*.bzl"]) + [
-        "@rules_foreign_cc_bazel_version//:def.bzl",
         "@bazel_tools//tools:bzl_srcs",
     ],
     visibility = ["//visibility:public"],

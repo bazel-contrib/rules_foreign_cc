@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# buildifier: disable=module-docstring
 _DEPRECATION_NOTICE = """\
 `cc_configure_make` is deprecated and will soon be removed. Please use \
 configure_make rule defined in `@rules_foreign_cc//tools/build_defs:configure.bzl` \
@@ -77,7 +78,9 @@ _cc_configure_make_rule = rule(
     deprecation = _DEPRECATION_NOTICE,
 )
 
+# buildifier: disable=function-docstring
 def cc_configure_make(name, configure_flags, src, out_lib_path):
+    # buildifier: disable=print
     print("WARNING: " + _DEPRECATION_NOTICE)
     name_cmr = "_{}_cc_configure_make_rule".format(name)
     _cc_configure_make_rule(
@@ -95,6 +98,8 @@ def cc_configure_make(name, configure_flags, src, out_lib_path):
     )
 
     name_libfile_import = "_{}_libfile_import".format(name)
+
+    # buildifier: disable=native-cc
     native.cc_import(
         name = name_libfile_import,
         static_library = name_libfile_fg,
@@ -107,6 +112,7 @@ def cc_configure_make(name, configure_flags, src, out_lib_path):
         output_group = "headers",
     )
 
+    # buildifier: disable=native-cc
     native.cc_library(
         name = name,
         hdrs = [name_headers_fg],

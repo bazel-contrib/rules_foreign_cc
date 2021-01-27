@@ -12,8 +12,8 @@ filegroup(
 cmake_external(
     name = "libhello",
     binaries = select({
-        "@bazel_tools//src/conditions:windows": ["hello.exe"],
-        "@bazel_tools//src/conditions:darwin": ["hello"],
+        "//:windows": ["hello.exe"],
+        "//:macos": ["hello"],
         "//conditions:default": ["hello"],
     }),
     # Probably this variable should be set by default.

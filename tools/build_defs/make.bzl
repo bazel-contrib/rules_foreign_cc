@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load(
     "//tools/build_defs:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",

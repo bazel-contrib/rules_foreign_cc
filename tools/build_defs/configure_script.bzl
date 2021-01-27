@@ -1,6 +1,20 @@
+# buildifier: disable=module-docstring
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 load(":framework.bzl", "get_foreign_cc_dep")
 
+def _pkgconfig_script(ext_build_dirs):
+    """Create a script fragment to configure pkg-config"""
+    script = []
+    for ext_dir in ext_build_dirs:
+        script.append("##increment_pkg_config_path## $$EXT_BUILD_DEPS$$/" + ext_dir.basename)
+
+    script.append("echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\"")
+
+    script.append("##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$")
+
+    return script
+
+# buildifier: disable=function-docstring
 def create_configure_script(
         workspace_name,
         target_os,
@@ -14,6 +28,9 @@ def create_configure_script(
         deps,
         inputs,
         configure_in_place,
+        autoconf,
+        autoconf_options,
+        autoconf_env_vars,
         autoreconf,
         autoreconf_options,
         autoreconf_env_vars,
@@ -23,11 +40,9 @@ def create_configure_script(
         autogen_env_vars):
     env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
 
-    script = []
-    for ext_dir in inputs.ext_build_dirs:
-        script.append("##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path)
+    ext_build_dirs = inputs.ext_build_dirs
 
-    script.append("echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\"")
+    script = _pkgconfig_script(ext_build_dirs)
 
     root_path = "$$EXT_BUILD_ROOT$$/{}".format(root)
     configure_path = "{}/{}".format(root_path, configure_command)
@@ -47,6 +62,12 @@ def create_configure_script(
             " ".join(autogen_options),
         ).lstrip())
 
+    if autoconf and configure_in_place:
+        script.append("{} autoconf {}".format(
+            " ".join(["{}=\"{}\"".format(key, autoconf_env_vars[key]) for key in autoconf_env_vars]),
+            " ".join(autoconf_options),
+        ).lstrip())
+
     if autoreconf and configure_in_place:
         script.append("{} autoreconf {}".format(
             " ".join(["{}=\"{}\"".format(key, autoreconf_env_vars[key]) for key in autoreconf_env_vars]),
@@ -60,6 +81,7 @@ def create_configure_script(
     ))
     return "\n".join(script)
 
+# buildifier: disable=function-docstring
 def create_make_script(
         workspace_name,
         tools,
@@ -71,16 +93,16 @@ def create_make_script(
         make_commands,
         prefix):
     env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
-    script = []
-    for ext_dir in inputs.ext_build_dirs:
-        script.append("##increment_pkg_config_path## $$EXT_BUILD_ROOT$$/" + ext_dir.path)
 
-    script.append("echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\"")
+    ext_build_dirs = inputs.ext_build_dirs
+
+    script = _pkgconfig_script(ext_build_dirs)
 
     script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
     script.append("" + " && ".join(make_commands))
     return "\n".join(script)
 
+# buildifier: disable=function-docstring
 def get_env_vars(
         workspace_name,
         tools,

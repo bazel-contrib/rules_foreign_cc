@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 def _provider_text(symbols):
     return """
 WRAPPER = provider(
