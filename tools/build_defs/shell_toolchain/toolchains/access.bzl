@@ -38,8 +38,13 @@ def call_shell(shell_context, method_, *args):
 
     return result
 
+def _quoted(arg):
+    return arg.startswith("\"") and arg.endswith("\"")
+
 def _wrap_if_needed(arg):
-    return "\"" + arg + "\"" if arg.find(" ") >= 0 else arg
+    if arg.find(" ") >= 0 and not _quoted(arg):
+        return "\"" + arg + "\""
+    return arg
 
 # buildifier: disable=function-docstring
 def check_argument_types(method_, args_list):
