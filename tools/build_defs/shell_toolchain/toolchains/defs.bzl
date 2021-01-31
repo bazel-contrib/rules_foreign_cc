@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load(
     "//tools/build_defs/shell_toolchain/polymorphism:generate_overloads.bzl",
     "get_file_name",
@@ -15,9 +16,11 @@ toolchain_data = rule(
     },
 )
 
+# buildifier: disable=unnamed-macro
 def build_part(toolchain_type_):
     register_mappings(toolchain_type_, TOOLCHAIN_MAPPINGS)
 
+# buildifier: disable=unnamed-macro
 def register_mappings(toolchain_type_, mappings):
     for item in mappings:
         file_name = get_file_name(item.file)

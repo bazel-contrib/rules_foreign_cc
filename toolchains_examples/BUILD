@@ -20,8 +20,8 @@ constraint_value(
 platform(
     name = "fancy_platform",
     constraint_values = [
-        "@bazel_tools//platforms:linux",
-        "@bazel_tools//platforms:x86_64",
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
         ":fancy_constraint_value",
     ],
 )

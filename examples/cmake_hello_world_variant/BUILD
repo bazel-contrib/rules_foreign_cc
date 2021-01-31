@@ -3,8 +3,8 @@ load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 cmake_external(
     name = "hello_world",
     binaries = select({
-        "@bazel_tools//src/conditions:windows": ["CMakeHelloWorld.exe"],
-        "@bazel_tools//src/conditions:darwin": ["CMakeHelloWorld"],
+        "//:windows": ["CMakeHelloWorld.exe"],
+        "//:macos": ["CMakeHelloWorld"],
         "//conditions:default": ["CMakeHelloWorld"],
     }),
     cmake_options = ["-GNinja"],
@@ -20,8 +20,8 @@ filegroup(
     name = "binary",
     srcs = [":hello_world"],
     output_group = select({
-        "@bazel_tools//src/conditions:windows": "CMakeHelloWorld.exe",
-        "@bazel_tools//src/conditions:darwin": "CMakeHelloWorld",
+        "//:windows": "CMakeHelloWorld.exe",
+        "//:macos": "CMakeHelloWorld",
         "//conditions:default": "CMakeHelloWorld",
     }),
 )

@@ -1,5 +1,20 @@
-load("@foreign_cc_platform_utils//:bazel_version.bzl", "BAZEL_VERSION")
-load(":select_windows_tests.bzl", "select_windows_tests")
+# TODO: This should not be necessary but there appears to be some inconsistent
+# behavior with the use of `constraint_value`s in `select` statements. A support
+# thread was started at the end of https://github.com/bazelbuild/bazel/pull/12071
+# Once it is possible to replace `:windows` with `@platforms//os:windows` that
+# should be done for this file. Note actioning on this will set the minimum
+# supported version of Bazel to 4.0.0 for these examples.
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+    visibility = ["//:__subpackages__"],
+)
+
+config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+    visibility = ["//:__subpackages__"],
+)
 
 tests = [
     "//cmake:test_libgd",
@@ -13,12 +28,8 @@ tests = [
     # from out workspace or same workspace
     # Uncomment after nested workspaces are supported on CI
     #    "//built_ninja:test_ninja_version",
-    "@rules_foreign_cc//test:cmake_script_test_suite",
-    "@rules_foreign_cc//test:shell_script_conversion_suite",
-    "@rules_foreign_cc//test:utils_test_suite",
-    "@rules_foreign_cc//test:shell_script_inner_fun_test",
-    "@rules_foreign_cc//test:shell_method_symlink_contents_to_dir_test",
     "//cc_configure_make:libevent_echosrv1",
+    "//cmake_with_data:data_attr_tests",
 ]
 
 test_suite(
@@ -27,6 +38,8 @@ test_suite(
         "//cmake_synthetic:test_libs",
         "//cmake_with_bazel_transitive:test",
         "//configure_gnuplot:configure_libgd_tests",
+        "//configure_libunwind:configure_libunwind_tests",
+        "//configure_mpc:configure_mpc_tests",
         "//cmake_hello_world_lib/shared:test_libhello",
         "//cmake_hello_world_lib/binary:test_binary",
         "//configure_with_bazel_transitive:test",
@@ -52,42 +65,24 @@ test_suite(
     tests = tests + ["//configure_gnuplot:configure_libgd_tests"],
 )
 
-# As Bazel 0.22.0 is broken for rules_foreign_cc on Windows, we do not want to run any tests
-# with this version on CI
-# So we are selecting the list of tests to run according to recorded-in-workspace
-# Bazel version.
-# But list of tests can not be empty! Instead, have a test that just prints the Bazel version.
-windows_tests = select_windows_tests(
-    BAZEL_VERSION,
-    tests + [
+test_suite(
+    name = "win_tests",
+    tags = ["windows"],
+    tests = tests + [
         #        "//cmake_synthetic:test_libs",
         #        "//configure_gnuplot:configure_libgd_tests",
         "//cmake_hello_world_lib/static:test_hello_ninja",
         "//cmake_hello_world_variant:test_hello_world",
         #        "//cmake_hello_world_lib/static:test_hello_nmake",
     ],
-    [":bazel_version"],
-)
-
-test_suite(
-    name = "win_tests",
-    tags = ["windows"],
-    tests = windows_tests,
-)
-
-sh_test(
-    name = "bazel_version",
-    srcs = ["print_bazel_version.sh"],
-    args = [BAZEL_VERSION],
-    tags = ["windows"],
 )
 
 # On Bazel CI Mac machines, we are using ninja built from sources
 toolchain(
     name = "built_ninja_toolchain_osx",
     exec_compatible_with = [
-        "@bazel_tools//platforms:osx",
-        "@bazel_tools//platforms:x86_64",
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
     ],
     toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:built_ninja",
     toolchain_type = "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
@@ -96,8 +91,8 @@ toolchain(
 toolchain(
     name = "built_ninja_toolchain_linux",
     exec_compatible_with = [
-        "@bazel_tools//platforms:linux",
-        "@bazel_tools//platforms:x86_64",
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
     ],
     toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:built_ninja",
     toolchain_type = "@rules_foreign_cc//tools/build_defs:ninja_toolchain",

@@ -1,0 +1,20 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+# "@bazel_tools//tools:bzl_srcs" is a filegroup. Convert define a `bzl_library` for it
+bzl_library(
+    name = "bazel_tools_bzl_srcs",
+    srcs = ["@bazel_tools//tools:bzl_srcs"],
+)
+
+bzl_library(
+    name = "bzl_srcs",
+    srcs = glob(["**/*.bzl"]) + [
+        "@bazel_tools//tools:bzl_srcs",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":bazel_tools_bzl_srcs",
+        "//for_workspace:bzl_srcs",
+        "//tools/build_defs:bzl_srcs",
+    ],
+)

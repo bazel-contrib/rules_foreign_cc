@@ -1,3 +1,5 @@
+# buildifier: disable=module-docstring
+# buildifier: disable=name-conventions
 CreatedByScript = provider(
     doc = "Structure to keep declared file or directory and creating script.",
     fields = dict(
@@ -6,14 +8,16 @@ CreatedByScript = provider(
     ),
 )
 
-""" Creates a fictive file under the build root.
-This gives the possibility to address the build root in script and construct paths under it.
-  Attributes:
-    actions - actions factory (ctx.actions)
-    target_name - name of the current target (ctx.label.name)
-"""
-
 def fictive_file_in_genroot(actions, target_name):
+    """Creates a fictive file under the build root.
+
+    This gives the possibility to address the build root in script and construct paths under it.
+
+    Args:
+        actions (ctx.actions): actions factory
+        target_name (ctx.label.name): name of the current target
+    """
+
     # we need this fictive file in the genroot to get the path of the root in the script
     empty = actions.declare_file("empty_{}.txt".format(target_name))
     return CreatedByScript(
@@ -21,15 +25,16 @@ def fictive_file_in_genroot(actions, target_name):
         script = "##touch## $$EXT_BUILD_ROOT$$/" + empty.path,
     )
 
-""" Copies directory by $EXT_BUILD_ROOT/orig_path into to $EXT_BUILD_ROOT/copy_path.
-I.e. a copy of the directory is created under $EXT_BUILD_ROOT/copy_path.
-  Attributes:
-    actions - actions factory (ctx.actions)
-    orig_path - path to the original directory, relative to the build root
-    copy_path - target directory, relative to the build root
-"""
-
 def copy_directory(actions, orig_path, copy_path):
+    """Copies directory by $EXT_BUILD_ROOT/orig_path into to $EXT_BUILD_ROOT/copy_path.
+
+    I.e. a copy of the directory is created under $EXT_BUILD_ROOT/copy_path.
+
+    Args:
+        actions: actions factory (ctx.actions)
+        orig_path: path to the original directory, relative to the build root
+        copy_path: target directory, relative to the build root
+    """
     dir_copy = actions.declare_directory(copy_path)
     return CreatedByScript(
         file = dir_copy,

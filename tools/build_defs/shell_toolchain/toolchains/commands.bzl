@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 CommandInfo = provider(
     doc = "To pass information about the Starlark function, defining the shell fragment.",
     fields = {
@@ -113,9 +114,10 @@ PLATFORM_COMMANDS = {
             ),
             ArgumentInfo(name = "target", type_ = type(""), doc = "Target directory"),
         ],
-        doc = """
-Symlink contents of the directory to target directory (create the target directory if needed).
-If file is passed, symlink it into the target directory.""",
+        doc = (
+            "Symlink contents of the directory to target directory (create the target directory if needed). " +
+            "If file is passed, symlink it into the target directory."
+        ),
     ),
     "symlink_to_dir": CommandInfo(
         arguments = [
@@ -126,9 +128,10 @@ If file is passed, symlink it into the target directory.""",
             ),
             ArgumentInfo(name = "target", type_ = type(""), doc = "Target directory"),
         ],
-        doc = """
-Symlink all files from source directory to target directory (create the target directory if needed).
-NB symlinks from the source directory are copied.""",
+        doc = (
+            "Symlink all files from source directory to target directory (create the target directory if needed). " +
+            "NB symlinks from the source directory are copied."
+        ),
     ),
     "script_prelude": CommandInfo(
         arguments = [],
@@ -142,8 +145,10 @@ NB symlinks from the source directory are copied.""",
                 doc = "Source directory",
             ),
         ],
-        doc = """Find subdirectory inside a passed directory with *.pc files and add it
-    to the PKG_CONFIG_PATH""",
+        doc = (
+            "Find subdirectory inside a passed directory with *.pc files and add it " +
+            "to the PKG_CONFIG_PATH"
+        ),
     ),
     "assert_script_errors": CommandInfo(
         arguments = [],

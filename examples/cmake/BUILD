@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(

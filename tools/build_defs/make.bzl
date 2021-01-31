@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load(
     "//tools/build_defs:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
@@ -14,12 +15,19 @@ load(
     "get_tools_info",
 )
 load(":configure_script.bzl", "create_make_script")
+load("//tools/build_defs/native_tools:tool_access.bzl", "get_make_data")
 
 def _make(ctx):
+    make_data = get_make_data(ctx)
+
+    tools_deps = ctx.attr.tools_deps + make_data.deps
+
     attrs = create_attrs(
         ctx.attr,
         configure_name = "GNUMake",
         create_configure_script = _create_make_script,
+        tools_deps = tools_deps,
+        make_path = make_data.path,
         make_commands = [],
     )
     return cc_external_rule_impl(ctx, attrs)
@@ -35,8 +43,16 @@ def _create_make_script(configureParameters):
     flags = get_flags_info(ctx)
 
     make_commands = ctx.attr.make_commands or [
-        "make %s -C $$EXT_BUILD_ROOT$$/%s" % ("-k" if ctx.attr.keep_going else "", root),
-        "make -C $$EXT_BUILD_ROOT$$/%s install PREFIX=%s" % (root, install_prefix),
+        "{make} {keep_going} -C $$EXT_BUILD_ROOT$$/{root}".format(
+            make = configureParameters.attrs.make_path,
+            keep_going = "-k" if ctx.attr.keep_going else "",
+            root = root,
+        ),
+        "{make} -C $$EXT_BUILD_ROOT$$/{root} install PREFIX={prefix}".format(
+            make = configureParameters.attrs.make_path,
+            root = root,
+            prefix = install_prefix,
+        ),
     ]
 
     return create_make_script(
@@ -59,41 +75,54 @@ def _get_install_prefix(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
-        # Environment variables to be set for the 'configure' invocation.
-        "make_env_vars": attr.string_dict(),
-        # Install prefix, an absolute path.
-        # Passed to the GNU make via "make install PREFIX=<value>".
-        # By default, the install directory created under sandboxed execution root is used.
-        # Build results are copied to the Bazel's output directory, so the prefix is only important
-        # if it is recorded into any text files by Makefile script.
-        # In that case, it is important to note that rules_foreign_cc is overriding the paths under
-        # execution root with "BAZEL_GEN_ROOT" value.
-        "prefix": attr.string(mandatory = False),
-        # Overriding make_commands default value to be empty,
-        # then we can provide better default value programmatically
-        "make_commands": attr.string_list(mandatory = False, default = []),
-        # Keep going when some targets can not be made, -k flag is passed to make
-        # (applies only if make_commands attribute is not set).
-        # Please have a look at _create_make_script for default make_commands.
-        "keep_going": attr.bool(mandatory = False, default = True),
+        "make_env_vars": attr.string_dict(
+            doc = "Environment variables to be set for the 'configure' invocation.",
+        ),
+        "prefix": attr.string(
+            doc = (
+                "Install prefix, an absolute path. " +
+                "Passed to the GNU make via \"make install PREFIX=<value>\". " +
+                "By default, the install directory created under sandboxed execution root is used. " +
+                "Build results are copied to the Bazel's output directory, so the prefix is only important " +
+                "if it is recorded into any text files by Makefile script. " +
+                "In that case, it is important to note that rules_foreign_cc is overriding the paths under " +
+                "execution root with \"BAZEL_GEN_ROOT\" value."
+            ),
+            mandatory = False,
+        ),
+        "make_commands": attr.string_list(
+            doc = (
+                "Overriding make_commands default value to be empty, " +
+                "then we can provide better default value programmatically "
+            ),
+            mandatory = False,
+            default = [],
+        ),
+        "keep_going": attr.bool(
+            doc = (
+                "Keep going when some targets can not be made, -k flag is passed to make " +
+                "(applies only if make_commands attribute is not set). " +
+                "Please have a look at _create_make_script for default make_commands."
+            ),
+            mandatory = False,
+            default = True,
+        ),
     })
     return attrs
 
-"""Rule for building external libraries with GNU Make.
- GNU Make commands (make and make install by default) are invoked with prefix="install"
- (by default), and other environment variables for compilation and linking, taken from Bazel C/C++
- toolchain and passed dependencies.
-
- Attributes:
-   See line comments in _attrs() method.
- Other attributes are documented in framework.bzl:CC_EXTERNAL_RULE_ATTRIBUTES
-"""
 make = rule(
+    doc = (
+        "Rule for building external libraries with GNU Make. " +
+        "GNU Make commands (make and make install by default) are invoked with prefix=\"install\" " +
+        "(by default), and other environment variables for compilation and linking, taken from Bazel C/C++ " +
+        "toolchain and passed dependencies."
+    ),
     attrs = _attrs(),
     fragments = ["cpp"],
     output_to_genfiles = True,
     implementation = _make,
     toolchains = [
+        "@rules_foreign_cc//tools/build_defs:make_toolchain",
         "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],

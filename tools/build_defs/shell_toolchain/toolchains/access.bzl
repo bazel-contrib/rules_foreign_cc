@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load("//tools/build_defs/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
 load(":function_and_call.bzl", "FunctionAndCall")
 
@@ -9,13 +10,16 @@ def create_context(ctx):
         prelude = {},
     )
 
+# buildifier: disable=function-docstring-header
+# buildifier: disable=function-docstring-args
+# buildifier: disable=function-docstring-return
 def call_shell(shell_context, method_, *args):
-    """ Calls the 'method_' shell command from the toolchain.
- Checks the number and types of passed arguments.
- If the command returns the resulting text wrapped into FunctionAndCall provider,
- puts the text of the function into the 'prelude' dictionary in the 'shell_context',
- and returns only the call of that function.
-"""
+    """Calls the 'method_' shell command from the toolchain.
+    Checks the number and types of passed arguments.
+    If the command returns the resulting text wrapped into FunctionAndCall provider,
+    puts the text of the function into the 'prelude' dictionary in the 'shell_context',
+    and returns only the call of that function.
+    """
     check_argument_types(method_, args)
 
     func_ = getattr(shell_context.shell, method_)
@@ -42,6 +46,7 @@ def _wrap_if_needed(arg):
         return "\"" + arg + "\""
     return arg
 
+# buildifier: disable=function-docstring
 def check_argument_types(method_, args_list):
     descriptor = PLATFORM_COMMANDS[method_]
     args_info = descriptor.arguments
