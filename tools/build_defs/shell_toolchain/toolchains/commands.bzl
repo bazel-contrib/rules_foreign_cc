@@ -67,10 +67,6 @@ PLATFORM_COMMANDS = {
         arguments = [ArgumentInfo(name = "path", type_ = type(""), doc = "Path to directory")],
         doc = "Creates a directory and, if neccesary, it's parents",
     ),
-    "tmpdir": CommandInfo(
-        doc = "Creates a temp directory",
-        arguments = [],
-    ),
     "if_else": CommandInfo(
         doc = "Creates if-else construct",
         arguments = [
