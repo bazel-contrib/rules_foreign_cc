@@ -99,7 +99,9 @@ elif [[ -d "$1" ]]; then
   local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
   for child in "${children[@]}"; do
-    ##symlink_to_dir## "$child" "$target/$(basename $1)"
+    if [[ "$dirname" != _ext_build_deps ]]; then
+      ##symlink_to_dir## "$child" "$target/$(basename $1)"
+    fi
   done
 else
   echo "Can not copy $1"
