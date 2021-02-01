@@ -181,10 +181,6 @@ PLATFORM_COMMANDS = {
             "NB symlinks from the source directory are copied."
         ),
     ),
-    "tmpdir": CommandInfo(
-        doc = "Creates a temp directory",
-        arguments = [],
-    ),
     "touch": CommandInfo(
         arguments = [ArgumentInfo(name = "path", type_ = type(""), doc = "Path to file")],
         doc = "Creates a file",
