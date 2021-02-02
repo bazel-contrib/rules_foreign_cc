@@ -55,9 +55,9 @@ def create_cmake_script(
         "Debug" if is_debug_mode else "Release",
     )
     params.cache.update({
-        "CMAKE_PREFIX_PATH": merged_prefix_path,
-        "CMAKE_INSTALL_PREFIX": install_prefix,
         "CMAKE_BUILD_TYPE": build_type,
+        "CMAKE_INSTALL_PREFIX": install_prefix,
+        "CMAKE_PREFIX_PATH": merged_prefix_path,
     })
 
     # Give user the ability to suppress some value, taken from Bazel's toolchain,
@@ -101,26 +101,26 @@ def _merge_prefix_path(user_cache, include_dirs):
     return ";".join(values)
 
 _CMAKE_ENV_VARS_FOR_CROSSTOOL = {
-    "CC": struct(value = "CMAKE_C_COMPILER", replace = True),
-    "CXX": struct(value = "CMAKE_CXX_COMPILER", replace = True),
-    "CFLAGS": struct(value = "CMAKE_C_FLAGS_INIT", replace = False),
-    "CXXFLAGS": struct(value = "CMAKE_CXX_FLAGS_INIT", replace = False),
     "ASMFLAGS": struct(value = "CMAKE_ASM_FLAGS_INIT", replace = False),
+    "CC": struct(value = "CMAKE_C_COMPILER", replace = True),
+    "CFLAGS": struct(value = "CMAKE_C_FLAGS_INIT", replace = False),
+    "CXX": struct(value = "CMAKE_CXX_COMPILER", replace = True),
+    "CXXFLAGS": struct(value = "CMAKE_CXX_FLAGS_INIT", replace = False),
 }
 
 _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
-    "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
     "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
-    "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
-    "CMAKE_C_ARCHIVE_CREATE": struct(value = "CMAKE_C_ARCHIVE_CREATE", replace = False),
-    "CMAKE_CXX_ARCHIVE_CREATE": struct(value = "CMAKE_CXX_ARCHIVE_CREATE", replace = False),
-    "CMAKE_CXX_LINK_EXECUTABLE": struct(value = "CMAKE_CXX_LINK_EXECUTABLE", replace = True),
-    "CMAKE_C_FLAGS": struct(value = "CMAKE_C_FLAGS_INIT", replace = False),
-    "CMAKE_CXX_FLAGS": struct(value = "CMAKE_CXX_FLAGS_INIT", replace = False),
     "CMAKE_ASM_FLAGS": struct(value = "CMAKE_ASM_FLAGS_INIT", replace = False),
-    "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
-    "CMAKE_SHARED_LINKER_FLAGS": struct(value = "CMAKE_SHARED_LINKER_FLAGS_INIT", replace = False),
+    "CMAKE_CXX_ARCHIVE_CREATE": struct(value = "CMAKE_CXX_ARCHIVE_CREATE", replace = False),
+    "CMAKE_CXX_FLAGS": struct(value = "CMAKE_CXX_FLAGS_INIT", replace = False),
+    "CMAKE_CXX_LINK_EXECUTABLE": struct(value = "CMAKE_CXX_LINK_EXECUTABLE", replace = True),
+    "CMAKE_C_ARCHIVE_CREATE": struct(value = "CMAKE_C_ARCHIVE_CREATE", replace = False),
+    "CMAKE_C_FLAGS": struct(value = "CMAKE_C_FLAGS_INIT", replace = False),
     "CMAKE_EXE_LINKER_FLAGS": struct(value = "CMAKE_EXE_LINKER_FLAGS_INIT", replace = False),
+    "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
+    "CMAKE_SHARED_LINKER_FLAGS": struct(value = "CMAKE_SHARED_LINKER_FLAGS_INIT", replace = False),
+    "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
+    "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
 }
 
 def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):

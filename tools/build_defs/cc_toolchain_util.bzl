@@ -1,7 +1,7 @@
 """ Defines create_linking_info, which wraps passed libraries into CcLinkingInfo
 """
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@bazel_skylib//lib:collections.bzl", "collections")
 load(
     "@bazel_tools//tools/build_defs/cc:action_names.bzl",
     "ASSEMBLE_ACTION_NAME",
@@ -11,7 +11,7 @@ load(
     "CPP_LINK_STATIC_LIBRARY_ACTION_NAME",
     "C_COMPILE_ACTION_NAME",
 )
-load("@bazel_skylib//lib:collections.bzl", "collections")
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
@@ -172,10 +172,10 @@ def _build_cc_link_params(
         )
 
     return {
-        "static_mode_params_for_dynamic_library": static_shared,
-        "static_mode_params_for_executable": static_no_shared,
         "dynamic_mode_params_for_dynamic_library": no_static_shared,
         "dynamic_mode_params_for_executable": no_static_no_shared,
+        "static_mode_params_for_dynamic_library": static_shared,
+        "static_mode_params_for_executable": static_no_shared,
     }
 
 def targets_windows(ctx, cc_toolchain):

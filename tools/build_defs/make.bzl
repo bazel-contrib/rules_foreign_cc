@@ -1,21 +1,21 @@
 # buildifier: disable=module-docstring
 load(
-    "//tools/build_defs:framework.bzl",
-    "CC_EXTERNAL_RULE_ATTRIBUTES",
-    "cc_external_rule_impl",
-    "create_attrs",
+    "//tools/build_defs:cc_toolchain_util.bzl",
+    "get_flags_info",
+    "get_tools_info",
 )
 load(
     "//tools/build_defs:detect_root.bzl",
     "detect_root",
 )
 load(
-    "//tools/build_defs:cc_toolchain_util.bzl",
-    "get_flags_info",
-    "get_tools_info",
+    "//tools/build_defs:framework.bzl",
+    "CC_EXTERNAL_RULE_ATTRIBUTES",
+    "cc_external_rule_impl",
+    "create_attrs",
 )
-load(":configure_script.bzl", "create_make_script")
 load("//tools/build_defs/native_tools:tool_access.bzl", "get_make_data")
+load(":configure_script.bzl", "create_make_script")
 
 def _make(ctx):
     make_data = get_make_data(ctx)
@@ -75,6 +75,23 @@ def _get_install_prefix(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
+        "keep_going": attr.bool(
+            doc = (
+                "Keep going when some targets can not be made, -k flag is passed to make " +
+                "(applies only if make_commands attribute is not set). " +
+                "Please have a look at _create_make_script for default make_commands."
+            ),
+            mandatory = False,
+            default = True,
+        ),
+        "make_commands": attr.string_list(
+            doc = (
+                "Overriding make_commands default value to be empty, " +
+                "then we can provide better default value programmatically "
+            ),
+            mandatory = False,
+            default = [],
+        ),
         "make_env_vars": attr.string_dict(
             doc = "Environment variables to be set for the 'configure' invocation.",
         ),
@@ -89,23 +106,6 @@ def _attrs():
                 "execution root with \"BAZEL_GEN_ROOT\" value."
             ),
             mandatory = False,
-        ),
-        "make_commands": attr.string_list(
-            doc = (
-                "Overriding make_commands default value to be empty, " +
-                "then we can provide better default value programmatically "
-            ),
-            mandatory = False,
-            default = [],
-        ),
-        "keep_going": attr.bool(
-            doc = (
-                "Keep going when some targets can not be made, -k flag is passed to make " +
-                "(applies only if make_commands attribute is not set). " +
-                "Please have a look at _create_make_script for default make_commands."
-            ),
-            mandatory = False,
-            default = True,
         ),
     })
     return attrs

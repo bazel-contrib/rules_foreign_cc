@@ -1,6 +1,6 @@
+load("@bazel_tools//tools/build_rules:test_rules.bzl", "file_test")
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
-load("@bazel_tools//tools/build_rules:test_rules.bzl", "file_test")
 
 configure_make(
     name = "libz",

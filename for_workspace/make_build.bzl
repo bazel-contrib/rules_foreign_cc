@@ -1,7 +1,7 @@
 """ Rule for building GNU Make from sources. """
 
-load("//tools/build_defs:detect_root.bzl", "detect_root")
 load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "convert_shell_script")
+load("//tools/build_defs:detect_root.bzl", "detect_root")
 
 def _make_tool(ctx):
     root = detect_root(ctx.attr.make_srcs)

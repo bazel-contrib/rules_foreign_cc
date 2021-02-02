@@ -20,12 +20,12 @@ def _replace_vars_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "$$ABC$$": "$ABC",
-        "x$$ABC$$": "x$ABC",
-        "$$ABC$$x": "$ABCx",
         " $$ABC$$ ": " $ABC ",
+        "$$ABC$$": "$ABC",
         "$$ABC$$/$$DEF$$": "$ABC/$DEF",
+        "$$ABC$$x": "$ABCx",
         "test before $$ABC$$$ and after": "test before $ABC$ and after",
+        "x$$ABC$$": "x$ABC",
     }
 
     shell_ = struct(
@@ -45,12 +45,12 @@ def _replace_vars_win_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "$$ABC$$": "%ABC%",
-        "x$$ABC$$": "x%ABC%",
-        "$$ABC$$x": "%ABC%x",
         " $$ABC$$ ": " %ABC% ",
+        "$$ABC$$": "%ABC%",
         "$$ABC$$/$$DEF$$": "%ABC%/%DEF%",
+        "$$ABC$$x": "%ABC%x",
         "test before $$ABC$$$ and after": "test before %ABC%$ and after",
+        "x$$ABC$$": "x%ABC%",
     }
 
     shell_ = struct(
@@ -76,10 +76,10 @@ def _split_arguments_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        " 1 2 3": ["1", "2", "3"],
-        "1 2": ["1", "2"],
         " \"\ntext\n\"": ["\"\ntext\n\""],
+        " 1 2 3": ["1", "2", "3"],
         " usual \"quoted argument\"": ["usual", "\"quoted argument\""],
+        "1 2": ["1", "2"],
     }
     for case in cases:
         result = split_arguments(case)
@@ -103,13 +103,13 @@ def _do_function_call_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "##symlink_contents_to_dir## 1 2": "1_2",
         "##echo## \"\ntext\n\"": "echo1 \"\ntext\n\"",
+        "##os_name##": "Fuchsia",
+        "##script_prelude##": "set -e",
+        "##symlink_contents_to_dir## 1 2": "1_2",
+        "export ROOT=\"A B C\"": "export1 ROOT=\"A B C\"",
         "export ROOT=\"ABC\"": "export1 ROOT=\"ABC\"",
         "export ROOT=ABC": "export1 ROOT=ABC",
-        "export ROOT=\"A B C\"": "export1 ROOT=\"A B C\"",
-        "##script_prelude##": "set -e",
-        "##os_name##": "Fuchsia",
     }
     shell_ = struct(
         symlink_contents_to_dir = _funny_fun,
@@ -158,11 +158,8 @@ def _do_function_call_with_body_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "##touch## a/b/c": {
-            "text": "function touch() {\n  call_touch $1\n}",
-            "call": "touch a/b/c",
-        },
         "##cleanup_function## \"echo $$CLEANUP_MSG$$\" \"echo $$KEEP_MSG1$$ && echo $$KEEP_MSG2$$\"": {
+            "call": "cleanup_function \"echo $$CLEANUP_MSG$$\" \"echo $$KEEP_MSG1$$ && echo $$KEEP_MSG2$$\"",
             "text": """function cleanup_function() {
   local ecode=$?
 if [ $ecode -eq 0 ]; then
@@ -174,7 +171,10 @@ echo $$KEEP_MSG1$$ && echo $$KEEP_MSG2$$
 echo ""
 fi
 }""",
-            "call": "cleanup_function \"echo $$CLEANUP_MSG$$\" \"echo $$KEEP_MSG1$$ && echo $$KEEP_MSG2$$\"",
+        },
+        "##touch## a/b/c": {
+            "call": "touch a/b/c",
+            "text": "function touch() {\n  call_touch $1\n}",
         },
     }
     shell_ = struct(

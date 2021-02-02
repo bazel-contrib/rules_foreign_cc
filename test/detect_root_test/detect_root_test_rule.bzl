@@ -14,7 +14,7 @@ def _impl(ctx):
 detect_root_test_rule = rule(
     implementation = _impl,
     attrs = {
-        "srcs": attr.label(mandatory = True),
         "out": attr.string(mandatory = True),
+        "srcs": attr.label(mandatory = True),
     },
 )

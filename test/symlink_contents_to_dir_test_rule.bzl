@@ -1,9 +1,9 @@
 # buildifier: disable=module-docstring
+load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 load(
     "@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl",
     "convert_shell_script",
 )
-load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 
 def _impl(ctx):
     out = ctx.actions.declare_file(ctx.attr.out)

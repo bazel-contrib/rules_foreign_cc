@@ -1,9 +1,9 @@
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load(":cmake_text_tests.bzl", "cmake_script_test_suite")
 load(":convert_shell_script_test.bzl", "shell_script_conversion_suite")
-load(":utils_test.bzl", "utils_test_suite")
 load(":shell_script_helper_test_rule.bzl", "shell_script_helper_test_rule")
-load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load(":symlink_contents_to_dir_test_rule.bzl", "symlink_contents_to_dir_test_rule")
+load(":utils_test.bzl", "utils_test_suite")
 
 cmake_script_test_suite()
 

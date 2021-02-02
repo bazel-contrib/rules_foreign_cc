@@ -16,8 +16,8 @@ def _impl(ctx):
 shell_script_helper_test_rule = rule(
     implementation = _impl,
     attrs = {
-        "script": attr.string_list(mandatory = True),
         "out": attr.string(mandatory = True),
+        "script": attr.string_list(mandatory = True),
     },
     toolchains = [
         "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",

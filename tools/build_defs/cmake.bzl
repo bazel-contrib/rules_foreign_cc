@@ -1,6 +1,17 @@
 """ Defines the rule for building external library with CMake
 """
 
+load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
+load(
+    "//tools/build_defs:cc_toolchain_util.bzl",
+    "get_flags_info",
+    "get_tools_info",
+    "is_debug_mode",
+)
+load(
+    "//tools/build_defs:detect_root.bzl",
+    "detect_root",
+)
 load(
     "//tools/build_defs:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
@@ -8,23 +19,12 @@ load(
     "create_attrs",
 )
 load(
-    "//tools/build_defs:detect_root.bzl",
-    "detect_root",
-)
-load(
-    "//tools/build_defs:cc_toolchain_util.bzl",
-    "get_flags_info",
-    "get_tools_info",
-    "is_debug_mode",
-)
-load(":cmake_script.bzl", "create_cmake_script")
-load(
     "//tools/build_defs/native_tools:tool_access.bzl",
     "get_cmake_data",
     "get_make_data",
     "get_ninja_data",
 )
-load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
+load(":cmake_script.bzl", "create_cmake_script")
 
 def _cmake_external(ctx):
     cmake_data = get_cmake_data(ctx)
@@ -102,10 +102,6 @@ def _get_install_prefix(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
-        "install_prefix": attr.string(
-            doc = "Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX",
-            mandatory = False,
-        ),
         "cache_entries": attr.string_dict(
             doc = (
                 "CMake cache entries to initialize (they will be passed with -Dkey=value) " +
@@ -115,6 +111,11 @@ def _attrs():
             mandatory = False,
             default = {},
         ),
+        "cmake_options": attr.string_list(
+            doc = "Other CMake options",
+            mandatory = False,
+            default = [],
+        ),
         "env_vars": attr.string_dict(
             doc = (
                 "CMake environment variable values to join with toolchain-defined. " +
@@ -122,11 +123,6 @@ def _attrs():
             ),
             mandatory = False,
             default = {},
-        ),
-        "cmake_options": attr.string_list(
-            doc = "Other CMake options",
-            mandatory = False,
-            default = [],
         ),
         "generate_crosstool_file": attr.bool(
             doc = (
@@ -140,6 +136,10 @@ def _attrs():
             ),
             mandatory = False,
             default = False,
+        ),
+        "install_prefix": attr.string(
+            doc = "Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX",
+            mandatory = False,
         ),
         "working_directory": attr.string(
             doc = (

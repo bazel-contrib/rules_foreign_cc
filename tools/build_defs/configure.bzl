@@ -1,23 +1,23 @@
 # buildifier: disable=module-docstring
-load(
-    "//tools/build_defs:framework.bzl",
-    "CC_EXTERNAL_RULE_ATTRIBUTES",
-    "cc_external_rule_impl",
-    "create_attrs",
-)
-load(
-    "//tools/build_defs:detect_root.bzl",
-    "detect_root",
-)
+load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
 load(
     "//tools/build_defs:cc_toolchain_util.bzl",
     "get_flags_info",
     "get_tools_info",
     "is_debug_mode",
 )
-load(":configure_script.bzl", "create_configure_script")
+load(
+    "//tools/build_defs:detect_root.bzl",
+    "detect_root",
+)
+load(
+    "//tools/build_defs:framework.bzl",
+    "CC_EXTERNAL_RULE_ATTRIBUTES",
+    "cc_external_rule_impl",
+    "create_attrs",
+)
 load("//tools/build_defs/native_tools:tool_access.bzl", "get_make_data")
-load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
+load(":configure_script.bzl", "create_configure_script")
 
 def _configure_make(ctx):
     make_data = get_make_data(ctx)
@@ -85,48 +85,6 @@ def _get_install_prefix(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
-        "configure_command": attr.string(
-            doc = (
-                "The name of the configuration script file, default: configure. " +
-                "The file must be in the root of the source directory."
-            ),
-            default = "configure",
-        ),
-        "configure_options": attr.string_list(
-            doc = "Any options to be put on the 'configure' command line.",
-        ),
-        "configure_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for the 'configure' invocation.",
-        ),
-        "install_prefix": attr.string(
-            doc = (
-                "Install prefix, i.e. relative path to where to install the result of the build. " +
-                "Passed to the 'configure' script with --prefix flag."
-            ),
-            mandatory = False,
-        ),
-        "configure_in_place": attr.bool(
-            doc = (
-                "Set to True if 'configure' should be invoked in place, i.e. from its enclosing " +
-                "directory."
-            ),
-            mandatory = False,
-            default = False,
-        ),
-        "autoreconf": attr.bool(
-            doc = (
-                "Set to True if 'autoreconf' should be invoked before 'configure.', " +
-                "currently requires 'configure_in_place' to be True."
-            ),
-            mandatory = False,
-            default = False,
-        ),
-        "autoreconf_options": attr.string_list(
-            doc = "Any options to be put in the 'autoreconf.sh' command line.",
-        ),
-        "autoreconf_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for 'autoreconf' invocation.",
-        ),
         "autoconf": attr.bool(
             mandatory = False,
             default = False,
@@ -135,11 +93,11 @@ def _attrs():
                 "currently requires 'configure_in_place' to be True."
             ),
         ),
-        "autoconf_options": attr.string_list(
-            doc = "Any options to be put in the 'autoconf.sh' command line.",
-        ),
         "autoconf_env_vars": attr.string_dict(
             doc = "Environment variables to be set for 'autoconf' invocation.",
+        ),
+        "autoconf_options": attr.string_list(
+            doc = "Any options to be put in the 'autoconf.sh' command line.",
         ),
         "autogen": attr.bool(
             doc = (
@@ -157,11 +115,53 @@ def _attrs():
             ),
             default = "autogen.sh",
         ),
+        "autogen_env_vars": attr.string_dict(
+            doc = "Environment variables to be set for 'autogen' invocation.",
+        ),
         "autogen_options": attr.string_list(
             doc = "Any options to be put in the 'autogen.sh' command line.",
         ),
-        "autogen_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for 'autogen' invocation.",
+        "autoreconf": attr.bool(
+            doc = (
+                "Set to True if 'autoreconf' should be invoked before 'configure.', " +
+                "currently requires 'configure_in_place' to be True."
+            ),
+            mandatory = False,
+            default = False,
+        ),
+        "autoreconf_env_vars": attr.string_dict(
+            doc = "Environment variables to be set for 'autoreconf' invocation.",
+        ),
+        "autoreconf_options": attr.string_list(
+            doc = "Any options to be put in the 'autoreconf.sh' command line.",
+        ),
+        "configure_command": attr.string(
+            doc = (
+                "The name of the configuration script file, default: configure. " +
+                "The file must be in the root of the source directory."
+            ),
+            default = "configure",
+        ),
+        "configure_env_vars": attr.string_dict(
+            doc = "Environment variables to be set for the 'configure' invocation.",
+        ),
+        "configure_in_place": attr.bool(
+            doc = (
+                "Set to True if 'configure' should be invoked in place, i.e. from its enclosing " +
+                "directory."
+            ),
+            mandatory = False,
+            default = False,
+        ),
+        "configure_options": attr.string_list(
+            doc = "Any options to be put on the 'configure' command line.",
+        ),
+        "install_prefix": attr.string(
+            doc = (
+                "Install prefix, i.e. relative path to where to install the result of the build. " +
+                "Passed to the 'configure' script with --prefix flag."
+            ),
+            mandatory = False,
         ),
     })
     return attrs
