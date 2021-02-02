@@ -58,7 +58,7 @@ def _create_configure_script(configureParameters):
         user_options = ctx.attr.configure_options,
         user_vars = dict(ctx.attr.configure_env_vars),
         is_debug = is_debug_mode(ctx),
-        configure_command = ctx.attr.configure_command,
+        configure_command = ctx.expand_location(ctx.attr.configure_command, targets=ctx.attr.tools_deps+ctx.attr.additional_tools),
         deps = ctx.attr.deps,
         inputs = inputs,
         configure_in_place = ctx.attr.configure_in_place,
@@ -69,7 +69,7 @@ def _create_configure_script(configureParameters):
         autoreconf_options = ctx.attr.autoreconf_options,
         autoreconf_env_vars = ctx.attr.autoreconf_env_vars,
         autogen = ctx.attr.autogen,
-        autogen_command = ctx.attr.autogen_command,
+        autogen_command = ctx.expand_location(ctx.attr.autogen_command),
         autogen_options = ctx.attr.autogen_options,
         autogen_env_vars = ctx.attr.autogen_env_vars,
     )
