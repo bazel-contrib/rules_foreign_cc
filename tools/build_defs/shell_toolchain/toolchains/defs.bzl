@@ -1,10 +1,10 @@
 # buildifier: disable=module-docstring
+load("@commands_overloads//:toolchain_data_defs.bzl", "get")
 load(
     "//tools/build_defs/shell_toolchain/polymorphism:generate_overloads.bzl",
     "get_file_name",
 )
 load(":toolchain_mappings.bzl", "TOOLCHAIN_MAPPINGS")
-load("@commands_overloads//:toolchain_data_defs.bzl", "get")
 
 def _toolchain_data(ctx):
     return platform_common.ToolchainInfo(data = get(ctx.attr.file_name))

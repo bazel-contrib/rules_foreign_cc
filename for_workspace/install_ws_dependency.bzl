@@ -22,11 +22,11 @@ _generate_install_rule = repository_rule(
     local = True,
     implementation = _generate_install_rule_impl,
     attrs = {
-        "url": attr.string(mandatory = True),
-        "stripPrefix": attr.string(mandatory = False),
+        "init_expression": attr.string(mandatory = True),
         "init_file": attr.string(mandatory = True),
         "init_function": attr.string(mandatory = True),
-        "init_expression": attr.string(mandatory = True),
+        "stripPrefix": attr.string(mandatory = False),
+        "url": attr.string(mandatory = True),
     },
 )
 

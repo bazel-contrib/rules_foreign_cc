@@ -28,7 +28,7 @@ tasks:
     build_targets:
       - "//cmake_android:app"
     test_targets:
-    - "//:tests"
+      - "//:tests"
   ubuntu1804_examples:
     name: Examples
     platform: ubuntu1804
@@ -106,7 +106,7 @@ tasks:
     platform: ubuntu2004
     working_directory: docs
     build_targets:
-    - //...
+      - //...
   min_supported_version:
     name: "Minimum Supported Version"
     bazel: "3.4.0"
@@ -125,4 +125,6 @@ tasks:
     test_targets:
       - "//:tests_no_synthetic"
 
-buildifier: latest
+buildifier:
+  version: latest
+  warnings: "all"
