@@ -314,7 +314,7 @@ of the script, and allows to reuse the inputs structure, created by the framewor
 ## ForeignCcArtifact
 
 <pre>
-ForeignCcArtifact(<a href="#ForeignCcArtifact-gen_dir">gen_dir</a>, <a href="#ForeignCcArtifact-bin_dir_name">bin_dir_name</a>, <a href="#ForeignCcArtifact-lib_dir_name">lib_dir_name</a>, <a href="#ForeignCcArtifact-include_dir_name">include_dir_name</a>)
+ForeignCcArtifact(<a href="#ForeignCcArtifact-bin_dir_name">bin_dir_name</a>, <a href="#ForeignCcArtifact-gen_dir">gen_dir</a>, <a href="#ForeignCcArtifact-include_dir_name">include_dir_name</a>, <a href="#ForeignCcArtifact-lib_dir_name">lib_dir_name</a>)
 </pre>
 
 Groups information about the external library install directory,
@@ -330,10 +330,10 @@ Instances of ForeignCcArtifact are incapsulated in a depset ForeignCcDeps#artifa
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="ForeignCcArtifact-gen_dir"></a>gen_dir |  Install directory    |
 | <a id="ForeignCcArtifact-bin_dir_name"></a>bin_dir_name |  Bin directory, relative to install directory    |
-| <a id="ForeignCcArtifact-lib_dir_name"></a>lib_dir_name |  Lib directory, relative to install directory    |
+| <a id="ForeignCcArtifact-gen_dir"></a>gen_dir |  Install directory    |
 | <a id="ForeignCcArtifact-include_dir_name"></a>include_dir_name |  Include directory, relative to install directory    |
+| <a id="ForeignCcArtifact-lib_dir_name"></a>lib_dir_name |  Lib directory, relative to install directory    |
 
 
 <a id="#ForeignCcDeps"></a>
@@ -404,7 +404,7 @@ Information about the native tool
 ## WrappedOutputs
 
 <pre>
-WrappedOutputs(<a href="#WrappedOutputs-script_file">script_file</a>, <a href="#WrappedOutputs-log_file">log_file</a>, <a href="#WrappedOutputs-wrapper_script_file">wrapper_script_file</a>, <a href="#WrappedOutputs-wrapper_script">wrapper_script</a>)
+WrappedOutputs(<a href="#WrappedOutputs-log_file">log_file</a>, <a href="#WrappedOutputs-script_file">script_file</a>, <a href="#WrappedOutputs-wrapper_script">wrapper_script</a>, <a href="#WrappedOutputs-wrapper_script_file">wrapper_script_file</a>)
 </pre>
 
 Structure for passing the log and scripts file information, and wrapper script text.
@@ -414,10 +414,10 @@ Structure for passing the log and scripts file information, and wrapper script t
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="WrappedOutputs-script_file"></a>script_file |  Main script file    |
 | <a id="WrappedOutputs-log_file"></a>log_file |  Execution log file    |
-| <a id="WrappedOutputs-wrapper_script_file"></a>wrapper_script_file |  Wrapper script file (output for debugging purposes)    |
+| <a id="WrappedOutputs-script_file"></a>script_file |  Main script file    |
 | <a id="WrappedOutputs-wrapper_script"></a>wrapper_script |  Wrapper script text to execute    |
+| <a id="WrappedOutputs-wrapper_script_file"></a>wrapper_script_file |  Wrapper script file (output for debugging purposes)    |
 
 
 <a id="#rules_foreign_cc_dependencies"></a>
@@ -426,7 +426,7 @@ Structure for passing the log and scripts file information, and wrapper script t
 
 <pre>
 rules_foreign_cc_dependencies(<a href="#rules_foreign_cc_dependencies-native_tools_toolchains">native_tools_toolchains</a>, <a href="#rules_foreign_cc_dependencies-register_default_tools">register_default_tools</a>,
-                              <a href="#rules_foreign_cc_dependencies-additonal_shell_toolchain_mappings">additonal_shell_toolchain_mappings</a>, <a href="#rules_foreign_cc_dependencies-additonal_shell_toolchain_package">additonal_shell_toolchain_package</a>)
+                              <a href="#rules_foreign_cc_dependencies-additional_shell_toolchain_mappings">additional_shell_toolchain_mappings</a>, <a href="#rules_foreign_cc_dependencies-additional_shell_toolchain_package">additional_shell_toolchain_package</a>)
 </pre>
 
 Call this function from the WORKSPACE file to initialize rules_foreign_cc     dependencies and let neccesary code generation happen     (Code generation is needed to support different variants of the C++ Starlark API.).
@@ -438,7 +438,7 @@ Call this function from the WORKSPACE file to initialize rules_foreign_cc     de
 | :------------- | :------------- | :------------- |
 | <a id="rules_foreign_cc_dependencies-native_tools_toolchains"></a>native_tools_toolchains |  pass the toolchains for toolchain types     '@rules_foreign_cc//tools/build_defs:cmake_toolchain' and     '@rules_foreign_cc//tools/build_defs:ninja_toolchain' with the needed platform constraints.     If you do not pass anything, registered default toolchains will be selected (see below).   |  <code>[]</code> |
 | <a id="rules_foreign_cc_dependencies-register_default_tools"></a>register_default_tools |  If True, the cmake and ninja toolchains, calling corresponding     preinstalled binaries by name (cmake, ninja) will be registered after     'native_tools_toolchains' without any platform constraints. The default is True.   |  <code>True</code> |
-| <a id="rules_foreign_cc_dependencies-additonal_shell_toolchain_mappings"></a>additonal_shell_toolchain_mappings |  Mappings of the shell toolchain functions to     execution and target platforms constraints. Similar to what defined in     @rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:toolchain_mappings.bzl     in the TOOLCHAIN_MAPPINGS list. Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>[]</code> |
-| <a id="rules_foreign_cc_dependencies-additonal_shell_toolchain_package"></a>additonal_shell_toolchain_package |  A package under which additional toolchains, referencing     the generated data for the passed additonal_shell_toolchain_mappings, will be defined.     This value is needed since register_toolchains() is called for these toolchains.     Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>None</code> |
+| <a id="rules_foreign_cc_dependencies-additional_shell_toolchain_mappings"></a>additional_shell_toolchain_mappings |  Mappings of the shell toolchain functions to     execution and target platforms constraints. Similar to what defined in     @rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:toolchain_mappings.bzl     in the TOOLCHAIN_MAPPINGS list. Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>[]</code> |
+| <a id="rules_foreign_cc_dependencies-additional_shell_toolchain_package"></a>additional_shell_toolchain_package |  A package under which additional toolchains, referencing     the generated data for the passed additonal_shell_toolchain_mappings, will be defined.     This value is needed since register_toolchains() is called for these toolchains.     Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>None</code> |
 
 
