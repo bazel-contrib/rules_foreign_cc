@@ -74,7 +74,7 @@ for child in "${children[@]}"; do
   if [[ -f "$child" ]]; then
     cp "$child" "$target"
   elif [[ -L "$child" ]]; then
-    local $actual=$(readlink "$child")
+    local actual=$(readlink "$child")
     if [[ -f "$actual" ]]; then
       cp "$actual" "$target"
     else
