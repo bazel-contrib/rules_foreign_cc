@@ -1,5 +1,2 @@
-include
-
-aaa/include:
 header1.h
 header2.h
