@@ -5,7 +5,6 @@ filegroup(
     name = "fg",
     srcs = glob(
         ["dir1/**"],
-        exclude_directories = 0,
     ),
 )
 
@@ -13,7 +12,6 @@ filegroup(
     name = "fg_srcs",
     srcs = glob(
         ["dir1/srcs/**"],
-        exclude_directories = 0,
     ),
 )
 
@@ -31,7 +29,7 @@ detect_root_test_rule(
 
 detect_root_test_rule(
     name = "srcs_in_repo",
-    srcs = "@repo//:srcs",
+    srcs = "@rules_foreign_cc_detect_root_test_repo//:srcs",
     out = "out_repo.txt",
 )
 
