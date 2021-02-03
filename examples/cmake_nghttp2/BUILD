@@ -4,8 +4,8 @@ load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 cmake_external(
     name = "nghttp2",
     cache_entries = {
-        "ENABLE_STATIC_LIB": "on",
         "ENABLE_LIB_ONLY": "on",
+        "ENABLE_STATIC_LIB": "on",
     },
     cmake_options = ["-GNinja"],
     lib_source = "@nghttp2//:all",

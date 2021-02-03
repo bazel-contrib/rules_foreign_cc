@@ -8,9 +8,9 @@ make(
     # Probably you want to explore other variables more exactly;
     # For instance, CFLAGS are not copied into TARGET_FLAGS
     make_env_vars = {
+        "LSAN_OPTIONS": "exitcode=0",
         "TARGET_CFLAGS": "-fno-function-sections -fno-data-sections",
         "TARGET_LDFLAGS": "-fno-function-sections -fno-data-sections",
-        "LSAN_OPTIONS": "exitcode=0",
     },
     static_libraries = ["libluajit-5.1.a"],
 )

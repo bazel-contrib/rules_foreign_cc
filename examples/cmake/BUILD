@@ -57,9 +57,9 @@ sh_test(
 cmake_external(
     name = "freetype",
     cache_entries = {
-        "ZLIB_ROOT": "$EXT_BUILD_DEPS/libz",
         "PNG_LIBRARY": "$EXT_BUILD_DEPS/libpng/lib/libpng16.a",
         "PNG_PNG_INCLUDE_DIR": "$EXT_BUILD_DEPS/libpng/include",
+        "ZLIB_ROOT": "$EXT_BUILD_DEPS/libz",
     },
     lib_source = "@freetype//:all",
     out_include_dir = "include/freetype2",
@@ -75,13 +75,13 @@ cmake_external(
     cache_entries = {
         "BUILD_SHARED_LIBS": "OFF",
         "BUILD_STATIC_LIBS": "ON",
-        "ENABLE_PNG": "1",
         "ENABLE_FREETYPE": "1",
-        "ZLIB_ROOT": "$EXT_BUILD_DEPS/libz",
+        "ENABLE_PNG": "1",
+        "FREETYPE_INCLUDE_DIRS": "$EXT_BUILD_DEPS/freetype/include/freetype2",
+        "FREETYPE_LIBRARY": "$EXT_BUILD_DEPS/freetype/lib/libfreetype.a",
         "PNG_LIBRARY": "$EXT_BUILD_DEPS/libpng/lib/libpng16.a",
         "PNG_PNG_INCLUDE_DIR": "$EXT_BUILD_DEPS/libpng/include",
-        "FREETYPE_LIBRARY": "$EXT_BUILD_DEPS/freetype/lib/libfreetype.a",
-        "FREETYPE_INCLUDE_DIRS": "$EXT_BUILD_DEPS/freetype/include/freetype2",
+        "ZLIB_ROOT": "$EXT_BUILD_DEPS/libz",
     },
     defines = ["HAVE_LIBPNG"],
     lib_source = "@libgd//:all",

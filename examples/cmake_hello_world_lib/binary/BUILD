@@ -12,8 +12,8 @@ filegroup(
 cmake_external(
     name = "libhello",
     binaries = select({
-        "//:windows": ["hello.exe"],
         "//:macos": ["hello"],
+        "//:windows": ["hello.exe"],
         "//conditions:default": ["hello"],
     }),
     # Probably this variable should be set by default.

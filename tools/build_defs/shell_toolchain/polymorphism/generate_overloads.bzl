@@ -82,7 +82,7 @@ def _generate_overloads(rctx):
 generate_overloads = repository_rule(
     implementation = _generate_overloads,
     attrs = {
-        "symbols": attr.string_list(),
         "files": attr.label_list(),
+        "symbols": attr.string_list(),
     },
 )

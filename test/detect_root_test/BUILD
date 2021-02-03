@@ -1,5 +1,5 @@
-load(":detect_root_test_rule.bzl", "detect_root_test_rule")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load(":detect_root_test_rule.bzl", "detect_root_test_rule")
 
 filegroup(
     name = "fg",

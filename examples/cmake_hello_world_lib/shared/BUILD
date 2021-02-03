@@ -19,8 +19,8 @@ cmake_external(
     },
     lib_source = ":srcs",
     shared_libraries = select({
-        "//:windows": ["libhello.dll"],
         "//:macos": ["libhello.dylib"],
+        "//:windows": ["libhello.dll"],
         "//conditions:default": ["libhello.so"],
     }),
 )

@@ -1,12 +1,12 @@
 """ Rule for building Boost from sources. """
 
+load("//tools/build_defs:detect_root.bzl", "detect_root")
 load(
     "//tools/build_defs:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
     "cc_external_rule_impl",
     "create_attrs",
 )
-load("//tools/build_defs:detect_root.bzl", "detect_root")
 
 def _boost_build(ctx):
     attrs = create_attrs(
