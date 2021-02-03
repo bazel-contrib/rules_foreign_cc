@@ -408,8 +408,8 @@ Provider to pass transitive information about external libraries.
 ## InputFiles
 
 <pre>
-InputFiles(<a href="#InputFiles-headers">headers</a>, <a href="#InputFiles-include_dirs">include_dirs</a>, <a href="#InputFiles-libs">libs</a>, <a href="#InputFiles-tools_files">tools_files</a>, <a href="#InputFiles-ext_build_dirs">ext_build_dirs</a>, <a href="#InputFiles-deps_compilation_info">deps_compilation_info</a>,
-           <a href="#InputFiles-deps_linking_info">deps_linking_info</a>, <a href="#InputFiles-declared_inputs">declared_inputs</a>)
+InputFiles(<a href="#InputFiles-headers">headers</a>, <a href="#InputFiles-include_dirs">include_dirs</a>, <a href="#InputFiles-libs">libs</a>, <a href="#InputFiles-tools_files">tools_files</a>, <a href="#InputFiles-tools_manifests">tools_manifests</a>, <a href="#InputFiles-ext_build_dirs">ext_build_dirs</a>,
+           <a href="#InputFiles-deps_compilation_info">deps_compilation_info</a>, <a href="#InputFiles-deps_linking_info">deps_linking_info</a>, <a href="#InputFiles-declared_inputs">declared_inputs</a>)
 </pre>
 
 Provider to keep different kinds of input files, directories, and C/C++ compilation and linking info from dependencies
@@ -422,7 +422,8 @@ Provider to keep different kinds of input files, directories, and C/C++ compilat
 | <a id="InputFiles-headers"></a>headers |  Include files built by Bazel. Will be copied into $EXT_BUILD_DEPS/include.    |
 | <a id="InputFiles-include_dirs"></a>include_dirs |  Include directories built by Bazel. Will be copied into $EXT_BUILD_DEPS/include.    |
 | <a id="InputFiles-libs"></a>libs |  Library files built by Bazel. Will be copied into $EXT_BUILD_DEPS/lib.    |
-| <a id="InputFiles-tools_files"></a>tools_files |  Files and directories with tools needed for configuration/building to be copied into the bin folder, which is added to the PATH    |
+| <a id="InputFiles-tools_files"></a>tools_files |  Files and directories with tools needed for configuration/building    |
+| <a id="InputFiles-tools_manifests"></a>tools_manifests |  Manifests to be passed to <code>manifests_from_tools</code> attribute    |
 | <a id="InputFiles-ext_build_dirs"></a>ext_build_dirs |  Directories with libraries, built by framework function. This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents.    |
 | <a id="InputFiles-deps_compilation_info"></a>deps_compilation_info |  Merged CcCompilationInfo from deps attribute    |
 | <a id="InputFiles-deps_linking_info"></a>deps_linking_info |  Merged CcLinkingInfo from deps attribute    |
