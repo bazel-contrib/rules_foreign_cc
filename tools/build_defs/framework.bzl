@@ -4,7 +4,7 @@
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
+load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load(
     "@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl",
     "copy_directory",
@@ -399,7 +399,7 @@ def cc_external_rule_impl(ctx, attrs):
             empty.file,
             wrapped_outputs.log_file,
         ],
-        input_manifests = manifests_from_tools,
+        input_manifests = manifests_from_tools + inputs.tools_manifests,
         tools = depset(extra_tools, transitive = [inputs.tools_files, inputs_from_tools, cc_toolchain.all_files]),
         # TODO: Default to never using the default shell environment to make builds more hermetic. For now, every platform
         # but MacOS will take the default PATH passed by Bazel, not that from cc_toolchain.
@@ -661,8 +661,10 @@ InputFiles = provider(
         ),
         libs = "Library files built by Bazel. Will be copied into $EXT_BUILD_DEPS/lib.",
         tools_files = (
-            "Files and directories with tools needed for configuration/building " +
-            "to be copied into the bin folder, which is added to the PATH"
+            "Files and directories with tools needed for configuration/building"
+        ),
+        tools_manifests = (
+            "Manifests to be passed to `manifests_from_tools` attribute"
         ),
         ext_build_dirs = (
             "Directories with libraries, built by framework function. " +
@@ -717,6 +719,7 @@ def _define_inputs(ctx, attrs):
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
         tools_files = tools_files,
+        tools_manifests = manifests_from_tools,
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
