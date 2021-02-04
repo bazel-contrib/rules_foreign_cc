@@ -97,7 +97,7 @@ elif [[ -d "$1" ]]; then
   local dirname=$(basename "$1")
   mkdir -p "$target/$dirname"
   for child in "${children[@]}"; do
-    if [[ "$dirname" != _ext_build_deps ]]; then
+    if [[ "$dirname" != *.ext_build_deps ]]; then
       ##symlink_to_dir## "$child" "$target/$dirname"
     fi
   done
