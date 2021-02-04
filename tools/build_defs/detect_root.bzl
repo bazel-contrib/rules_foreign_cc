@@ -34,6 +34,9 @@ def detect_root(source):
     if root.is_source:
         return root.dirname
 
+    # Note this code path will never be hit due to a bug upstream Bazel
+    # https://github.com/bazelbuild/bazel/issues/12954
+
     # If the root is not a source file, it must be a directory.
     # Thus the path is returned
     return root.path
