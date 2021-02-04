@@ -87,6 +87,15 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         allow_files = True,
         default = [],
     ),
+    "env": attr.string_dict(
+        doc = (
+            "Environment variables to set during the build. " +
+            "$(execpath) macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, " +
+            "but unlike with other rules, these will be replaced with absolute paths to those files, " +
+            "because the build does not run in the exec root. " +
+            "No other macros are supported."
+        ),
+    ),
     "headers_only": attr.bool(
         doc = "Flag variable to indicate that the library produces only headers",
         mandatory = False,
@@ -309,12 +318,21 @@ def cc_external_rule_impl(ctx, attrs):
     # we need this fictive file in the root to get the path of the root in the script
     empty = fictive_file_in_genroot(ctx.actions, ctx.label.name)
 
+    data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
+
     define_variables = [
         set_cc_envs,
         "export EXT_BUILD_ROOT=##pwd##",
         "export BUILD_TMPDIR=##tmpdir##",
         "export EXT_BUILD_DEPS=##tmpdir##",
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
+    ] + [
+        "export {key}={value}".format(
+            key=key,
+            # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
+            value=ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies)
+        )
+        for key, value in getattr(ctx.attr, "env", {}).items()
     ]
 
     make_commands = []
@@ -365,7 +383,7 @@ def cc_external_rule_impl(ctx, attrs):
             empty.file,
             wrapped_outputs.log_file,
         ],
-        tools = depset([wrapped_outputs.script_file] + ctx.files.data),
+        tools = depset([wrapped_outputs.script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools, transitive = [data[DefaultInfo].default_runfiles.files for data in data_dependencies]),
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
         # for shell commands
