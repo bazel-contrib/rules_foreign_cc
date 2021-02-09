@@ -27,6 +27,7 @@ tasks:
     working_directory: examples
     build_targets:
       - "//cmake_android:app"
+      - "//cmake_defines:all"
     test_targets:
       - "//:tests"
   ubuntu1804_examples:
@@ -35,6 +36,7 @@ tasks:
     working_directory: examples
     build_targets:
       - "//cmake_android:app"
+      - "//cmake_defines:all"
     test_targets:
       - "//:tests_no_synthetic"
   macos_examples:
@@ -43,6 +45,7 @@ tasks:
     working_directory: examples
     build_targets:
       - "//cmake_android:app"
+      - "//cmake_defines:all"
     test_targets:
       - "//:mac_tests"
   windows_examples:
