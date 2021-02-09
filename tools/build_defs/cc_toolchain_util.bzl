@@ -115,6 +115,9 @@ def _files_map(files_list):
         by_names_map[name_] = file_
     return by_names_map
 
+def _defines_from_deps(ctx):
+    return depset(transitive = [dep[CcInfo].compilation_context.defines for dep in ctx.attr.deps])
+
 def _build_cc_link_params(
         ctx,
         user_link_flags,
@@ -294,6 +297,7 @@ def get_flags_info(ctx, link_output_file = None):
     copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts) or []
     cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts) or []
     linkopts = ctx.fragments.cpp.linkopts or []
+    defines = _defines_from_deps(ctx)
 
     flags = CxxFlagsInfo(
         cc = cc_common.get_memory_inefficient_command_line(
@@ -302,6 +306,7 @@ def get_flags_info(ctx, link_output_file = None):
             variables = cc_common.create_compile_variables(
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain_,
+                preprocessor_defines = defines,
             ),
         ),
         cxx = cc_common.get_memory_inefficient_command_line(
@@ -310,6 +315,7 @@ def get_flags_info(ctx, link_output_file = None):
             variables = cc_common.create_compile_variables(
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain_,
+                preprocessor_defines = defines,
                 add_legacy_cxx_options = True,
             ),
         ),
@@ -350,6 +356,7 @@ def get_flags_info(ctx, link_output_file = None):
             variables = cc_common.create_compile_variables(
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain_,
+                preprocessor_defines = defines,
             ),
         ),
     )
