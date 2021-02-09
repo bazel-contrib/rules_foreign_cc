@@ -107,7 +107,7 @@ fi
     return FunctionAndCall(text = text)
 
 def script_prelude():
-    return """set -e
+    return """set -euo pipefail
 if [ -f /usr/bin/find ]; then
   REAL_FIND="/usr/bin/find"
 else
