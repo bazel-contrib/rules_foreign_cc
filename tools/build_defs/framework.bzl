@@ -345,7 +345,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$BUILD_TMPDIR$$",
         "##mkdirs## $$EXT_BUILD_DEPS$$",
         _print_env(),
-        "\n".join(_copy_deps_and_tools(inputs)),
+        "\n".join(_copy_deps(inputs)),
         "cd $$BUILD_TMPDIR$$",
         attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
         "\n".join(make_commands),
@@ -556,7 +556,7 @@ def _correct_path_variable(env):
     env["PATH"] = "$PATH:" + value
     return env
 
-def _copy_deps_and_tools(files):
+def _copy_deps(files):
     lines = []
     lines += _symlink_contents_to_dir("lib", files.libs)
     lines += _symlink_contents_to_dir("include", files.headers + files.include_dirs)
