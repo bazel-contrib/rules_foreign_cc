@@ -303,7 +303,7 @@ def cc_external_rule_impl(ctx, attrs):
     if execution_os_name != "osx":
         set_cc_envs = "\n".join(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
 
-    version_and_lib = "Bazel external C/C++ Rules. Building library '{}'\\n".format(lib_name)
+    lib_header = "Bazel external C/C++ Rules. Building library '{}'\\n".format(lib_name)
 
     # We can not declare outputs of the action, which are in parent-child relashion,
     # so we need to have a (symlinked) copy of the output directory to provide
@@ -343,7 +343,7 @@ def cc_external_rule_impl(ctx, attrs):
 
     script_lines = [
         "##echo## \"\"",
-        "##echo## \"{}\"".format(version_and_lib),
+        "##echo## \"{}\"".format(lib_header),
         "##echo## \"\"",
         "##script_prelude##",
         "\n".join(define_variables),
