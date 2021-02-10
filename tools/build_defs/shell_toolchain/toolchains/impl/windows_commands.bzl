@@ -33,9 +33,6 @@ def touch(path):
 def mkdirs(path):
     return "mkdir -p " + path
 
-def tmpdir():
-    return "$(mktemp -d)"
-
 def if_else(condition, if_text, else_text):
     return """
 if [ {condition} ]; then
@@ -99,7 +96,9 @@ elif [[ -d "$1" ]]; then
   local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
   for child in "${children[@]}"; do
-    ##symlink_to_dir## "$child" "$target/$(basename $1)"
+    if [[ "$dirname" != *.ext_build_deps ]]; then
+      ##symlink_to_dir## "$child" "$target/$(basename $1)"
+    fi
   done
 else
   echo "Can not copy $1"

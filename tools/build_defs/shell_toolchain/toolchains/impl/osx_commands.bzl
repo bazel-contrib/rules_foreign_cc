@@ -33,9 +33,6 @@ def touch(path):
 def mkdirs(path):
     return "mkdir -p " + path
 
-def tmpdir():
-    return "$(mktemp -d)"
-
 def if_else(condition, if_text, else_text):
     return """
 if [ {condition} ]; then

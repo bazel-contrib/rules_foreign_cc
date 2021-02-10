@@ -12,8 +12,8 @@ load(":additional_toolchains.bzl", "ADD_TOOLCHAIN_MAPPINGS")
 # The target of the type "toolchain" will be created in the root package of the current workspace,
 # so we are passing this value as additonal_shell_toolchain_package.
 rules_foreign_cc_dependencies(
-    additonal_shell_toolchain_mappings = ADD_TOOLCHAIN_MAPPINGS,
-    additonal_shell_toolchain_package = "@rules_foreign_cc_toolchains_examples//",
+    additional_shell_toolchain_mappings = ADD_TOOLCHAIN_MAPPINGS,
+    additional_shell_toolchain_package = "@rules_foreign_cc_toolchains_examples//",
     native_tools_toolchains = [],
     register_default_tools = True,
 )

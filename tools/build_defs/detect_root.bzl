@@ -1,41 +1,61 @@
 # buildifier: disable=module-docstring
 # buildifier: disable=function-docstring-header
-# buildifier: disable=function-docstring-args
-# buildifier: disable=function-docstring-return
 def detect_root(source):
     """Detects the path to the topmost directory of the 'source' outputs.
     To be used with external build systems to point to the source code/tools directories.
+
+    Args:
+        source (Target): A filegroup of source files
+
+    Returns:
+        string: The relative path to the root source directory
     """
 
-    root = ""
     sources = source.files.to_list()
-    if (root and len(root) > 0) or len(sources) == 0:
-        return root
+    if len(sources) == 0:
+        return ""
 
-    root = ""
+    root = None
     level = -1
-    num_at_level = 0
 
     # find topmost directory
     for file in sources:
         file_level = _get_level(file.path)
+
+        # If there is no level set or the current file's level
+        # is greather than what we have logged, update the root
         if level == -1 or level > file_level:
-            root = file.path
+            root = file
             level = file_level
-            num_at_level = 1
-        elif level == file_level:
-            num_at_level += 1
 
-    if num_at_level == 1:
-        return root
+    if not root:
+        fail("No root source or directory was found")
 
-    (before, sep, after) = root.rpartition("/")
-    if before and sep and after:
-        return before
-    return root
+    if root.is_source:
+        return root.dirname
+
+    # Note this code path will never be hit due to a bug upstream Bazel
+    # https://github.com/bazelbuild/bazel/issues/12954
+
+    # If the root is not a source file, it must be a directory.
+    # Thus the path is returned
+    return root.path
 
 def _get_level(path):
+    """Determine the number of sub directories `path` is contained in
+
+    Args:
+        path (string): The target path
+
+    Returns:
+        int: The directory depth of `path`
+    """
     normalized = path
+
+    # This for loop ensures there are no double `//` substrings.
+    # A for loop is used because there's not currently a `while`
+    # or a better mechanism for guaranteeing all `//` have been
+    # cleaned up.
     for i in range(len(path)):
         new_normalized = normalized.replace("//", "/")
         if len(new_normalized) == len(normalized):

@@ -10,8 +10,8 @@ load(
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        additonal_shell_toolchain_mappings = [],
-        additonal_shell_toolchain_package = None):
+        additional_shell_toolchain_mappings = [],
+        additional_shell_toolchain_package = None):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
     dependencies and let neccesary code generation happen \
     (Code generation is needed to support different variants of the C++ Starlark API.).
@@ -26,12 +26,12 @@ def rules_foreign_cc_dependencies(
             preinstalled binaries by name (cmake, ninja) will be registered after
             'native_tools_toolchains' without any platform constraints. The default is True.
 
-        additonal_shell_toolchain_mappings: Mappings of the shell toolchain functions to
+        additional_shell_toolchain_mappings: Mappings of the shell toolchain functions to
             execution and target platforms constraints. Similar to what defined in
             @rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:toolchain_mappings.bzl
             in the TOOLCHAIN_MAPPINGS list. Please refer to example in @rules_foreign_cc//toolchain_examples.
 
-        additonal_shell_toolchain_package: A package under which additional toolchains, referencing
+        additional_shell_toolchain_package: A package under which additional toolchains, referencing
             the generated data for the passed additonal_shell_toolchain_mappings, will be defined.
             This value is needed since register_toolchains() is called for these toolchains.
             Please refer to example in @rules_foreign_cc//toolchain_examples.
@@ -39,8 +39,8 @@ def rules_foreign_cc_dependencies(
     repositories()
 
     shell_toolchain_workspace_initalization(
-        additonal_shell_toolchain_mappings,
-        additonal_shell_toolchain_package,
+        additional_shell_toolchain_mappings,
+        additional_shell_toolchain_package,
     )
 
     native.register_toolchains(*native_tools_toolchains)

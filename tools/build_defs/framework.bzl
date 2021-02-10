@@ -16,7 +16,6 @@ load(
     "create_function",
     "os_name",
 )
-load("@rules_foreign_cc//tools/build_defs:version.bzl", "VERSION")
 load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
@@ -86,6 +85,15 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         allow_files = True,
         default = [],
+    ),
+    "env": attr.string_dict(
+        doc = (
+            "Environment variables to set during the build. " +
+            "$(execpath) macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, " +
+            "but unlike with other rules, these will be replaced with absolute paths to those files, " +
+            "because the build does not run in the exec root. " +
+            "No other macros are supported."
+        ),
     ),
     "headers_only": attr.bool(
         doc = "Flag variable to indicate that the library produces only headers",
@@ -295,7 +303,7 @@ def cc_external_rule_impl(ctx, attrs):
     if execution_os_name != "osx":
         set_cc_envs = "\n".join(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
 
-    version_and_lib = "Bazel external C/C++ Rules #{}. Building library '{}'\\n".format(VERSION, lib_name)
+    lib_header = "Bazel external C/C++ Rules. Building library '{}'\\n".format(lib_name)
 
     # We can not declare outputs of the action, which are in parent-child relashion,
     # so we need to have a (symlinked) copy of the output directory to provide
@@ -309,12 +317,21 @@ def cc_external_rule_impl(ctx, attrs):
     # we need this fictive file in the root to get the path of the root in the script
     empty = fictive_file_in_genroot(ctx.actions, ctx.label.name)
 
+    data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
+
     define_variables = [
         set_cc_envs,
         "export EXT_BUILD_ROOT=##pwd##",
-        "export BUILD_TMPDIR=##tmpdir##",
-        "export EXT_BUILD_DEPS=##tmpdir##",
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
+        "export BUILD_TMPDIR=$${INSTALLDIR}$$.build_tmpdir",
+        "export EXT_BUILD_DEPS=$${INSTALLDIR}$$.ext_build_deps",
+    ] + [
+        "export {key}={value}".format(
+            key=key,
+            # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
+            value=ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies)
+        )
+        for key, value in getattr(ctx.attr, "env", {}).items()
     ]
 
     make_commands = []
@@ -326,12 +343,14 @@ def cc_external_rule_impl(ctx, attrs):
 
     script_lines = [
         "##echo## \"\"",
-        "##echo## \"{}\"".format(version_and_lib),
+        "##echo## \"{}\"".format(lib_header),
         "##echo## \"\"",
         "##script_prelude##",
         "\n".join(define_variables),
         "##path## $$EXT_BUILD_ROOT$$",
         "##mkdirs## $$INSTALLDIR$$",
+        "##mkdirs## $$BUILD_TMPDIR$$",
+        "##mkdirs## $$EXT_BUILD_DEPS$$",
         _print_env(),
         "\n".join(_copy_deps_and_tools(inputs)),
         "cd $$BUILD_TMPDIR$$",
@@ -365,7 +384,7 @@ def cc_external_rule_impl(ctx, attrs):
             empty.file,
             wrapped_outputs.log_file,
         ],
-        tools = depset([wrapped_outputs.script_file] + ctx.files.data),
+        tools = depset([wrapped_outputs.script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools, transitive = [data[DefaultInfo].default_runfiles.files for data in data_dependencies]),
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
         # for shell commands
