@@ -47,18 +47,12 @@ diff_test(
 
 filegroup(
     name = "dir1_fg",
-    srcs = glob(
-        ["dir1/**"],
-        exclude_directories = 0,
-    ),
+    srcs = glob(["dir1/**"]),
 )
 
 filegroup(
     name = "dir2_fg",
-    srcs = glob(
-        ["dir2/**"],
-        exclude_directories = 0,
-    ),
+    srcs = glob(["dir2/**"]),
 )
 
 symlink_contents_to_dir_test_rule(
