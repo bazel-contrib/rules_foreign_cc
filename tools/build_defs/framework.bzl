@@ -443,13 +443,13 @@ WrappedOutputs = provider(
 
 # buildifier: disable=function-docstring
 def wrap_outputs(ctx, lib_name, configure_name, script_text):
-    build_script_file = ctx.actions.declare_file("{}/logs/{}_script.sh".format(lib_name, configure_name))
+    build_script_file = ctx.actions.declare_file("{}_logs/{}_script.sh".format(lib_name, configure_name))
     ctx.actions.write(
         output = build_script_file,
         content = script_text,
         is_executable = True,
     )
-    build_log_file = ctx.actions.declare_file("{}/logs/{}.log".format(lib_name, configure_name))
+    build_log_file = ctx.actions.declare_file("{}_logs/{}.log".format(lib_name, configure_name))
 
     cleanup_on_success_function = create_function(
         ctx,
