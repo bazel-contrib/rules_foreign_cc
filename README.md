@@ -1,6 +1,6 @@
 # rules_foreign_cc
 
-[![Build status](https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=master)](https://buildkite.com/bazel/rules-foreign-cc?branch=master)
+[![Build status](https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=main)](https://buildkite.com/bazel/rules-foreign-cc?branch=main)
 
 **Rules for building C/C++ projects using foreign build systems inside Bazel projects.**
 
@@ -88,8 +88,8 @@ all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//v
 # Rule repository
 http_archive(
    name = "rules_foreign_cc",
-   strip_prefix = "rules_foreign_cc-master",
-   url = "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
+   strip_prefix = "rules_foreign_cc-main",
+   url = "https://github.com/bazelbuild/rules_foreign_cc/archive/main.zip",
 )
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
