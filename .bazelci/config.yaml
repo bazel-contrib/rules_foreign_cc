@@ -2,12 +2,16 @@
 tasks:
   ubuntu2004:
     platform: ubuntu2004
+    shell_commands:
+      - cmake --help
     build_targets:
       - "//..."
     test_targets:
       - "//..."
   macos:
     platform: macos
+    shell_commands:
+      - cmake --help
     build_targets:
       - "//..."
     test_targets:
