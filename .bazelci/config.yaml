@@ -2,15 +2,22 @@
 tasks:
   ubuntu2004:
     platform: ubuntu2004
-    shell_commands:
-      - cmake --help
     build_targets:
       - "//..."
     test_targets:
       - "//..."
   macos:
     platform: macos
+    environment:
+      PATH: ${PATH}:${HOME}/Applications/CMake.app/Contents/bin
     shell_commands:
+      # TODO: Remove when implemented: https://github.com/bazelbuild/rules_foreign_cc/issues/497
+      - |
+          curl -L https://github.com/Kitware/CMake/releases/download/v3.19.4/cmake-3.19.4-macos-universal.tar.gz -o cmake.tar.gz
+          tar -xf cmake.tar.gz 
+          mv cmake-3.19.4-macos-universal/CMake.app ${HOME}/Applications
+          rm -rf cmake-3.19.4-macos-universal cmake.tar.gz 
+      - env
       - cmake --help
     build_targets:
       - "//..."
