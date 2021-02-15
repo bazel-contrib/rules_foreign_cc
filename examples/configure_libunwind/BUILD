@@ -12,7 +12,7 @@ configure_make(
         "--disable-documentation",
         "--disable-weak-backtrace",
     ],
-    lib_source = "@libunwind//:all",
+    lib_source = "@libunwind//:all_srcs",
     shared_libraries = ["libunwind.so"],
     static_libraries = ["libunwind.a"],
     visibility = ["//visibility:public"],

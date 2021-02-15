@@ -2,7 +2,7 @@ load("@rules_foreign_cc//tools/build_defs:make.bzl", "make")
 
 make(
     name = "luajit",
-    lib_source = "@luajit//:all",
+    lib_source = "@luajit//:all_srcs",
     # Taken from https://github.com/envoyproxy/envoy/blob/master/bazel/foreign_cc/luajit.patch
     # However, only a pair of variables are taken to make the luajit build work.
     # Probably you want to explore other variables more exactly;

@@ -19,8 +19,13 @@ ToolInfo = provider(
 def _native_tool_toolchain(ctx):
     if not ctx.attr.path and not ctx.attr.target:
         fail("Either path or target (and path) should be defined for the tool.")
+    path = None
+    if ctx.attr.target:
+        path = ctx.expand_location(ctx.attr.path, targets=[ctx.attr.target])
+    else:
+        path = ctx.expand_location(ctx.attr.path)
     return platform_common.ToolchainInfo(data = ToolInfo(
-        path = ctx.attr.path,
+        path = path,
         target = ctx.attr.target,
     ))
 

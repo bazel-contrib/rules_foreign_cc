@@ -8,7 +8,7 @@ cmake_external(
         "ENABLE_STATIC_LIB": "on",
     },
     cmake_options = ["-GNinja"],
-    lib_source = "@nghttp2//:all",
+    lib_source = "@nghttp2//:all_srcs",
     make_commands = [
         # The correct path to the ninja tool is detected from the selected ninja_toolchain.
         # and "ninja" will be replaced with that path if needed

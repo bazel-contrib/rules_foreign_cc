@@ -8,7 +8,7 @@ cmake_external(
         "CARES_STATIC": "on",
     },
     cmake_options = ["-GNinja"],
-    lib_source = "@cares//:all",
+    lib_source = "@cares//:all_srcs",
     make_commands = [
         "ninja",
         "ninja install",
@@ -23,7 +23,7 @@ cmake_external(
         "CARES_STATIC": "on",
     },
     cmake_options = ["-GNinja"],
-    lib_source = "@cares//:all",
+    lib_source = "@cares//:all_srcs",
     make_commands = [
         # The correct path to the ninja tool is detected from the selected ninja_toolchain.
         # and "ninja" will be replaced with that path if needed

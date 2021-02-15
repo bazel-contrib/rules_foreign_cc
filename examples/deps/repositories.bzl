@@ -1,7 +1,71 @@
 # buildifier: disable=module-docstring
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
+_ALL_CONTENT = """\
+filegroup(
+    name = "all_srcs",
+    srcs = glob(
+        [
+            "**"
+        ],
+        exclude=[
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+            "BUILD",
+            "BUILD.bazel"
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+"""
+
+_CMAKE_ALL_CONTENT = """\
+package(default_visibility = ["//visibility:public"])
+load("@rules_foreign_cc//for_workspace:cmake_build.bzl", "cmake_tool")
+filegroup(
+    name = "all_srcs",
+    srcs = glob(
+        [
+            "**"
+        ],
+        exclude=[
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+            "BUILD",
+            "BUILD.bazel"
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+cmake_tool(
+    name = "cmake",
+    cmake_srcs=":all_srcs"
+)
+"""
+
+_NINJA_ALL_CONTENT = """\
+package(default_visibility = ["//visibility:public"])
+load("@rules_foreign_cc//for_workspace:ninja_build.bzl", "ninja_tool")
+filegroup(
+    name = "all_srcs",
+    srcs = glob(
+        [
+            "**"
+        ],
+        exclude=[
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+            "BUILD",
+            "BUILD.bazel"
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+ninja_tool(
+    name = "ninja",
+    ninja_srcs=":all_srcs"
+)
+"""
 
 def repositories():
     """Load all repositories needed for the targets of rules_foreign_cc_tests"""
@@ -12,6 +76,72 @@ def repositories():
         url = "https://github.com/bazelbuild/rules_cc/archive/b1c40e1de81913a3c40e5948f78719c28152486d.zip",
         sha256 = "d0c573b94a6ef20ef6ff20154a23d0efcb409fb0e1ff0979cec318dfe42f0cdd",
         type = "zip",
+    )
+
+    http_archive(
+       name = "com_kitware_cmake_src",
+       build_file_content = _CMAKE_ALL_CONTENT,
+       sha256 = "c432296eb5dec6d71eae15d140f6297d63df44e9ffe3e453628d1dc8fc4201ce",
+       strip_prefix = "cmake-3.19.5",
+       urls = ["https://github.com/Kitware/CMake/releases/download/v3.19.5/cmake-3.19.5.tar.gz"],
+    )
+
+    http_archive(
+        name = "com_kitware_cmake_linux_aarch64",
+	sha256 = "31b3de5e4bc56d96debaa336ffd19cbc6edeaea0828ec1e298f0dd09db55f0f4",
+        urls = [
+            "https://cmake.org/files/v3.19/cmake-3.19.5-Linux-aarch64.tar.gz",
+        ],
+        strip_prefix = "cmake-3.19.5-Linux-aarch64",
+        build_file_content = _ALL_CONTENT,
+    )
+
+    http_archive(
+        name = "com_kitware_cmake_linux_x86_64",
+        sha256 = "ad9102717d67a0e6d72d03d2a25dbbde24386b15b7815b31068cbf5f790638f1",
+        urls = [
+            "https://cmake.org/files/v3.19/cmake-3.19.5-Linux-x86_64.tar.gz",
+        ],
+        strip_prefix = "cmake-3.19.5-Linux-x86_64",
+        build_file_content = _ALL_CONTENT,
+    )
+
+    http_archive(
+        name = "com_kitware_cmake_macos_universal",
+	sha256 = "bf38acc7f93980a9dff11ef1bd9b0d6852618a44edcdabc4722737fc83f5654b",
+        urls = [
+            "https://cmake.org/files/v3.19/cmake-3.19.5-macos-universal.tar.gz",
+        ],
+        strip_prefix = "cmake-3.19.5-macos-universal",
+        build_file_content = _ALL_CONTENT,
+    )
+
+    http_archive(
+       name = "ninja_src",
+       build_file_content = _NINJA_ALL_CONTENT,
+       sha256 = "ce35865411f0490368a8fc383f29071de6690cbadc27704734978221f25e2bed",
+       urls = [
+          "https://github.com/ninja-build/ninja/archive/v1.10.2.tar.gz",
+       ],
+       strip_prefix = "ninja-1.10.2",
+    )
+
+    http_archive(
+       name = "ninja_linux_x86_64",
+       build_file_content = _ALL_CONTENT,
+       sha256 = "763464859c7ef2ea3a0a10f4df40d2025d3bb9438fcb1228404640410c0ec22d",
+       urls = [
+          "https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-linux.zip",
+       ],
+    )
+
+    http_archive(
+       name = "ninja_darwin_x86_64",
+       build_file_content = _ALL_CONTENT,
+       sha256 = "6fa359f491fac7e5185273c6421a000eea6a2f0febf0ac03ac900bd4d80ed2a5",
+       urls = [
+          "https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-mac.zip",
+       ],
     )
 
     http_archive(
@@ -33,7 +163,7 @@ def repositories():
 
     http_archive(
         name = "libevent",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "libevent-2.1.8-stable",
         urls = [
             "https://mirror.bazel.build/github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz",
@@ -44,7 +174,7 @@ def repositories():
 
     http_archive(
         name = "zlib",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         sha256 = "c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1",
         strip_prefix = "zlib-1.2.11",
         urls = [
@@ -55,7 +185,7 @@ def repositories():
 
     http_archive(
         name = "libpng",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         sha256 = "2f1e960d92ce3b3abd03d06dfec9637dfbd22febf107a536b44f7a47c60659f6",
         strip_prefix = "libpng-1.6.34",
         urls = [
@@ -66,7 +196,7 @@ def repositories():
 
     http_archive(
         name = "freetype",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         sha256 = "e6ffba3c8cef93f557d1f767d7bc3dee860ac7a3aaff588a521e081bc36f4c8a",
         strip_prefix = "freetype-2.9",
         urls = [
@@ -77,7 +207,7 @@ def repositories():
 
     http_archive(
         name = "libgd",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         sha256 = "8c302ccbf467faec732f0741a859eef4ecae22fea2d2ab87467be940842bde51",
         strip_prefix = "libgd-2.2.5",
         urls = [
@@ -88,7 +218,7 @@ def repositories():
 
     http_archive(
         name = "pybind11",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "pybind11-2.2.3",
         urls = [
             "https://mirror.bazel.build/github.com/pybind/pybind11/archive/v2.2.3.tar.gz",
@@ -99,7 +229,7 @@ def repositories():
 
     http_archive(
         name = "cares",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         sha256 = "62dd12f0557918f89ad6f5b759f0bf4727174ae9979499f5452c02be38d9d3e8",
         strip_prefix = "c-ares-cares-1_14_0",
         urls = [
@@ -110,7 +240,7 @@ def repositories():
 
     http_archive(
         name = "nghttp2",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         patch_args = ["-p1"],
         patch_cmds = ["find . -name '*.sh' -exec sed -i.orig '1s|#!/usr/bin/env sh\\$|/bin/sh\\$|' {} +"],
         patches = ["@rules_foreign_cc_tests//:nghttp2.patch"],
@@ -124,7 +254,7 @@ def repositories():
 
     http_archive(
         name = "eigen",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "eigen-git-mirror-3.3.5",
         urls = [
             "https://mirror.bazel.build/github.com/eigenteam/eigen-git-mirror/archive/3.3.5.tar.gz",
@@ -135,7 +265,7 @@ def repositories():
 
     http_archive(
         name = "openblas",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "OpenBLAS-0.3.2",
         urls = [
             "https://mirror.bazel.build/github.com/xianyi/OpenBLAS/archive/v0.3.2.tar.gz",
@@ -146,7 +276,7 @@ def repositories():
 
     http_archive(
         name = "flann",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "flann-1.9.1",
         urls = [
             "https://mirror.bazel.build/github.com/mariusmuja/flann/archive/1.9.1.tar.gz",
@@ -157,7 +287,7 @@ def repositories():
 
     http_archive(
         name = "pcl",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "pcl-pcl-1.8.1",
         urls = [
             "https://mirror.bazel.build/github.com/PointCloudLibrary/pcl/archive/pcl-1.8.1.tar.gz",
@@ -168,7 +298,7 @@ def repositories():
 
     http_archive(
         name = "boost",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "boost_1_68_0",
         sha256 = "da3411ea45622579d419bfda66f45cd0f8c32a181d84adfa936f5688388995cf",
         urls = [
@@ -179,7 +309,7 @@ def repositories():
 
     http_archive(
         name = "bison",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "bison-3.3",
         urls = [
             "https://mirror.bazel.build/ftp.gnu.org/gnu/bison/bison-3.3.tar.gz",
@@ -190,7 +320,7 @@ def repositories():
 
     http_archive(
         name = "apache_httpd",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "httpd-2.4.39",
         urls = [
             "https://mirror.bazel.build/www-us.apache.org/dist/httpd/httpd-2.4.39.tar.gz",
@@ -201,7 +331,7 @@ def repositories():
 
     http_archive(
         name = "pcre",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "pcre-8.43",
         urls = [
             "https://mirror.bazel.build/ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz",
@@ -212,7 +342,7 @@ def repositories():
 
     http_archive(
         name = "apr",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "apr-1.6.5",
         urls = [
             "https://mirror.bazel.build/www-eu.apache.org/dist//apr/apr-1.6.5.tar.gz",
@@ -223,7 +353,8 @@ def repositories():
 
     http_archive(
         name = "apr_util",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
+        sha256 = "b65e40713da57d004123b6319828be7f1273fbc6490e145874ee1177e112c459",
         strip_prefix = "apr-util-1.6.1",
         urls = [
             "https://mirror.bazel.build/www-us.apache.org/dist//apr/apr-util-1.6.1.tar.gz",
@@ -233,7 +364,7 @@ def repositories():
 
     http_archive(
         name = "cmake_hello_world_variant_src",
-        build_file_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])""",
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "cmake-hello-world-master",
         urls = [
             "https://mirror.bazel.build/github.com/jameskbride/cmake-hello-world/archive/master.zip",
@@ -244,7 +375,7 @@ def repositories():
 
     http_archive(
         name = "gmp",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "gmp-6.2.1",
         urls = [
             "https://mirror.bazel.build/gmplib.org/download/gmp/gmp-6.2.1.tar.xz",
@@ -255,7 +386,7 @@ def repositories():
 
     http_archive(
         name = "mpfr",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "mpfr-4.1.0",
         urls = [
             "https://mirror.bazel.build/www.mpfr.org/mpfr-current/mpfr-4.1.0.tar.gz",
@@ -266,7 +397,7 @@ def repositories():
 
     http_archive(
         name = "mpc",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "mpc-1.1.0",
         urls = [
             "https://mirror.bazel.build/ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz",
@@ -277,7 +408,7 @@ def repositories():
 
     http_archive(
         name = "libunwind",
-        build_file_content = all_content,
+        build_file_content = _ALL_CONTENT,
         strip_prefix = "libunwind-9165d2a150d707d3037c2045f2cdc0fabd5fee98",
         urls = [
             "https://mirror.bazel.build/github.com/libunwind/libunwind/archive/9165d2a150d707d3037c2045f2cdc0fabd5fee98.zip",

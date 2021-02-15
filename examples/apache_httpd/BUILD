@@ -2,7 +2,7 @@ load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
 configure_make(
     name = "apr",
-    lib_source = "@apr//:all",
+    lib_source = "@apr//:all_srcs",
     shared_libraries = ["libapr-1.so"],
     static_libraries = ["libapr-1.a"],
 )
@@ -12,7 +12,7 @@ configure_make(
     configure_options = [
         "--with-apr=$$EXT_BUILD_DEPS$$/apr",
     ],
-    lib_source = "@apr_util//:all",
+    lib_source = "@apr_util//:all_srcs",
     shared_libraries = ["libaprutil-1.so"],
     static_libraries = ["libaprutil-1.a"],
     deps = [":apr"],
@@ -20,7 +20,7 @@ configure_make(
 
 configure_make(
     name = "pcre",
-    lib_source = "@pcre//:all",
+    lib_source = "@pcre//:all_srcs",
     shared_libraries = ["libpcre.so.1"],
     static_libraries = ["libpcre.a"],
 )
@@ -36,7 +36,7 @@ configure_make(
         "--with-pcre=$$EXT_BUILD_DEPS$$/pcre",
         "CFLAGS='-Dredacted=\"redacted\"'",
     ],
-    lib_source = "@apache_httpd//:all",
+    lib_source = "@apache_httpd//:all_srcs",
     visibility = [
         "//visibility:public",
     ],

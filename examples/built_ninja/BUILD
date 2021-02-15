@@ -2,7 +2,7 @@ load("@rules_foreign_cc//for_workspace:ninja_build.bzl", "ninja_tool")
 
 ninja_tool(
     name = "ninja_tool",
-    ninja_srcs = "@ninja_build//:all",
+    ninja_srcs = "@ninja_src//:all_srcs",
 )
 
 sh_library(

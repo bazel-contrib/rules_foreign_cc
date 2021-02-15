@@ -77,23 +77,3 @@ test_suite(
     ],
 )
 
-# On Bazel CI Mac machines, we are using ninja built from sources
-toolchain(
-    name = "built_ninja_toolchain_osx",
-    exec_compatible_with = [
-        "@platforms//os:macos",
-        "@platforms//cpu:x86_64",
-    ],
-    toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:built_ninja",
-    toolchain_type = "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
-)
-
-toolchain(
-    name = "built_ninja_toolchain_linux",
-    exec_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-    toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:built_ninja",
-    toolchain_type = "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
-)

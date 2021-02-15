@@ -16,7 +16,7 @@ configure_make(
         "--disable-libevent-regress",
         "--disable-openssl",
     ],
-    lib_source = "@libevent//:all",
+    lib_source = "@libevent//:all_srcs",
     out_lib_dir = "lib",
 )
 

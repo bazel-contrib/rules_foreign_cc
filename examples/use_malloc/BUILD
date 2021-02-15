@@ -8,7 +8,7 @@ configure_make(
         "--enable-frame-pointers",
         "--disable-libunwind",
     ],
-    lib_source = "@gperftools//:all",
+    lib_source = "@gperftools//:all_srcs",
     static_libraries = ["libtcmalloc_and_profiler.a"],
 )
 

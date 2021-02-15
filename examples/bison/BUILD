@@ -7,6 +7,6 @@ configure_make(
         "bison",
         "yacc",
     ],
-    lib_source = "@bison//:all",
+    lib_source = "@bison//:all_srcs",
     static_libraries = ["liby.a"],
 )

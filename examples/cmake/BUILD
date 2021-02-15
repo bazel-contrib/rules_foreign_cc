@@ -7,7 +7,7 @@ cmake_external(
         # fictive prefix to test prefix merging
         "CMAKE_PREFIX_PATH": "/bac/def",
     },
-    lib_source = "@zlib//:all",
+    lib_source = "@zlib//:all_srcs",
 )
 
 cmake_external(
@@ -15,7 +15,7 @@ cmake_external(
     cache_entries = {
         "ZLIB_ROOT": "$EXT_BUILD_DEPS/libz",
     },
-    lib_source = "@libpng//:all",
+    lib_source = "@libpng//:all_srcs",
     out_include_dir = "include/libpng16",
     static_libraries = ["libpng16.a"],
     deps = [":libz"],
@@ -61,7 +61,7 @@ cmake_external(
         "PNG_PNG_INCLUDE_DIR": "$EXT_BUILD_DEPS/libpng/include",
         "ZLIB_ROOT": "$EXT_BUILD_DEPS/libz",
     },
-    lib_source = "@freetype//:all",
+    lib_source = "@freetype//:all_srcs",
     out_include_dir = "include/freetype2",
     static_libraries = ["libfreetype.a"],
     deps = [
@@ -84,7 +84,7 @@ cmake_external(
         "ZLIB_ROOT": "$EXT_BUILD_DEPS/libz",
     },
     defines = ["HAVE_LIBPNG"],
-    lib_source = "@libgd//:all",
+    lib_source = "@libgd//:all_srcs",
     deps = [
         ":freetype",
         ":libpng",

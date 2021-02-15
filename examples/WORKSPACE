@@ -8,8 +8,7 @@ local_repository(
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies([
-    "//:built_ninja_toolchain_osx",
-    "//:built_ninja_toolchain_linux",
+    "@rules_foreign_cc//toolchains:all",
 ])
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")

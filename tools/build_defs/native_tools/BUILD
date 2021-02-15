@@ -12,7 +12,7 @@ native_tool_toolchain(
 
 make_tool(
     name = "make_tool",
-    make_srcs = "@make//:all",
+    make_srcs = "@make//:all_srcs",
     tags = ["manual"],
 )
 
@@ -29,35 +29,9 @@ native_tool_toolchain(
     visibility = ["//visibility:public"],
 )
 
-cmake_tool(
-    name = "cmake_tool",
-    cmake_srcs = "@cmake//:all",
-    tags = ["manual"],
-)
-
-native_tool_toolchain(
-    name = "built_cmake",
-    path = "cmake/bin/cmake",
-    target = ":cmake_tool",
-    visibility = ["//visibility:public"],
-)
-
 native_tool_toolchain(
     name = "preinstalled_ninja",
     path = "ninja",
-    visibility = ["//visibility:public"],
-)
-
-ninja_tool(
-    name = "ninja_tool",
-    ninja_srcs = "@ninja_build//:all",
-    tags = ["manual"],
-)
-
-native_tool_toolchain(
-    name = "built_ninja",
-    path = "ninja/ninja",
-    target = ":ninja_tool",
     visibility = ["//visibility:public"],
 )
 

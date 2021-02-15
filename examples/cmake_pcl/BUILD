@@ -4,7 +4,7 @@ load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 # This takes something about 10 minutes
 boost_build(
     name = "boost",
-    lib_source = "@boost//:all",
+    lib_source = "@boost//:all_srcs",
     static_libraries = [
         "libboost_atomic.a",
         "libboost_chrono.a",
@@ -56,7 +56,7 @@ cmake_external(
         "BUILD_WITHOUT_LAPACK": "no",
         "NOFORTRAN": "on",
     },
-    lib_source = "@openblas//:all",
+    lib_source = "@openblas//:all_srcs",
     static_libraries = ["libopenblas.a"],
 )
 
@@ -67,14 +67,14 @@ cmake_external(
         "BLA_VENDOR": "OpenBLAS",
     },
     headers_only = True,
-    lib_source = "@eigen//:all",
+    lib_source = "@eigen//:all_srcs",
     out_include_dir = "include/eigen3",
     deps = [":openblas"],
 )
 
 cmake_external(
     name = "flann",
-    lib_source = "@flann//:all",
+    lib_source = "@flann//:all_srcs",
     static_libraries = ["libflann_s.a"],
 )
 
@@ -106,7 +106,7 @@ cmake_external(
         "WITH_VTK": "no",
     },
     headers_only = True,
-    lib_source = "@pcl//:all",
+    lib_source = "@pcl//:all_srcs",
     out_include_dir = "include/pcl-1.8",
     deps = [
         ":boost",

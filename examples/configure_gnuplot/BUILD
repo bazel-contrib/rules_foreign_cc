@@ -4,7 +4,7 @@ load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
 configure_make(
     name = "libz",
-    lib_source = "@zlib//:all",
+    lib_source = "@zlib//:all_srcs",
 )
 
 configure_make(
@@ -12,7 +12,7 @@ configure_make(
     configure_options = [
         "--with-zlib=\"$$EXT_BUILD_DEPS$$/libz\"",
     ],
-    lib_source = "@libpng//:all",
+    lib_source = "@libpng//:all_srcs",
     out_include_dir = "include/libpng16",
     static_libraries = ["libpng16.a"],
     deps = [":libz"],
@@ -24,7 +24,7 @@ configure_make(
         "--with-png=\"$$EXT_BUILD_DEPS$$/libpng\"",
         "--with-zlib=\"$$EXT_BUILD_DEPS$$/libz\"",
     ],
-    lib_source = "@freetype//:all",
+    lib_source = "@freetype//:all_srcs",
     out_include_dir = "include/freetype2",
     static_libraries = ["libfreetype.a"],
     deps = [
@@ -50,7 +50,7 @@ configure_make(
         "--with-freetype=\"$$EXT_BUILD_DEPS$$/freetype\"",
         "--with-zlib=\"$$EXT_BUILD_DEPS$$/libz\"",
     ],
-    lib_source = "@libgd//:all",
+    lib_source = "@libgd//:all_srcs",
     static_libraries = libgd_name,
     deps = [
         ":freetype",

@@ -3,7 +3,7 @@ load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
 configure_make(
     name = "gmp",
-    lib_source = "@gmp//:all",
+    lib_source = "@gmp//:all_srcs",
     shared_libraries = ["libgmp.so"],
     static_libraries = ["libgmp.a"],
     visibility = ["//visibility:public"],
@@ -11,7 +11,7 @@ configure_make(
 
 configure_make(
     name = "mpfr",
-    lib_source = "@mpfr//:all",
+    lib_source = "@mpfr//:all_srcs",
     shared_libraries = ["libmpfr.so"],
     static_libraries = ["libmpfr.a"],
     visibility = ["//visibility:public"],
@@ -27,7 +27,7 @@ configure_make(
         "-v",
     ],
     configure_in_place = True,
-    lib_source = "@mpc//:all",
+    lib_source = "@mpc//:all_srcs",
     shared_libraries = ["libmpc.so"],
     static_libraries = ["libmpc.a"],
     visibility = ["//visibility:public"],

@@ -9,7 +9,7 @@ cmake_external(
     }),
     cmake_options = ["-GNinja"],
     generate_crosstool_file = True,
-    lib_source = "@cmake_hello_world_variant_src//:all",
+    lib_source = "@cmake_hello_world_variant_src//:all_srcs",
     make_commands = [
         "ninja",
         "ninja install",

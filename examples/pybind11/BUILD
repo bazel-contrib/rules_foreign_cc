@@ -5,7 +5,7 @@ cmake_external(
     # turn off testing
     cmake_options = ["-DPYBIND11_TEST=False"],
     headers_only = True,
-    lib_source = "@pybind11//:all",
+    lib_source = "@pybind11//:all_srcs",
 )
 
 filegroup(

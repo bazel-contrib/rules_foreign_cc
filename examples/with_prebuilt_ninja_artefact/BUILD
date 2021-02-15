@@ -9,7 +9,7 @@ native_tool_toolchain(
     # In the path, we also start with the name of the directory,
     # in this case the external repository.
     path = "ninja_artefact/ninja",
-    target = "@ninja_artefact//:all",
+    target = "@ninja_artefact//:all_srcs",
     visibility = ["//visibility:public"],
 )
 

@@ -83,7 +83,7 @@ workspace(name = "rules_foreign_cc_usage_example")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # Group the sources of the library so that CMake rule have access to it
-all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
+all_content = """filegroup(name = "all_srcs", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
 
 # Rule repository
 http_archive(
@@ -145,7 +145,7 @@ cmake_external(
        "NOFORTRAN": "on",
        "BUILD_WITHOUT_LAPACK": "no",
    },
-   lib_source = "@openblas//:all",
+   lib_source = "@openblas//:all_srcs",
 
    # We are selecting the resulting static library to be passed in C/C++ provider
    # as the result of the build;
@@ -163,7 +163,7 @@ cmake_external(
        "BLAS_LIBRARIES": "$EXT_BUILD_DEPS/openblas/lib/libopenblas.a",
    },
    headers_only = True,
-   lib_source = "@eigen//:all",
+   lib_source = "@eigen//:all_srcs",
    # Dependency on other cmake_external rule; can also depend on cc_import, cc_library rules
    deps = [":openblas"],
 )
