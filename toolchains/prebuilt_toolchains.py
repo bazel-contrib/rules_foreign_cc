@@ -33,6 +33,7 @@ CMAKE_TARGETS = {
         "@platforms//os:linux",
     ],
     "macos-universal": [
+        "@platforms//cpu:x86_64",
         "@platforms//os:macos",
     ],
     "win32-x86": [
@@ -49,12 +50,15 @@ NINJA_URL_TEMPLATE = "https://github.com/ninja-build/ninja/releases/download/v{f
 
 NINJA_TARGETS = {
     "linux": [
+        "@platforms//cpu:x86_64",
         "@platforms//os:linux",
     ],
     "mac": [
+        "@platforms//cpu:x86_64",
         "@platforms//os:macos",
     ],
     "win": [
+        "@platforms//cpu:x86_64",
         "@platforms//os:windows",
     ],
 }

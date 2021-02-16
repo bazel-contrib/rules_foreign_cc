@@ -151,6 +151,7 @@ def _cmake_toolchains(version):
                     "@platforms//os:linux"
                 ],
                 "cmake-3.19.5-macos-universal": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "cmake-3.19.5-win32-x86": [
@@ -659,12 +660,15 @@ def _ninja_toolchains(version):
             name = "ninja_1.10.2_toolchains",
             repos = {
                 "ninja_1.10.2_linux": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:linux"
                 ],
                 "ninja_1.10.2_mac": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "ninja_1.10.2_win": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:windows"
                 ]
             },
@@ -725,12 +729,15 @@ def _ninja_toolchains(version):
             name = "ninja_1.10.1_toolchains",
             repos = {
                 "ninja_1.10.1_linux": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:linux"
                 ],
                 "ninja_1.10.1_mac": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "ninja_1.10.1_win": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:windows"
                 ]
             },
@@ -791,12 +798,15 @@ def _ninja_toolchains(version):
             name = "ninja_1.10.0_toolchains",
             repos = {
                 "ninja_1.10.0_linux": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:linux"
                 ],
                 "ninja_1.10.0_mac": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "ninja_1.10.0_win": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:windows"
                 ]
             },
@@ -857,12 +867,15 @@ def _ninja_toolchains(version):
             name = "ninja_1.9.0_toolchains",
             repos = {
                 "ninja_1.9.0_linux": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:linux"
                 ],
                 "ninja_1.9.0_mac": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "ninja_1.9.0_win": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:windows"
                 ]
             },
@@ -923,12 +936,15 @@ def _ninja_toolchains(version):
             name = "ninja_1.8.2_toolchains",
             repos = {
                 "ninja_1.8.2_linux": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:linux"
                 ],
                 "ninja_1.8.2_mac": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "ninja_1.8.2_win": [
+                    "@platforms//cpu:x86_64",
                     "@platforms//os:windows"
                 ]
             },
