@@ -10,7 +10,7 @@ echo "Ninja command: $NINJA_COMMAND"
 NINJA_VERSION=$(${NINJA_COMMAND} --version)
 echo "Version: $NINJA_VERSION"
 
-if [ "x$NINJA_VERSION" != "x1.8.2" ]; then
+if [ "x$NINJA_VERSION" != "x1.10.2" ]; then
   echo "Wrong ninja version: $NINJA_VERSION"
   exit -1
 fi

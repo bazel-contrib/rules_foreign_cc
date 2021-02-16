@@ -16,11 +16,16 @@ ToolInfo = provider(
     },
 )
 
-def _native_tool_toolchain(ctx):
+def _native_tool_toolchain_impl(ctx):
     if not ctx.attr.path and not ctx.attr.target:
         fail("Either path or target (and path) should be defined for the tool.")
+    path = None
+    if ctx.attr.target:
+        path = ctx.expand_location(ctx.attr.path, targets = [ctx.attr.target])
+    else:
+        path = ctx.expand_location(ctx.attr.path)
     return platform_common.ToolchainInfo(data = ToolInfo(
-        path = ctx.attr.path,
+        path = path,
         target = ctx.attr.target,
     ))
 
@@ -31,7 +36,7 @@ native_tool_toolchain = rule(
         "`@rules_foreign_cc//tools/build_defs:cmake_toolchain` and " +
         "`@rules_foreign_cc//tools/build_defs:ninja_toolchain`."
     ),
-    implementation = _native_tool_toolchain,
+    implementation = _native_tool_toolchain_impl,
     attrs = {
         "path": attr.string(
             mandatory = False,
