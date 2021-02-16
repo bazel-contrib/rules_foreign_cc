@@ -1,7 +1,7 @@
 """A module for defining WORKSPACE dependencies required for rules_foreign_cc"""
 
 load("//for_workspace:repositories.bzl", "repositories")
-load("//toolchains:prebuilt_toolchains.bzl", "prebuilt_toolchains")
+load("//toolchains:toolchains.bzl", "prebuilt_toolchains", "preinstalled_toolchains")
 load(
     "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",
     shell_toolchain_workspace_initalization = "workspace_part",
@@ -13,6 +13,7 @@ def rules_foreign_cc_dependencies(
         register_default_tools = True,
         cmake_version = "3.19.5",
         ninja_version = "1.10.2",
+        register_preinstalled_tools = True,
         additional_shell_toolchain_mappings = [],
         additional_shell_toolchain_package = None):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
@@ -35,6 +36,9 @@ def rules_foreign_cc_dependencies(
         ninja_version: The target version of the default ninja toolchain if `register_default_tools`
             is set to `True`.
 
+        register_preinstalled_tools: If true, toolchains will be registered for the native built tools
+            installed on the exec host
+
         additional_shell_toolchain_mappings: Mappings of the shell toolchain functions to
             execution and target platforms constraints. Similar to what defined in
             @rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:toolchain_mappings.bzl
@@ -53,5 +57,9 @@ def rules_foreign_cc_dependencies(
     )
 
     native.register_toolchains(*native_tools_toolchains)
+
     if register_default_tools:
         prebuilt_toolchains(cmake_version, ninja_version)
+
+    if register_preinstalled_tools:
+        preinstalled_toolchains()
