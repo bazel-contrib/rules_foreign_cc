@@ -71,15 +71,15 @@ def prebuilt_toolchains(cmake_version, ninja_version):
     _make_toolchains()
 
 def _cmake_toolchains(version):
-    if "3.19.4" == version:
+    if "3.19.5" == version:
         maybe(
             http_archive,
-            name = "cmake-3.19.4-Linux-aarch64",
+            name = "cmake-3.19.5-Linux-aarch64",
             urls = [
-                "https://github.com/Kitware/CMake/releases/download/v3.19.4/cmake-3.19.4-Linux-aarch64.tar.gz",
+                "https://github.com/Kitware/CMake/releases/download/v3.19.5/cmake-3.19.5-Linux-aarch64.tar.gz",
             ],
-            sha256 = "c6c6e5d7a1b8745a6780e04804d5cbae5cc1bb04c89a3b8a6c1d8ccf24f5cdaf",
-            strip_prefix = "cmake-3.19.4-Linux-aarch64",
+            sha256 = "31b3de5e4bc56d96debaa336ffd19cbc6edeaea0828ec1e298f0dd09db55f0f4",
+            strip_prefix = "cmake-3.19.5-Linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
             ),
@@ -87,12 +87,12 @@ def _cmake_toolchains(version):
 
         maybe(
             http_archive,
-            name = "cmake-3.19.4-Linux-x86_64",
+            name = "cmake-3.19.5-Linux-x86_64",
             urls = [
-                "https://github.com/Kitware/CMake/releases/download/v3.19.4/cmake-3.19.4-Linux-x86_64.tar.gz",
+                "https://github.com/Kitware/CMake/releases/download/v3.19.5/cmake-3.19.5-Linux-x86_64.tar.gz",
             ],
-            sha256 = "ff23e1f53c53e8ef1fa87568345031d86c504e53efb52fa487db0b8e0ee4d3ff",
-            strip_prefix = "cmake-3.19.4-Linux-x86_64",
+            sha256 = "ad9102717d67a0e6d72d03d2a25dbbde24386b15b7815b31068cbf5f790638f1",
+            strip_prefix = "cmake-3.19.5-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
             ),
@@ -100,12 +100,12 @@ def _cmake_toolchains(version):
 
         maybe(
             http_archive,
-            name = "cmake-3.19.4-macos-universal",
+            name = "cmake-3.19.5-macos-universal",
             urls = [
-                "https://github.com/Kitware/CMake/releases/download/v3.19.4/cmake-3.19.4-macos-universal.tar.gz",
+                "https://github.com/Kitware/CMake/releases/download/v3.19.5/cmake-3.19.5-macos-universal.tar.gz",
             ],
-            sha256 = "eb1f52996632c1e71a1051c9e2c30cc8df869fb5a213b1a0d3b202744c6c5758",
-            strip_prefix = "cmake-3.19.4-macos-universal/CMake.app/Contents",
+            sha256 = "bf38acc7f93980a9dff11ef1bd9b0d6852618a44edcdabc4722737fc83f5654b",
+            strip_prefix = "cmake-3.19.5-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
             ),
@@ -113,12 +113,12 @@ def _cmake_toolchains(version):
 
         maybe(
             http_archive,
-            name = "cmake-3.19.4-win32-x86",
+            name = "cmake-3.19.5-win32-x86",
             urls = [
-                "https://github.com/Kitware/CMake/releases/download/v3.19.4/cmake-3.19.4-win32-x86.zip",
+                "https://github.com/Kitware/CMake/releases/download/v3.19.5/cmake-3.19.5-win32-x86.zip",
             ],
-            sha256 = "4d940a0e45bea2b07525add804184f3434684efa2ad72c22b3960933006929e4",
-            strip_prefix = "cmake-3.19.4-win32-x86",
+            sha256 = "bb51f578195ca6587afe4e2fc67f6755fd6962aa0eb897713f309ac4567da6f4",
+            strip_prefix = "cmake-3.19.5-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
             ),
@@ -126,12 +126,12 @@ def _cmake_toolchains(version):
 
         maybe(
             http_archive,
-            name = "cmake-3.19.4-win64-x64",
+            name = "cmake-3.19.5-win64-x64",
             urls = [
-                "https://github.com/Kitware/CMake/releases/download/v3.19.4/cmake-3.19.4-win64-x64.zip",
+                "https://github.com/Kitware/CMake/releases/download/v3.19.5/cmake-3.19.5-win64-x64.zip",
             ],
-            sha256 = "24b03daf75ce59b542da38c829fe6944d3bf7cf99afaa8225cf29f7876823899",
-            strip_prefix = "cmake-3.19.4-win64-x64",
+            sha256 = "e2e12729ac43fb4702aedede0383601ea0d63b75d22f892f944d32749da123fd",
+            strip_prefix = "cmake-3.19.5-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
             ),
@@ -140,24 +140,24 @@ def _cmake_toolchains(version):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.19.4_toolchains",
+            name = "cmake_3.19.5_toolchains",
             repos = {
-                "cmake-3.19.4-Linux-aarch64": [
+                "cmake-3.19.5-Linux-aarch64": [
                     "@platforms//cpu:aarch64",
                     "@platforms//os:linux"
                 ],
-                "cmake-3.19.4-Linux-x86_64": [
+                "cmake-3.19.5-Linux-x86_64": [
                     "@platforms//cpu:x86_64",
                     "@platforms//os:linux"
                 ],
-                "cmake-3.19.4-macos-universal": [
+                "cmake-3.19.5-macos-universal": [
                     "@platforms//os:macos"
                 ],
-                "cmake-3.19.4-win32-x86": [
+                "cmake-3.19.5-win32-x86": [
                     "@platforms//cpu:x86_32",
                     "@platforms//os:windows"
                 ],
-                "cmake-3.19.4-win64-x64": [
+                "cmake-3.19.5-win64-x64": [
                     "@platforms//cpu:x86_64",
                     "@platforms//os:windows"
                 ]
@@ -166,11 +166,11 @@ def _cmake_toolchains(version):
         )
 
         native.register_toolchains(
-            "@cmake_3.19.4_toolchains//:cmake-3.19.4-Linux-aarch64_toolchain",
-            "@cmake_3.19.4_toolchains//:cmake-3.19.4-Linux-x86_64_toolchain",
-            "@cmake_3.19.4_toolchains//:cmake-3.19.4-macos-universal_toolchain",
-            "@cmake_3.19.4_toolchains//:cmake-3.19.4-win32-x86_toolchain",
-            "@cmake_3.19.4_toolchains//:cmake-3.19.4-win64-x64_toolchain",
+            "@cmake_3.19.5_toolchains//:cmake-3.19.5-Linux-aarch64_toolchain",
+            "@cmake_3.19.5_toolchains//:cmake-3.19.5-Linux-x86_64_toolchain",
+            "@cmake_3.19.5_toolchains//:cmake-3.19.5-macos-universal_toolchain",
+            "@cmake_3.19.5_toolchains//:cmake-3.19.5-win32-x86_toolchain",
+            "@cmake_3.19.5_toolchains//:cmake-3.19.5-win64-x64_toolchain",
         )
 
         return
