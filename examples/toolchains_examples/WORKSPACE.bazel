@@ -2,7 +2,7 @@ workspace(name = "rules_foreign_cc_toolchains_examples")
 
 local_repository(
     name = "rules_foreign_cc",
-    path = "..",
+    path = "../..",
 )
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
