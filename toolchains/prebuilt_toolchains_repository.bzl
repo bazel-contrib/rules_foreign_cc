@@ -17,7 +17,7 @@ toolchain(
     name = "{repo}_toolchain",
     exec_compatible_with = {exec_compatible_with},
     toolchain = ":{repo}_tool",
-    toolchain_type = "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
+    toolchain_type = "@rules_foreign_cc//tools/build_defs:{tool}_toolchain",
 )
 """
 
