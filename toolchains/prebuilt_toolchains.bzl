@@ -151,7 +151,6 @@ def _cmake_toolchains(version):
                     "@platforms//os:linux"
                 ],
                 "cmake-3.19.5-macos-universal": [
-                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "cmake-3.19.5-win32-x86": [
@@ -664,7 +663,6 @@ def _ninja_toolchains(version):
                     "@platforms//os:linux"
                 ],
                 "ninja_1.10.2_mac": [
-                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "ninja_1.10.2_win": [
@@ -733,7 +731,6 @@ def _ninja_toolchains(version):
                     "@platforms//os:linux"
                 ],
                 "ninja_1.10.1_mac": [
-                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "ninja_1.10.1_win": [
@@ -802,7 +799,6 @@ def _ninja_toolchains(version):
                     "@platforms//os:linux"
                 ],
                 "ninja_1.10.0_mac": [
-                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "ninja_1.10.0_win": [
@@ -871,7 +867,6 @@ def _ninja_toolchains(version):
                     "@platforms//os:linux"
                 ],
                 "ninja_1.9.0_mac": [
-                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "ninja_1.9.0_win": [
@@ -940,7 +935,6 @@ def _ninja_toolchains(version):
                     "@platforms//os:linux"
                 ],
                 "ninja_1.8.2_mac": [
-                    "@platforms//cpu:x86_64",
                     "@platforms//os:macos"
                 ],
                 "ninja_1.8.2_win": [

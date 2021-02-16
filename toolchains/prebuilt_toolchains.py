@@ -33,7 +33,6 @@ CMAKE_TARGETS = {
         "@platforms//os:linux",
     ],
     "macos-universal": [
-        "@platforms//cpu:x86_64",
         "@platforms//os:macos",
     ],
     "win32-x86": [
@@ -54,7 +53,6 @@ NINJA_TARGETS = {
         "@platforms//os:linux",
     ],
     "mac": [
-        "@platforms//cpu:x86_64",
         "@platforms//os:macos",
     ],
     "win": [
