@@ -53,6 +53,7 @@ NINJA_TARGETS = {
         "@platforms//os:linux",
     ],
     "mac": [
+        "@platforms//cpu:x86_64",
         "@platforms//os:macos",
     ],
     "win": [
