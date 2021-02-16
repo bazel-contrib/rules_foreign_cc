@@ -6,8 +6,8 @@ cmake_external(
     cache_entries = select({
         "@bazel_tools//src/conditions:windows": {
             "CMAKE_BUILD_TYPE": "Release",
-            "CMAKE_CXX_FLAGS": "$CMAKE_CXX_FLAGS /MD",
-            "CMAKE_CXX_FLAGS_DEBUG": "$CMAKE_CXX_FLAGS_DEBUG /MD",
+            "CMAKE_CXX_FLAGS": "/MD",
+            "CMAKE_CXX_FLAGS_DEBUG": "/MD",
         },
         "//conditions:default": {},
     }),

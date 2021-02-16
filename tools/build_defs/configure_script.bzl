@@ -8,7 +8,7 @@ def _pkgconfig_script(ext_build_dirs):
     for ext_dir in ext_build_dirs:
         script.append("##increment_pkg_config_path## $$EXT_BUILD_DEPS$$/" + ext_dir.basename)
 
-    script.append("echo \"PKG_CONFIG_PATH=$$PKG_CONFIG_PATH$$\"")
+    script.append("echo \"PKG_CONFIG_PATH=$${PKG_CONFIG_PATH:-}$$\"")
 
     script.append("##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$")
 

@@ -94,13 +94,13 @@ fi
     return FunctionAndCall(text = text)
 
 def script_prelude():
-    return "set -e"
+    return "set -euo pipefail"
 
 def increment_pkg_config_path(source):
     text = """local children=$(find $1 -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
-  export PKG_CONFIG_PATH="$$PKG_CONFIG_PATH$$:$(dirname $child)"
+  export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$(dirname $child)"
   return
 done
 """

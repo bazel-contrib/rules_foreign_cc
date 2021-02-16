@@ -94,7 +94,7 @@ def _export_var(name, value):
     )
 
 def _script_prelude():
-    return "set -e"
+    return "set -euo pipefail"
 
 def _os_name():
     return "Fuchsia"
@@ -105,7 +105,7 @@ def _do_function_call_test(ctx):
     cases = {
         "##echo## \"\ntext\n\"": "echo1 \"\ntext\n\"",
         "##os_name##": "Fuchsia",
-        "##script_prelude##": "set -e",
+        "##script_prelude##": "set -euo pipefail",
         "##symlink_contents_to_dir## 1 2": "1_2",
         "export ROOT=\"A B C\"": "export1 ROOT=\"A B C\"",
         "export ROOT=\"ABC\"": "export1 ROOT=\"ABC\"",

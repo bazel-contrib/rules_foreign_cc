@@ -95,9 +95,10 @@ elif [[ -d "$1" ]]; then
   IFS=$'\n'
   local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
+  local dirname=$(basename "$1")
   for child in "${children[@]}"; do
     if [[ "$dirname" != *.ext_build_deps ]]; then
-      ##symlink_to_dir## "$child" "$target/$(basename $1)"
+      ##symlink_to_dir## "$child" "$target/$dirname"
     fi
   done
 else
@@ -107,7 +108,7 @@ fi
     return FunctionAndCall(text = text)
 
 def script_prelude():
-    return """set -e
+    return """set -euo pipefail
 if [ -f /usr/bin/find ]; then
   REAL_FIND="/usr/bin/find"
 else
@@ -122,7 +123,7 @@ def increment_pkg_config_path(source):
     text = """local children=$($REAL_FIND $1 -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
-  export PKG_CONFIG_PATH="$$PKG_CONFIG_PATH$$:$(dirname $child)"
+  export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$(dirname $child)"
   return
 done
 """
