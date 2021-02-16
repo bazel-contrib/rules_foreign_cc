@@ -15,6 +15,7 @@ bzl_library(
     deps = [
         ":bazel_tools_bzl_srcs",
         "//for_workspace:bzl_srcs",
+        "//toolchains:bzl_srcs",
         "//tools/build_defs:bzl_srcs",
     ],
 )

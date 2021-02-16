@@ -225,6 +225,7 @@ def repositories():
         name = "apr_util",
         build_file_content = all_content,
         strip_prefix = "apr-util-1.6.1",
+        sha256 = "b65e40713da57d004123b6319828be7f1273fbc6490e145874ee1177e112c459",
         urls = [
             "https://mirror.bazel.build/www-us.apache.org/dist//apr/apr-util-1.6.1.tar.gz",
             "https://www-us.apache.org/dist//apr/apr-util-1.6.1.tar.gz",

@@ -1,6 +1,7 @@
 """A module for defining WORKSPACE dependencies required for rules_foreign_cc"""
 
 load("//for_workspace:repositories.bzl", "repositories")
+load("//toolchains:toolchains.bzl", "prebuilt_toolchains", "preinstalled_toolchains")
 load(
     "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",
     shell_toolchain_workspace_initalization = "workspace_part",
@@ -10,6 +11,9 @@ load(
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
+        cmake_version = "3.19.5",
+        ninja_version = "1.10.2",
+        register_preinstalled_tools = True,
         additional_shell_toolchain_mappings = [],
         additional_shell_toolchain_package = None):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
@@ -25,6 +29,15 @@ def rules_foreign_cc_dependencies(
         register_default_tools: If True, the cmake and ninja toolchains, calling corresponding
             preinstalled binaries by name (cmake, ninja) will be registered after
             'native_tools_toolchains' without any platform constraints. The default is True.
+
+        cmake_version: The target version of the default cmake toolchain if `register_default_tools`
+            is set to `True`.
+
+        ninja_version: The target version of the default ninja toolchain if `register_default_tools`
+            is set to `True`.
+
+        register_preinstalled_tools: If true, toolchains will be registered for the native built tools
+            installed on the exec host
 
         additional_shell_toolchain_mappings: Mappings of the shell toolchain functions to
             execution and target platforms constraints. Similar to what defined in
@@ -44,9 +57,9 @@ def rules_foreign_cc_dependencies(
     )
 
     native.register_toolchains(*native_tools_toolchains)
+
     if register_default_tools:
-        native.register_toolchains(
-            "@rules_foreign_cc//tools/build_defs:preinstalled_cmake_toolchain",
-            "@rules_foreign_cc//tools/build_defs:preinstalled_ninja_toolchain",
-            "@rules_foreign_cc//tools/build_defs:preinstalled_make_toolchain",
-        )
+        prebuilt_toolchains(cmake_version, ninja_version)
+
+    if register_preinstalled_tools:
+        preinstalled_toolchains()
