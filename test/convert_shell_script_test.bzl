@@ -20,12 +20,12 @@ def _replace_vars_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "$$ABC$$": "$ABC",
-        "x$$ABC$$": "x$ABC",
-        "$$ABC$$x": "$ABCx",
         " $$ABC$$ ": " $ABC ",
+        "$$ABC$$": "$ABC",
         "$$ABC$$/$$DEF$$": "$ABC/$DEF",
+        "$$ABC$$x": "$ABCx",
         "test before $$ABC$$$ and after": "test before $ABC$ and after",
+        "x$$ABC$$": "x$ABC",
     }
 
     shell_ = struct(
@@ -45,12 +45,12 @@ def _replace_vars_win_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "$$ABC$$": "%ABC%",
-        "x$$ABC$$": "x%ABC%",
-        "$$ABC$$x": "%ABC%x",
         " $$ABC$$ ": " %ABC% ",
+        "$$ABC$$": "%ABC%",
         "$$ABC$$/$$DEF$$": "%ABC%/%DEF%",
+        "$$ABC$$x": "%ABC%x",
         "test before $$ABC$$$ and after": "test before %ABC%$ and after",
+        "x$$ABC$$": "x%ABC%",
     }
 
     shell_ = struct(
@@ -70,16 +70,16 @@ def _funny_fun(a, b):
     return a + "_" + b
 
 def _echo(text):
-    return "echo1 \"" + text + "\""
+    return "echo1 " + text
 
 def _split_arguments_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
+        " \"\ntext\n\"": ["\"\ntext\n\""],
         " 1 2 3": ["1", "2", "3"],
+        " usual \"quoted argument\"": ["usual", "\"quoted argument\""],
         "1 2": ["1", "2"],
-        " \"\ntext\n\"": ["\ntext\n"],
-        " usual \"quoted argument\"": ["usual", "quoted argument"],
     }
     for case in cases:
         result = split_arguments(case)
@@ -94,7 +94,7 @@ def _export_var(name, value):
     )
 
 def _script_prelude():
-    return "set -e"
+    return "set -euo pipefail"
 
 def _os_name():
     return "Fuchsia"
@@ -103,13 +103,13 @@ def _do_function_call_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "##symlink_contents_to_dir## 1 2": "1_2",
         "##echo## \"\ntext\n\"": "echo1 \"\ntext\n\"",
+        "##os_name##": "Fuchsia",
+        "##script_prelude##": "set -euo pipefail",
+        "##symlink_contents_to_dir## 1 2": "1_2",
+        "export ROOT=\"A B C\"": "export1 ROOT=\"A B C\"",
         "export ROOT=\"ABC\"": "export1 ROOT=\"ABC\"",
         "export ROOT=ABC": "export1 ROOT=ABC",
-        "export ROOT=\"A B C\"": "export1 ROOT=\"A B C\"",
-        "##script_prelude##": "set -e",
-        "##os_name##": "Fuchsia",
     }
     shell_ = struct(
         symlink_contents_to_dir = _funny_fun,
@@ -135,15 +135,20 @@ def _touch(path):
 def _define_function(name, text):
     return "function " + name + "() {\n  " + text + "\n}"
 
+def _unquote(arg):
+    if arg.startswith("\"") and arg.endswith("\""):
+        return arg[1:len(arg) - 1]
+    return arg
+
 def _cleanup_function(message_cleaning, message_keeping):
     text = "\n".join([
         "local ecode=$?",
         "if [ $ecode -eq 0 ]; then",
-        message_cleaning,
+        _unquote(message_cleaning),
         "rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS",
         "else",
         "echo \"\"",
-        message_keeping,
+        _unquote(message_keeping),
         "echo \"\"",
         "fi",
     ])
@@ -153,11 +158,8 @@ def _do_function_call_with_body_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "##touch## a/b/c": {
-            "text": "function touch() {\n  call_touch $1\n}",
-            "call": "touch a/b/c",
-        },
         "##cleanup_function## \"echo $$CLEANUP_MSG$$\" \"echo $$KEEP_MSG1$$ && echo $$KEEP_MSG2$$\"": {
+            "call": "cleanup_function \"echo $$CLEANUP_MSG$$\" \"echo $$KEEP_MSG1$$ && echo $$KEEP_MSG2$$\"",
             "text": """function cleanup_function() {
   local ecode=$?
 if [ $ecode -eq 0 ]; then
@@ -169,7 +171,10 @@ echo $$KEEP_MSG1$$ && echo $$KEEP_MSG2$$
 echo ""
 fi
 }""",
-            "call": "cleanup_function \"echo $$CLEANUP_MSG$$\" \"echo $$KEEP_MSG1$$ && echo $$KEEP_MSG2$$\"",
+        },
+        "##touch## a/b/c": {
+            "call": "touch a/b/c",
+            "text": "function touch() {\n  call_touch $1\n}",
         },
     }
     shell_ = struct(

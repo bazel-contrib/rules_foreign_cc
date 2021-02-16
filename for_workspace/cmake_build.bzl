@@ -9,7 +9,7 @@ def _cmake_tool(ctx):
     cmake = ctx.actions.declare_directory("cmake")
     script = [
         "export BUILD_DIR=##pwd##",
-        "export BUILD_TMPDIR=##tmpdir##",
+        "export BUILD_TMPDIR=$${BUILD_DIR}$$.build_tmpdir",
         "##copy_dir_contents_to_dir## ./{} $BUILD_TMPDIR".format(root),
         "##mkdirs## " + cmake.path,
         "cd $$BUILD_TMPDIR$$",

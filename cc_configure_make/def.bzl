@@ -69,8 +69,8 @@ def _cc_configure_make_impl(ctx):
 _cc_configure_make_rule = rule(
     attrs = {
         "configure_flags": attr.string_list(),
-        "src": attr.label(mandatory = True),
         "out_lib_path": attr.string(mandatory = True),
+        "src": attr.label(mandatory = True),
     },
     fragments = ["cpp"],
     output_to_genfiles = True,

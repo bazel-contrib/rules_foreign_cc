@@ -33,8 +33,8 @@ cc_toolchain_suite(
     # target_cpu | compiler
     toolchains = {
         "armeabi-v7a": "cc-compiler-armeabi-v7a",
-        "k8": "cc-compiler-k8",
         "armeabi-v7a|gcc": "cc-compiler-armeabi-v7a",
+        "k8": "cc-compiler-k8",
         "k8|compiler": "cc-compiler-k8",
     },
     visibility = ["//visibility:public"],

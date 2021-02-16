@@ -1,68 +1,65 @@
-load(":native_tools_toolchain.bzl", "native_tool_toolchain")
-load("//for_workspace:make_build.bzl", "make_tool")
-load("//for_workspace:cmake_build.bzl", "cmake_tool")
-load("//for_workspace:ninja_build.bzl", "ninja_tool")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-native_tool_toolchain(
+_DEPRECATION_NOTICE = "This target has moved to `@rules_foreign_cc//toolchains/...`"
+
+alias(
     name = "preinstalled_make",
-    path = "make",
+    actual = "//toolchains:preinstalled_make",
+    deprecation = _DEPRECATION_NOTICE,
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 
-make_tool(
+alias(
     name = "make_tool",
-    make_srcs = "@make//:all",
+    actual = "//toolchains:make_tool",
+    deprecation = _DEPRECATION_NOTICE,
     tags = ["manual"],
+    visibility = ["//visibility:public"],
 )
 
-native_tool_toolchain(
+alias(
     name = "built_make",
-    path = "make/bin/make",
-    target = ":make_tool",
+    actual = "//toolchains:built_make",
+    deprecation = _DEPRECATION_NOTICE,
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 
-native_tool_toolchain(
+alias(
     name = "preinstalled_cmake",
-    path = "cmake",
+    actual = "//toolchains:preinstalled_cmake",
+    deprecation = _DEPRECATION_NOTICE,
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 
-cmake_tool(
-    name = "cmake_tool",
-    cmake_srcs = "@cmake//:all",
-    tags = ["manual"],
-)
-
-native_tool_toolchain(
+alias(
     name = "built_cmake",
-    path = "cmake/bin/cmake",
-    target = ":cmake_tool",
-    visibility = ["//visibility:public"],
-)
-
-native_tool_toolchain(
-    name = "preinstalled_ninja",
-    path = "ninja",
-    visibility = ["//visibility:public"],
-)
-
-ninja_tool(
-    name = "ninja_tool",
-    ninja_srcs = "@ninja_build//:all",
+    actual = "//toolchains:built_cmake",
+    deprecation = _DEPRECATION_NOTICE,
     tags = ["manual"],
+    visibility = ["//visibility:public"],
 )
 
-native_tool_toolchain(
+alias(
+    name = "preinstalled_ninja",
+    actual = "//toolchains:preinstalled_ninja",
+    deprecation = _DEPRECATION_NOTICE,
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+)
+
+alias(
     name = "built_ninja",
-    path = "ninja/ninja",
-    target = ":ninja_tool",
+    actual = "//toolchains:built_ninja",
+    deprecation = _DEPRECATION_NOTICE,
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 
 bzl_library(
     name = "bzl_srcs",
     srcs = glob(["**/*.bzl"]),
-    visibility = ["//:__subpackages__"],
+    visibility = ["//visibility:public"],
 )

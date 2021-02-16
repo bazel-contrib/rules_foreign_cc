@@ -1,8 +1,8 @@
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 load(
     "@rules_foreign_cc//tools/build_defs/native_tools:native_tools_toolchain.bzl",
     "native_tool_toolchain",
 )
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 native_tool_toolchain(
     name = "ninja_tool",

@@ -3,8 +3,8 @@
 ToolchainMapping = provider(
     doc = "Mapping of toolchain definition files to platform constraints",
     fields = {
-        "file": "Toolchain definition file",
         "exec_compatible_with": "Compatible execution platform constraints",
+        "file": "Toolchain definition file",
         "target_compatible_with": "Compatible target platform constraints",
     },
 )

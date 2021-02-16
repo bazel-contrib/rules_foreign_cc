@@ -5,12 +5,12 @@ load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 cmake_external(
     name = "cmake_libb",
     cache_entries = {
-        # as currently we copy all libraries, built with Bazel, into $EXT_BUILD_DEPS/lib
-        # and the headers into $EXT_BUILD_DEPS/include
-        "LIBA_DIR": "$EXT_BUILD_DEPS",
         # CMake's find_package wants to find cmake config for liba,
         # which we do not have -> disable search
         "CMAKE_DISABLE_FIND_PACKAGE_LIBA": "True",
+        # as currently we copy all libraries, built with Bazel, into $EXT_BUILD_DEPS/lib
+        # and the headers into $EXT_BUILD_DEPS/include
+        "LIBA_DIR": "$EXT_BUILD_DEPS",
     },
     cmake_options = ["-GNinja"],
     lib_source = "//cmake_with_bazel_transitive/libb:b_srcs",

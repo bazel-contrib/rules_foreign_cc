@@ -1,5 +1,5 @@
-load(":defs.bzl", "build_part")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":defs.bzl", "build_part")
 
 toolchain_type(
     name = "shell_commands",

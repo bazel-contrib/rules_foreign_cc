@@ -18,7 +18,7 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
-      # TODO: TODO make issue
+      # TODO: https://github.com/bazelbuild/rules_foreign_cc/issues/495
       - "-//test:shell_method_symlink_contents_to_dir_test"
       - "-//test:shell_script_inner_fun_test"
   ubuntu2004_examples:
@@ -26,9 +26,10 @@ tasks:
     platform: ubuntu2004
     working_directory: examples
     build_targets:
-      - "//cmake_android:app"
       - "//boost:boost_regex"
       - "//boost:boost_filesystem"
+      - "//cmake_android:app"
+      - "//cmake_defines:all"
     test_targets:
       - "//:tests"
   ubuntu1804_examples:
@@ -36,9 +37,10 @@ tasks:
     platform: ubuntu1804
     working_directory: examples
     build_targets:
-      - "//cmake_android:app"
       - "//boost:boost_regex"
       - "//boost:boost_filesystem"
+      - "//cmake_android:app"
+      - "//cmake_defines:all"
     test_targets:
       - "//:tests_no_synthetic"
   macos_examples:
@@ -46,9 +48,10 @@ tasks:
     platform: macos
     working_directory: examples
     build_targets:
-      - "//cmake_android:app"
       - "//boost:boost_regex"
       #- "//boost:boost_filesystem"
+      - "//cmake_android:app"
+      - "//cmake_defines:all"
     test_targets:
       - "//:mac_tests"
   windows_examples:
@@ -114,7 +117,7 @@ tasks:
     platform: ubuntu2004
     working_directory: docs
     build_targets:
-    - //...
+      - //...
   min_supported_version:
     name: "Minimum Supported Version"
     bazel: "3.4.0"
@@ -133,4 +136,6 @@ tasks:
     test_targets:
       - "//:tests_no_synthetic"
 
-buildifier: latest
+buildifier:
+  version: latest
+  warnings: "all"

@@ -1,7 +1,7 @@
 """ Rule for building GNU Make from sources. """
 
-load("//tools/build_defs:detect_root.bzl", "detect_root")
 load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "convert_shell_script")
+load("//tools/build_defs:detect_root.bzl", "detect_root")
 
 def _make_tool(ctx):
     root = detect_root(ctx.attr.make_srcs)
@@ -9,7 +9,7 @@ def _make_tool(ctx):
     make = ctx.actions.declare_directory("make")
     script = [
         "export BUILD_DIR=##pwd##",
-        "export BUILD_TMPDIR=##tmpdir##",
+        "export BUILD_TMPDIR=$${BUILD_DIR}$$.build_tmpdir",
         "##copy_dir_contents_to_dir## ./{} $BUILD_TMPDIR".format(root),
         "cd $$BUILD_TMPDIR$$",
         "./configure --prefix=$$BUILD_DIR$$/{}".format(make.path),

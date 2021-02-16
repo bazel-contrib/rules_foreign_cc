@@ -33,9 +33,6 @@ def touch(path):
 def mkdirs(path):
     return "mkdir -p " + path
 
-def tmpdir():
-    return "$(mktemp -d)"
-
 def if_else(condition, if_text, else_text):
     return """
 if [ {condition} ]; then
@@ -74,8 +71,11 @@ elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
   ##symlink_contents_to_dir## "$actual" "$target"
 elif [[ -d "$1" ]]; then
-  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
-  for child in $children; do
+  SAVEIFS=$IFS
+  IFS=$'\n'
+  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
+  IFS=$SAVEIFS
+  for child in "${children[@]}"; do
     ##symlink_to_dir## "$child" "$target"
   done
 fi
@@ -87,14 +87,19 @@ def symlink_to_dir(source, target):
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ln -s -f -t "$target" "$1"
-elif [[ -L "$1" ]]; then
-  cp $1 $2
+elif [[ -L "$1" && ! -d "$1" ]]; then
+  cp "$1" "$2"
 elif [[ -d "$1" ]]; then
-  local children=$(find -H "$1" -maxdepth 1 -mindepth 1)
+  SAVEIFS=$IFS
+  IFS=$'\n'
+  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
+  IFS=$SAVEIFS
   local dirname=$(basename "$1")
   mkdir -p "$target/$dirname"
-  for child in $children; do
-    ##symlink_to_dir## "$child" "$target/$dirname"
+  for child in "${children[@]}"; do
+    if [[ "$dirname" != *.ext_build_deps ]]; then
+      ##symlink_to_dir## "$child" "$target/$dirname"
+    fi
   done
 else
   echo "Can not copy $1"
@@ -103,13 +108,13 @@ fi
     return FunctionAndCall(text = text)
 
 def script_prelude():
-    return "set -e"
+    return "set -euo pipefail"
 
 def increment_pkg_config_path(source):
     text = """local children=$(find $1 -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
-  export PKG_CONFIG_PATH="$$PKG_CONFIG_PATH$$:$(dirname $child)"
+  export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$(dirname $child)"
   return
 done
 """

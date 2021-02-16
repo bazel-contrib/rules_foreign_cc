@@ -22,15 +22,19 @@ _generate_install_rule = repository_rule(
     local = True,
     implementation = _generate_install_rule_impl,
     attrs = {
-        "url": attr.string(mandatory = True),
-        "stripPrefix": attr.string(mandatory = False),
+        "init_expression": attr.string(mandatory = True),
         "init_file": attr.string(mandatory = True),
         "init_function": attr.string(mandatory = True),
-        "init_expression": attr.string(mandatory = True),
+        "stripPrefix": attr.string(mandatory = False),
+        "url": attr.string(mandatory = True),
     },
+
 )
 
 def install_ws_dependency(repo_name, url, strip_prefix, init_file, init_function, init_expression = None):
+    # buildifier: disable=print
+    print("DEPRECATION: `install_ws_dependency` is unused and will soon be removed")
+
     init_expression = init_expression if init_expression else (init_function + "()")
     _generate_install_rule(
         name = repo_name,

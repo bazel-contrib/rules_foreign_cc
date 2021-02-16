@@ -1,5 +1,5 @@
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 load("@rules_foreign_cc//tools/build_defs:boost_build.bzl", "boost_build")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 # This takes something about 10 minutes
 boost_build(
@@ -53,8 +53,8 @@ boost_build(
 cmake_external(
     name = "openblas",
     cache_entries = {
-        "NOFORTRAN": "on",
         "BUILD_WITHOUT_LAPACK": "no",
+        "NOFORTRAN": "on",
     },
     lib_source = "@openblas//:all",
     static_libraries = ["libopenblas.a"],
@@ -63,8 +63,8 @@ cmake_external(
 cmake_external(
     name = "eigen",
     cache_entries = {
-        "BLA_VENDOR": "OpenBLAS",
         "BLAS_LIBRARIES": "$EXT_BUILD_DEPS/openblas/lib/libopenblas.a",
+        "BLA_VENDOR": "OpenBLAS",
     },
     headers_only = True,
     lib_source = "@eigen//:all",
@@ -82,28 +82,28 @@ cmake_external(
 cmake_external(
     name = "pcl",
     cache_entries = {
-        "WITH_LIBUSB": "no",
-        "EIGEN_INCLUDE_DIRS": "$EXT_BUILD_DEPS/eigen/include/eigen3",
+        "BOOST_INCLUDEDIR": "$EXT_BUILD_DEPS/boost/include",
+        "BOOST_ROOT": "$EXT_BUILD_DEPS/boost/",
         "EIGEN_INCLUDE_DIR": "$EXT_BUILD_DEPS/eigen/include/eigen3",
-        "FLANN_LIBRARY": "$EXT_BUILD_DEPS/flann/lib/libflann_s.a",
-        "FLANN_INCLUDE_DIRS": "$EXT_BUILD_DEPS/flann/include",
+        "EIGEN_INCLUDE_DIRS": "$EXT_BUILD_DEPS/eigen/include/eigen3",
         "FLANN_INCLUDE_DIR": "$EXT_BUILD_DEPS/flann/include",
-        "WITH_PNG": "no",
-        "WITH_QHULL": "no",
+        "FLANN_INCLUDE_DIRS": "$EXT_BUILD_DEPS/flann/include",
+        "FLANN_LIBRARY": "$EXT_BUILD_DEPS/flann/lib/libflann_s.a",
         "WITH_CUDA": "no",
-        "WITH_QT": "no",
-        "WITH_VTK": "no",
-        "WITH_PCAP": "no",
+        "WITH_DAVIDSDK": "no",
+        "WITH_DSSDK": "no",
+        "WITH_ENSENSO": "no",
+        "WITH_FZAPI": "no",
+        "WITH_LIBUSB": "no",
         "WITH_OPENGL": "no",
         "WITH_OPENNI": "no",
         "WITH_OPENNI2": "no",
-        "WITH_FZAPI": "no",
-        "WITH_ENSENSO": "no",
-        "WITH_DAVIDSDK": "no",
-        "WITH_DSSDK": "no",
+        "WITH_PCAP": "no",
+        "WITH_PNG": "no",
+        "WITH_QHULL": "no",
+        "WITH_QT": "no",
         "WITH_RSSDK": "no",
-        "BOOST_ROOT": "$EXT_BUILD_DEPS/boost/",
-        "BOOST_INCLUDEDIR": "$EXT_BUILD_DEPS/boost/include",
+        "WITH_VTK": "no",
     },
     headers_only = True,
     lib_source = "@pcl//:all",

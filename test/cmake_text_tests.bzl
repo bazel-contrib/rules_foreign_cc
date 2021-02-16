@@ -1,19 +1,19 @@
 """ Unit tests for CMake script creation """
 
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//tools/build_defs:cmake_script.bzl", "create_cmake_script", "export_for_test")
 load("//tools/build_defs:cc_toolchain_util.bzl", "CxxFlagsInfo", "CxxToolsInfo")
+load("//tools/build_defs:cmake_script.bzl", "create_cmake_script", "export_for_test")
 
 def _absolutize_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "abs/a12": "abs/a12",
-        "/abs/a12": "/abs/a12",
-        "external/cmake/aaa": "$EXT_BUILD_ROOT/external/cmake/aaa",
         "-Lexternal/cmake/aaa": "-L$EXT_BUILD_ROOT/external/cmake/aaa",
-        "ws/cmake/aaa": "$EXT_BUILD_ROOT/ws/cmake/aaa",
+        "/abs/a12": "/abs/a12",
+        "abs/a12": "abs/a12",
+        "external/cmake/aaa": "$EXT_BUILD_ROOT/external/cmake/aaa",
         "name=ws/cmake/aaa": "name=$EXT_BUILD_ROOT/ws/cmake/aaa",
+        "ws/cmake/aaa": "$EXT_BUILD_ROOT/ws/cmake/aaa",
     }
 
     for case in cases:
@@ -91,18 +91,18 @@ def _fill_crossfile_from_toolchain_test(ctx):
     asserts.true(env, system != None)
 
     expected = {
-        "CMAKE_SYSROOT": "/abc/sysroot",
-        "CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN": "cc-toolchain",
-        "CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN": "cxx-toolchain",
-        "CMAKE_C_COMPILER": "/some-cc-value",
-        "CMAKE_CXX_COMPILER": "$EXT_BUILD_ROOT/external/cxx-value",
         "CMAKE_AR": "/cxx_linker_static",
-        "CMAKE_CXX_LINK_EXECUTABLE": "$EXT_BUILD_ROOT/ws/cxx_linker_executable <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>",
-        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
-        "CMAKE_CXX_FLAGS_INIT": "--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain",
         "CMAKE_ASM_FLAGS_INIT": "assemble",
-        "CMAKE_SHARED_LINKER_FLAGS_INIT": "shared1 shared2",
+        "CMAKE_CXX_COMPILER": "$EXT_BUILD_ROOT/external/cxx-value",
+        "CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN": "cxx-toolchain",
+        "CMAKE_CXX_FLAGS_INIT": "--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain",
+        "CMAKE_CXX_LINK_EXECUTABLE": "$EXT_BUILD_ROOT/ws/cxx_linker_executable <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>",
+        "CMAKE_C_COMPILER": "/some-cc-value",
+        "CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN": "cc-toolchain",
+        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
         "CMAKE_EXE_LINKER_FLAGS_INIT": "executable",
+        "CMAKE_SHARED_LINKER_FLAGS_INIT": "shared1 shared2",
+        "CMAKE_SYSROOT": "/abc/sysroot",
     }
 
     for key in expected:
@@ -114,21 +114,21 @@ def _move_dict_values_test(ctx):
     env = unittest.begin(ctx)
 
     target = {
-        "CMAKE_C_COMPILER": "some-cc-value",
         "CMAKE_CXX_COMPILER": "$EXT_BUILD_ROOT/external/cxx-value",
-        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
         "CMAKE_CXX_LINK_EXECUTABLE": "was",
+        "CMAKE_C_COMPILER": "some-cc-value",
+        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
     }
     source_env = {
         "CC": "sink-cc-value",
-        "CXX": "sink-cxx-value",
         "CFLAGS": "--from-env",
         "CUSTOM": "YES",
+        "CXX": "sink-cxx-value",
     }
     source_cache = {
-        "CMAKE_C_FLAGS": "--additional-flag",
         "CMAKE_ASM_FLAGS": "assemble",
         "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CMAKE_C_FLAGS": "--additional-flag",
         "CUSTOM": "YES",
     }
     export_for_test.move_dict_values(
@@ -143,11 +143,11 @@ def _move_dict_values_test(ctx):
     )
 
     expected_target = {
-        "CMAKE_C_COMPILER": "sink-cc-value",
-        "CMAKE_CXX_COMPILER": "sink-cxx-value",
-        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag",
         "CMAKE_ASM_FLAGS_INIT": "assemble",
+        "CMAKE_CXX_COMPILER": "sink-cxx-value",
         "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CMAKE_C_COMPILER": "sink-cc-value",
+        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag",
     }
     for key in expected_target:
         asserts.equals(env, expected_target[key], target[key])
@@ -164,21 +164,15 @@ def _reverse_descriptor_dict_test(ctx):
 
     res = export_for_test.reverse_descriptor_dict(export_for_test.CMAKE_CACHE_ENTRIES_CROSSTOOL)
     expected = {
-        "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
         "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
+        "CMAKE_ASM_FLAGS_INIT": struct(value = "CMAKE_ASM_FLAGS", replace = False),
+        "CMAKE_CXX_FLAGS_INIT": struct(value = "CMAKE_CXX_FLAGS", replace = False),
         "CMAKE_CXX_LINK_EXECUTABLE": struct(value = "CMAKE_CXX_LINK_EXECUTABLE", replace = True),
         "CMAKE_C_FLAGS_INIT": struct(value = "CMAKE_C_FLAGS", replace = False),
-        "CMAKE_CXX_FLAGS_INIT": struct(value = "CMAKE_CXX_FLAGS", replace = False),
-        "CMAKE_ASM_FLAGS_INIT": struct(value = "CMAKE_ASM_FLAGS", replace = False),
-        "CMAKE_STATIC_LINKER_FLAGS_INIT": struct(
-            value = "CMAKE_STATIC_LINKER_FLAGS",
-            replace = False,
-        ),
-        "CMAKE_SHARED_LINKER_FLAGS_INIT": struct(
-            value = "CMAKE_SHARED_LINKER_FLAGS",
-            replace = False,
-        ),
         "CMAKE_EXE_LINKER_FLAGS_INIT": struct(value = "CMAKE_EXE_LINKER_FLAGS", replace = False),
+        "CMAKE_SHARED_LINKER_FLAGS_INIT": struct(value = "CMAKE_SHARED_LINKER_FLAGS", replace = False),
+        "CMAKE_STATIC_LINKER_FLAGS_INIT": struct(value = "CMAKE_STATIC_LINKER_FLAGS", replace = False),
+        "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
     }
 
     for key in expected:
@@ -190,16 +184,16 @@ def _merge_toolchain_and_user_values_test(ctx):
     env = unittest.begin(ctx)
 
     target = {
-        "CMAKE_C_COMPILER": "some-cc-value",
         "CMAKE_CXX_COMPILER": "$EXT_BUILD_ROOT/external/cxx-value",
-        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
         "CMAKE_CXX_FLAGS_INIT": "-ccx-flag",
         "CMAKE_CXX_LINK_EXECUTABLE": "was",
+        "CMAKE_C_COMPILER": "some-cc-value",
+        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
     }
     source_cache = {
-        "CMAKE_C_FLAGS": "--additional-flag",
         "CMAKE_ASM_FLAGS": "assemble",
         "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CMAKE_C_FLAGS": "--additional-flag",
         "CUSTOM": "YES",
     }
 
@@ -210,10 +204,10 @@ def _merge_toolchain_and_user_values_test(ctx):
     )
 
     expected_target = {
-        "CMAKE_C_FLAGS": "-cc-flag -gcc_toolchain cc-toolchain --additional-flag",
-        "CMAKE_CXX_FLAGS": "-ccx-flag",
         "CMAKE_ASM_FLAGS": "assemble",
+        "CMAKE_CXX_FLAGS": "-ccx-flag",
         "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CMAKE_C_FLAGS": "-cc-flag -gcc_toolchain cc-toolchain --additional-flag",
         "CUSTOM": "YES",
     }
 
@@ -241,8 +235,8 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
     )
     user_env = {}
     user_cache = {
-        "CMAKE_CXX_FLAGS": "-Fbat",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_FLAGS": "-Fbat",
     }
 
     script = create_cmake_script(
@@ -258,7 +252,7 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
         user_env,
         [],
     )
-    expected = """CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CXXFLAGS=\"foo=\\\"bar\\\" -Fbat" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_RANLIB=\"\"  $EXT_BUILD_ROOT/external/test_rule"""
+    expected = """CC="/usr/bin/gcc" CXX="/usr/bin/gcc" CXXFLAGS="foo=\\"bar\\" -Fbat" cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB=""  $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
@@ -282,8 +276,8 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
     )
     user_env = {}
     user_cache = {
-        "NOFORTRAN": "on",
         "CMAKE_PREFIX_PATH": "/abc/def",
+        "NOFORTRAN": "on",
     }
 
     script = create_cmake_script(
@@ -299,7 +293,7 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
         user_env,
         ["-GNinja"],
     )
-    expected = "CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" CXXFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" ASMFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_SHARED_LINKER_FLAGS=\"-shared -fuse-ld=gold\" -DCMAKE_EXE_LINKER_FLAGS=\"-fuse-ld=gold -Wl -no-as-needed\" -DNOFORTRAN=\"on\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS;/abc/def\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_BUILD_TYPE=\"Debug\" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
+    expected = """CC="/usr/bin/gcc" CXX="/usr/bin/gcc" CFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" CXXFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DNOFORTRAN="on" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS;/abc/def" -DCMAKE_RANLIB="" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
@@ -343,7 +337,7 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
         user_env,
         ["-GNinja"],
     )
-    expected = "CC=\"/usr/bin/gcc\" CXX=\"/usr/bin/gcc\" CFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" CXXFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" ASMFLAGS=\"-U_FORTIFY_SOURCE -fstack-protector -Wall\" cmake -DCMAKE_AR=\"/usr/bin/ar\" -DCMAKE_EXE_LINKER_FLAGS=\"-fuse-ld=gold -Wl -no-as-needed\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS;/abc/def\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_BUILD_TYPE=\"Debug\" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
+    expected = """CC="/usr/bin/gcc" CXX="/usr/bin/gcc" CFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" CXXFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS;/abc/def" -DCMAKE_RANLIB="" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
@@ -384,18 +378,18 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
         ["-GNinja"],
     )
     expected = """cat > crosstool_bazel.cmake <<EOF
-set(CMAKE_SYSTEM_NAME "Linux")
-set(CMAKE_C_COMPILER "/usr/bin/gcc")
-set(CMAKE_CXX_COMPILER "/usr/bin/gcc")
 set(CMAKE_AR "/usr/bin/ar" CACHE FILEPATH "Archiver")
-set(CMAKE_C_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
-set(CMAKE_CXX_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
 set(CMAKE_ASM_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
-set(CMAKE_SHARED_LINKER_FLAGS_INIT "-shared -fuse-ld=gold")
+set(CMAKE_CXX_COMPILER "/usr/bin/gcc")
+set(CMAKE_CXX_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
+set(CMAKE_C_COMPILER "/usr/bin/gcc")
+set(CMAKE_C_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "-fuse-ld=gold -Wl -no-as-needed")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "-shared -fuse-ld=gold")
+set(CMAKE_SYSTEM_NAME "Linux")
 EOF
 
- cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_BUILD_TYPE=\"Debug\" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+ cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected.splitlines(), script.splitlines())
 
     return unittest.end(env)
@@ -424,16 +418,16 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
     )
     user_env = {
         "CC": "sink-cc-value",
-        "CXX": "sink-cxx-value",
         "CFLAGS": "--from-env",
         "CUSTOM_ENV": "YES",
+        "CXX": "sink-cxx-value",
     }
     user_cache = {
-        "CMAKE_C_FLAGS": "--additional-flag",
         "CMAKE_ASM_FLAGS": "assemble-user",
-        "CMAKE_CXX_LINK_EXECUTABLE": "became",
-        "CUSTOM_CACHE": "YES",
         "CMAKE_BUILD_TYPE": "user_type",
+        "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CMAKE_C_FLAGS": "--additional-flag",
+        "CUSTOM_CACHE": "YES",
     }
 
     script = create_cmake_script(
@@ -449,7 +443,7 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
         user_env,
         ["-GNinja"],
     )
-    expected = "CC=\"sink-cc-value\" CXX=\"sink-cxx-value\" CFLAGS=\"-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag\" CXXFLAGS=\"--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain\" ASMFLAGS=\"assemble assemble-user\" CUSTOM_ENV=\"YES\" cmake -DCMAKE_AR=\"/cxx_linker_static\" -DCMAKE_CXX_LINK_EXECUTABLE=\"became\" -DCMAKE_SHARED_LINKER_FLAGS=\"shared1 shared2\" -DCMAKE_EXE_LINKER_FLAGS=\"executable\" -DCUSTOM_CACHE=\"YES\" -DCMAKE_BUILD_TYPE=\"user_type\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"
+    expected = """CC="sink-cc-value" CXX="sink-cxx-value" CFLAGS="-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag" CXXFLAGS="--quoted=\\"abc def\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain" ASMFLAGS="assemble assemble-user" CUSTOM_ENV="YES" cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB="" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
@@ -478,14 +472,14 @@ def _create_cmake_script_toolchain_file_test(ctx):
     )
     user_env = {
         "CC": "sink-cc-value",
-        "CXX": "sink-cxx-value",
         "CFLAGS": "--from-env",
         "CUSTOM_ENV": "YES",
+        "CXX": "sink-cxx-value",
     }
     user_cache = {
-        "CMAKE_C_FLAGS": "--additional-flag",
         "CMAKE_ASM_FLAGS": "assemble-user",
         "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CMAKE_C_FLAGS": "--additional-flag",
         "CUSTOM_CACHE": "YES",
     }
 
@@ -503,22 +497,22 @@ def _create_cmake_script_toolchain_file_test(ctx):
         ["-GNinja"],
     )
     expected = """cat > crosstool_bazel.cmake <<EOF
-set(CMAKE_SYSTEM_NAME "Apple")
-set(CMAKE_SYSROOT "/abc/sysroot")
-set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "cc-toolchain")
-set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "cxx-toolchain")
-set(CMAKE_C_COMPILER "sink-cc-value")
-set(CMAKE_CXX_COMPILER "sink-cxx-value")
 set(CMAKE_AR "/cxx_linker_static" CACHE FILEPATH "Archiver")
-set(CMAKE_CXX_LINK_EXECUTABLE "became")
-set(CMAKE_C_FLAGS_INIT "-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag")
-set(CMAKE_CXX_FLAGS_INIT "--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain")
 set(CMAKE_ASM_FLAGS_INIT "assemble assemble-user")
-set(CMAKE_SHARED_LINKER_FLAGS_INIT "shared1 shared2")
+set(CMAKE_CXX_COMPILER "sink-cxx-value")
+set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "cxx-toolchain")
+set(CMAKE_CXX_FLAGS_INIT "--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain")
+set(CMAKE_CXX_LINK_EXECUTABLE "became")
+set(CMAKE_C_COMPILER "sink-cc-value")
+set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "cc-toolchain")
+set(CMAKE_C_FLAGS_INIT "-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "executable")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "shared1 shared2")
+set(CMAKE_SYSROOT "/abc/sysroot")
+set(CMAKE_SYSTEM_NAME "Apple")
 EOF
 
-CUSTOM_ENV="YES" cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_BUILD_TYPE=\"Debug\" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+CUSTOM_ENV=\"YES\" cmake -DCUSTOM_CACHE=\"YES\" -DCMAKE_TOOLCHAIN_FILE=\"crosstool_bazel.cmake\" -DCMAKE_BUILD_TYPE=\"Debug\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
     asserts.equals(env, expected.splitlines(), script.splitlines())
 
     return unittest.end(env)
