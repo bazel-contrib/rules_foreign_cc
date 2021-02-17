@@ -4,6 +4,7 @@ load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 configure_make(
     name = "libunwind",
     autogen = True,
+    keep_install_dir = False,
     configure_in_place = True,
     configure_options = [
         "--disable-coredump",
