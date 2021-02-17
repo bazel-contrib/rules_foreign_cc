@@ -99,7 +99,7 @@ elif [[ -L "$1" && ! -d "$1" ]]; then
 elif [[ -d "$1" ]]; then
   SAVEIFS=$IFS
   IFS=$'\n'
-  local children=($(find "$1" -maxdepth 1 -mindepth 1))
+  local children=($(find "$1/" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
   for child in "${children[@]}"; do
     ##symlink_to_dir## "$child" "$target"
