@@ -55,7 +55,6 @@ cc_test(
     srcs = [
         "test_libb.cpp",
     ],
-    tags = ["windows"],
     deps = [
         # liba should come from transitive dependencies
         ":libb",

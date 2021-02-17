@@ -1,0 +1,31 @@
+# buildifier: disable=module-docstring
+load("//apache_httpd:repositories.bzl", apache_httpd_repositories = "repositories")
+load("//bison:repositories.bzl", bison_repositories = "repositories")
+load("//boost:repositories.bzl", boost_repositories = "repositories")
+load("//cares:repositories.bzl", cares_repositories = "repositories")
+load("//gnuplot:repositories.bzl", gnuplot_repositories = "repositories")
+load("//libevent:repositories.bzl", libevent_repositories = "repositories")
+load("//libgd:repositories.bzl", libgd_repositories = "repositories")
+load("//libunwind:repositories.bzl", libunwind_repositories = "repositories")
+load("//luajit:repositories.bzl", luajit_repositories = "repositories")
+load("//mpc:repositories.bzl", mpc_repositories = "repositories")
+load("//nghttp2:repositories.bzl", nghttp2_repositories = "repositories")
+load("//pcl:repositories.bzl", pcl_repositories = "repositories")
+load("//pybind11:repositories.bzl", pybind11_repositories = "repositories")
+
+def repositories():
+    """Load all repositories needed for the targets of rules_foreign_cc_examples_third_party"""
+
+    apache_httpd_repositories()
+    bison_repositories()
+    boost_repositories()
+    cares_repositories()
+    gnuplot_repositories()
+    libevent_repositories()
+    libgd_repositories()
+    libunwind_repositories()
+    luajit_repositories()
+    mpc_repositories()
+    nghttp2_repositories()
+    pcl_repositories()
+    pybind11_repositories()

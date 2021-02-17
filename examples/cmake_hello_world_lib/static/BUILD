@@ -15,6 +15,7 @@ cmake_external(
     lib_source = ":srcs",
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
+    tags = ["manual"]
 )
 
 cmake_external(
@@ -26,6 +27,8 @@ cmake_external(
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
     static_libraries = ["hello.lib"],
+    # TODO: Update to `exec_compatible_with`
+    tags = ["manual"]
 )
 
 cmake_external(
@@ -39,6 +42,8 @@ cmake_external(
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
     static_libraries = ["hello.lib"],
+    # TODO: Update to `exec_compatible_with`
+    tags = ["manual"]
 )
 
 cmake_external(
@@ -52,6 +57,8 @@ cmake_external(
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
     static_libraries = ["hello.lib"],
+    # TODO: Update to `exec_compatible_with`
+    tags = ["manual"]
 )
 
 cc_binary(

@@ -28,8 +28,7 @@ filegroup(
 sh_test(
     name = "test_hello_world",
     srcs = ["test_hello_world.sh"],
-    args = ["$(location binary)"],
+    args = ["$(location :binary)"],
     data = [":binary"],
-    tags = ["windows"],
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )

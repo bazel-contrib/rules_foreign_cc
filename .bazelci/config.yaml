@@ -26,45 +26,39 @@ tasks:
     platform: ubuntu2004
     working_directory: examples
     build_targets:
-      - "//cmake_android:app"
-      - "//cmake_defines:all"
+      - "//..."
     test_targets:
-      - "//:tests"
-  ubuntu1804_examples:
-    name: Examples
-    platform: ubuntu1804
-    working_directory: examples
-    build_targets:
-      - "//cmake_android:app"
-      - "//cmake_defines:all"
-    test_targets:
-      - "//:tests_no_synthetic"
+      - "//..."
   macos_examples:
     name: Examples
     platform: macos
     working_directory: examples
     build_targets:
-      - "//cmake_android:app"
-      - "//cmake_defines:all"
+      - "//..."
     test_targets:
-      - "//:mac_tests"
+      - "//..."
   windows_examples:
     name: Examples
     platform: windows
     working_directory: examples
+    windows_targets: &windows_targets
+      - "//..."
+      # TODO: Support all targets on windows
+      - "-//cmake_android/..."
+      - "-//cmake_defines/..."
+      - "-//cmake_hello_world_lib/..."
+      - "-//cmake_synthetic/..."
+      - "-//cmake_with_bazel_transitive/..."
+      - "-//cmake_working_dir/..."
+      - "-//configure_with_bazel_transitive/..."
+      - "-//make_simple/..."
+    build_targets: *windows_targets
+    test_targets: *windows_targets
     test_flags:
       - "--enable_runfiles"
-    test_targets:
-      - "//:win_tests"
   ubuntu2004_flags:
     name: Flags
     platform: ubuntu2004
-    working_directory: test/standard_cxx_flags_test
-    test_targets:
-      - "//:flags_test"
-  ubuntu1804_flags:
-    name: Flags
-    platform: ubuntu1804
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
@@ -83,12 +77,6 @@ tasks:
   ubuntu2004_detect_root:
     name: Detect root
     platform: ubuntu2004
-    working_directory: test/detect_root_test
-    test_targets:
-      - "//:tests"
-  ubuntu1804_detect_root:
-    name: Detect root
-    platform: ubuntu1804
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
@@ -124,9 +112,9 @@ tasks:
     platform: ubuntu1604
     working_directory: examples
     build_targets:
-      - "//cmake_android:app"
+      - "//..."
     test_targets:
-      - "//:tests_no_synthetic"
+      - "//..."
 
 buildifier:
   version: latest
