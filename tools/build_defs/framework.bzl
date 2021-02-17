@@ -104,6 +104,12 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Optional names of the resulting interface libraries.",
         mandatory = False,
     ),
+    "keep_install_dir": attr.bool(
+        doc = (
+            "Keep the entire install directory for use by downstream libraries (does not affect " +
+            "explicitly specified outputs in static_libraries, shared_libraries, out_* fields"),
+        default = True,
+    ),
     "lib_name": attr.string(
         doc = (
             "Library name. Defines the name of the install directory and the name of the static library, " +
@@ -362,7 +368,7 @@ def cc_external_rule_impl(ctx, attrs):
         # for the results which are in $INSTALLDIR (with placeholder)
         "##replace_absolute_paths## $$INSTALLDIR$$ $$BUILD_TMPDIR$$",
         "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
-        installdir_copy.script,
+        installdir_copy.script if ctx.attr.keep_install_dir else "",
         empty.script,
         "cd $$EXT_BUILD_ROOT$$",
     ]
