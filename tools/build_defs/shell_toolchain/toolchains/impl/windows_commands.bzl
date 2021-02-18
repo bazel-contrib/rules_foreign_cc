@@ -34,7 +34,7 @@ def mkdirs(path):
     return "mkdir -p " + path
 
 def if_else(condition, if_text, else_text):
-    return """
+    return """\
 if [ {condition} ]; then
   {if_text}
 else
@@ -53,7 +53,8 @@ def define_function(name, text):
 
 def replace_in_files(dir, from_, to_):
     return FunctionAndCall(
-        text = """if [ -d "$1" ]; then
+        text = """\
+if [ -d "$1" ]; then
   $REAL_FIND -L $1 -type f   \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \\)   -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
 fi
 """,
@@ -63,7 +64,8 @@ def copy_dir_contents_to_dir(source, target):
     return """cp -L -r --no-target-directory "{}" "{}" """.format(source, target)
 
 def symlink_contents_to_dir(source, target):
-    text = """local target="$2"
+    text = """\
+local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ##symlink_to_dir## "$1" "$target"
@@ -83,7 +85,8 @@ fi
     return FunctionAndCall(text = text)
 
 def symlink_to_dir(source, target):
-    text = """local target="$2"
+    text = """\
+local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ln -s -f -t "$target" "$1"
@@ -108,7 +111,8 @@ fi
     return FunctionAndCall(text = text)
 
 def script_prelude():
-    return """set -euo pipefail
+    return """\
+set -euo pipefail
 if [ -f /usr/bin/find ]; then
   REAL_FIND="/usr/bin/find"
 else
@@ -120,7 +124,8 @@ export SYSTEMDRIVE="C:"
 """
 
 def increment_pkg_config_path(source):
-    text = """local children=$($REAL_FIND $1 -mindepth 1 -name '*.pc')
+    text = """\
+local children=$($REAL_FIND $1 -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
   export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$(dirname $child)"
@@ -150,7 +155,8 @@ def cleanup_function(on_success, on_failure):
     return FunctionAndCall(text = text, call = "trap \"cleanup_function\" EXIT")
 
 def children_to_path(dir_):
-    text = """if [ -d {dir_} ]; then
+    text = """\
+if [ -d {dir_} ]; then
   local tools=$($REAL_FIND $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)
   for tool in $tools;
   do
