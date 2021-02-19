@@ -376,8 +376,7 @@ def get_make_definitions() -> str:
 
 
 def main():
-    """[summary]
-    """
+    """The main entrypoint of the toolchains generator"""
     repos_bzl_file = Path(__file__).parent.absolute() / \
         "prebuilt_toolchains.bzl"
 
