@@ -30,3 +30,7 @@ local_repository(
     name = "rules_foreign_cc_examples_third_party",
     path = "third_party",
 )
+
+load("@rules_foreign_cc_examples_third_party//:repositories.bzl", examples_third_party_repositories = "repositories")
+
+examples_third_party_repositories()

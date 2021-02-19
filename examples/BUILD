@@ -15,3 +15,21 @@ config_setting(
     constraint_values = ["@platforms//os:macos"],
     visibility = ["//visibility:public"],
 )
+
+test_suite(
+    name = "third_party_examples_linux_tests",
+    tags = ["manual"],
+    tests = ["@rules_foreign_cc_examples_third_party//:linux_tests"],
+)
+
+test_suite(
+    name = "third_party_examples_macos_tests",
+    tags = ["manual"],
+    tests = ["@rules_foreign_cc_examples_third_party//:macos_tests"],
+)
+
+test_suite(
+    name = "third_party_examples_windows_tests",
+    tags = ["manual"],
+    tests = ["@rules_foreign_cc_examples_third_party//:windows_tests"],
+)

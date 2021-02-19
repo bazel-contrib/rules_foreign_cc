@@ -1,31 +1,36 @@
 # buildifier: disable=module-docstring
-load("//apache_httpd:repositories.bzl", apache_httpd_repositories = "repositories")
-load("//bison:repositories.bzl", bison_repositories = "repositories")
-load("//boost:repositories.bzl", boost_repositories = "repositories")
-load("//cares:repositories.bzl", cares_repositories = "repositories")
-load("//gnuplot:repositories.bzl", gnuplot_repositories = "repositories")
-load("//libevent:repositories.bzl", libevent_repositories = "repositories")
-load("//libgd:repositories.bzl", libgd_repositories = "repositories")
-load("//libunwind:repositories.bzl", libunwind_repositories = "repositories")
-load("//luajit:repositories.bzl", luajit_repositories = "repositories")
-load("//mpc:repositories.bzl", mpc_repositories = "repositories")
-load("//nghttp2:repositories.bzl", nghttp2_repositories = "repositories")
-load("//pcl:repositories.bzl", pcl_repositories = "repositories")
-load("//pybind11:repositories.bzl", pybind11_repositories = "repositories")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("//bison:bison_repositories.bzl", "bison_repositories")
+load("//cares:cares_repositories.bzl", "cares_repositories")
+load("//curl:curl_repositories.bzl", "curl_repositories")
+load("//iconv:iconv_repositories.bzl", "iconv_repositories")
+load("//libgit2:libgit2_repositories.bzl", "libgit2_repositories")
+load("//libpng:libpng_repositories.bzl", "libpng_repositories")
+load("//libssh2:libssh2_repositories.bzl", "libssh2_repositories")
+load("//openssl:openssl_repositories.bzl", "openssl_repositories")
+load("//pcre:pcre_repositories.bzl", "pcre_repositories")
+load("//zlib:zlib_repositories.bzl", "zlib_repositories")
 
 def repositories():
     """Load all repositories needed for the targets of rules_foreign_cc_examples_third_party"""
 
-    apache_httpd_repositories()
     bison_repositories()
-    boost_repositories()
     cares_repositories()
-    gnuplot_repositories()
-    libevent_repositories()
-    libgd_repositories()
-    libunwind_repositories()
-    luajit_repositories()
-    mpc_repositories()
-    nghttp2_repositories()
-    pcl_repositories()
-    pybind11_repositories()
+    curl_repositories()
+    libpng_repositories()
+    iconv_repositories()
+    libgit2_repositories()
+    libssh2_repositories()
+    openssl_repositories()
+    pcre_repositories()
+    zlib_repositories()
+
+    maybe(
+        http_archive,
+        name = "rules_cc",
+        strip_prefix = "rules_cc-b1c40e1de81913a3c40e5948f78719c28152486d",
+        url = "https://github.com/bazelbuild/rules_cc/archive/b1c40e1de81913a3c40e5948f78719c28152486d.zip",
+        sha256 = "d0c573b94a6ef20ef6ff20154a23d0efcb409fb0e1ff0979cec318dfe42f0cdd",
+        type = "zip",
+    )

@@ -1,0 +1,16 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+
+exports_files(
+    [
+        "BUILD.openssl.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+build_test(
+    name = "openssl_build_test",
+    targets = [
+        "@openssl//:openssl",
+    ],
+    visibility = ["//:__pkg__"],
+)

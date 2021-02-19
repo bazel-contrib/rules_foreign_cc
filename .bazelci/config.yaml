@@ -29,6 +29,7 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
+      - "//:third_party_examples_linux_tests"
   macos_examples:
     name: Examples
     platform: macos
@@ -37,6 +38,7 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
+      - "//:third_party_examples_macos_tests"
   windows_examples:
     name: Examples
     platform: windows
@@ -52,6 +54,7 @@ tasks:
       - "-//cmake_working_dir/..."
       - "-//configure_with_bazel_transitive/..."
       - "-//make_simple/..."
+      - "//:third_party_examples_windows_tests"
     build_targets: *windows_targets
     test_targets: *windows_targets
     test_flags:
