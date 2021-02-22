@@ -34,7 +34,7 @@ def mkdirs(path):
     return "mkdir -p " + path
 
 def if_else(condition, if_text, else_text):
-    return """
+    return """\
 if [ {condition} ]; then
   {if_text}
 else
@@ -53,7 +53,8 @@ def define_function(name, text):
 
 def replace_in_files(dir, from_, to_):
     return FunctionAndCall(
-        text = """if [ -d "$1" ]; then
+        text = """\
+if [ -d "$1" ]; then
   find -L $1 -type f   \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \\)   -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
 fi
 """,
@@ -63,7 +64,8 @@ def copy_dir_contents_to_dir(source, target):
     return """cp -L -r --no-target-directory "{}" "{}" """.format(source, target)
 
 def symlink_contents_to_dir(source, target):
-    text = """local target="$2"
+    text = """\
+local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ##symlink_to_dir## "$1" "$target"
@@ -75,7 +77,7 @@ elif [[ -d "$1" ]]; then
   IFS=$'\n'
   local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
-  for child in "${children[@]}"; do
+  for child in "${children[@]:-}"; do
     ##symlink_to_dir## "$child" "$target"
   done
 fi
@@ -83,7 +85,8 @@ fi
     return FunctionAndCall(text = text)
 
 def symlink_to_dir(source, target):
-    text = """local target="$2"
+    text = """\
+local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ln -s -f -t "$target" "$1"
@@ -96,7 +99,7 @@ elif [[ -d "$1" ]]; then
   local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
   local dirname=$(basename "$1")
-  for child in "${children[@]}"; do
+  for child in "${children[@]:-}"; do
     if [[ "$dirname" != *.ext_build_deps ]]; then
       ##symlink_to_dir## "$child" "$target/$dirname"
     fi
@@ -111,7 +114,8 @@ def script_prelude():
     return "set -euo pipefail"
 
 def increment_pkg_config_path(source):
-    text = """local children=$(find $1 -mindepth 1 -name '*.pc')
+    text = """\
+local children=$(find $1 -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
   export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$(dirname $child)"
@@ -141,7 +145,8 @@ def cleanup_function(on_success, on_failure):
     return FunctionAndCall(text = text, call = "trap \"cleanup_function\" EXIT")
 
 def children_to_path(dir_):
-    text = """if [ -d {dir_} ]; then
+    text = """\
+if [ -d {dir_} ]; then
   local tools=$(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)
   for tool in $tools;
   do

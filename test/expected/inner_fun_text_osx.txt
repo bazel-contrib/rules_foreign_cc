@@ -12,7 +12,7 @@ IFS=$'
 '
 local children=($(find "$1" -maxdepth 1 -mindepth 1))
 IFS=$SAVEIFS
-for child in "${children[@]}"; do
+for child in "${children[@]:-}"; do
 symlink_to_dir "$child" "$target"
 done
 fi
@@ -32,8 +32,10 @@ local children=($(find "$1" -maxdepth 1 -mindepth 1))
 IFS=$SAVEIFS
 local dirname=$(basename "$1")
 mkdir -p "$target/$dirname"
-for child in "${children[@]}"; do
+for child in "${children[@]:-}"; do
+if [[ "$dirname" != *.ext_build_deps ]]; then
 symlink_to_dir "$child" "$target/$dirname"
+fi
 done
 else
 echo "Can not copy $1"
