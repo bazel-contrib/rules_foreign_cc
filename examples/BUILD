@@ -35,6 +35,7 @@ tests = [
 test_suite(
     name = "tests",
     tests = tests + [
+        "//apache_httpd:test",
         "//cmake_synthetic:test_libs",
         "//cmake_with_bazel_transitive:test",
         "//configure_gnuplot:configure_libgd_tests",
