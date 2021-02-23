@@ -2,6 +2,7 @@ load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
 configure_make(
     name = "apr",
+    configure_in_place = True,
     lib_source = "@apr//:all",
     shared_libraries = ["libapr-1.so"],
     static_libraries = ["libapr-1.a"],
@@ -9,6 +10,7 @@ configure_make(
 
 configure_make(
     name = "apr_util",
+    configure_in_place = True,
     configure_options = [
         "--with-apr=$$EXT_BUILD_DEPS$$/apr",
     ],
