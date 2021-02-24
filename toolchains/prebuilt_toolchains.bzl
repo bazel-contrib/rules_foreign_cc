@@ -71,6 +71,110 @@ def prebuilt_toolchains(cmake_version, ninja_version):
     _make_toolchains()
 
 def _cmake_toolchains(version):
+    if "3.19.6" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.19.6-Linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-Linux-aarch64.tar.gz",
+            ],
+            sha256 = "69ec045c6993907a4f4a77349d0a0668f1bd3ce8bc5f6fbab6dc7a7e2ffc4f80",
+            strip_prefix = "cmake-3.19.6-Linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.19.6-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "139580473b84f5c6cf27b1d1ac84e9aa6968aa13e4b1900394c50075b366fb15",
+            strip_prefix = "cmake-3.19.6-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.19.6-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-macos-universal.tar.gz",
+            ],
+            sha256 = "c0b73e5871e82153f0bced071c8f1a9e2b1884645d47c0565c7cb28fe894e6c7",
+            strip_prefix = "cmake-3.19.6-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.19.6-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-win32-x86.zip",
+            ],
+            sha256 = "e0cd5a2ec34bd7954238ca2a4c7d3c67c49dac2ea285be3c098662a005ad46e0",
+            strip_prefix = "cmake-3.19.6-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.19.6-win64-x64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-win64-x64.zip",
+            ],
+            sha256 = "6883a07f95ae01360d24f1341622f71b3e6ddc6251381752cd4a4d9d4d704c67",
+            strip_prefix = "cmake-3.19.6-win64-x64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.19.6_toolchains",
+            repos = {
+                "cmake-3.19.6-Linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux"
+                ],
+                "cmake-3.19.6-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux"
+                ],
+                "cmake-3.19.6-macos-universal": [
+                    "@platforms//os:macos"
+                ],
+                "cmake-3.19.6-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows"
+                ],
+                "cmake-3.19.6-win64-x64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows"
+                ]
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.19.6_toolchains//:cmake-3.19.6-Linux-aarch64_toolchain",
+            "@cmake_3.19.6_toolchains//:cmake-3.19.6-Linux-x86_64_toolchain",
+            "@cmake_3.19.6_toolchains//:cmake-3.19.6-macos-universal_toolchain",
+            "@cmake_3.19.6_toolchains//:cmake-3.19.6-win32-x86_toolchain",
+            "@cmake_3.19.6_toolchains//:cmake-3.19.6-win64-x64_toolchain",
+        )
+
+        return
+
     if "3.19.5" == version:
         maybe(
             http_archive,

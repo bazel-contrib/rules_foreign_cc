@@ -11,7 +11,7 @@ load(
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        cmake_version = "3.19.5",
+        cmake_version = "3.19.6",
         ninja_version = "1.10.2",
         register_preinstalled_tools = True,
         additional_shell_toolchain_mappings = [],
