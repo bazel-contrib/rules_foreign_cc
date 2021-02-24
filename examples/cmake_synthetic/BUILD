@@ -2,15 +2,9 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
-generate_crosstool = select({
-    "//:windows": True,
-    "//conditions:default": False,
-})
-
 cmake_external(
     name = "liba",
     cmake_options = ["-GNinja"],
-    generate_crosstool_file = generate_crosstool,
     # Demonstrate non-alphanumeric name
     lib_name = "liba++",
     lib_source = "//cmake_synthetic/liba:a_srcs",
@@ -24,7 +18,6 @@ cmake_external(
 cmake_external(
     name = "libb",
     cmake_options = ["-GNinja"],
-    generate_crosstool_file = generate_crosstool,
     lib_source = "//cmake_synthetic/libb:b_srcs",
     make_commands = [
         "ninja",
@@ -40,7 +33,6 @@ cmake_external(
         "LIBB_DIR": "$$EXT_BUILD_DEPS$$",
     },
     cmake_options = ["-GNinja"],
-    generate_crosstool_file = generate_crosstool,
     lib_name = "libc",
     lib_source = "//cmake_synthetic/libc:c_srcs",
     make_commands = [

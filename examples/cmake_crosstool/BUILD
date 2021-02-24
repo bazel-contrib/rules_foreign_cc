@@ -14,7 +14,6 @@ cc_library(
 
 cmake_external(
     name = "hello_cmake",
-    generate_crosstool_file = True,
     lib_source = "//static:srcs",
     out_include_dir = "include/version123",
     static_libraries = ["libhello.a"],

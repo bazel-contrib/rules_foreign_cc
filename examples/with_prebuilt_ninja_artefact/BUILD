@@ -22,7 +22,6 @@ toolchain(
 cmake_external(
     name = "hello_cmake",
     cmake_options = ["-GNinja"],
-    generate_crosstool_file = True,
     lib_source = "@examples//cmake_hello_world_lib/static:srcs",
     make_commands = [
         "ninja",

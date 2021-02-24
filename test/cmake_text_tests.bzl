@@ -85,10 +85,7 @@ def _fill_crossfile_from_toolchain_test(ctx):
         assemble = ["assemble"],
     )
 
-    res = export_for_test.fill_crossfile_from_toolchain("ws", "linux", tools, flags)
-
-    system = res.pop("CMAKE_SYSTEM_NAME")
-    asserts.true(env, system != None)
+    res = export_for_test.fill_crossfile_from_toolchain("ws", tools, flags)
 
     expected = {
         "CMAKE_AR": "/cxx_linker_static",
@@ -172,7 +169,6 @@ def _reverse_descriptor_dict_test(ctx):
         "CMAKE_EXE_LINKER_FLAGS_INIT": struct(value = "CMAKE_EXE_LINKER_FLAGS", replace = False),
         "CMAKE_SHARED_LINKER_FLAGS_INIT": struct(value = "CMAKE_SHARED_LINKER_FLAGS", replace = False),
         "CMAKE_STATIC_LINKER_FLAGS_INIT": struct(value = "CMAKE_STATIC_LINKER_FLAGS", replace = False),
-        "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
     }
 
     for key in expected:
@@ -241,7 +237,6 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
-        "linux",
         "cmake",
         tools,
         flags,
@@ -282,7 +277,6 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
-        "linux",
         "cmake",
         tools,
         flags,
@@ -326,7 +320,6 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
 
     script = create_cmake_script(
         "ws",
-        "linux",
         "cmake",
         tools,
         flags,
@@ -366,7 +359,6 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
-        "linux",
         "cmake",
         tools,
         flags,
@@ -386,7 +378,6 @@ set(CMAKE_C_COMPILER "/usr/bin/gcc")
 set(CMAKE_C_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "-fuse-ld=gold -Wl -no-as-needed")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "-shared -fuse-ld=gold")
-set(CMAKE_SYSTEM_NAME "Linux")
 EOF
 
  cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
@@ -432,7 +423,6 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
-        "linux",
         "cmake",
         tools,
         flags,
@@ -485,7 +475,6 @@ def _create_cmake_script_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
-        "osx",
         "cmake",
         tools,
         flags,
@@ -509,7 +498,6 @@ set(CMAKE_C_FLAGS_INIT "-cc-flag -gcc_toolchain cc-toolchain --from-env --additi
 set(CMAKE_EXE_LINKER_FLAGS_INIT "executable")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "shared1 shared2")
 set(CMAKE_SYSROOT "/abc/sysroot")
-set(CMAKE_SYSTEM_NAME "Apple")
 EOF
 
 CUSTOM_ENV=\"YES\" cmake -DCUSTOM_CACHE=\"YES\" -DCMAKE_TOOLCHAIN_FILE=\"crosstool_bazel.cmake\" -DCMAKE_BUILD_TYPE=\"Debug\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"""

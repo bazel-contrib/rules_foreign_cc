@@ -1,7 +1,6 @@
 """ Defines the rule for building external library with CMake
 """
 
-load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "os_name")
 load(
     "//tools/build_defs:cc_toolchain_util.bzl",
     "get_flags_info",
@@ -76,8 +75,6 @@ def _create_configure_script(configureParameters):
     define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
-        # as default, pass execution OS as target OS
-        target_os = os_name(ctx),
         cmake_path = configureParameters.attrs.cmake_path,
         tools = tools,
         flags = flags,
@@ -130,12 +127,11 @@ def _attrs():
                 "provided cache-entries and env_vars (some values will still be passed as -Dkey=value " +
                 "and environment variables). " +
                 "If CMAKE_TOOLCHAIN_FILE cache entry is passed, specified crosstool file will be used " +
-                "When using this option, it makes sense to specify CMAKE_SYSTEM_NAME in the " +
-                "cache_entries - the rule makes only a poor guess about the target system, " +
-                "it is better to specify it manually."
+                "When using this option to cross-compile, it is required to specify CMAKE_SYSTEM_NAME in the " +
+                "cache_entries"
             ),
             mandatory = False,
-            default = False,
+            default = True,
         ),
         "install_prefix": attr.string(
             doc = "Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX",
