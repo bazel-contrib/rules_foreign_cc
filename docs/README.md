@@ -475,7 +475,7 @@ Structure for passing the log and scripts file information, and wrapper script t
 
 <pre>
 rules_foreign_cc_dependencies(<a href="#rules_foreign_cc_dependencies-native_tools_toolchains">native_tools_toolchains</a>, <a href="#rules_foreign_cc_dependencies-register_default_tools">register_default_tools</a>, <a href="#rules_foreign_cc_dependencies-cmake_version">cmake_version</a>,
-                              <a href="#rules_foreign_cc_dependencies-ninja_version">ninja_version</a>, <a href="#rules_foreign_cc_dependencies-register_preinstalled_tools">register_preinstalled_tools</a>,
+                              <a href="#rules_foreign_cc_dependencies-ninja_version">ninja_version</a>, <a href="#rules_foreign_cc_dependencies-register_preinstalled_tools">register_preinstalled_tools</a>, <a href="#rules_foreign_cc_dependencies-register_built_tools">register_built_tools</a>,
                               <a href="#rules_foreign_cc_dependencies-additional_shell_toolchain_mappings">additional_shell_toolchain_mappings</a>, <a href="#rules_foreign_cc_dependencies-additional_shell_toolchain_package">additional_shell_toolchain_package</a>)
 </pre>
 
@@ -491,6 +491,7 @@ Call this function from the WORKSPACE file to initialize rules_foreign_cc     de
 | <a id="rules_foreign_cc_dependencies-cmake_version"></a>cmake_version |  The target version of the default cmake toolchain if <code>register_default_tools</code>     is set to <code>True</code>.   |  <code>"3.19.6"</code> |
 | <a id="rules_foreign_cc_dependencies-ninja_version"></a>ninja_version |  The target version of the default ninja toolchain if <code>register_default_tools</code>     is set to <code>True</code>.   |  <code>"1.10.2"</code> |
 | <a id="rules_foreign_cc_dependencies-register_preinstalled_tools"></a>register_preinstalled_tools |  If true, toolchains will be registered for the native built tools     installed on the exec host   |  <code>True</code> |
+| <a id="rules_foreign_cc_dependencies-register_built_tools"></a>register_built_tools |  If true, toolchains that build the tools from source are registered   |  <code>True</code> |
 | <a id="rules_foreign_cc_dependencies-additional_shell_toolchain_mappings"></a>additional_shell_toolchain_mappings |  Mappings of the shell toolchain functions to     execution and target platforms constraints. Similar to what defined in     @rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:toolchain_mappings.bzl     in the TOOLCHAIN_MAPPINGS list. Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>[]</code> |
 | <a id="rules_foreign_cc_dependencies-additional_shell_toolchain_package"></a>additional_shell_toolchain_package |  A package under which additional toolchains, referencing     the generated data for the passed additonal_shell_toolchain_mappings, will be defined.     This value is needed since register_toolchains() is called for these toolchains.     Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>None</code> |
 

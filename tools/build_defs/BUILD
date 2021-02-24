@@ -15,6 +15,25 @@ toolchain_type(
     visibility = ["//visibility:public"],
 )
 
+toolchain(
+    name = "built_cmake_toolchain",
+    toolchain = "@rules_foreign_cc//toolchains:built_cmake",
+    toolchain_type = "@rules_foreign_cc//tools/build_defs:cmake_toolchain",
+)
+
+toolchain(
+    name = "built_ninja_toolchain",
+    toolchain = "@rules_foreign_cc//toolchains:built_ninja",
+    toolchain_type = "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
+)
+
+toolchain(
+    name = "built_make_toolchain",
+    toolchain = "@rules_foreign_cc//toolchains:built_make",
+    toolchain_type = "@rules_foreign_cc//tools/build_defs:make_toolchain",
+)
+
+
 # Preinstalled cmake will always be the default, if toolchain with more exact constraints
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(
