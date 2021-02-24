@@ -10,6 +10,7 @@ def _make_tool(ctx):
     script = [
         "export BUILD_DIR=##pwd##",
         "export BUILD_TMPDIR=$${BUILD_DIR}$$.build_tmpdir",
+        "##mkdirs## $$BUILD_TMPDIR$$",
         "##copy_dir_contents_to_dir## ./{} $BUILD_TMPDIR".format(root),
         "cd $$BUILD_TMPDIR$$",
         "./configure --prefix=$$BUILD_DIR$$/{}".format(make.path),
