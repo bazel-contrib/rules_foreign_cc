@@ -19,7 +19,7 @@ toolchain_type(
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(
     name = "preinstalled_cmake_toolchain",
-    toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:preinstalled_cmake",
+    toolchain = "@rules_foreign_cc//toolchains:preinstalled_cmake",
     toolchain_type = "@rules_foreign_cc//tools/build_defs:cmake_toolchain",
 )
 
@@ -27,7 +27,7 @@ toolchain(
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(
     name = "preinstalled_ninja_toolchain",
-    toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:preinstalled_ninja",
+    toolchain = "@rules_foreign_cc//toolchains:preinstalled_ninja",
     toolchain_type = "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
 )
 
@@ -35,7 +35,7 @@ toolchain(
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(
     name = "preinstalled_make_toolchain",
-    toolchain = "@rules_foreign_cc//tools/build_defs/native_tools:preinstalled_make",
+    toolchain = "@rules_foreign_cc//toolchains:preinstalled_make",
     toolchain_type = "@rules_foreign_cc//tools/build_defs:make_toolchain",
 )
 
