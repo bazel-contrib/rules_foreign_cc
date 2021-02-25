@@ -18,7 +18,7 @@ make_tool(
 
 native_tool_toolchain(
     name = "built_make",
-    path = "make/bin/make",
+    path = "$(execpath :make_tool)/bin/make",
     target = ":make_tool",
     visibility = ["//visibility:public"],
 )
@@ -37,7 +37,7 @@ cmake_tool(
 
 native_tool_toolchain(
     name = "built_cmake",
-    path = "cmake/bin/cmake",
+    path = "$(execpath :cmake_tool)/bin/cmake",
     target = ":cmake_tool",
     visibility = ["//visibility:public"],
 )
@@ -56,7 +56,7 @@ ninja_tool(
 
 native_tool_toolchain(
     name = "built_ninja",
-    path = "ninja/ninja",
+    path = "$(execpath :ninja_tool)/ninja",
     target = ":ninja_tool",
     visibility = ["//visibility:public"],
 )
