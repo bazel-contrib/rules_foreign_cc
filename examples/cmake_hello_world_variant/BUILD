@@ -8,7 +8,6 @@ cmake_external(
         "//conditions:default": ["CMakeHelloWorld"],
     }),
     cmake_options = ["-GNinja"],
-    generate_crosstool_file = True,
     lib_source = "@cmake_hello_world_variant_src//:all",
     make_commands = [
         "ninja",

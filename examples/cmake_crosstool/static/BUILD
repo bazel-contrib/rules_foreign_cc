@@ -24,7 +24,6 @@ cmake_external(
 cmake_external(
     name = "libhello_win",
     cmake_options = ["-G \"Visual Studio 15 2017\" -A x64"],
-    generate_crosstool_file = True,
     lib_name = "libhello",
     lib_source = ":srcs",
     make_commands = ["MSBuild.exe INSTALL.vcxproj"],
@@ -36,7 +35,6 @@ cmake_external(
 cmake_external(
     name = "libhello_win_ninja",
     cmake_options = ["-GNinja"],
-    generate_crosstool_file = True,
     lib_source = ":srcs",
     make_commands = [
         "ninja",
@@ -50,7 +48,6 @@ cmake_external(
 cmake_external(
     name = "libhello_win_nmake",
     cmake_options = ["-G \"NMake Makefiles\""],
-    generate_crosstool_file = True,
     lib_source = ":srcs",
     make_commands = [
         "nmake",

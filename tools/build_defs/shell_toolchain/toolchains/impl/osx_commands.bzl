@@ -70,7 +70,7 @@ local target="$2"
 mkdir -p "${target}"
 for child in "${children[@]:-}"; do
   if [[ -f "$child" ]]; then
-    cp "$child" "$target"
+    cp -p "$child" "$target"
   elif [[ -L "$child" ]]; then
     local actual=$(readlink "$child")
     if [[ -f "$actual" ]]; then

@@ -4,7 +4,6 @@ load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
 def create_cmake_script(
         workspace_name,
-        target_os,
         cmake_path,
         tools,
         flags,
@@ -20,8 +19,6 @@ def create_cmake_script(
 
     Args:
         workspace_name: current workspace name
-        target_os: OSInfo with target operating system information, used for CMAKE_SYSTEM_NAME in
-            CMake toolchain file
         cmake_path: The path to the cmake executable
         tools: cc_toolchain tools (CxxToolsInfo)
         flags: cc_toolchain flags (CxxFlagsInfo)
@@ -40,7 +37,7 @@ def create_cmake_script(
 
     merged_prefix_path = _merge_prefix_path(user_cache, include_dirs)
 
-    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags)
+    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
     params = None
 
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
@@ -120,7 +117,6 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
     "CMAKE_SHARED_LINKER_FLAGS": struct(value = "CMAKE_SHARED_LINKER_FLAGS_INIT", replace = False),
     "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
-    "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
 }
 
 def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
@@ -152,8 +148,6 @@ def _dict_copy(d):
     return out
 
 def _create_cache_entries_env_vars(toolchain_dict, user_cache, user_env):
-    toolchain_dict.pop("CMAKE_SYSTEM_NAME")  # specify this only in a toolchain file
-
     _move_dict_values(toolchain_dict, user_env, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
     _move_dict_values(toolchain_dict, user_cache, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
 
@@ -211,17 +205,8 @@ def _move_dict_values(target, source, descriptor_map):
             else:
                 target[existing.value] = target[existing.value] + " " + value
 
-def _fill_crossfile_from_toolchain(workspace_name, target_os, tools, flags):
-    os_name = target_os
-    if target_os == "windows":
-        os_name = "Windows"
-    if target_os == "osx":
-        os_name = "Apple"
-    if target_os == "linux":
-        os_name = "Linux"
-    dict = {
-        "CMAKE_SYSTEM_NAME": os_name,
-    }
+def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
+    dict = {}
 
     _sysroot = _find_in_cc_or_cxx(flags, "sysroot")
     if _sysroot:

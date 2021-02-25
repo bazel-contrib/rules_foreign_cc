@@ -19,10 +19,6 @@ cmake_external(
         "cmake_with_data.txt",
         "//cmake_with_data/lib_b",
     ],
-    generate_crosstool_file = select({
-        "@bazel_tools//src/conditions:windows": True,
-        "//conditions:default": False,
-    }),
     lib_source = "//cmake_with_data/lib_a:srcs",
     make_commands = select({
         "@bazel_tools//src/conditions:windows": ["MSBuild.exe INSTALL.vcxproj"],
