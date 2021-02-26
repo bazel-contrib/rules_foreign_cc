@@ -6,6 +6,12 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
+  rbe_ubuntu1604:
+    platform: rbe_ubuntu1604
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
   macos:
     platform: macos
     build_targets:
@@ -24,6 +30,15 @@ tasks:
   ubuntu2004_examples:
     name: Examples
     platform: ubuntu2004
+    working_directory: examples
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+      - "//:third_party_examples_linux_tests"
+  rbe_ubuntu1604_examples:
+    name: Examples
+    platform: rbe_ubuntu1604
     working_directory: examples
     build_targets:
       - "//..."
@@ -60,6 +75,12 @@ tasks:
     test_targets: *windows_targets
     test_flags:
       - "--enable_runfiles"
+  rbe_ubuntu1604_flags:
+    name: Flags
+    platform: rbe_ubuntu1604
+    working_directory: test/standard_cxx_flags_test
+    test_targets:
+      - "//:flags_test"
   ubuntu2004_flags:
     name: Flags
     platform: ubuntu2004
@@ -78,6 +99,12 @@ tasks:
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
+  rbe_ubuntu1604_detect_root:
+    name: Detect root
+    platform: rbe_ubuntu1604
+    working_directory: test/detect_root_test
+    test_targets:
+      - "//:tests"
   ubuntu2004_detect_root:
     name: Detect root
     platform: ubuntu2004
