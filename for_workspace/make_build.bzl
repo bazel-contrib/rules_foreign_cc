@@ -1,5 +1,6 @@
 """ Rule for building GNU Make from sources. """
 
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl",
     "fictive_file_in_genroot",
@@ -9,6 +10,8 @@ load("//tools/build_defs:detect_root.bzl", "detect_root")
 
 def _make_tool(ctx):
     root = detect_root(ctx.attr.make_srcs)
+
+    cc_toolchain = find_cpp_toolchain(ctx)
 
     # we need this fictive file in the root to get the path of the root in the script
     empty = fictive_file_in_genroot(ctx.actions, ctx.label.name)
@@ -32,7 +35,7 @@ def _make_tool(ctx):
         mnemonic = "BootstrapMake",
         inputs = ctx.attr.make_srcs.files,
         outputs = [make, empty.file],
-        tools = [],
+        tools = cc_toolchain.all_files,
         use_default_shell_env = True,
         command = script_text,
         execution_requirements = {"block-network": ""},
@@ -47,6 +50,7 @@ make_tool = rule(
             doc = "target with the Make sources",
             mandatory = True,
         ),
+        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
     host_fragments = ["cpp"],
     output_to_genfiles = True,
