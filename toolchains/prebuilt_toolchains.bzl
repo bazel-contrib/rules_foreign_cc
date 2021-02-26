@@ -28,16 +28,10 @@ filegroup(
     ),
 )
 
-filegroup(
-    name = "cmake_bin",
-    srcs = ["bin/{bin}"],
-    data = [":cmake_data"],
-)
-
 native_tool_toolchain(
     name = "cmake_tool",
-    path = "$(execpath :cmake_bin)",
-    target = ":cmake_bin",
+    path = "bin/{bin}",
+    target = ":cmake_data",
 )
 """
 
