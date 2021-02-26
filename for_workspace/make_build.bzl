@@ -21,7 +21,7 @@ def _make_tool(ctx):
         "##mkdirs## $$BUILD_TMPDIR$$",
         "##copy_dir_contents_to_dir## ./{} $BUILD_TMPDIR".format(root),
         "cd $$BUILD_TMPDIR$$",
-        "./configure --prefix=$$EXT_BUILD_ROOT$$/{}".format(make.path),
+        "./configure --disable-dependency-tracking --prefix=$$EXT_BUILD_ROOT$$/{}".format(make.path),
         "./build.sh",
         "./make install",
         empty.script
