@@ -1,5 +1,3 @@
 cmake_crosstool
-make_luajit
+configure_use_malloc
 toolchains_examples
-use_malloc
-with_prebuilt_ninja_artefact

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-#!/usr/bin/env bash
-
 # --- begin runfiles.bash initialization ---
 # The runfiles library itself defines rlocation which you would need to look
 # up the library's runtime location, thus we have a chicken-and-egg problem.

@@ -12,7 +12,6 @@ filegroup(
 cmake_external(
     name = "libhello",
     binaries = select({
-        "//:macos": ["hello"],
         "//:windows": ["hello.exe"],
         "//conditions:default": ["hello"],
     }),
@@ -27,14 +26,17 @@ cmake_external(
 filegroup(
     name = "binary",
     srcs = [":libhello"],
-    output_group = "hello",
+    output_group = select({
+        "//:windows": "hello.exe",
+        "//conditions:default": "hello",
+    }),
 )
 
 genrule(
     name = "call_hello",
     srcs = [],
     outs = ["out.txt"],
-    cmd = "./$(location binary) me > $(location out.txt)",
+    cmd = "./$(location :binary) me > $(location out.txt)",
     tools = [":binary"],
 )
 

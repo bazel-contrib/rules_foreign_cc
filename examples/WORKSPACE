@@ -1,4 +1,4 @@
-workspace(name = "rules_foreign_cc_tests")
+workspace(name = "rules_foreign_cc_examples")
 
 local_repository(
     name = "rules_foreign_cc",
@@ -7,6 +7,7 @@ local_repository(
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
+# Don't use preinstalled tools to ensure builds are as hermetic as possible
 rules_foreign_cc_dependencies(register_preinstalled_tools = False)
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
@@ -24,3 +25,12 @@ deps_android()
 load("//deps:deps_jvm_external.bzl", "deps_jvm_external")
 
 deps_jvm_external()
+
+local_repository(
+    name = "rules_foreign_cc_examples_third_party",
+    path = "third_party",
+)
+
+load("@rules_foreign_cc_examples_third_party//:repositories.bzl", examples_third_party_repositories = "repositories")
+
+examples_third_party_repositories()

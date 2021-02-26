@@ -47,9 +47,9 @@ in future changes as these older versions are not tested.
 - Shell script parts were extracted into a separate toolchain.
   Shell script inside framework.bzl is first created with special notations:
 
-      - 'export var_name=var_value' for defining the environment variable
-      - '$$var_name$$' for referencing environment variable
-      - 'shell_command <space-separated-maybe-quoted-arguments>' for calling shell fragment
+      - `export var_name=var_value` for defining the environment variable
+      - `$$var_name$$` for referencing environment variable
+      - `shell_command <space-separated-maybe-quoted-arguments>` for calling shell fragment
 
   The created script is further processed to get the real shell script with shell parts either
   replaced with actual fragments or with shell function calls (functions are added into the beginning of the script).
@@ -61,10 +61,10 @@ in future changes as these older versions are not tested.
 ## Building CMake projects
 
 - Build libraries/binaries with CMake from sources using cmake_external rule
-- Use cmake_external targets in cc_library, cc_binary targets as dependency
-- Bazel cc_toolchain parameters are used inside cmake_external build
+- Use cmake_external targets in [cc_library][ccl], [cc_binary][ccb] targets as dependency
+- Bazel [cc_toolchain][cct] parameters are used inside cmake_external build
 - See full list of cmake_external arguments below 'example'
-- cmake_external is defined in ./tools/build_defs
+- cmake_external is defined in `./tools/build_defs`
 - Works on Ubuntu, Mac OS and Windows(\* see special notes below in Windows section) operating systems
 
 **Example:**
@@ -72,20 +72,18 @@ in future changes as these older versions are not tested.
 
 The example for **Windows** is below, in the section 'Usage on Windows'.
 
-- In `WORKSPACE`, we use a `http_archive` to download tarballs with the libraries we use.
-- In `BUILD`, we instantiate a `cmake_external` rule which behaves similarly to a `cc_library`, which can then be used in a C++ rule (`cc_binary` in this case).
+- In `WORKSPACE.bazel`, we use a `http_archive` to download tarballs with the libraries we use.
+- In `BUILD.bazel`, we instantiate a `cmake_external` rule which behaves similarly to a [cc_library][ccl], which can then be used in a C++ rule ([cc_binary][ccb] in this case).
 
-In `WORKSPACE`, put
+In `WORKSPACE.bazel`, put
 
 ```python
 workspace(name = "rules_foreign_cc_usage_example")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# Group the sources of the library so that CMake rule have access to it
-all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
-
-# Rule repository
+# Rule repository, note that it's recommended to use a pinned commit but
+# for the sake fo the example, we'll use latest on the `main` branch.
 http_archive(
    name = "rules_foreign_cc",
    strip_prefix = "rules_foreign_cc-main",
@@ -94,85 +92,50 @@ http_archive(
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
-# Call this function from the WORKSPACE file to initialize rules_foreign_cc
-#  dependencies and let neccesary code generation happen
-#  (Code generation is needed to support different variants of the C++ Starlark API.).
-#
-#  Args:
-#    native_tools_toolchains: pass the toolchains for toolchain types
-#      '@rules_foreign_cc//tools/build_defs:make_toolchain',
-#      '@rules_foreign_cc//tools/build_defs:cmake_toolchain' and
-#      '@rules_foreign_cc//tools/build_defs:ninja_toolchain' with the needed platform constraints.
-#      If you do not pass anything, registered default toolchains will be selected (see below).
-#
-#    register_default_tools: if True, the make, cmake and ninja toolchains, calling corresponding
-#      preinstalled binaries by name (make, cmake, ninja) will be registered after
-#      'native_tools_toolchains' without any platform constraints.
-#      The default is True.
-rules_foreign_cc_dependencies([
-    "//:my_make_toolchain",
-    "//:my_cmake_toolchain",
-    "//:my_ninja_toolchain",
-])
+# This sets up some common toolchains for building targets. For more details, please see
+# https://github.com/bazelbuild/rules_foreign_cc/tree/main/docs#rules_foreign_cc_dependencies
+rules_foreign_cc_dependencies()
 
-# OpenBLAS source code repository
-http_archive(
-   name = "openblas",
-   build_file_content = all_content,
-   strip_prefix = "OpenBLAS-0.3.2",
-   urls = ["https://github.com/xianyi/OpenBLAS/archive/v0.3.2.tar.gz"],
+_ALL_CONTENT = """\
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public],
 )
+"""
 
-# Eigen source code repository
+# pcre source code repository
 http_archive(
-   name = "eigen",
-   build_file_content = all_content,
-   strip_prefix = "eigen-git-mirror-3.3.5",
-   urls = ["https://github.com/eigenteam/eigen-git-mirror/archive/3.3.5.tar.gz"],
+    name = "pcre",
+    build_file_content = _ALL_CONTENT,
+    strip_prefix = "pcre-8.43",
+    urls = [
+        "https://mirror.bazel.build/ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz",
+        "https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz",
+    ],
+    sha256 = "0b8e7465dc5e98c757cc3650a20a7843ee4c3edf50aaf60bb33fd879690d2c73",
 )
 ```
 
-and in `BUILD`, put
+And in the `BUILD.bazel` file, put:
 
 ```python
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 
 cmake_external(
-   name = "openblas",
-   # Values to be passed as -Dkey=value on the CMake command line;
-   # here are serving to provide some CMake script configuration options
-   cache_entries = {
-       "NOFORTRAN": "on",
-       "BUILD_WITHOUT_LAPACK": "no",
-   },
-   lib_source = "@openblas//:all",
-
-   # We are selecting the resulting static library to be passed in C/C++ provider
-   # as the result of the build;
-   # However, the cmake_external dependants could use other artefacts provided by the build,
-   # according to their CMake script
-   static_libraries = ["libopenblas.a"],
-)
-
-cmake_external(
-   name = "eigen",
-   # These options help CMake to find prebuilt OpenBLAS, which will be copied into
-   # $EXT_BUILD_DEPS/openblas by the cmake_external script
-   cache_entries = {
-       "BLA_VENDOR": "OpenBLAS",
-       "BLAS_LIBRARIES": "$EXT_BUILD_DEPS/openblas/lib/libopenblas.a",
-   },
-   headers_only = True,
-   lib_source = "@eigen//:all",
-   # Dependency on other cmake_external rule; can also depend on cc_import, cc_library rules
-   deps = [":openblas"],
+    name = "pcre",
+    cache_entries = {
+        "CMAKE_C_FLAGS": "-fPIC",
+    },
+    lib_source = "@pcre//:all_srcs",
+    static_libraries = ["libpcre.a"],
 )
 ```
 
 then build as usual:
 
 ```bash
-$ devbazel build //examples/cmake_pcl:eigen
+bazel build //:cares
 ```
 
 **Usage on Windows**
@@ -183,9 +146,9 @@ Also, you should explicitly specify **make commands and option to generate CMake
 The default generator for CMake will be detected automatically, or you can specify it explicitly.
 
 **The tested generators:** Visual Studio 15, Ninja and NMake.
-The extension '.lib' is assumed for the static libraries by default.
+The extension `.lib` is assumed for the static libraries by default.
 
-Example usage (see full example in ./examples/cmake_hello_world_lib):
+Example usage (see full example in `./examples/cmake_hello_world_lib`):
 Example assumes that MS Visual Studio and Ninja are installed on the host machine, and Ninja bin directory is added to PATH.
 
 ```python
@@ -231,3 +194,7 @@ cmake_external(
 ## Design document
 
 [External C/C++ libraries rules](https://docs.google.com/document/d/1Gv452Vtki8edo_Dj9VTNJt5DA_lKTcSMwrwjJOkLaoU/edit?usp=sharing)
+
+[ccb]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_binary
+[ccl]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library
+[cct]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain

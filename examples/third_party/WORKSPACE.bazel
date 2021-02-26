@@ -1,0 +1,19 @@
+workspace(name = "rules_foreign_cc_examples_third_party")
+
+local_repository(
+    name = "rules_foreign_cc",
+    path = "../..",
+)
+
+load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies(register_preinstalled_tools = False)
+
+local_repository(
+    name = "rules_foreign_cc_examples",
+    path = "..",
+)
+
+load("//:repositories.bzl", "repositories")
+
+repositories()
