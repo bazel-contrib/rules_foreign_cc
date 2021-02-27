@@ -1,4 +1,4 @@
-# Simple Make Example
+# Simple Ninja Example
 
 ## Dependencies
 

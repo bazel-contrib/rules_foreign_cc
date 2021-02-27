@@ -1,0 +1,22 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_foreign_cc//tools/build_defs:ninja.bzl", "ninja")
+
+ninja(
+    name = "ninja_lib",
+    lib_source = "//ninja_simple/code:srcs",
+    static_libraries = ["liba.a"],
+    targets = [
+        "",
+        "install",
+    ],
+)
+
+cc_test(
+    name = "test_lib",
+    srcs = [
+        "test_libb.cpp",
+    ],
+    deps = [
+        ":ninja_lib",
+    ],
+)

@@ -7,7 +7,7 @@ make(
     env = {
         "CLANG_WRAPPER": "$(execpath //make_simple/code:clang_wrapper.sh)",
     },
-    lib_source = "//make_simple/code:sources",
+    lib_source = "//make_simple/code:srcs",
     static_libraries = ["liba.a"],
 )
 

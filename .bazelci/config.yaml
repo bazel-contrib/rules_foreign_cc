@@ -45,6 +45,7 @@ tasks:
     working_directory: examples
     windows_targets: &windows_targets
       - "//..."
+      - "//:third_party_examples_windows_tests"
       # TODO: Support all targets on windows
       - "-//cmake_android/..."
       - "-//cmake_defines/..."
@@ -54,7 +55,7 @@ tasks:
       - "-//cmake_working_dir/..."
       - "-//configure_with_bazel_transitive/..."
       - "-//make_simple/..."
-      - "//:third_party_examples_windows_tests"
+      - "-//ninja_simple/..."
     build_targets: *windows_targets
     test_targets: *windows_targets
     test_flags:
