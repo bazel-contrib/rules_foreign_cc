@@ -10,7 +10,7 @@ def pwd():
     return "$(pwd)"
 
 def echo(text):
-    return "printf \"{text}\"".format(text = text)
+    return "echo \"{text}\"".format(text = text)
 
 def export_var(name, value):
     return "export {name}={value}".format(name = name, value = value)
