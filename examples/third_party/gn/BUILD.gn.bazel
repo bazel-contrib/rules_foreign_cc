@@ -1,0 +1,53 @@
+load("@rules_foreign_cc//tools/build_defs:ninja.bzl", "ninja")
+
+filegroup(
+    name = "srcs",
+    srcs = glob(
+        ["**"],
+        exclude = ["out/**"],
+    ) + [
+        "out/build.ninja",
+        "out/build.ninja.d",
+        "out/last_commit_position.h",
+    ],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+ninja(
+    name = "gn",
+    binaries = select({
+        ":windows": ["gn.exe"],
+        "//conditions:default": ["gn"],
+    }),
+    directory = "out",
+    lib_source = "//:srcs",
+    # gn has no install step, manually grab the artifacts
+    postfix_script = select({
+        ":windows": " && ".join([
+            "cp out/gn_lib.lib $$INSTALLDIR$$/lib",
+            "cp out/gn.exe $$INSTALLDIR$$/bin",
+        ]),
+        "//conditions:default": " && ".join([
+            "cp out/gn_lib.a $$INSTALLDIR$$/lib",
+            "cp out/gn $$INSTALLDIR$$/bin",
+        ]),
+    }),
+    static_libraries = select({
+        ":windows": ["gn_lib.lib"],
+        "//conditions:default": ["gn_lib.a"],
+    }),
+)
+
+filegroup(
+    name = "gn_bin",
+    srcs = [":gn"],
+    output_group = select({
+        ":windows": "gn.exe",
+        "//conditions:default": "gn",
+    }),
+    visibility = ["//visibility:public"],
+)
