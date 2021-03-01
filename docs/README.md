@@ -11,6 +11,7 @@
 - [make](#make)
 - [make_tool](#make_tool)
 - [native_tool_toolchain](#native_tool_toolchain)
+- [ninja](#ninja)
 - [ninja_tool](#ninja_tool)
 - [rules_foreign_cc_dependencies](#rules_foreign_cc_dependencies)
 - [ToolInfo](#ToolInfo)
@@ -270,6 +271,50 @@ Rule for defining the toolchain data of the native tools (cmake, ninja), to be u
 | <a id="native_tool_toolchain-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
 | <a id="native_tool_toolchain-path"></a>path |  Absolute path to the tool in case the tool is preinstalled on the machine. Relative path to the tool in case the tool is built as part of a build; the path should be relative to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree artifact. (Please see the example <code>//examples:built_cmake_toolchain</code>)   | String | optional | "" |
 | <a id="native_tool_toolchain-target"></a>target |  If the tool is preinstalled, must be None. If the tool is built as part of the build, the corresponding build target, which should produce the tree artifact with the binary to call.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#ninja"></a>
+
+## ninja
+
+<pre>
+ninja(<a href="#ninja-name">name</a>, <a href="#ninja-additional_inputs">additional_inputs</a>, <a href="#ninja-additional_tools">additional_tools</a>, <a href="#ninja-alwayslink">alwayslink</a>, <a href="#ninja-args">args</a>, <a href="#ninja-binaries">binaries</a>, <a href="#ninja-data">data</a>, <a href="#ninja-defines">defines</a>, <a href="#ninja-deps">deps</a>,
+      <a href="#ninja-directory">directory</a>, <a href="#ninja-env">env</a>, <a href="#ninja-headers_only">headers_only</a>, <a href="#ninja-interface_libraries">interface_libraries</a>, <a href="#ninja-lib_name">lib_name</a>, <a href="#ninja-lib_source">lib_source</a>, <a href="#ninja-linkopts">linkopts</a>, <a href="#ninja-out_bin_dir">out_bin_dir</a>,
+      <a href="#ninja-out_include_dir">out_include_dir</a>, <a href="#ninja-out_lib_dir">out_lib_dir</a>, <a href="#ninja-postfix_script">postfix_script</a>, <a href="#ninja-shared_libraries">shared_libraries</a>, <a href="#ninja-static_libraries">static_libraries</a>, <a href="#ninja-targets">targets</a>,
+      <a href="#ninja-tools_deps">tools_deps</a>)
+</pre>
+
+Rule for building external libraries with [Ninja](https://ninja-build.org/).
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ninja-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ninja-additional_inputs"></a>additional_inputs |  Optional additional inputs to be declared as needed for the shell script action.Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ninja-additional_tools"></a>additional_tools |  Optional additional tools needed for the building. Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ninja-alwayslink"></a>alwayslink |  Optional. if true, link all the object files from the static library, even if they are not used.   | Boolean | optional | False |
+| <a id="ninja-args"></a>args |  A list of arguments to pass to the call to <code>ninja</code>   | List of strings | optional | [] |
+| <a id="ninja-binaries"></a>binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="ninja-data"></a>data |  Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ninja-defines"></a>defines |  Optional compilation definitions to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.   | List of strings | optional | [] |
+| <a id="ninja-deps"></a>deps |  Optional dependencies to be copied into the directory structure. Typically those directly required for the external building of the library/binaries. (i.e. those that the external buidl system will be looking for and paths to which are provided by the calling rule)   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ninja-directory"></a>directory |  A directory to pass as the <code>-C</code> argument. The rule will always use the root directory of the <code>lib_sources</code> attribute if this attribute is not set   | String | optional | "" |
+| <a id="ninja-env"></a>env |  Environment variables to set during the build. $(execpath) macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, but unlike with other rules, these will be replaced with absolute paths to those files, because the build does not run in the exec root. No other macros are supported.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="ninja-headers_only"></a>headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
+| <a id="ninja-interface_libraries"></a>interface_libraries |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |
+| <a id="ninja-lib_name"></a>lib_name |  Library name. Defines the name of the install directory and the name of the static library, if no output files parameters are defined (any of static_libraries, shared_libraries, interface_libraries, binaries_names) Optional. If not defined, defaults to the target's name.   | String | optional | "" |
+| <a id="ninja-lib_source"></a>lib_source |  Label with source code to build. Typically a filegroup for the source of remote repository. Mandatory.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="ninja-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
+| <a id="ninja-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
+| <a id="ninja-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
+| <a id="ninja-out_lib_dir"></a>out_lib_dir |  Optional name of the output subdirectory with the library files, defaults to 'lib'.   | String | optional | "lib" |
+| <a id="ninja-postfix_script"></a>postfix_script |  Optional part of the shell script to be added after the make commands   | String | optional | "" |
+| <a id="ninja-shared_libraries"></a>shared_libraries |  Optional names of the resulting shared libraries.   | List of strings | optional | [] |
+| <a id="ninja-static_libraries"></a>static_libraries |  Optional names of the resulting static libraries.   | List of strings | optional | [] |
+| <a id="ninja-targets"></a>targets |  A list of ninja targets to build. To call the default target, simply pass <code>""</code> as one of the items to this attribute.   | List of strings | optional | [] |
+| <a id="ninja-tools_deps"></a>tools_deps |  Optional tools to be copied into the directory structure. Similar to deps, those directly required for the external building of the library/binaries.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
 <a id="#ninja_tool"></a>

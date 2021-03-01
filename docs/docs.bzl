@@ -16,6 +16,7 @@ load(
     _WrappedOutputs = "WrappedOutputs",
 )
 load("@rules_foreign_cc//tools/build_defs:make.bzl", _make = "make")
+load("@rules_foreign_cc//tools/build_defs:ninja.bzl", _ninja = "ninja")
 load(
     "@rules_foreign_cc//tools/build_defs/native_tools:native_tools_toolchain.bzl",
     _ToolInfo = "ToolInfo",
@@ -30,6 +31,7 @@ configure_make = _configure_make
 make = _make
 make_tool = _make_tool
 native_tool_toolchain = _native_tool_toolchain
+ninja = _ninja
 ninja_tool = _ninja_tool
 rules_foreign_cc_dependencies = _rules_foreign_cc_dependencies
 

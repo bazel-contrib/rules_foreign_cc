@@ -7,6 +7,7 @@ test_suite(
         "//bison:bison_build_test",
         "//cares:test_c_ares",
         "//curl:curl_build_test",
+        "//gn:gn_launch_test",
         "//libgit2:libgit2_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
@@ -21,6 +22,7 @@ test_suite(
     tests = [
         "//cares:test_c_ares",
         "//curl:curl_build_test",
+        "//gn:gn_launch_test",
         "//iconv:iconv_build_test",
         "//libgit2:libgit2_build_test",
         "//libpng:test_libpng",
