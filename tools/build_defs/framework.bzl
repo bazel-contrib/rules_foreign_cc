@@ -327,9 +327,9 @@ def cc_external_rule_impl(ctx, attrs):
         "export EXT_BUILD_DEPS=$${INSTALLDIR}$$.ext_build_deps",
     ] + [
         "export {key}={value}".format(
-            key=key,
+            key = key,
             # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
-            value=ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies)
+            value = ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies),
         )
         for key, value in getattr(ctx.attr, "env", {}).items()
     ]
@@ -379,12 +379,15 @@ def cc_external_rule_impl(ctx, attrs):
 
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
-        inputs = depset(inputs.declared_inputs, transitive = [cc_toolchain.all_files]),
+        inputs = depset(inputs.declared_inputs),
         outputs = rule_outputs + [
             empty.file,
             wrapped_outputs.log_file,
         ],
-        tools = depset([wrapped_outputs.script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools, transitive = [data[DefaultInfo].default_runfiles.files for data in data_dependencies]),
+        tools = depset(
+            [wrapped_outputs.script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
+            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
+        ),
         # We should take the default PATH passed by Bazel, not that from cc_toolchain
         # for Windows, because the PATH under msys2 is different and that is which we need
         # for shell commands
