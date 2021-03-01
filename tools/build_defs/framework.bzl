@@ -409,9 +409,8 @@ def cc_external_rule_impl(ctx, attrs):
             [wrapped_outputs.script_file] + extra_tools + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
             transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
         ),
-        # We should take the default PATH passed by Bazel, not that from cc_toolchain
-        # for Windows, because the PATH under msys2 is different and that is which we need
-        # for shell commands
+        # TODO: Default to never using the default shell environment to make builds more hermetic. For now, every platform
+        # but MacOS will take the default PATH passed by Bazel, not that from cc_toolchain.
         use_default_shell_env = execution_os_name != "osx",
         executable = wrapper,
         execution_requirements = execution_requirements,
