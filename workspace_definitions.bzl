@@ -12,6 +12,7 @@ def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
         cmake_version = "3.19.6",
+        make_version = "4.3",
         ninja_version = "1.10.2",
         register_preinstalled_tools = True,
         register_built_tools = True,
@@ -65,7 +66,11 @@ def rules_foreign_cc_dependencies(
         prebuilt_toolchains(cmake_version, ninja_version)
 
     if register_built_tools:
-        built_toolchains()
+        built_toolchains(
+            cmake_version = cmake_version,
+            make_version = make_version,
+            ninja_version = ninja_version,
+        )
 
     if register_preinstalled_tools:
         preinstalled_toolchains()
