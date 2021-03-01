@@ -24,7 +24,7 @@ in future changes as these older versions are not tested.
 
 These rules are now maintained by the community.
 
-*Note*: After this release we will be bumping the minimum required version to *4.0.0*.
+*Note*: After this release we will be bumping the minimum tested version to *4.0.0*.
 
 - Added repository rules for downloading prebuilt versions of cmake and ninja
   rather than relying on system installed tools.
@@ -101,12 +101,11 @@ workspace(name = "rules_foreign_cc_usage_example")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# Rule repository, note that it's recommended to use a pinned commit but
-# for the sake fo the example, we'll use latest on the `main` branch.
+# Rule repository, note that it's recommended to use a pinned commit to a released version of the rules
 http_archive(
    name = "rules_foreign_cc",
-   strip_prefix = "rules_foreign_cc-main",
-   url = "https://github.com/bazelbuild/rules_foreign_cc/archive/main.zip",
+   strip_prefix = "rules_foreign_cc-0.1.0",
+   url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.1.0.zip",
 )
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
