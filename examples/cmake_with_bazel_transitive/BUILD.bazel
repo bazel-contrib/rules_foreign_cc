@@ -1,8 +1,8 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
 # Example of the cmake_external target built with Bazel-built dependency
-cmake_external(
+cmake(
     name = "cmake_libb",
     cache_entries = {
         # CMake's find_package wants to find cmake config for liba,

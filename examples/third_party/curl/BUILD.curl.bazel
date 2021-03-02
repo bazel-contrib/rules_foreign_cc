@@ -1,4 +1,4 @@
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
 filegroup(
     name = "all_srcs",
@@ -22,7 +22,7 @@ _LINUX_CACHE_ENTRIES = dict(_CACHE_ENTRIES.items() + {
     "CMAKE_C_FLAGS": "-fPIC",
 }.items())
 
-cmake_external(
+cmake(
     name = "curl",
     cache_entries = select({
         "@platforms//os:linux": _LINUX_CACHE_ENTRIES,

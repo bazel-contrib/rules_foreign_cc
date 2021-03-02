@@ -2,7 +2,7 @@
 # for test only
 
 load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
 filegroup(
     name = "srcs",
@@ -14,14 +14,14 @@ exports_files([
     "hello_client.c",
 ])
 
-cmake_external(
+cmake(
     name = "libhello",
     lib_source = ":srcs",
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
 )
 
-cmake_external(
+cmake(
     name = "libhello_win",
     cmake_options = ["-G \"Visual Studio 15 2017\" -A x64"],
     lib_name = "libhello",
@@ -32,7 +32,7 @@ cmake_external(
     static_libraries = ["hello.lib"],
 )
 
-cmake_external(
+cmake(
     name = "libhello_win_ninja",
     cmake_options = ["-GNinja"],
     lib_source = ":srcs",
@@ -45,7 +45,7 @@ cmake_external(
     static_libraries = ["hello.lib"],
 )
 
-cmake_external(
+cmake(
     name = "libhello_win_nmake",
     cmake_options = ["-G \"NMake Makefiles\""],
     lib_source = ":srcs",
@@ -115,7 +115,7 @@ sh_test(
     visibility = ["//:__pkg__"],
 )
 
-cmake_external(
+cmake(
     name = "libhello123",
     lib_source = ":srcs",
     out_include_dir = "include",

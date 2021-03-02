@@ -1,4 +1,4 @@
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -7,7 +7,7 @@ filegroup(
     srcs = glob(["**"]),
 )
 
-cmake_external(
+cmake(
     name = "cares",
     cache_entries = {
         "CARES_SHARED": "no",

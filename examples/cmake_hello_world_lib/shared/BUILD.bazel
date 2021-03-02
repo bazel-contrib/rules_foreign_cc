@@ -2,7 +2,7 @@
 # for test only
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
 filegroup(
     name = "srcs",
@@ -10,7 +10,7 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-cmake_external(
+cmake(
     name = "libhello",
     # Probably this variable should be set by default.
     # Apparently, it needs to be set for shared libraries on Mac OS

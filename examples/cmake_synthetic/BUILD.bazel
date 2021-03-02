@@ -1,8 +1,8 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
-cmake_external(
+cmake(
     name = "liba",
     cmake_options = ["-GNinja"],
     # Demonstrate non-alphanumeric name
@@ -15,7 +15,7 @@ cmake_external(
     postfix_script = "cp $$INSTALLDIR$$/lib/liba.a $$INSTALLDIR$$/lib/liba++.a",
 )
 
-cmake_external(
+cmake(
     name = "libb",
     cmake_options = ["-GNinja"],
     lib_source = "//cmake_synthetic/libb:b_srcs",
@@ -26,7 +26,7 @@ cmake_external(
     deps = [":liba"],
 )
 
-cmake_external(
+cmake(
     name = "lib_with_duplicate_transitive_bazel_deps",
     cache_entries = {
         "LIBA_DIR": "$$EXT_BUILD_DEPS$$",
