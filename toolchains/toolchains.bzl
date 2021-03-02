@@ -1,6 +1,10 @@
 """A module defining the various toolchain definitions for `rules_foreign_cc`"""
 
+load(":built_toolchains.bzl", _built_toolchains = "built_toolchains")
 load(":prebuilt_toolchains.bzl", _prebuilt_toolchains = "prebuilt_toolchains")
+
+# Re-expose the built toolchains macro
+built_toolchains = _built_toolchains
 
 # Re-expose the prebuilt toolchains macro
 prebuilt_toolchains = _prebuilt_toolchains

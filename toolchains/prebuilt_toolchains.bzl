@@ -68,7 +68,6 @@ def prebuilt_toolchains(cmake_version, ninja_version):
     """
     _cmake_toolchains(cmake_version)
     _ninja_toolchains(ninja_version)
-    _make_toolchains()
 
 def _cmake_toolchains(version):
     if "3.19.6" == version:
@@ -1063,6 +1062,3 @@ def _ninja_toolchains(version):
         return
 
     fail("Unsupported version: " + str(version))
-
-def _make_toolchains():
-    native.register_toolchains("@rules_foreign_cc//tools/build_defs:preinstalled_make_toolchain")
