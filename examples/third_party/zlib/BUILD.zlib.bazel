@@ -24,7 +24,7 @@ cmake(
             "make install",
         ],
     }),
-    static_libraries = select({
+    out_static_libs = select({
         "@platforms//os:windows": ["zlibstatic.lib"],
         "//conditions:default": ["libz.a"],
     }),

@@ -14,6 +14,6 @@ cmake(
     },
     lib_source = "//:all_srcs",
     out_include_dir = "include/libpng16",
-    static_libraries = ["libpng16.a"],
+    out_static_libs = ["libpng16.a"],
     deps = ["@zlib"],
 )

@@ -4,7 +4,7 @@ load("@rules_foreign_cc//tools/build_defs:ninja.bzl", "ninja")
 ninja(
     name = "ninja_lib",
     lib_source = "//ninja_simple/code:srcs",
-    static_libraries = ["liba.a"],
+    out_static_libs = ["liba.a"],
     targets = [
         "",
         "install",
