@@ -5,7 +5,7 @@ load("@rules_foreign_cc//for_workspace:cmake_build.bzl", _cmake_tool = "cmake_to
 load("@rules_foreign_cc//for_workspace:make_build.bzl", _make_tool = "make_tool")
 load("@rules_foreign_cc//for_workspace:ninja_build.bzl", _ninja_tool = "ninja_tool")
 load("@rules_foreign_cc//tools/build_defs:boost_build.bzl", _boost_build = "boost_build")
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", _cmake_external = "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", _cmake = "cmake")
 load("@rules_foreign_cc//tools/build_defs:configure.bzl", _configure_make = "configure_make")
 load(
     "@rules_foreign_cc//tools/build_defs:framework.bzl",
@@ -25,7 +25,7 @@ load(
 
 # Rules Foreign CC symbols
 boost_build = _boost_build
-cmake_external = _cmake_external
+cmake = _cmake
 cmake_tool = _cmake_tool
 configure_make = _configure_make
 make = _make

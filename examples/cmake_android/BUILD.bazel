@@ -1,8 +1,8 @@
 load("@rules_android//android:rules.bzl", "android_binary", "android_library")
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
-cmake_external(
+cmake(
     name = "libhello",
     lib_source = "//cmake_hello_world_lib/static:srcs",
     out_include_dir = "include/version123",
