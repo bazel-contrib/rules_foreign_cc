@@ -1,3 +1,8 @@
+"""
+Defines repositories and register toolchains for versions of the tools built
+from source
+"""
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 

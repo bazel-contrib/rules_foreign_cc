@@ -32,11 +32,14 @@ def rules_foreign_cc_dependencies(
             preinstalled binaries by name (cmake, ninja) will be registered after
             'native_tools_toolchains' without any platform constraints. The default is True.
 
-        cmake_version: The target version of the default cmake toolchain if `register_default_tools`
+        cmake_version: The target version of the cmake toolchain if `register_default_tools`
+            or `register_built_tools` is set to `True`.
+
+        make_version: The target version of the default make toolchain if `register_built_tools`
             is set to `True`.
 
-        ninja_version: The target version of the default ninja toolchain if `register_default_tools`
-            is set to `True`.
+        ninja_version: The target version of the ninja toolchain if `register_default_tools`
+            or `register_built_tools` is set to `True`.
 
         register_preinstalled_tools: If true, toolchains will be registered for the native built tools
             installed on the exec host
