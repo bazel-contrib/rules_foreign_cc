@@ -33,7 +33,6 @@ toolchain(
     toolchain_type = "@rules_foreign_cc//tools/build_defs:make_toolchain",
 )
 
-
 # Preinstalled cmake will always be the default, if toolchain with more exact constraints
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(

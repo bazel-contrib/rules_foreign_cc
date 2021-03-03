@@ -17,11 +17,11 @@ toolchain_data = rule(
 )
 
 # buildifier: disable=unnamed-macro
-def build_part(toolchain_type_):
-    register_mappings(toolchain_type_, TOOLCHAIN_MAPPINGS)
+def build_part(toolchain_type):
+    register_mappings(toolchain_type, TOOLCHAIN_MAPPINGS)
 
 # buildifier: disable=unnamed-macro
-def register_mappings(toolchain_type_, mappings):
+def register_mappings(toolchain_type, mappings):
     for item in mappings:
         file_name = get_file_name(item.file)
 
@@ -32,7 +32,7 @@ def register_mappings(toolchain_type_, mappings):
         )
         native.toolchain(
             name = file_name,
-            toolchain_type = toolchain_type_,
+            toolchain_type = toolchain_type,
             toolchain = file_name + "_data",
             exec_compatible_with = item.exec_compatible_with if hasattr(item, "exec_compatible_with") else [],
             target_compatible_with = item.target_compatible_with if hasattr(item, "target_compatible_with") else [],

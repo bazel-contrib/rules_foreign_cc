@@ -22,10 +22,16 @@ cmake_external(
 
 filegroup(
     name = "lib_a_sources",
-    srcs = ["lib_a/{}".format(s) for s in ["CMakeLists.txt", "lib_a.cpp"]],
+    srcs = ["lib_a/{}".format(s) for s in [
+        "CMakeLists.txt",
+        "lib_a.cpp",
+    ]],
 )
 
 filegroup(
     name = "lib_b_sources",
-    srcs = ["lib_b/{}".format(s) for s in ["CMakeLists.txt", "lib_b.cpp"]],
+    srcs = ["lib_b/{}".format(s) for s in [
+        "CMakeLists.txt",
+        "lib_b.cpp",
+    ]],
 )

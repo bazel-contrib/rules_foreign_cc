@@ -27,7 +27,7 @@ def _make_tool(ctx):
         "./configure --disable-dependency-tracking --prefix=$$EXT_BUILD_ROOT$$/{}".format(make.path),
         "./build.sh",
         "./make install",
-        empty.script
+        empty.script,
     ]
     script_text = convert_shell_script(ctx, script)
 

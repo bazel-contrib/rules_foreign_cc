@@ -6,7 +6,9 @@ toolchain_type(
     visibility = ["//visibility:public"],
 )
 
-build_part(":shell_commands")
+build_part(
+    toolchain_type = ":shell_commands",
+)
 
 bzl_library(
     name = "bzl_srcs",
