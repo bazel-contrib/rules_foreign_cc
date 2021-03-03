@@ -15,4 +15,3 @@ def repositories():
             "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
         ],
     )
-

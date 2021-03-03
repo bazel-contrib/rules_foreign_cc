@@ -43,7 +43,7 @@ def assert_contains_once(arr, value):
 _flags_test = rule(
     implementation = _impl,
     attrs = {
-	"deps": attr.label_list(),
+        "deps": attr.label_list(),
         "out": attr.output(),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },

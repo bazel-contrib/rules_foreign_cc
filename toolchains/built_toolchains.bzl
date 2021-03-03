@@ -21,7 +21,6 @@ def built_toolchains(cmake_version, make_version, ninja_version):
     _make_toolchain(make_version)
     _ninja_toolchain(ninja_version)
 
-
 def _cmake_toolchain(version):
     native.register_toolchains(
         "@rules_foreign_cc//tools/build_defs:built_cmake_toolchain",
@@ -41,7 +40,6 @@ def _cmake_toolchain(version):
 
     fail("Unsupported cmake version: " + str(version))
 
-
 def _make_toolchain(version):
     native.register_toolchains(
         "@rules_foreign_cc//tools/build_defs:built_make_toolchain",
@@ -60,7 +58,6 @@ def _make_toolchain(version):
         return
 
     fail("Unsupported make version: " + str(version))
-
 
 def _ninja_toolchain(version):
     native.register_toolchains(
