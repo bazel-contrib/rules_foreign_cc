@@ -1,8 +1,8 @@
 # Rules Foreign CC Examples
 
-## Top Level
+## Top-Level
 
-Top level examples should contain no dependencies outside of `rules_foreign_cc` directly and anything else in
+Top-level examples should contain no dependencies outside of `rules_foreign_cc` directly and anything else in
 it's directory. The directories should be prefixed with the type of rule they're associated with. Eg
 `cmake_with_data` (being a [cmake_external][cmake_external] example) and `configure_with_bazel_transitive`
 (being a [configure_make][configure_make] example).
@@ -12,8 +12,8 @@ it's directory. The directories should be prefixed with the type of rule they're
 Examples of building source from outside of `rules_foreign_cc` should be put in the `third_party` directory
 which is an isolated workspace that gets added to `rules_foreign_cc_examples` as an additional
 `rules_foreign_cc_examples_third_party` repository. In general, these are expected to be expensive to build
-so adding new things here should be done selectively. In the top level package of this workspace, there exsits
-test suites separated by operating system that all tests need to be registered to. The expected structure of
+so adding new things here should be done selectively. In the top-level package of this workspace, there are
+test suites separated by the operating system that all tests need to be registered with. The expected structure of
 any example in this workspace are as follows:
 
 ```text
