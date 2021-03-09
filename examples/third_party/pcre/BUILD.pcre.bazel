@@ -1,6 +1,6 @@
 """pcre is only expected to be used on Linux systems"""
 
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -9,7 +9,7 @@ filegroup(
     srcs = glob(["**"]),
 )
 
-cmake_external(
+cmake(
     name = "pcre",
     cache_entries = {
         "CMAKE_C_FLAGS": "${CMAKE_C_FLAGS:-} -fPIC",

@@ -1,5 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
 filegroup(
     name = "srcs",
@@ -12,7 +12,7 @@ cc_library(
     srcs = ["hello.cc"],
 )
 
-cmake_external(
+cmake(
     name = "hello_cmake",
     lib_source = "//static:srcs",
     out_include_dir = "include/version123",

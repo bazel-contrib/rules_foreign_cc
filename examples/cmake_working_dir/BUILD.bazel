@@ -1,12 +1,12 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
 filegroup(
     name = "sources",
     srcs = glob(["source_root/**"]),
 )
 
-cmake_external(
+cmake(
     name = "liba",
     lib_source = ":sources",
     # This demonstrates the usage of the working directory:

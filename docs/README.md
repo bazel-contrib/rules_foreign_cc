@@ -1,7 +1,7 @@
 # Rules Foreign CC
 
 - [boost_build](#boost_build)
-- [cmake_external](#cmake_external)
+- [cmake](#cmake)
 - [cmake_tool](#cmake_tool)
 - [ConfigureParameters](#ConfigureParameters)
 - [configure_make](#configure_make)
@@ -61,16 +61,16 @@ Rule for building Boost. Invokes bootstrap.sh and then b2 install.
 | <a id="boost_build-user_options"></a>user_options |  any additional flags to pass to b2   | List of strings | optional | [] |
 
 
-<a id="#cmake_external"></a>
+<a id="#cmake"></a>
 
-## cmake_external
+## cmake
 
 <pre>
-cmake_external(<a href="#cmake_external-name">name</a>, <a href="#cmake_external-additional_inputs">additional_inputs</a>, <a href="#cmake_external-additional_tools">additional_tools</a>, <a href="#cmake_external-alwayslink">alwayslink</a>, <a href="#cmake_external-binaries">binaries</a>, <a href="#cmake_external-cache_entries">cache_entries</a>,
-               <a href="#cmake_external-cmake_options">cmake_options</a>, <a href="#cmake_external-data">data</a>, <a href="#cmake_external-defines">defines</a>, <a href="#cmake_external-deps">deps</a>, <a href="#cmake_external-env">env</a>, <a href="#cmake_external-env_vars">env_vars</a>, <a href="#cmake_external-generate_crosstool_file">generate_crosstool_file</a>,
-               <a href="#cmake_external-headers_only">headers_only</a>, <a href="#cmake_external-install_prefix">install_prefix</a>, <a href="#cmake_external-interface_libraries">interface_libraries</a>, <a href="#cmake_external-lib_name">lib_name</a>, <a href="#cmake_external-lib_source">lib_source</a>, <a href="#cmake_external-linkopts">linkopts</a>,
-               <a href="#cmake_external-make_commands">make_commands</a>, <a href="#cmake_external-out_bin_dir">out_bin_dir</a>, <a href="#cmake_external-out_include_dir">out_include_dir</a>, <a href="#cmake_external-out_lib_dir">out_lib_dir</a>, <a href="#cmake_external-postfix_script">postfix_script</a>,
-               <a href="#cmake_external-shared_libraries">shared_libraries</a>, <a href="#cmake_external-static_libraries">static_libraries</a>, <a href="#cmake_external-tools_deps">tools_deps</a>, <a href="#cmake_external-working_directory">working_directory</a>)
+cmake(<a href="#cmake-name">name</a>, <a href="#cmake-additional_inputs">additional_inputs</a>, <a href="#cmake-additional_tools">additional_tools</a>, <a href="#cmake-alwayslink">alwayslink</a>, <a href="#cmake-binaries">binaries</a>, <a href="#cmake-cache_entries">cache_entries</a>, <a href="#cmake-cmake_options">cmake_options</a>,
+      <a href="#cmake-data">data</a>, <a href="#cmake-defines">defines</a>, <a href="#cmake-deps">deps</a>, <a href="#cmake-env">env</a>, <a href="#cmake-env_vars">env_vars</a>, <a href="#cmake-generate_crosstool_file">generate_crosstool_file</a>, <a href="#cmake-headers_only">headers_only</a>, <a href="#cmake-install_prefix">install_prefix</a>,
+      <a href="#cmake-interface_libraries">interface_libraries</a>, <a href="#cmake-lib_name">lib_name</a>, <a href="#cmake-lib_source">lib_source</a>, <a href="#cmake-linkopts">linkopts</a>, <a href="#cmake-make_commands">make_commands</a>, <a href="#cmake-out_bin_dir">out_bin_dir</a>,
+      <a href="#cmake-out_include_dir">out_include_dir</a>, <a href="#cmake-out_lib_dir">out_lib_dir</a>, <a href="#cmake-postfix_script">postfix_script</a>, <a href="#cmake-shared_libraries">shared_libraries</a>, <a href="#cmake-static_libraries">static_libraries</a>, <a href="#cmake-tools_deps">tools_deps</a>,
+      <a href="#cmake-working_directory">working_directory</a>)
 </pre>
 
 Rule for building external library with CMake.
@@ -80,34 +80,34 @@ Rule for building external library with CMake.
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="cmake_external-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-| <a id="cmake_external-additional_inputs"></a>additional_inputs |  Optional additional inputs to be declared as needed for the shell script action.Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-| <a id="cmake_external-additional_tools"></a>additional_tools |  Optional additional tools needed for the building. Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-| <a id="cmake_external-alwayslink"></a>alwayslink |  Optional. if true, link all the object files from the static library, even if they are not used.   | Boolean | optional | False |
-| <a id="cmake_external-binaries"></a>binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
-| <a id="cmake_external-cache_entries"></a>cache_entries |  CMake cache entries to initialize (they will be passed with -Dkey=value) Values, defined by the toolchain, will be joined with the values, passed here. (Toolchain values come first)   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
-| <a id="cmake_external-cmake_options"></a>cmake_options |  Other CMake options   | List of strings | optional | [] |
-| <a id="cmake_external-data"></a>data |  Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-| <a id="cmake_external-defines"></a>defines |  Optional compilation definitions to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.   | List of strings | optional | [] |
-| <a id="cmake_external-deps"></a>deps |  Optional dependencies to be copied into the directory structure. Typically those directly required for the external building of the library/binaries. (i.e. those that the external buidl system will be looking for and paths to which are provided by the calling rule)   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-| <a id="cmake_external-env"></a>env |  Environment variables to set during the build. $(execpath) macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, but unlike with other rules, these will be replaced with absolute paths to those files, because the build does not run in the exec root. No other macros are supported.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
-| <a id="cmake_external-env_vars"></a>env_vars |  CMake environment variable values to join with toolchain-defined. For example, additional CXXFLAGS.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
-| <a id="cmake_external-generate_crosstool_file"></a>generate_crosstool_file |  When True, CMake crosstool file will be generated from the toolchain values, provided cache-entries and env_vars (some values will still be passed as -Dkey=value and environment variables). If CMAKE_TOOLCHAIN_FILE cache entry is passed, specified crosstool file will be used When using this option to cross-compile, it is required to specify CMAKE_SYSTEM_NAME in the cache_entries   | Boolean | optional | True |
-| <a id="cmake_external-headers_only"></a>headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
-| <a id="cmake_external-install_prefix"></a>install_prefix |  Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX   | String | optional | "" |
-| <a id="cmake_external-interface_libraries"></a>interface_libraries |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |
-| <a id="cmake_external-lib_name"></a>lib_name |  Library name. Defines the name of the install directory and the name of the static library, if no output files parameters are defined (any of static_libraries, shared_libraries, interface_libraries, binaries_names) Optional. If not defined, defaults to the target's name.   | String | optional | "" |
-| <a id="cmake_external-lib_source"></a>lib_source |  Label with source code to build. Typically a filegroup for the source of remote repository. Mandatory.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
-| <a id="cmake_external-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
-| <a id="cmake_external-make_commands"></a>make_commands |  Optinal make commands, defaults to ["make", "make install"]   | List of strings | optional | ["make", "make install"] |
-| <a id="cmake_external-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
-| <a id="cmake_external-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
-| <a id="cmake_external-out_lib_dir"></a>out_lib_dir |  Optional name of the output subdirectory with the library files, defaults to 'lib'.   | String | optional | "lib" |
-| <a id="cmake_external-postfix_script"></a>postfix_script |  Optional part of the shell script to be added after the make commands   | String | optional | "" |
-| <a id="cmake_external-shared_libraries"></a>shared_libraries |  Optional names of the resulting shared libraries.   | List of strings | optional | [] |
-| <a id="cmake_external-static_libraries"></a>static_libraries |  Optional names of the resulting static libraries.   | List of strings | optional | [] |
-| <a id="cmake_external-tools_deps"></a>tools_deps |  Optional tools to be copied into the directory structure. Similar to deps, those directly required for the external building of the library/binaries.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-| <a id="cmake_external-working_directory"></a>working_directory |  Working directory, with the main CMakeLists.txt (otherwise, the top directory of the lib_source label files is used.)   | String | optional | "" |
+| <a id="cmake-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="cmake-additional_inputs"></a>additional_inputs |  Optional additional inputs to be declared as needed for the shell script action.Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="cmake-additional_tools"></a>additional_tools |  Optional additional tools needed for the building. Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="cmake-alwayslink"></a>alwayslink |  Optional. if true, link all the object files from the static library, even if they are not used.   | Boolean | optional | False |
+| <a id="cmake-binaries"></a>binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="cmake-cache_entries"></a>cache_entries |  CMake cache entries to initialize (they will be passed with -Dkey=value) Values, defined by the toolchain, will be joined with the values, passed here. (Toolchain values come first)   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="cmake-cmake_options"></a>cmake_options |  Other CMake options   | List of strings | optional | [] |
+| <a id="cmake-data"></a>data |  Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="cmake-defines"></a>defines |  Optional compilation definitions to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.   | List of strings | optional | [] |
+| <a id="cmake-deps"></a>deps |  Optional dependencies to be copied into the directory structure. Typically those directly required for the external building of the library/binaries. (i.e. those that the external buidl system will be looking for and paths to which are provided by the calling rule)   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="cmake-env"></a>env |  Environment variables to set during the build. $(execpath) macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, but unlike with other rules, these will be replaced with absolute paths to those files, because the build does not run in the exec root. No other macros are supported.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="cmake-env_vars"></a>env_vars |  CMake environment variable values to join with toolchain-defined. For example, additional CXXFLAGS.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="cmake-generate_crosstool_file"></a>generate_crosstool_file |  When True, CMake crosstool file will be generated from the toolchain values, provided cache-entries and env_vars (some values will still be passed as -Dkey=value and environment variables). If CMAKE_TOOLCHAIN_FILE cache entry is passed, specified crosstool file will be used When using this option to cross-compile, it is required to specify CMAKE_SYSTEM_NAME in the cache_entries   | Boolean | optional | True |
+| <a id="cmake-headers_only"></a>headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
+| <a id="cmake-install_prefix"></a>install_prefix |  Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX   | String | optional | "" |
+| <a id="cmake-interface_libraries"></a>interface_libraries |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |
+| <a id="cmake-lib_name"></a>lib_name |  Library name. Defines the name of the install directory and the name of the static library, if no output files parameters are defined (any of static_libraries, shared_libraries, interface_libraries, binaries_names) Optional. If not defined, defaults to the target's name.   | String | optional | "" |
+| <a id="cmake-lib_source"></a>lib_source |  Label with source code to build. Typically a filegroup for the source of remote repository. Mandatory.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="cmake-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
+| <a id="cmake-make_commands"></a>make_commands |  Optinal make commands, defaults to ["make", "make install"]   | List of strings | optional | ["make", "make install"] |
+| <a id="cmake-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
+| <a id="cmake-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
+| <a id="cmake-out_lib_dir"></a>out_lib_dir |  Optional name of the output subdirectory with the library files, defaults to 'lib'.   | String | optional | "lib" |
+| <a id="cmake-postfix_script"></a>postfix_script |  Optional part of the shell script to be added after the make commands   | String | optional | "" |
+| <a id="cmake-shared_libraries"></a>shared_libraries |  Optional names of the resulting shared libraries.   | List of strings | optional | [] |
+| <a id="cmake-static_libraries"></a>static_libraries |  Optional names of the resulting static libraries.   | List of strings | optional | [] |
+| <a id="cmake-tools_deps"></a>tools_deps |  Optional tools to be copied into the directory structure. Similar to deps, those directly required for the external building of the library/binaries.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="cmake-working_directory"></a>working_directory |  Working directory, with the main CMakeLists.txt (otherwise, the top directory of the lib_source label files is used.)   | String | optional | "" |
 
 
 <a id="#cmake_tool"></a>

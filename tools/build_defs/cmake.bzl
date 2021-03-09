@@ -25,7 +25,7 @@ load(
 )
 load(":cmake_script.bzl", "create_cmake_script")
 
-def _cmake_external(ctx):
+def _cmake_impl(ctx):
     cmake_data = get_cmake_data(ctx)
     make_data = get_make_data(ctx)
 
@@ -148,12 +148,12 @@ def _attrs():
     })
     return attrs
 
-cmake_external = rule(
+cmake = rule(
     doc = "Rule for building external library with CMake.",
     attrs = _attrs(),
     fragments = ["cpp"],
     output_to_genfiles = True,
-    implementation = _cmake_external,
+    implementation = _cmake_impl,
     toolchains = [
         "@rules_foreign_cc//tools/build_defs:cmake_toolchain",
         "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
@@ -162,3 +162,8 @@ cmake_external = rule(
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )
+
+# This is an alias to the underlying rule and is
+# kept around for legacy compaitiblity. This should
+# not be removed without sufficent warning.
+cmake_external = cmake

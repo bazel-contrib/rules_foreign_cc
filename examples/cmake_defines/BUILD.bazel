@@ -1,6 +1,6 @@
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
-cmake_external(
+cmake(
     name = "lib_a",
     lib_source = ":lib_a_sources",
     static_libraries = select({
@@ -10,7 +10,7 @@ cmake_external(
     deps = [":lib_b"],
 )
 
-cmake_external(
+cmake(
     name = "lib_b",
     defines = ["FOO"],
     lib_source = ":lib_b_sources",

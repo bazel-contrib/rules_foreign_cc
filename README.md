@@ -139,9 +139,9 @@ http_archive(
 And in the `BUILD.bazel` file, put:
 
 ```python
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
-cmake_external(
+cmake(
     name = "pcre",
     cache_entries = {
         "CMAKE_C_FLAGS": "-fPIC",
@@ -171,7 +171,7 @@ Example usage (see full example in `./examples/cmake_hello_world_lib`):
 Example assumes that MS Visual Studio and Ninja are installed on the host machine, and Ninja bin directory is added to PATH.
 
 ```python
-cmake_external(
+cmake(
     # expect to find ./lib/hello.lib as the result of the build
     name = "hello",
     # This option can be omitted
@@ -181,7 +181,7 @@ cmake_external(
     make_commands = ["MSBuild.exe INSTALL.vcxproj"],
 )
 
-cmake_external(
+cmake(
     name = "hello_ninja",
     # expect to find ./lib/hello.lib as the result of the build
     lib_name = "hello",
@@ -195,7 +195,7 @@ cmake_external(
     ],
 )
 
-cmake_external(
+cmake(
     name = "hello_nmake",
     # explicitly specify the generator
     cmake_options = ["-G \"NMake Makefiles\""],

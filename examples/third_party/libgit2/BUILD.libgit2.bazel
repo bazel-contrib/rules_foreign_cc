@@ -1,4 +1,4 @@
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
 filegroup(
     name = "all_srcs",
@@ -23,7 +23,7 @@ _LINUX_CACHE_ENTRIES = dict(_CACHE_ENTRIES.items() + {
     "REGEX_BACKEND": "pcre",
 }.items())
 
-cmake_external(
+cmake(
     name = "libgit2",
     cache_entries = select({
         "@platforms//os:linux": _LINUX_CACHE_ENTRIES,

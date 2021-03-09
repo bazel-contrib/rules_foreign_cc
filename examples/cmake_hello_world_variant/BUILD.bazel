@@ -1,6 +1,6 @@
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
+load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
 
-cmake_external(
+cmake(
     name = "hello_world",
     binaries = select({
         "//:macos": ["CMakeHelloWorld"],
