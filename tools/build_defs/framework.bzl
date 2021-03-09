@@ -310,7 +310,7 @@ def cc_external_rule_impl(ctx, attrs):
     # we need this fictive file in the root to get the path of the root in the script
     empty = fictive_file_in_genroot(ctx.actions, ctx.label.name)
 
-    data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
+    dependencies = ctx.attr.data + ctx.attr.deps + ctx.attr.tools
 
     define_variables = [
         set_cc_envs,
@@ -322,7 +322,7 @@ def cc_external_rule_impl(ctx, attrs):
         "export {key}={value}".format(
             key = key,
             # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
-            value = ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies),
+            value = ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), dependencies),
         )
         for key, value in getattr(ctx.attr, "env", {}).items()
     ]
