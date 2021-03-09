@@ -7,16 +7,10 @@ load("@rules_foreign_cc//tools/build_defs/native_tools:native_tools_toolchain.bz
 """
 
 _TOOLCHAIN = """\
-native_tool_toolchain(
-    name = "{repo}_tool",
-    path = "$(execpath @{repo}//:{tool}_bin)",
-    target = "@{repo}//:{tool}_bin",
-)
-
 toolchain(
     name = "{repo}_toolchain",
     exec_compatible_with = {exec_compatible_with},
-    toolchain = ":{repo}_tool",
+    toolchain = "@{repo}//:{tool}_tool",
     toolchain_type = "@rules_foreign_cc//tools/build_defs:{tool}_toolchain",
 )
 """
