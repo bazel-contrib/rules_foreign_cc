@@ -22,7 +22,7 @@ load(":configure_script.bzl", "create_configure_script")
 def _configure_make(ctx):
     make_data = get_make_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + make_data.deps
+    tools_deps = ctx.attr.tools + make_data.deps
 
     copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
 

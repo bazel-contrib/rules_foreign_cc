@@ -20,7 +20,7 @@ load(":configure_script.bzl", "create_make_script")
 def _make(ctx):
     make_data = get_make_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + make_data.deps
+    tools_deps = ctx.attr.tools + make_data.deps
 
     attrs = create_attrs(
         ctx.attr,

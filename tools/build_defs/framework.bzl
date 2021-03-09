@@ -710,7 +710,7 @@ def _define_inputs(ctx, attrs):
         for file_list in input.files.to_list():
             input_files += list(file_list)
 
-    tools_files, manifests_from_tools = ctx.resolve_tools(tools = ctx.attr.tools_deps + attrs.additional_tools)
+    tools_files, manifests_from_tools = ctx.resolve_tools(tools = ctx.attr.tools)
     # These variables are needed for correct C/C++ providers construction,
     # they should contain all libraries and include directories.
     cc_info_merged = cc_common.merge_cc_infos(cc_infos = cc_infos)

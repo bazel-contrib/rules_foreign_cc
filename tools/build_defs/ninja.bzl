@@ -23,7 +23,7 @@ def _ninja_impl(ctx):
     """
     ninja_data = get_ninja_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + ninja_data.deps
+    tools_deps = ctx.attr.tools + ninja_data.deps
 
     attrs = create_attrs(
         ctx.attr,
