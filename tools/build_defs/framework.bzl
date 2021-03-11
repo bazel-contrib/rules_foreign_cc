@@ -179,6 +179,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     ),
 }
 
+# A list of common fragments required by rules using this framework
+CC_EXTERNAL_RULE_FRAGMENTS = [
+    "cpp",
+]
+
 # buildifier: disable=function-docstring-header
 # buildifier: disable=function-docstring-args
 # buildifier: disable=function-docstring-return
