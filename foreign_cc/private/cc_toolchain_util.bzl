@@ -2,15 +2,7 @@
 """
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
-load(
-    "@bazel_tools//tools/build_defs/cc:action_names.bzl",
-    "ASSEMBLE_ACTION_NAME",
-    "CPP_COMPILE_ACTION_NAME",
-    "CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME",
-    "CPP_LINK_EXECUTABLE_ACTION_NAME",
-    "CPP_LINK_STATIC_LIBRARY_ACTION_NAME",
-    "C_COMPILE_ACTION_NAME",
-)
+load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 LibrariesToLinkInfo = provider(
@@ -228,9 +220,9 @@ def get_env_vars(ctx):
     copts = getattr(ctx.attr, "copts", [])
 
     action_names = [
-        C_COMPILE_ACTION_NAME,
-        CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
-        CPP_LINK_EXECUTABLE_ACTION_NAME,
+        ACTION_NAMES.c_compile,
+        ACTION_NAMES.cpp_link_static_library,
+        ACTION_NAMES.cpp_link_executable,
     ]
 
     vars = dict()
@@ -246,10 +238,17 @@ def get_env_vars(ctx):
         ))
 
     if cc_toolchain:
-        cc_executable = cc_toolchain.compiler_executable
+        cc_executable = cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = ACTION_NAMES.cpp_compile,
+        )
         if cc_executable:
             vars["CC"] = cc_executable
-        ar_executable = cc_toolchain.ar_executable
+
+        ar_executable = cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = ACTION_NAMES.cpp_link_static_library,
+        )
         if ar_executable:
             vars["AR"] = ar_executable
 
@@ -275,19 +274,19 @@ def get_tools_info(ctx):
     return CxxToolsInfo(
         cc = cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
-            action_name = C_COMPILE_ACTION_NAME,
+            action_name = ACTION_NAMES.c_compile,
         ),
         cxx = cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
-            action_name = CPP_COMPILE_ACTION_NAME,
+            action_name = ACTION_NAMES.cpp_compile,
         ),
         cxx_linker_static = cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
-            action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
+            action_name = ACTION_NAMES.cpp_link_static_library,
         ),
         cxx_linker_executable = cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
-            action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+            action_name = ACTION_NAMES.cpp_link_executable,
         ),
     )
 
@@ -316,7 +315,7 @@ def get_flags_info(ctx, link_output_file = None):
     flags = CxxFlagsInfo(
         cc = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
-            action_name = C_COMPILE_ACTION_NAME,
+            action_name = ACTION_NAMES.c_compile,
             variables = cc_common.create_compile_variables(
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain_,
@@ -325,7 +324,7 @@ def get_flags_info(ctx, link_output_file = None):
         ),
         cxx = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
-            action_name = CPP_COMPILE_ACTION_NAME,
+            action_name = ACTION_NAMES.cpp_compile,
             variables = cc_common.create_compile_variables(
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain_,
@@ -335,7 +334,7 @@ def get_flags_info(ctx, link_output_file = None):
         ),
         cxx_linker_shared = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
-            action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+            action_name = ACTION_NAMES.cpp_link_dynamic_library,
             variables = cc_common.create_link_variables(
                 cc_toolchain = cc_toolchain_,
                 feature_configuration = feature_configuration,
@@ -345,7 +344,7 @@ def get_flags_info(ctx, link_output_file = None):
         ),
         cxx_linker_static = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
-            action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
+            action_name = ACTION_NAMES.cpp_link_static_library,
             variables = cc_common.create_link_variables(
                 cc_toolchain = cc_toolchain_,
                 feature_configuration = feature_configuration,
@@ -356,7 +355,7 @@ def get_flags_info(ctx, link_output_file = None):
         ),
         cxx_linker_executable = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
-            action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+            action_name = ACTION_NAMES.cpp_link_executable,
             variables = cc_common.create_link_variables(
                 cc_toolchain = cc_toolchain_,
                 feature_configuration = feature_configuration,
@@ -366,7 +365,7 @@ def get_flags_info(ctx, link_output_file = None):
         ),
         assemble = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
-            action_name = ASSEMBLE_ACTION_NAME,
+            action_name = ACTION_NAMES.assemble,
             variables = cc_common.create_compile_variables(
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain_,
