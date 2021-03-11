@@ -16,7 +16,7 @@ cmake(
     name = "hello_cmake",
     lib_source = "//static:srcs",
     out_include_dir = "include/version123",
-    static_libraries = ["libhello.a"],
+    out_static_libs = ["libhello.a"],
 )
 
 # I do not make it a test, since it is a cross-compilation example,

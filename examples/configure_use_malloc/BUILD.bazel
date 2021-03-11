@@ -9,7 +9,7 @@ configure_make(
         "--disable-libunwind",
     ],
     lib_source = "@gperftools//:all",
-    static_libraries = ["libtcmalloc_and_profiler.a"],
+    out_static_libs = ["libtcmalloc_and_profiler.a"],
 )
 
 # This currently gives an error:

@@ -15,7 +15,7 @@ cmake(
         "CMAKE_C_FLAGS": "${CMAKE_C_FLAGS:-} -fPIC",
     },
     lib_source = ":all_srcs",
-    static_libraries = ["libpcre.a"],
+    out_static_libs = ["libpcre.a"],
 )
 
 filegroup(

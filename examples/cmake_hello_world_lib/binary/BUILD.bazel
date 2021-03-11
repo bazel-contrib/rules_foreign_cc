@@ -11,16 +11,16 @@ filegroup(
 
 cmake(
     name = "libhello",
-    binaries = select({
-        "//:windows": ["hello.exe"],
-        "//conditions:default": ["hello"],
-    }),
     # Probably this variable should be set by default.
     # Apparently, it needs to be set for shared libraries on Mac OS
     cache_entries = {
         "CMAKE_MACOSX_RPATH": "True",
     },
     lib_source = ":srcs",
+    out_binaries = select({
+        "//:windows": ["hello.exe"],
+        "//conditions:default": ["hello"],
+    }),
 )
 
 filegroup(
