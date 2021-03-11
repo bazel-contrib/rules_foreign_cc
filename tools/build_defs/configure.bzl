@@ -179,7 +179,7 @@ configure_make = rule(
     output_to_genfiles = True,
     implementation = _configure_make,
     toolchains = [
-        "@rules_foreign_cc//tools/build_defs:make_toolchain",
+        "@rules_foreign_cc//toolchains:make_toolchain",
         "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],

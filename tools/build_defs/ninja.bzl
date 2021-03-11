@@ -117,7 +117,7 @@ ninja = rule(
     output_to_genfiles = True,
     implementation = _ninja_impl,
     toolchains = [
-        "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
+        "@rules_foreign_cc//toolchains:ninja_toolchain",
         "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],

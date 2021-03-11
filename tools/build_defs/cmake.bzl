@@ -155,9 +155,9 @@ cmake = rule(
     output_to_genfiles = True,
     implementation = _cmake_impl,
     toolchains = [
-        "@rules_foreign_cc//tools/build_defs:cmake_toolchain",
-        "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
-        "@rules_foreign_cc//tools/build_defs:make_toolchain",
+        "@rules_foreign_cc//toolchains:cmake_toolchain",
+        "@rules_foreign_cc//toolchains:ninja_toolchain",
+        "@rules_foreign_cc//toolchains:make_toolchain",
         "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
