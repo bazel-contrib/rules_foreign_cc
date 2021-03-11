@@ -1,32 +1,14 @@
-# buildifier: disable=module-docstring
-load(":native_tools_toolchain.bzl", "access_tool")
+"""This module has been moved to `//toolchains/native_tools:native_tools_toolchains.bzl`.
+This file will be removed at some point in the future
+"""
 
-def get_cmake_data(ctx):
-    return _access_and_expect_label_copied("@rules_foreign_cc//tools/build_defs:cmake_toolchain", ctx, "cmake")
+load(
+    "//toolchains/native_tools:tool_access.bzl",
+    _get_cmake_data = "get_cmake_data",
+    _get_make_data = "get_make_data",
+    _get_ninja_data = "get_ninja_data",
+)
 
-def get_ninja_data(ctx):
-    return _access_and_expect_label_copied("@rules_foreign_cc//tools/build_defs:ninja_toolchain", ctx, "ninja")
-
-def get_make_data(ctx):
-    return _access_and_expect_label_copied("@rules_foreign_cc//tools/build_defs:make_toolchain", ctx, "make")
-
-def _access_and_expect_label_copied(toolchain_type_, ctx, tool_name):
-    tool_data = access_tool(toolchain_type_, ctx, tool_name)
-    if tool_data.target:
-        # This could be made more efficient by changing the
-        # toolchain to provide the executable as a target
-        cmd_file = tool_data
-        for f in tool_data.target.files.to_list():
-            if f.path.endswith("/" + tool_data.path):
-                cmd_file = f
-                break
-        return struct(
-            deps = [tool_data.target],
-            # as the tool will be copied into tools directory
-            path = "$EXT_BUILD_ROOT/{}".format(cmd_file.path),
-        )
-    else:
-        return struct(
-            deps = [],
-            path = tool_data.path,
-        )
+get_cmake_data = _get_cmake_data
+get_make_data = _get_make_data
+get_ninja_data = _get_ninja_data

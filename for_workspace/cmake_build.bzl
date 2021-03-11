@@ -1,48 +1,5 @@
-""" Rule for building CMake from sources. """
+""" This module is deprecated and has been moved to `//toolchains/built_tools/...` """
 
-load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root")
-load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "convert_shell_script")
+load("//foreign_cc/built_tools:cmake_build.bzl", _cmake_tool = "cmake_tool")
 
-def _cmake_tool(ctx):
-    root = detect_root(ctx.attr.cmake_srcs)
-
-    cmake = ctx.actions.declare_directory("cmake")
-    script = [
-        "export BUILD_DIR=##pwd##",
-        "export BUILD_TMPDIR=$${BUILD_DIR}$$.build_tmpdir",
-        "##copy_dir_contents_to_dir## ./{} $BUILD_TMPDIR".format(root),
-        "##mkdirs## " + cmake.path,
-        "cd $$BUILD_TMPDIR$$",
-        "./bootstrap --prefix=install",
-        "make install",
-        "##copy_dir_contents_to_dir## ./install $BUILD_DIR/" + cmake.path,
-        "cd $$BUILD_DIR$$",
-    ]
-
-    script_text = convert_shell_script(ctx, script)
-
-    ctx.actions.run_shell(
-        mnemonic = "BootstrapCMake",
-        inputs = ctx.attr.cmake_srcs.files,
-        outputs = [cmake],
-        tools = [],
-        use_default_shell_env = True,
-        command = script_text,
-        execution_requirements = {"block-network": ""},
-    )
-
-    return [DefaultInfo(files = depset([cmake]))]
-
-cmake_tool = rule(
-    doc = "Rule for building CMake. Invokes bootstrap script and make install.",
-    attrs = {
-        "cmake_srcs": attr.label(mandatory = True),
-    },
-    host_fragments = ["cpp"],
-    output_to_genfiles = True,
-    implementation = _cmake_tool,
-    toolchains = [
-        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
-        "@bazel_tools//tools/cpp:toolchain_type",
-    ],
-)
+cmake_tool = _cmake_tool

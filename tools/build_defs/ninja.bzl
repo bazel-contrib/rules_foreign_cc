@@ -1,5 +1,6 @@
 """A module defining the `ninja` rule. A rule for building projects using the Ninja build tool"""
 
+load("//toolchains/native_tools:tool_access.bzl", "get_ninja_data")
 load(
     "//tools/build_defs:detect_root.bzl",
     "detect_root",
@@ -10,7 +11,6 @@ load(
     "cc_external_rule_impl",
     "create_attrs",
 )
-load("//tools/build_defs/native_tools:tool_access.bzl", "get_ninja_data")
 
 def _ninja_impl(ctx):
     """The implementation of the `ninja` rule

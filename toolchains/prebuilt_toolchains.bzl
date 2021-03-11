@@ -9,7 +9,7 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@rules_foreign_cc//toolchains:prebuilt_toolchains_repository.bzl", "prebuilt_toolchains_repository")
 
 _CMAKE_BUILD_FILE = """\
-load("@rules_foreign_cc//tools/build_defs/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -36,7 +36,7 @@ native_tool_toolchain(
 """
 
 _NINJA_BUILD_FILE = """\
-load("@rules_foreign_cc//tools/build_defs/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -62,6 +62,7 @@ def prebuilt_toolchains(cmake_version, ninja_version):
     """
     _cmake_toolchains(cmake_version)
     _ninja_toolchains(ninja_version)
+    _make_toolchains()
 
 def _cmake_toolchains(version):
     if "3.19.6" == version:
@@ -1056,3 +1057,7 @@ def _ninja_toolchains(version):
         return
 
     fail("Unsupported version: " + str(version))
+
+def _make_toolchains():
+    # There are currently no prebuilt make binaries
+    pass

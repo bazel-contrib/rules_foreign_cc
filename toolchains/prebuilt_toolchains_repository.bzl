@@ -1,7 +1,7 @@
 """A module defining a repository rule for housing toolchain definitions"""
 
 _BUILD_FILE = """\
-load("@rules_foreign_cc//tools/build_defs/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 
 {toolchains}
 """
@@ -11,7 +11,7 @@ toolchain(
     name = "{repo}_toolchain",
     exec_compatible_with = {exec_compatible_with},
     toolchain = "@{repo}//:{tool}_tool",
-    toolchain_type = "@rules_foreign_cc//tools/build_defs:{tool}_toolchain",
+    toolchain_type = "@rules_foreign_cc//toolchains:{tool}_toolchain",
 )
 """
 

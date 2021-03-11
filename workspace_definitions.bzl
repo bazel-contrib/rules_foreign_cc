@@ -1,6 +1,7 @@
 """A module for defining WORKSPACE dependencies required for rules_foreign_cc"""
 
-load("//for_workspace:repositories.bzl", "repositories")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "preinstalled_toolchains")
 load(
     "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",
@@ -24,8 +25,8 @@ def rules_foreign_cc_dependencies(
 
     Args:
         native_tools_toolchains: pass the toolchains for toolchain types
-            '@rules_foreign_cc//tools/build_defs:cmake_toolchain' and
-            '@rules_foreign_cc//tools/build_defs:ninja_toolchain' with the needed platform constraints.
+            '@rules_foreign_cc//toolchains:cmake_toolchain' and
+            '@rules_foreign_cc//toolchains:ninja_toolchain' with the needed platform constraints.
             If you do not pass anything, registered default toolchains will be selected (see below).
 
         register_default_tools: If True, the cmake and ninja toolchains, calling corresponding
@@ -56,7 +57,6 @@ def rules_foreign_cc_dependencies(
             This value is needed since register_toolchains() is called for these toolchains.
             Please refer to example in @rules_foreign_cc//toolchain_examples.
     """
-    repositories()
 
     shell_toolchain_workspace_initalization(
         additional_shell_toolchain_mappings,
@@ -77,3 +77,13 @@ def rules_foreign_cc_dependencies(
 
     if register_preinstalled_tools:
         preinstalled_toolchains()
+
+    maybe(
+        http_archive,
+        name = "bazel_skylib",
+        sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+        ],
+    )

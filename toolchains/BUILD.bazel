@@ -1,13 +1,68 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//for_workspace:cmake_build.bzl", "cmake_tool")
-load("//for_workspace:make_build.bzl", "make_tool")
-load("//for_workspace:ninja_build.bzl", "ninja_tool")
-load("//tools/build_defs/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("//foreign_cc/built_tools:cmake_build.bzl", "cmake_tool")
+load("//foreign_cc/built_tools:make_build.bzl", "make_tool")
+load("//foreign_cc/built_tools:ninja_build.bzl", "ninja_tool")
+load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+toolchain_type(
+    name = "cmake_toolchain",
+)
+
+toolchain_type(
+    name = "ninja_toolchain",
+)
+
+toolchain_type(
+    name = "make_toolchain",
+)
+
+toolchain(
+    name = "built_cmake_toolchain",
+    toolchain = ":built_cmake",
+    toolchain_type = ":cmake_toolchain",
+)
+
+toolchain(
+    name = "built_ninja_toolchain",
+    toolchain = ":built_ninja",
+    toolchain_type = ":ninja_toolchain",
+)
+
+toolchain(
+    name = "built_make_toolchain",
+    toolchain = ":built_make",
+    toolchain_type = ":make_toolchain",
+)
+
+# Preinstalled cmake will always be the default, if toolchain with more exact constraints
+# is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
+toolchain(
+    name = "preinstalled_cmake_toolchain",
+    toolchain = ":preinstalled_cmake",
+    toolchain_type = ":cmake_toolchain",
+)
+
+# Preinstalled ninja will always be the default, if toolchain with more exact constraints
+# is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
+toolchain(
+    name = "preinstalled_ninja_toolchain",
+    toolchain = ":preinstalled_ninja",
+    toolchain_type = ":ninja_toolchain",
+)
+
+# Preinstalled make will always be the default, if toolchain with more exact constraints
+# is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
+toolchain(
+    name = "preinstalled_make_toolchain",
+    toolchain = ":preinstalled_make",
+    toolchain_type = ":make_toolchain",
+)
 
 native_tool_toolchain(
     name = "preinstalled_make",
     path = "make",
-    visibility = ["//visibility:public"],
 )
 
 make_tool(
@@ -20,13 +75,11 @@ native_tool_toolchain(
     name = "built_make",
     path = "$(execpath :make_tool)/bin/make",
     target = ":make_tool",
-    visibility = ["//visibility:public"],
 )
 
 native_tool_toolchain(
     name = "preinstalled_cmake",
     path = "cmake",
-    visibility = ["//visibility:public"],
 )
 
 cmake_tool(
@@ -39,13 +92,11 @@ native_tool_toolchain(
     name = "built_cmake",
     path = "$(execpath :cmake_tool)/bin/cmake",
     target = ":cmake_tool",
-    visibility = ["//visibility:public"],
 )
 
 native_tool_toolchain(
     name = "preinstalled_ninja",
     path = "ninja",
-    visibility = ["//visibility:public"],
 )
 
 ninja_tool(
@@ -58,11 +109,13 @@ native_tool_toolchain(
     name = "built_ninja",
     path = "$(execpath :ninja_tool)/ninja",
     target = ":ninja_tool",
-    visibility = ["//visibility:public"],
 )
 
 bzl_library(
     name = "bzl_srcs",
     srcs = glob(["**/*.bzl"]),
-    visibility = ["//visibility:public"],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//toolchains/native_tools:bzl_srcs",
+    ],
 )
