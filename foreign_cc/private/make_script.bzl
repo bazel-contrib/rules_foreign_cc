@@ -20,7 +20,10 @@ def create_make_script(
     script = pkgconfig_script(ext_build_dirs)
 
     script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
+
+    script.append("set -x")
     script.extend(make_commands)
+    script.append("set +x")
     return "\n".join(script)
 
 # buildifier: disable=function-docstring-args

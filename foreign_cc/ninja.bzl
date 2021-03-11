@@ -100,12 +100,6 @@ def _attrs():
                 "directory of the `lib_sources` attribute if this attribute is not set"
             ),
         ),
-        "targets": attr.string_list(
-            doc = (
-                "A list of ninja targets to build. To call the default target, simply pass `\"\"` as " +
-                "one of the items to this attribute."
-            ),
-        ),
     })
     return attrs
 

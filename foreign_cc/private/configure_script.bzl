@@ -24,7 +24,8 @@ def create_configure_script(
         autogen,
         autogen_command,
         autogen_options,
-        autogen_env_vars):
+        autogen_env_vars,
+        make_commands):
     env_vars_string = get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
 
     ext_build_dirs = inputs.ext_build_dirs
@@ -66,6 +67,11 @@ def create_configure_script(
         configure = configure_path,
         user_options = " ".join(user_options),
     ))
+
+    script.append("set -x")
+    script.extend(make_commands)
+    script.append("set +x")
+
     return "\n".join(script)
 
 def _get_autogen_env_vars(autogen_env_vars):
