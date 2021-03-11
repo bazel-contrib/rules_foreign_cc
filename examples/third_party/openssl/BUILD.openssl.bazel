@@ -37,13 +37,13 @@ configure_make(
         ] + CONFIGURE_OPTIONS,
     }),
     lib_source = ":all_srcs",
-    make_commands = [
-        "make build_libs",
-        "make install_dev",
-    ],
     out_static_libs = [
         "libcrypto.a",
         "libssl.a",
+    ],
+    targets = [
+        "build_libs",
+        "install_dev",
     ],
     visibility = ["//visibility:public"],
 )
