@@ -46,6 +46,16 @@ def _create_configure_script(configureParameters):
 
     define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
 
+    make_commands = []
+
+    if not ctx.attr.make_commands:
+        for target in ctx.attr.targets:
+            make_commands.append("{make} {keep_going} -C $$EXT_BUILD_ROOT$$/{root}".format(
+                make = ctx.attrs.make_path,
+                keep_going = "-k" if ctx.attr.keep_going else "",
+                root = root,
+            ))
+
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
         # as default, pass execution OS as target OS
@@ -70,6 +80,7 @@ def _create_configure_script(configureParameters):
         autogen_command = ctx.attr.autogen_command,
         autogen_options = ctx.attr.autogen_options,
         autogen_env_vars = ctx.attr.autogen_env_vars,
+        make_commands = make_commands,
     )
     return "\n".join([define_install_prefix, configure])
 
@@ -161,7 +172,16 @@ def _attrs():
             ),
             mandatory = False,
         ),
+        "targets": attr.string_list(
+            doc = (
+                "A list of targets with in the foreign build system to produce. An empty string (`\"\"`) will result in " +
+                "a call to the underlying build system with no explicit target set"
+            ),
+            mandatory = False,
+            default = ["", "install"],
+        ),
     })
+
     return attrs
 
 configure_make = rule(

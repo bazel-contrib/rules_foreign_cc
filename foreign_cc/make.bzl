@@ -4,7 +4,6 @@ load(
     "get_flags_info",
     "get_tools_info",
 )
-load("//foreign_cc/private:configure_script.bzl", "create_make_script")
 load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",
@@ -16,6 +15,7 @@ load(
     "cc_external_rule_impl",
     "create_attrs",
 )
+load("//foreign_cc/private:make_script.bzl", "create_make_script")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
 def _make(ctx):
@@ -29,12 +29,12 @@ def _make(ctx):
         create_configure_script = _create_make_script,
         tools_deps = tools_deps,
         make_path = make_data.path,
-        make_commands = [],
     )
     return cc_external_rule_impl(ctx, attrs)
 
 def _create_make_script(configureParameters):
     ctx = configureParameters.ctx
+    attrs = configureParameters.attrs
     inputs = configureParameters.inputs
 
     root = detect_root(ctx.attr.lib_source)
@@ -43,18 +43,16 @@ def _create_make_script(configureParameters):
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
 
-    make_commands = ctx.attr.make_commands or [
-        "{make} {keep_going} -C $$EXT_BUILD_ROOT$$/{root}".format(
-            make = configureParameters.attrs.make_path,
-            keep_going = "-k" if ctx.attr.keep_going else "",
-            root = root,
-        ),
-        "{make} -C $$EXT_BUILD_ROOT$$/{root} install PREFIX={prefix}".format(
-            make = configureParameters.attrs.make_path,
-            root = root,
-            prefix = install_prefix,
-        ),
-    ]
+    make_commands = []
+
+    if not ctx.attr.make_commands:
+        for target in ctx.attr.targets:
+            make_commands.append("{make} {keep_going} -C $$EXT_BUILD_ROOT$$/{root} {target}".format(
+                make = attrs.make_path,
+                keep_going = "-k" if ctx.attr.keep_going else "",
+                root = root,
+                target = target,
+            ))
 
     return create_make_script(
         workspace_name = ctx.workspace_name,
@@ -64,8 +62,8 @@ def _create_make_script(configureParameters):
         user_vars = dict(ctx.attr.make_env_vars),
         deps = ctx.attr.deps,
         inputs = inputs,
-        make_commands = make_commands,
         prefix = install_prefix,
+        make_commands = make_commands,
     )
 
 def _get_install_prefix(ctx):
@@ -107,6 +105,14 @@ def _attrs():
                 "execution root with \"BAZEL_GEN_ROOT\" value."
             ),
             mandatory = False,
+        ),
+        "targets": attr.string_list(
+            doc = (
+                "A list of targets with in the foreign build system to produce. An empty string (`\"\"`) will result in " +
+                "a call to the underlying build system with no explicit target set"
+            ),
+            mandatory = False,
+            default = ["", "install"],
         ),
     })
     return attrs

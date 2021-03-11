@@ -23,7 +23,7 @@ boost_build(<a href="#boost_build-name">name</a>, <a href="#boost_build-addition
             <a href="#boost_build-data">data</a>, <a href="#boost_build-defines">defines</a>, <a href="#boost_build-deps">deps</a>, <a href="#boost_build-env">env</a>, <a href="#boost_build-headers_only">headers_only</a>, <a href="#boost_build-interface_libraries">interface_libraries</a>, <a href="#boost_build-lib_name">lib_name</a>, <a href="#boost_build-lib_source">lib_source</a>,
             <a href="#boost_build-linkopts">linkopts</a>, <a href="#boost_build-make_commands">make_commands</a>, <a href="#boost_build-out_bin_dir">out_bin_dir</a>, <a href="#boost_build-out_binaries">out_binaries</a>, <a href="#boost_build-out_headers_only">out_headers_only</a>, <a href="#boost_build-out_include_dir">out_include_dir</a>,
             <a href="#boost_build-out_interface_libs">out_interface_libs</a>, <a href="#boost_build-out_lib_dir">out_lib_dir</a>, <a href="#boost_build-out_shared_libs">out_shared_libs</a>, <a href="#boost_build-out_static_libs">out_static_libs</a>, <a href="#boost_build-postfix_script">postfix_script</a>,
-            <a href="#boost_build-shared_libraries">shared_libraries</a>, <a href="#boost_build-static_libraries">static_libraries</a>, <a href="#boost_build-tools_deps">tools_deps</a>, <a href="#boost_build-user_options">user_options</a>)
+            <a href="#boost_build-shared_libraries">shared_libraries</a>, <a href="#boost_build-static_libraries">static_libraries</a>, <a href="#boost_build-targets">targets</a>, <a href="#boost_build-tools_deps">tools_deps</a>, <a href="#boost_build-user_options">user_options</a>)
 </pre>
 
 Rule for building Boost. Invokes bootstrap.sh and then b2 install.
@@ -60,6 +60,7 @@ Rule for building Boost. Invokes bootstrap.sh and then b2 install.
 | <a id="boost_build-postfix_script"></a>postfix_script |  Optional part of the shell script to be added after the make commands   | String | optional | "" |
 | <a id="boost_build-shared_libraries"></a>shared_libraries |  __deprecated__: Use <code>out_shared_libs</code> instead.   | List of strings | optional | [] |
 | <a id="boost_build-static_libraries"></a>static_libraries |  __deprecated__: Use <code>out_static_libs</code> instead.   | List of strings | optional | [] |
+| <a id="boost_build-targets"></a>targets |  A list of targets with in the foreign build system to produce. An empty string (<code>""</code>) will result in a call to the underlying build system with no explicit target set   | List of strings | optional | [] |
 | <a id="boost_build-tools_deps"></a>tools_deps |  Optional tools to be copied into the directory structure. Similar to deps, those directly required for the external building of the library/binaries.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="boost_build-user_options"></a>user_options |  any additional flags to pass to b2   | List of strings | optional | [] |
 
@@ -69,12 +70,12 @@ Rule for building Boost. Invokes bootstrap.sh and then b2 install.
 ## cmake
 
 <pre>
-cmake(<a href="#cmake-name">name</a>, <a href="#cmake-additional_inputs">additional_inputs</a>, <a href="#cmake-additional_tools">additional_tools</a>, <a href="#cmake-alwayslink">alwayslink</a>, <a href="#cmake-binaries">binaries</a>, <a href="#cmake-cache_entries">cache_entries</a>, <a href="#cmake-cmake_options">cmake_options</a>,
-      <a href="#cmake-data">data</a>, <a href="#cmake-defines">defines</a>, <a href="#cmake-deps">deps</a>, <a href="#cmake-env">env</a>, <a href="#cmake-env_vars">env_vars</a>, <a href="#cmake-generate_crosstool_file">generate_crosstool_file</a>, <a href="#cmake-headers_only">headers_only</a>, <a href="#cmake-install_prefix">install_prefix</a>,
-      <a href="#cmake-interface_libraries">interface_libraries</a>, <a href="#cmake-lib_name">lib_name</a>, <a href="#cmake-lib_source">lib_source</a>, <a href="#cmake-linkopts">linkopts</a>, <a href="#cmake-make_commands">make_commands</a>, <a href="#cmake-out_bin_dir">out_bin_dir</a>, <a href="#cmake-out_binaries">out_binaries</a>,
-      <a href="#cmake-out_headers_only">out_headers_only</a>, <a href="#cmake-out_include_dir">out_include_dir</a>, <a href="#cmake-out_interface_libs">out_interface_libs</a>, <a href="#cmake-out_lib_dir">out_lib_dir</a>, <a href="#cmake-out_shared_libs">out_shared_libs</a>,
-      <a href="#cmake-out_static_libs">out_static_libs</a>, <a href="#cmake-postfix_script">postfix_script</a>, <a href="#cmake-shared_libraries">shared_libraries</a>, <a href="#cmake-static_libraries">static_libraries</a>, <a href="#cmake-tools_deps">tools_deps</a>,
-      <a href="#cmake-working_directory">working_directory</a>)
+cmake(<a href="#cmake-name">name</a>, <a href="#cmake-additional_inputs">additional_inputs</a>, <a href="#cmake-additional_tools">additional_tools</a>, <a href="#cmake-alwayslink">alwayslink</a>, <a href="#cmake-binaries">binaries</a>, <a href="#cmake-build_args">build_args</a>, <a href="#cmake-cache_entries">cache_entries</a>,
+      <a href="#cmake-cmake_options">cmake_options</a>, <a href="#cmake-data">data</a>, <a href="#cmake-defines">defines</a>, <a href="#cmake-deps">deps</a>, <a href="#cmake-env">env</a>, <a href="#cmake-env_vars">env_vars</a>, <a href="#cmake-generate_crosstool_file">generate_crosstool_file</a>, <a href="#cmake-headers_only">headers_only</a>,
+      <a href="#cmake-install">install</a>, <a href="#cmake-install_args">install_args</a>, <a href="#cmake-install_prefix">install_prefix</a>, <a href="#cmake-interface_libraries">interface_libraries</a>, <a href="#cmake-lib_name">lib_name</a>, <a href="#cmake-lib_source">lib_source</a>, <a href="#cmake-linkopts">linkopts</a>,
+      <a href="#cmake-make_commands">make_commands</a>, <a href="#cmake-out_bin_dir">out_bin_dir</a>, <a href="#cmake-out_binaries">out_binaries</a>, <a href="#cmake-out_headers_only">out_headers_only</a>, <a href="#cmake-out_include_dir">out_include_dir</a>, <a href="#cmake-out_interface_libs">out_interface_libs</a>,
+      <a href="#cmake-out_lib_dir">out_lib_dir</a>, <a href="#cmake-out_shared_libs">out_shared_libs</a>, <a href="#cmake-out_static_libs">out_static_libs</a>, <a href="#cmake-postfix_script">postfix_script</a>, <a href="#cmake-shared_libraries">shared_libraries</a>,
+      <a href="#cmake-static_libraries">static_libraries</a>, <a href="#cmake-targets">targets</a>, <a href="#cmake-tools_deps">tools_deps</a>, <a href="#cmake-working_directory">working_directory</a>)
 </pre>
 
 Rule for building external library with CMake.
@@ -89,8 +90,9 @@ Rule for building external library with CMake.
 | <a id="cmake-additional_tools"></a>additional_tools |  Optional additional tools needed for the building. Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="cmake-alwayslink"></a>alwayslink |  Optional. if true, link all the object files from the static library, even if they are not used.   | Boolean | optional | False |
 | <a id="cmake-binaries"></a>binaries |  __deprecated__: Use <code>out_binaries</code> instead.   | List of strings | optional | [] |
+| <a id="cmake-build_args"></a>build_args |  Arguments for the CMake build command   | List of strings | optional | [] |
 | <a id="cmake-cache_entries"></a>cache_entries |  CMake cache entries to initialize (they will be passed with -Dkey=value) Values, defined by the toolchain, will be joined with the values, passed here. (Toolchain values come first)   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
-| <a id="cmake-cmake_options"></a>cmake_options |  Other CMake options   | List of strings | optional | [] |
+| <a id="cmake-cmake_options"></a>cmake_options |  Arugments for CMake's generate command   | List of strings | optional | [] |
 | <a id="cmake-data"></a>data |  Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="cmake-defines"></a>defines |  Optional compilation definitions to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.   | List of strings | optional | [] |
 | <a id="cmake-deps"></a>deps |  Optional dependencies to be copied into the directory structure. Typically those directly required for the external building of the library/binaries. (i.e. those that the external buidl system will be looking for and paths to which are provided by the calling rule)   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
@@ -98,12 +100,14 @@ Rule for building external library with CMake.
 | <a id="cmake-env_vars"></a>env_vars |  CMake environment variable values to join with toolchain-defined. For example, additional CXXFLAGS.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 | <a id="cmake-generate_crosstool_file"></a>generate_crosstool_file |  When True, CMake crosstool file will be generated from the toolchain values, provided cache-entries and env_vars (some values will still be passed as -Dkey=value and environment variables). If CMAKE_TOOLCHAIN_FILE cache entry is passed, specified crosstool file will be used When using this option to cross-compile, it is required to specify CMAKE_SYSTEM_NAME in the cache_entries   | Boolean | optional | True |
 | <a id="cmake-headers_only"></a>headers_only |  __deprecated__: Use <code>out_headers_only</code> instead.   | Boolean | optional | False |
+| <a id="cmake-install"></a>install |  If True, the <code>cmake --install</code> comand will be performed after a build   | Boolean | optional | True |
+| <a id="cmake-install_args"></a>install_args |  Arguments for the CMake install command   | List of strings | optional | [] |
 | <a id="cmake-install_prefix"></a>install_prefix |  Relative install prefix to be passed to CMake in -DCMAKE_INSTALL_PREFIX   | String | optional | "" |
 | <a id="cmake-interface_libraries"></a>interface_libraries |  __deprecated__: Use <code>out_interface_libs</code> instead.   | List of strings | optional | [] |
 | <a id="cmake-lib_name"></a>lib_name |  Library name. Defines the name of the install directory and the name of the static library, if no output files parameters are defined (any of static_libraries, shared_libraries, interface_libraries, binaries_names) Optional. If not defined, defaults to the target's name.   | String | optional | "" |
 | <a id="cmake-lib_source"></a>lib_source |  Label with source code to build. Typically a filegroup for the source of remote repository. Mandatory.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
 | <a id="cmake-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
-| <a id="cmake-make_commands"></a>make_commands |  Optinal make commands, defaults to ["make", "make install"]   | List of strings | optional | ["make", "make install"] |
+| <a id="cmake-make_commands"></a>make_commands |  Optinal make commands.   | List of strings | optional | [] |
 | <a id="cmake-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
 | <a id="cmake-out_binaries"></a>out_binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
 | <a id="cmake-out_headers_only"></a>out_headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
@@ -115,6 +119,7 @@ Rule for building external library with CMake.
 | <a id="cmake-postfix_script"></a>postfix_script |  Optional part of the shell script to be added after the make commands   | String | optional | "" |
 | <a id="cmake-shared_libraries"></a>shared_libraries |  __deprecated__: Use <code>out_shared_libs</code> instead.   | List of strings | optional | [] |
 | <a id="cmake-static_libraries"></a>static_libraries |  __deprecated__: Use <code>out_static_libs</code> instead.   | List of strings | optional | [] |
+| <a id="cmake-targets"></a>targets |  A list of targets with in the foreign build system to produce. An empty string (<code>""</code>) will result in a call to the underlying build system with no explicit target set   | List of strings | optional | [] |
 | <a id="cmake-tools_deps"></a>tools_deps |  Optional tools to be copied into the directory structure. Similar to deps, those directly required for the external building of the library/binaries.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="cmake-working_directory"></a>working_directory |  Working directory, with the main CMakeLists.txt (otherwise, the top directory of the lib_source label files is used.)   | String | optional | "" |
 
@@ -150,7 +155,7 @@ configure_make(<a href="#configure_make-name">name</a>, <a href="#configure_make
                <a href="#configure_make-headers_only">headers_only</a>, <a href="#configure_make-install_prefix">install_prefix</a>, <a href="#configure_make-interface_libraries">interface_libraries</a>, <a href="#configure_make-lib_name">lib_name</a>, <a href="#configure_make-lib_source">lib_source</a>, <a href="#configure_make-linkopts">linkopts</a>,
                <a href="#configure_make-make_commands">make_commands</a>, <a href="#configure_make-out_bin_dir">out_bin_dir</a>, <a href="#configure_make-out_binaries">out_binaries</a>, <a href="#configure_make-out_headers_only">out_headers_only</a>, <a href="#configure_make-out_include_dir">out_include_dir</a>,
                <a href="#configure_make-out_interface_libs">out_interface_libs</a>, <a href="#configure_make-out_lib_dir">out_lib_dir</a>, <a href="#configure_make-out_shared_libs">out_shared_libs</a>, <a href="#configure_make-out_static_libs">out_static_libs</a>, <a href="#configure_make-postfix_script">postfix_script</a>,
-               <a href="#configure_make-shared_libraries">shared_libraries</a>, <a href="#configure_make-static_libraries">static_libraries</a>, <a href="#configure_make-tools_deps">tools_deps</a>)
+               <a href="#configure_make-shared_libraries">shared_libraries</a>, <a href="#configure_make-static_libraries">static_libraries</a>, <a href="#configure_make-targets">targets</a>, <a href="#configure_make-tools_deps">tools_deps</a>)
 </pre>
 
 Rule for building external libraries with configure-make pattern. Some 'configure' script is invoked with --prefix=install (by default), and other parameters for compilation and linking, taken from Bazel C/C++ toolchain and passed dependencies. After configuration, GNU Make is called.
@@ -201,6 +206,7 @@ Rule for building external libraries with configure-make pattern. Some 'configur
 | <a id="configure_make-postfix_script"></a>postfix_script |  Optional part of the shell script to be added after the make commands   | String | optional | "" |
 | <a id="configure_make-shared_libraries"></a>shared_libraries |  __deprecated__: Use <code>out_shared_libs</code> instead.   | List of strings | optional | [] |
 | <a id="configure_make-static_libraries"></a>static_libraries |  __deprecated__: Use <code>out_static_libs</code> instead.   | List of strings | optional | [] |
+| <a id="configure_make-targets"></a>targets |  A list of targets with in the foreign build system to produce. An empty string (<code>""</code>) will result in a call to the underlying build system with no explicit target set   | List of strings | optional | ["", "install"] |
 | <a id="configure_make-tools_deps"></a>tools_deps |  Optional tools to be copied into the directory structure. Similar to deps, those directly required for the external building of the library/binaries.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
@@ -213,7 +219,7 @@ make(<a href="#make-name">name</a>, <a href="#make-additional_inputs">additional
      <a href="#make-headers_only">headers_only</a>, <a href="#make-interface_libraries">interface_libraries</a>, <a href="#make-keep_going">keep_going</a>, <a href="#make-lib_name">lib_name</a>, <a href="#make-lib_source">lib_source</a>, <a href="#make-linkopts">linkopts</a>, <a href="#make-make_commands">make_commands</a>,
      <a href="#make-make_env_vars">make_env_vars</a>, <a href="#make-out_bin_dir">out_bin_dir</a>, <a href="#make-out_binaries">out_binaries</a>, <a href="#make-out_headers_only">out_headers_only</a>, <a href="#make-out_include_dir">out_include_dir</a>, <a href="#make-out_interface_libs">out_interface_libs</a>,
      <a href="#make-out_lib_dir">out_lib_dir</a>, <a href="#make-out_shared_libs">out_shared_libs</a>, <a href="#make-out_static_libs">out_static_libs</a>, <a href="#make-postfix_script">postfix_script</a>, <a href="#make-prefix">prefix</a>, <a href="#make-shared_libraries">shared_libraries</a>,
-     <a href="#make-static_libraries">static_libraries</a>, <a href="#make-tools_deps">tools_deps</a>)
+     <a href="#make-static_libraries">static_libraries</a>, <a href="#make-targets">targets</a>, <a href="#make-tools_deps">tools_deps</a>)
 </pre>
 
 Rule for building external libraries with GNU Make. GNU Make commands (make and make install by default) are invoked with prefix="install" (by default), and other environment variables for compilation and linking, taken from Bazel C/C++ toolchain and passed dependencies.
@@ -252,6 +258,7 @@ Rule for building external libraries with GNU Make. GNU Make commands (make and 
 | <a id="make-prefix"></a>prefix |  Install prefix, an absolute path. Passed to the GNU make via "make install PREFIX=&lt;value&gt;". By default, the install directory created under sandboxed execution root is used. Build results are copied to the Bazel's output directory, so the prefix is only important if it is recorded into any text files by Makefile script. In that case, it is important to note that rules_foreign_cc is overriding the paths under execution root with "BAZEL_GEN_ROOT" value.   | String | optional | "" |
 | <a id="make-shared_libraries"></a>shared_libraries |  __deprecated__: Use <code>out_shared_libs</code> instead.   | List of strings | optional | [] |
 | <a id="make-static_libraries"></a>static_libraries |  __deprecated__: Use <code>out_static_libs</code> instead.   | List of strings | optional | [] |
+| <a id="make-targets"></a>targets |  A list of targets with in the foreign build system to produce. An empty string (<code>""</code>) will result in a call to the underlying build system with no explicit target set   | List of strings | optional | ["", "install"] |
 | <a id="make-tools_deps"></a>tools_deps |  Optional tools to be copied into the directory structure. Similar to deps, those directly required for the external building of the library/binaries.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
@@ -340,7 +347,7 @@ Rule for building external libraries with [Ninja](https://ninja-build.org/).
 | <a id="ninja-postfix_script"></a>postfix_script |  Optional part of the shell script to be added after the make commands   | String | optional | "" |
 | <a id="ninja-shared_libraries"></a>shared_libraries |  __deprecated__: Use <code>out_shared_libs</code> instead.   | List of strings | optional | [] |
 | <a id="ninja-static_libraries"></a>static_libraries |  __deprecated__: Use <code>out_static_libs</code> instead.   | List of strings | optional | [] |
-| <a id="ninja-targets"></a>targets |  A list of ninja targets to build. To call the default target, simply pass <code>""</code> as one of the items to this attribute.   | List of strings | optional | [] |
+| <a id="ninja-targets"></a>targets |  A list of targets with in the foreign build system to produce. An empty string (<code>""</code>) will result in a call to the underlying build system with no explicit target set   | List of strings | optional | [] |
 | <a id="ninja-tools_deps"></a>tools_deps |  Optional tools to be copied into the directory structure. Similar to deps, those directly required for the external building of the library/binaries.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
