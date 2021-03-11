@@ -47,6 +47,9 @@ def _create_configure_script(configureParameters):
     flags = get_flags_info(ctx)
 
     define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
+    # Automake implements recursive make by calling the $(MAKE) variable.
+    # Autoconf defines this variable from the environment.
+    define_make = "export MAKE=\"" + configureParameters.attrs.make_path + "\"\n"
 
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
@@ -73,7 +76,7 @@ def _create_configure_script(configureParameters):
         autogen_options = ctx.attr.autogen_options,
         autogen_env_vars = ctx.attr.autogen_env_vars,
     )
-    return "\n".join([define_install_prefix, configure])
+    return "\n".join([define_install_prefix, define_make, configure])
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:
