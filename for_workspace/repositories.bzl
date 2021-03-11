@@ -6,6 +6,9 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 def repositories():
     """Declare repositories used by `rules_foreign_cc`"""
 
+    # buildifier: disable=print
+    print("This macro is deprecated and will soon be removed")
+
     maybe(
         http_archive,
         name = "bazel_skylib",

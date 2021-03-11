@@ -1,9 +1,14 @@
 """A module exporting symbols for Stardoc generation."""
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", _rules_foreign_cc_dependencies = "rules_foreign_cc_dependencies")
-load("@rules_foreign_cc//for_workspace:cmake_build.bzl", _cmake_tool = "cmake_tool")
-load("@rules_foreign_cc//for_workspace:make_build.bzl", _make_tool = "make_tool")
-load("@rules_foreign_cc//for_workspace:ninja_build.bzl", _ninja_tool = "ninja_tool")
+load("@rules_foreign_cc//foreign_cc/built_tools:cmake_build.bzl", _cmake_tool = "cmake_tool")
+load("@rules_foreign_cc//foreign_cc/built_tools:make_build.bzl", _make_tool = "make_tool")
+load("@rules_foreign_cc//foreign_cc/built_tools:ninja_build.bzl", _ninja_tool = "ninja_tool")
+load(
+    "@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl",
+    _ToolInfo = "ToolInfo",
+    _native_tool_toolchain = "native_tool_toolchain",
+)
 load("@rules_foreign_cc//tools/build_defs:boost_build.bzl", _boost_build = "boost_build")
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", _cmake = "cmake")
 load("@rules_foreign_cc//tools/build_defs:configure.bzl", _configure_make = "configure_make")
@@ -17,11 +22,6 @@ load(
 )
 load("@rules_foreign_cc//tools/build_defs:make.bzl", _make = "make")
 load("@rules_foreign_cc//tools/build_defs:ninja.bzl", _ninja = "ninja")
-load(
-    "@rules_foreign_cc//tools/build_defs/native_tools:native_tools_toolchain.bzl",
-    _ToolInfo = "ToolInfo",
-    _native_tool_toolchain = "native_tool_toolchain",
-)
 
 # Rules Foreign CC symbols
 boost_build = _boost_build

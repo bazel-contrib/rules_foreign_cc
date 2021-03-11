@@ -2,6 +2,12 @@
 """
 
 load(
+    "//toolchains/native_tools:tool_access.bzl",
+    "get_cmake_data",
+    "get_make_data",
+    "get_ninja_data",
+)
+load(
     "//tools/build_defs:cc_toolchain_util.bzl",
     "get_flags_info",
     "get_tools_info",
@@ -16,12 +22,6 @@ load(
     "CC_EXTERNAL_RULE_ATTRIBUTES",
     "cc_external_rule_impl",
     "create_attrs",
-)
-load(
-    "//tools/build_defs/native_tools:tool_access.bzl",
-    "get_cmake_data",
-    "get_make_data",
-    "get_ninja_data",
 )
 load(":cmake_script.bzl", "create_cmake_script")
 
@@ -155,9 +155,9 @@ cmake = rule(
     output_to_genfiles = True,
     implementation = _cmake_impl,
     toolchains = [
-        "@rules_foreign_cc//tools/build_defs:cmake_toolchain",
-        "@rules_foreign_cc//tools/build_defs:ninja_toolchain",
-        "@rules_foreign_cc//tools/build_defs:make_toolchain",
+        "@rules_foreign_cc//toolchains:cmake_toolchain",
+        "@rules_foreign_cc//toolchains:ninja_toolchain",
+        "@rules_foreign_cc//toolchains:make_toolchain",
         "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],

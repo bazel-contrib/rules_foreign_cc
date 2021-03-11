@@ -114,7 +114,7 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@rules_foreign_cc//toolchains:prebuilt_toolchains_repository.bzl", "prebuilt_toolchains_repository")
 
 _CMAKE_BUILD_FILE = \"\"\"\\
-load("@rules_foreign_cc//tools/build_defs/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -141,7 +141,7 @@ native_tool_toolchain(
 \"\"\"
 
 _NINJA_BUILD_FILE = \"\"\"\\
-load("@rules_foreign_cc//tools/build_defs/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -366,7 +366,7 @@ def get_make_definitions() -> str:
     """
 
     return indent(
-        "native.register_toolchains(\"@rules_foreign_cc//tools/build_defs:preinstalled_make_toolchain\")",
+        "# There are currently no prebuilt make binaries\npass",
         " " * 4)
 
 

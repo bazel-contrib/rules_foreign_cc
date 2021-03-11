@@ -261,7 +261,7 @@ Rule for building Make. Invokes configure script and make install.
 native_tool_toolchain(<a href="#native_tool_toolchain-name">name</a>, <a href="#native_tool_toolchain-path">path</a>, <a href="#native_tool_toolchain-target">target</a>)
 </pre>
 
-Rule for defining the toolchain data of the native tools (cmake, ninja), to be used by rules_foreign_cc with toolchain types `@rules_foreign_cc//tools/build_defs:cmake_toolchain` and `@rules_foreign_cc//tools/build_defs:ninja_toolchain`.
+Rule for defining the toolchain data of the native tools (cmake, ninja), to be used by rules_foreign_cc with toolchain types `@rules_foreign_cc//toolchains:cmake_toolchain` and `@rules_foreign_cc//toolchains:ninja_toolchain`.
 
 **ATTRIBUTES**
 
@@ -487,7 +487,7 @@ Call this function from the WORKSPACE file to initialize rules_foreign_cc     de
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="rules_foreign_cc_dependencies-native_tools_toolchains"></a>native_tools_toolchains |  pass the toolchains for toolchain types     '@rules_foreign_cc//tools/build_defs:cmake_toolchain' and     '@rules_foreign_cc//tools/build_defs:ninja_toolchain' with the needed platform constraints.     If you do not pass anything, registered default toolchains will be selected (see below).   |  <code>[]</code> |
+| <a id="rules_foreign_cc_dependencies-native_tools_toolchains"></a>native_tools_toolchains |  pass the toolchains for toolchain types     '@rules_foreign_cc//toolchains:cmake_toolchain' and     '@rules_foreign_cc//toolchains:ninja_toolchain' with the needed platform constraints.     If you do not pass anything, registered default toolchains will be selected (see below).   |  <code>[]</code> |
 | <a id="rules_foreign_cc_dependencies-register_default_tools"></a>register_default_tools |  If True, the cmake and ninja toolchains, calling corresponding     preinstalled binaries by name (cmake, ninja) will be registered after     'native_tools_toolchains' without any platform constraints. The default is True.   |  <code>True</code> |
 | <a id="rules_foreign_cc_dependencies-cmake_version"></a>cmake_version |  The target version of the cmake toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.   |  <code>"3.19.6"</code> |
 | <a id="rules_foreign_cc_dependencies-make_version"></a>make_version |  The target version of the default make toolchain if <code>register_built_tools</code>     is set to <code>True</code>.   |  <code>"4.3"</code> |

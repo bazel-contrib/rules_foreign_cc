@@ -23,7 +23,7 @@ def built_toolchains(cmake_version, make_version, ninja_version):
 
 def _cmake_toolchain(version):
     native.register_toolchains(
-        "@rules_foreign_cc//tools/build_defs:built_cmake_toolchain",
+        "@rules_foreign_cc//toolchains:built_cmake_toolchain",
     )
     if version == "3.19.6":
         maybe(
@@ -42,7 +42,7 @@ def _cmake_toolchain(version):
 
 def _make_toolchain(version):
     native.register_toolchains(
-        "@rules_foreign_cc//tools/build_defs:built_make_toolchain",
+        "@rules_foreign_cc//toolchains:built_make_toolchain",
     )
     if version == "4.3":
         maybe(
@@ -61,7 +61,7 @@ def _make_toolchain(version):
 
 def _ninja_toolchain(version):
     native.register_toolchains(
-        "@rules_foreign_cc//tools/build_defs:built_ninja_toolchain",
+        "@rules_foreign_cc//toolchains:built_ninja_toolchain",
     )
     if version == "1.10.2":
         maybe(
