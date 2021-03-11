@@ -147,7 +147,7 @@ cmake(
         "CMAKE_C_FLAGS": "-fPIC",
     },
     lib_source = "@pcre//:all_srcs",
-    static_libraries = ["libpcre.a"],
+    out_static_libs = ["libpcre.a"],
 )
 ```
 
@@ -206,7 +206,7 @@ cmake(
         "nmake install",
     ],
     # expect to find ./lib/hello.lib as the result of the build
-    static_libraries = ["hello.lib"]
+    out_static_libs = ["hello.lib"]
 )
 ```
 

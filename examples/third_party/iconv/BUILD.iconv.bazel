@@ -21,7 +21,7 @@ configure_make(
     ],
     lib_source = "@iconv//:all",
     make_commands = ["make install-lib"],
-    static_libraries = [
+    out_static_libs = [
         "libiconv.a",
     ],
     visibility = ["//visibility:public"],

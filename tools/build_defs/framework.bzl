@@ -58,8 +58,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = False,
     ),
     "binaries": attr.string_list(
-        doc = "Optional names of the resulting binaries.",
-        mandatory = False,
+        doc = "__deprecated__: Use `out_binaries` instead.",
     ),
     "data": attr.label_list(
         doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
@@ -96,12 +95,12 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
     ),
     "headers_only": attr.bool(
-        doc = "Flag variable to indicate that the library produces only headers",
+        doc = "__deprecated__: Use `out_headers_only` instead.",
         mandatory = False,
         default = False,
     ),
     "interface_libraries": attr.string_list(
-        doc = "Optional names of the resulting interface libraries.",
+        doc = "__deprecated__: Use `out_interface_libs` instead.",
         mandatory = False,
     ),
     "lib_name": attr.string(
@@ -136,31 +135,51 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = "bin",
     ),
+    "out_binaries": attr.string_list(
+        doc = "Optional names of the resulting binaries.",
+        mandatory = False,
+    ),
+    "out_headers_only": attr.bool(
+        doc = "Flag variable to indicate that the library produces only headers",
+        mandatory = False,
+        default = False,
+    ),
     "out_include_dir": attr.string(
         doc = "Optional name of the output subdirectory with the header files, defaults to 'include'.",
         mandatory = False,
         default = "include",
+    ),
+    "out_interface_libs": attr.string_list(
+        doc = "Optional names of the resulting interface libraries.",
+        mandatory = False,
     ),
     "out_lib_dir": attr.string(
         doc = "Optional name of the output subdirectory with the library files, defaults to 'lib'.",
         mandatory = False,
         default = "lib",
     ),
+    "out_shared_libs": attr.string_list(
+        doc = "Optional names of the resulting shared libraries.",
+        mandatory = False,
+    ),
+    "out_static_libs": attr.string_list(
+        doc = (
+            "Optional names of the resulting static libraries. Note that if `out_headers_only`, `out_static_libs`, " +
+            "`out_shared_libs`, and `out_binaries` are not set, default `lib_name.a`/`lib_name.lib` static " +
+            "library is assumed"
+        ),
+        mandatory = False,
+    ),
     "postfix_script": attr.string(
         doc = "Optional part of the shell script to be added after the make commands",
         mandatory = False,
     ),
     "shared_libraries": attr.string_list(
-        doc = "Optional names of the resulting shared libraries.",
+        doc = "__deprecated__: Use `out_shared_libs` instead.",
         mandatory = False,
     ),
-    #
-    # Output files names parameters. If any of them is defined, only these files are passed to
-    # Bazel providers.
-    # if no of them is defined, default lib_name.a/lib_name.lib static library is assumed.
-    #
     "static_libraries": attr.string_list(
-        doc = "Optional names of the resulting static libraries.",
+        doc = "__deprecated__: Use `out_static_libs` instead.",
         mandatory = False,
     ),
     "tools_deps": attr.label_list(
@@ -633,27 +652,60 @@ _Outputs = provider(
 )
 
 def _define_outputs(ctx, attrs, lib_name):
+    attr_binaries_libs = []
+    attr_headers_only = attrs.out_headers_only
+    attr_interface_libs = []
+    attr_shared_libs = []
+    attr_static_libs = []
+
+    # TODO: Until the the deprecated attributes are removed, we must
+    # create a mutatable list so we can ensure they're being included
+    attr_binaries_libs.extend(getattr(attrs, "out_binaries", []))
+    attr_interface_libs.extend(getattr(attrs, "out_interface_libs", []))
+    attr_shared_libs.extend(getattr(attrs, "out_shared_libs", []))
+    attr_static_libs.extend(getattr(attrs, "out_static_libs", []))
+
+    # TODO: These names are deprecated, remove
+    if getattr(attrs, "binaries", []):
+        # buildifier: disable=print
+        print("The `binaries` attr is deprecated in favor of `out_binaries`. Please update the target `{}`".format(ctx.label))
+        attr_binaries_libs.extend(getattr(attrs, "binaries", []))
+    if getattr(attrs, "headers_only", False):
+        # buildifier: disable=print
+        print("The `headers_only` attr is deprecated in favor of `out_headers_only`. Please update the target `{}`".format(ctx.label))
+        attr_headers_only = attrs.headers_only
+    if getattr(attrs, "interface_libraries", []):
+        # buildifier: disable=print
+        print("The `interface_libraries` attr is deprecated in favor of `out_interface_libs`. Please update the target `{}`".format(ctx.label))
+        attr_interface_libs.extend(getattr(attrs, "interface_libraries", []))
+    if getattr(attrs, "shared_libraries", []):
+        # buildifier: disable=print
+        print("The `shared_libraries` attr is deprecated in favor of `out_shared_libs`. Please update the target `{}`".format(ctx.label))
+        attr_shared_libs.extend(getattr(attrs, "shared_libraries", []))
+    if getattr(attrs, "static_libraries", []):
+        # buildifier: disable=print
+        print("The `static_libraries` attr is deprecated in favor of `out_static_libs`. Please update the target `{}`".format(ctx.label))
+        attr_static_libs.extend(getattr(attrs, "static_libraries", []))
+
     static_libraries = []
-    if not hasattr(attrs, "headers_only") or not attrs.headers_only:
-        if (not (hasattr(attrs, "static_libraries") and len(attrs.static_libraries) > 0) and
-            not (hasattr(attrs, "shared_libraries") and len(attrs.shared_libraries) > 0) and
-            not (hasattr(attrs, "interface_libraries") and len(attrs.interface_libraries) > 0) and
-            not (hasattr(attrs, "binaries") and len(attrs.binaries) > 0)):
+    if not attr_headers_only:
+        if not attr_static_libs and not attr_shared_libs and not attr_binaries_libs and not attr_interface_libs:
             static_libraries = [lib_name + (".lib" if targets_windows(ctx, None) else ".a")]
         else:
-            static_libraries = attrs.static_libraries
+            static_libraries = attr_static_libs
 
     _check_file_name(lib_name)
 
     out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
 
-    out_binary_files = _declare_out(ctx, lib_name, attrs.out_bin_dir, attrs.binaries)
+    out_binary_files = _declare_out(ctx, lib_name, attrs.out_bin_dir, attr_binaries_libs)
 
     libraries = LibrariesToLinkInfo(
         static_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, static_libraries),
-        shared_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attrs.shared_libraries),
-        interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attrs.interface_libraries),
+        shared_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attr_shared_libs),
+        interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attr_interface_libs),
     )
+
     declared_outputs = [out_include_dir] + out_binary_files
     declared_outputs += libraries.static_libraries
     declared_outputs += libraries.shared_libraries + libraries.interface_libraries

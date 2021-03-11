@@ -18,7 +18,7 @@ cmake(
         "CMAKE_MACOSX_RPATH": "True",
     },
     lib_source = ":srcs",
-    shared_libraries = select({
+    out_shared_libs = select({
         "//:macos": ["libhello.dylib"],
         "//:windows": ["libhello.dll"],
         "//conditions:default": ["libhello.so"],

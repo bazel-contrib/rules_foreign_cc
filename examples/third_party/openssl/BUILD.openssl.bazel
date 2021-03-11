@@ -41,7 +41,7 @@ configure_make(
         "make build_libs",
         "make install_dev",
     ],
-    static_libraries = [
+    out_static_libs = [
         "libcrypto.a",
         "libssl.a",
     ],

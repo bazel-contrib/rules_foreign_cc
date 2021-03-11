@@ -18,7 +18,7 @@ cmake(
         "ninja",
         "ninja install",
     ],
-    static_libraries = ["libb.a"],
+    out_static_libs = ["libb.a"],
     # This library is with public visibility, we can reuse it here.
     deps = ["//cmake_synthetic/liba:lib_a_bazel"],
 )

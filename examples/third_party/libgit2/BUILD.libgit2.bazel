@@ -30,7 +30,7 @@ cmake(
         "//conditions:default": _CACHE_ENTRIES,
     }),
     lib_source = ":all_srcs",
-    static_libraries = select({
+    out_static_libs = select({
         # TODO: I'm guessing at this name. Needs to be checked on windows.
         "@platforms//os:windows": ["git2.lib"],
         "//conditions:default": ["libgit2.a"],

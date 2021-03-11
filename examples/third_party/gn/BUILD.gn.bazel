@@ -19,12 +19,16 @@ config_setting(
 
 ninja(
     name = "gn",
-    binaries = select({
+    directory = "out",
+    lib_source = "//:srcs",
+    out_binaries = select({
         ":windows": ["gn.exe"],
         "//conditions:default": ["gn"],
     }),
-    directory = "out",
-    lib_source = "//:srcs",
+    out_static_libs = select({
+        ":windows": ["gn_lib.lib"],
+        "//conditions:default": ["gn_lib.a"],
+    }),
     # gn has no install step, manually grab the artifacts
     postfix_script = select({
         ":windows": " && ".join([
@@ -35,10 +39,6 @@ ninja(
             "cp out/gn_lib.a $$INSTALLDIR$$/lib",
             "cp out/gn $$INSTALLDIR$$/bin",
         ]),
-    }),
-    static_libraries = select({
-        ":windows": ["gn_lib.lib"],
-        "//conditions:default": ["gn_lib.a"],
     }),
 )
 
