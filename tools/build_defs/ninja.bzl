@@ -8,6 +8,7 @@ load(
 load(
     "//tools/build_defs:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
+    "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
 )
@@ -113,7 +114,7 @@ ninja = rule(
         "Rule for building external libraries with [Ninja](https://ninja-build.org/)."
     ),
     attrs = _attrs(),
-    fragments = ["cpp"],
+    fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
     implementation = _ninja_impl,
     toolchains = [

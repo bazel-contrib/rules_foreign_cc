@@ -4,6 +4,7 @@ load("//tools/build_defs:detect_root.bzl", "detect_root")
 load(
     "//tools/build_defs:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
+    "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
 )
@@ -44,7 +45,7 @@ def _attrs():
 boost_build = rule(
     doc = "Rule for building Boost. Invokes bootstrap.sh and then b2 install.",
     attrs = _attrs(),
-    fragments = ["cpp"],
+    fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
     implementation = _boost_build,
     toolchains = [
