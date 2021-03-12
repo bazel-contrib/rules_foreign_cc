@@ -1,5 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("@rules_foreign_cc//tools/build_defs:ninja.bzl", "ninja")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "ninja")
 
 ninja(
     name = "ninja_lib",

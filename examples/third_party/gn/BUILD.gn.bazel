@@ -1,4 +1,4 @@
-load("@rules_foreign_cc//tools/build_defs:ninja.bzl", "ninja")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "ninja")
 
 filegroup(
     name = "srcs",

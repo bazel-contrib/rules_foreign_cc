@@ -1,5 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("@rules_foreign_cc//tools/build_defs:make.bzl", "make")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "make")
 
 make(
     name = "make_lib",

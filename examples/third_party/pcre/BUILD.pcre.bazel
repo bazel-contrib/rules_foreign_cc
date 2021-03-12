@@ -1,6 +1,6 @@
 """pcre is only expected to be used on Linux systems"""
 
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 package(default_visibility = ["//visibility:public"])
 
