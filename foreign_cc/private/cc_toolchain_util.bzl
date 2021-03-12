@@ -225,11 +225,16 @@ def get_env_vars(ctx):
         ctx = ctx,
         cc_toolchain = cc_toolchain,
     )
-    copts = ctx.attr.copts if hasattr(ctx.attr, "copts") else []
+    copts = getattr(ctx.attr, "copts", [])
+
+    action_names = [
+        C_COMPILE_ACTION_NAME,
+        CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
+        CPP_LINK_EXECUTABLE_ACTION_NAME,
+    ]
 
     vars = dict()
-
-    for action_name in [C_COMPILE_ACTION_NAME, CPP_LINK_STATIC_LIBRARY_ACTION_NAME, CPP_LINK_EXECUTABLE_ACTION_NAME]:
+    for action_name in action_names:
         vars.update(cc_common.get_environment_variables(
             feature_configuration = feature_configuration,
             action_name = action_name,
@@ -239,6 +244,15 @@ def get_env_vars(ctx):
                 user_compile_flags = copts,
             ),
         ))
+
+    if cc_toolchain:
+        cc_executable = cc_toolchain.compiler_executable
+        if cc_executable:
+            vars["CC"] = cc_executable
+        ar_executable = cc_toolchain.ar_executable
+        if ar_executable:
+            vars["AR"] = ar_executable
+
     return vars
 
 def is_debug_mode(ctx):

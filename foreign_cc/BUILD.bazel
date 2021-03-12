@@ -8,6 +8,7 @@ bzl_library(
         "//foreign_cc/built_tools:bzl_srcs",
         "//foreign_cc/private:bzl_srcs",
         "@bazel_skylib//lib:collections",
+        "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:versions",
     ],
 )

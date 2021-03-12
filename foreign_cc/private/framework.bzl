@@ -3,9 +3,8 @@
 """
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-load("//foreign_cc:providers.bzl", "ForeignCcArtifact", "ForeignCcDeps")
-load("//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 load(
     "//toolchains/native_tools:tool_access.bzl",
     "get_make_data",
@@ -18,11 +17,8 @@ load(
     "get_env_vars",
     "targets_windows",
 )
-load(
-    ":run_shell_file_utils.bzl",
-    "copy_directory",
-    "fictive_file_in_genroot",
-)
+load(":detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
+load(":run_shell_file_utils.bzl", "copy_directory")
 load(
     ":shell_script_helper.bzl",
     "convert_shell_script",
@@ -240,6 +236,29 @@ def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs)
     return struct(**attrs)
 
 # buildifier: disable=name-conventions
+ForeignCcDeps = provider(
+    doc = """Provider to pass transitive information about external libraries.""",
+    fields = {"artifacts": "Depset of ForeignCcArtifact"},
+)
+
+# buildifier: disable=name-conventions
+ForeignCcArtifact = provider(
+    doc = """Groups information about the external library install directory,
+and relative bin, include and lib directories.
+
+Serves to pass transitive information about externally built artifacts up the dependency chain.
+
+Can not be used as a top-level provider.
+Instances of ForeignCcArtifact are incapsulated in a depset ForeignCcDeps#artifacts.""",
+    fields = {
+        "bin_dir_name": "Bin directory, relative to install directory",
+        "gen_dir": "Install directory",
+        "include_dir_name": "Include directory, relative to install directory",
+        "lib_dir_name": "Lib directory, relative to install directory",
+    },
+)
+
+# buildifier: disable=name-conventions
 ConfigureParameters = provider(
     doc = """Parameters of create_configure_script callback function, called by
 cc_external_rule_impl function. create_configure_script creates the configuration part
@@ -252,6 +271,36 @@ function, to be reused in script creator. Contains in particular merged compilat
 dependencies.""",
     ),
 )
+
+def _env_prelude(ctx, lib_name, data_dependencies, target_root):
+    """Generate a bash snippet containing environment variable definitions
+
+    Args:
+        ctx (ctx): The rule's context object
+        lib_name (str): The name of the target being built
+        data_dependencies (list): A list of targets representing dependencies
+        target_root (str): The path from the root target's directory in the build output
+
+    Returns:
+        str: A series of `export`ed environment variables
+    """
+
+    env_snippet = [
+        "export EXT_BUILD_ROOT=##pwd##",
+        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + target_root + "/" + lib_name,
+        "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
+        "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
+    ]
+
+    # Start with the default shell env to capture `--action_env` args
+    env = dict(ctx.configuration.default_shell_env)
+
+    # Add all user defined variables
+    for key, value in getattr(ctx.attr, "env", {}).items():
+        env.update({key: ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data_dependencies)})
+
+    env_snippet.extend(["export {}={}".format(key, val) for key, val in env.items()])
+    return "\n".join(env_snippet)
 
 def cc_external_rule_impl(ctx, attrs):
     """Framework function for performing external C/C++ building.
@@ -311,12 +360,6 @@ def cc_external_rule_impl(ctx, attrs):
     outputs = _define_outputs(ctx, attrs, lib_name)
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
-    cc_env = _correct_path_variable(get_env_vars(ctx))
-    set_cc_envs = ""
-    execution_os_name = os_name(ctx)
-    if execution_os_name != "osx":
-        set_cc_envs = "\n".join(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
-
     lib_header = "Bazel external C/C++ Rules. Building library '{}'".format(lib_name)
 
     # We can not declare outputs of the action, which are in parent-child relashion,
@@ -328,25 +371,10 @@ def cc_external_rule_impl(ctx, attrs):
     # so symlink it under the same name but in a subdirectory
     installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
 
-    # we need this fictive file in the root to get the path of the root in the script
-    empty = fictive_file_in_genroot(ctx.actions, ctx.label.name)
-
+    # Instead of forwarding environment variables, we set them within the script
     data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
-
-    define_variables = [
-        set_cc_envs,
-        "export EXT_BUILD_ROOT=##pwd##",
-        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
-        "export BUILD_TMPDIR=$${INSTALLDIR}$$.build_tmpdir",
-        "export EXT_BUILD_DEPS=$${INSTALLDIR}$$.ext_build_deps",
-    ] + [
-        "export {key}={value}".format(
-            key = key,
-            # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
-            value = ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies),
-        )
-        for key, value in getattr(ctx.attr, "env", {}).items()
-    ]
+    target_root = paths.dirname(installdir_copy.file.dirname)
+    env_prelude = _env_prelude(ctx, lib_name, data_dependencies, target_root)
 
     make_commands, make_tools = _generate_make_commands(ctx)
 
@@ -355,7 +383,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##echo## \"{}\"".format(lib_header),
         "##echo## \"\"",
         "##script_prelude##",
-        "\n".join(define_variables),
+        env_prelude,
         "##path## $$EXT_BUILD_ROOT$$",
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
@@ -372,7 +400,6 @@ def cc_external_rule_impl(ctx, attrs):
         "##replace_absolute_paths## $$INSTALLDIR$$ $$BUILD_TMPDIR$$",
         "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
         installdir_copy.script,
-        empty.script,
         "cd $$EXT_BUILD_ROOT$$",
     ]
 
@@ -393,7 +420,7 @@ def cc_external_rule_impl(ctx, attrs):
     # script can correctly be envoked with bash.
     wrapper = wrapped_outputs.wrapper_script_file
     extra_tools = []
-    if "win" in execution_os_name:
+    if "win" in os_name(ctx):
         batch_wrapper = ctx.actions.declare_file(wrapper.short_path + ".bat")
         ctx.actions.write(
             output = batch_wrapper,
@@ -410,21 +437,15 @@ def cc_external_rule_impl(ctx, attrs):
     ctx.actions.run(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
-        outputs = rule_outputs + [
-            empty.file,
-            wrapped_outputs.log_file,
-        ],
+        outputs = rule_outputs + [wrapped_outputs.log_file],
         tools = depset(
             [wrapped_outputs.script_file] + extra_tools + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
             transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies] + make_tools,
         ),
-        # TODO: Default to never using the default shell environment to make builds more hermetic. For now, every platform
-        # but MacOS will take the default PATH passed by Bazel, not that from cc_toolchain.
-        use_default_shell_env = execution_os_name != "osx",
         executable = wrapper,
         execution_requirements = execution_requirements,
-        # this is ignored if use_default_shell_env = True
-        env = cc_env,
+        # Ensure the cc_toolchain environment variables are set for the action
+        env = _correct_path_variable(get_env_vars(ctx)),
     )
 
     # Gather runfiles transitively as per the documentation in:
