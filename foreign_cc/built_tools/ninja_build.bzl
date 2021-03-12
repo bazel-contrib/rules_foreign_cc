@@ -1,7 +1,7 @@
 """ Rule for building Ninja from sources. """
 
-load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "convert_shell_script")
-load("//tools/build_defs:detect_root.bzl", "detect_root")
+load("//foreign_cc/private:detect_root.bzl", "detect_root")
+load("//foreign_cc/private:shell_script_helper.bzl", "convert_shell_script")
 
 def _ninja_tool(ctx):
     root = detect_root(ctx.attr.ninja_srcs)
@@ -36,7 +36,7 @@ ninja_tool = rule(
     output_to_genfiles = True,
     implementation = _ninja_tool,
     toolchains = [
-        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

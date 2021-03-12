@@ -3,6 +3,9 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
+# buildifier: disable=print
+print("@rules_foreign_cc//for_workspace:repositories.bzl is deprecated and will be removed in the near future")
+
 def repositories():
     """Declare repositories used by `rules_foreign_cc`"""
 

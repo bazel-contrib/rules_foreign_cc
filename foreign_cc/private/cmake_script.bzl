@@ -61,7 +61,7 @@ def create_cmake_script(
     # or to suppress calculated CMAKE_BUILD_TYPE
     # If the user passes "CMAKE_BUILD_TYPE": "" (empty string),
     # CMAKE_BUILD_TYPE will not be passed to CMake
-    wipe_empty_values(params.cache, keys_with_empty_values_in_user_cache)
+    _wipe_empty_values(params.cache, keys_with_empty_values_in_user_cache)
 
     # However, if no CMAKE_RANLIB was passed, pass the empty value for it explicitly,
     # as it is legacy and autodetection of ranlib made by CMake automatically
@@ -82,7 +82,7 @@ def create_cmake_script(
 
     return "\n".join(params.commands + [cmake_call])
 
-def wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
+def _wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
     for key in keys_with_empty_values_in_user_cache:
         if cache.get(key) != None:
             cache.pop(key)

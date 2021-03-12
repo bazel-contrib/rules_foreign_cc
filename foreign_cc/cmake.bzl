@@ -2,29 +2,29 @@
 """
 
 load(
-    "//toolchains/native_tools:tool_access.bzl",
-    "get_cmake_data",
-    "get_make_data",
-    "get_ninja_data",
-)
-load(
-    "//tools/build_defs:cc_toolchain_util.bzl",
+    "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
     "get_tools_info",
     "is_debug_mode",
 )
+load("//foreign_cc/private:cmake_script.bzl", "create_cmake_script")
 load(
-    "//tools/build_defs:detect_root.bzl",
+    "//foreign_cc/private:detect_root.bzl",
     "detect_root",
 )
 load(
-    "//tools/build_defs:framework.bzl",
+    "//foreign_cc/private:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
 )
-load(":cmake_script.bzl", "create_cmake_script")
+load(
+    "//toolchains/native_tools:tool_access.bzl",
+    "get_cmake_data",
+    "get_make_data",
+    "get_ninja_data",
+)
 
 def _cmake_impl(ctx):
     cmake_data = get_cmake_data(ctx)
@@ -159,7 +159,7 @@ cmake = rule(
         "@rules_foreign_cc//toolchains:cmake_toolchain",
         "@rules_foreign_cc//toolchains:ninja_toolchain",
         "@rules_foreign_cc//toolchains:make_toolchain",
-        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

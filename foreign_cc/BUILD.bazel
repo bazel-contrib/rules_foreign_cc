@@ -6,5 +6,8 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//foreign_cc/built_tools:bzl_srcs",
+        "//foreign_cc/private:bzl_srcs",
+        "@bazel_skylib//lib:collections",
+        "@bazel_skylib//lib:versions",
     ],
 )

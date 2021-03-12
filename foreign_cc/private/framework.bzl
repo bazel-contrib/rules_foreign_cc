@@ -4,24 +4,25 @@
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
-load(
-    "@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl",
-    "copy_directory",
-    "fictive_file_in_genroot",
-)
-load(
-    "@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl",
-    "convert_shell_script",
-    "create_function",
-    "os_name",
-)
+load("//foreign_cc:providers.bzl", "ForeignCcArtifact", "ForeignCcDeps")
+load("//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
     "create_linking_info",
     "get_env_vars",
     "targets_windows",
+)
+load(
+    ":run_shell_file_utils.bzl",
+    "copy_directory",
+    "fictive_file_in_genroot",
+)
+load(
+    ":shell_script_helper.bzl",
+    "convert_shell_script",
+    "create_function",
+    "os_name",
 )
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
@@ -225,29 +226,6 @@ def create_attrs(attr_struct, configure_name, create_configure_script, **kwargs)
     for arg in kwargs:
         attrs[arg] = kwargs[arg]
     return struct(**attrs)
-
-# buildifier: disable=name-conventions
-ForeignCcDeps = provider(
-    doc = """Provider to pass transitive information about external libraries.""",
-    fields = {"artifacts": "Depset of ForeignCcArtifact"},
-)
-
-# buildifier: disable=name-conventions
-ForeignCcArtifact = provider(
-    doc = """Groups information about the external library install directory,
-and relative bin, include and lib directories.
-
-Serves to pass transitive information about externally built artifacts up the dependency chain.
-
-Can not be used as a top-level provider.
-Instances of ForeignCcArtifact are incapsulated in a depset ForeignCcDeps#artifacts.""",
-    fields = {
-        "bin_dir_name": "Bin directory, relative to install directory",
-        "gen_dir": "Install directory",
-        "include_dir_name": "Include directory, relative to install directory",
-        "lib_dir_name": "Lib directory, relative to install directory",
-    },
-)
 
 # buildifier: disable=name-conventions
 ConfigureParameters = provider(

@@ -1,7 +1,7 @@
 # buildifier: disable=module-docstring
-load("@commands_overloads//:toolchain_data_defs.bzl", "get")
+load("@rules_foreign_cc_commands_overloads//:toolchain_data_defs.bzl", "get")
 load(
-    "//tools/build_defs/shell_toolchain/polymorphism:generate_overloads.bzl",
+    "//foreign_cc/private/shell_toolchain/polymorphism:generate_overloads.bzl",
     "get_file_name",
 )
 load(":toolchain_mappings.bzl", "TOOLCHAIN_MAPPINGS")

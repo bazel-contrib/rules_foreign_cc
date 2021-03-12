@@ -1,12 +1,12 @@
 # buildifier: disable=module-docstring
-load("//tools/build_defs/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
+load("//foreign_cc/private/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
 load(":function_and_call.bzl", "FunctionAndCall")
 
 _function_and_call_type = type(FunctionAndCall(text = ""))
 
 def create_context(ctx):
     return struct(
-        shell = ctx.toolchains["@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands"].data,
+        shell = ctx.toolchains["@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands"].data,
         prelude = {},
     )
 

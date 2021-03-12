@@ -21,7 +21,7 @@ ignored.
 (quoted arguments are used for paths and never for any arbitrary string.)
 
 The call of a shell toolchain Starlark method is performed through
-//tools/build_defs/shell_toolchain/toolchains:access.bzl; please refer there for the details.
+//foreign_cc/private/shell_toolchain/toolchains:access.bzl; please refer there for the details.
 
 Here what is important is that the Starlark method can also add some text (function definitions)
 into a "prelude" part of the shell_context.
@@ -31,8 +31,8 @@ Since function definitions can call other functions, we perform the fictive tran
 of the function bodies to populate the "prelude" part of the script.
 """
 
-load("//tools/build_defs/shell_toolchain/toolchains:access.bzl", "call_shell", "create_context")
-load("//tools/build_defs/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
+load("//foreign_cc/private/shell_toolchain/toolchains:access.bzl", "call_shell", "create_context")
+load("//foreign_cc/private/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
 
 def os_name(ctx):
     return call_shell(create_context(ctx), "os_name")

@@ -13,8 +13,8 @@ build_part(
 bzl_library(
     name = "bzl_srcs",
     srcs = glob(["**/*.bzl"]) + [
-        "@commands_overloads//:toolchain_data_defs.bzl",
+        "@rules_foreign_cc_commands_overloads//:toolchain_data_defs.bzl",
     ],
     visibility = ["//:__subpackages__"],
-    deps = ["//tools/build_defs/shell_toolchain/toolchains/impl:bzl_srcs"],
+    deps = ["//foreign_cc/private/shell_toolchain/toolchains/impl:bzl_srcs"],
 )

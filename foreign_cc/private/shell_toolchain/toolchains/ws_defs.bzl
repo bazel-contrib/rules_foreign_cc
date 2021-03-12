@@ -1,10 +1,10 @@
 # buildifier: disable=module-docstring
 load(
-    "//tools/build_defs/shell_toolchain/polymorphism:generate_overloads.bzl",
+    "//foreign_cc/private/shell_toolchain/polymorphism:generate_overloads.bzl",
     "generate_overloads",
     "get_file_name",
 )
-load("//tools/build_defs/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
+load("//foreign_cc/private/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
 load(":toolchain_mappings.bzl", "TOOLCHAIN_MAPPINGS")
 
 # buildifier: disable=unnamed-macro
@@ -14,7 +14,7 @@ def workspace_part(
         additonal_shell_toolchain_package = None):
     mappings = additional_toolchain_mappings + TOOLCHAIN_MAPPINGS
     generate_overloads(
-        name = "commands_overloads",
+        name = "rules_foreign_cc_commands_overloads",
         files = [item.file for item in mappings],
         symbols = PLATFORM_COMMANDS.keys(),
     )
@@ -25,7 +25,7 @@ def workspace_part(
         if not additonal_shell_toolchain_package.endswith(":"):
             additonal_shell_toolchain_package = additonal_shell_toolchain_package + ":"
         ordered_toolchains.append(additonal_shell_toolchain_package + get_file_name(item.file))
-    prefix = "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:"
+    prefix = "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:"
     for item in TOOLCHAIN_MAPPINGS:
         ordered_toolchains.append(prefix + get_file_name(item.file))
     native.register_toolchains(*ordered_toolchains)

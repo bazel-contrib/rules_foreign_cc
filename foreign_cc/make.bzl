@@ -1,22 +1,22 @@
 # buildifier: disable=module-docstring
-load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 load(
-    "//tools/build_defs:cc_toolchain_util.bzl",
+    "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
     "get_tools_info",
 )
+load("//foreign_cc/private:configure_script.bzl", "create_make_script")
 load(
-    "//tools/build_defs:detect_root.bzl",
+    "//foreign_cc/private:detect_root.bzl",
     "detect_root",
 )
 load(
-    "//tools/build_defs:framework.bzl",
+    "//foreign_cc/private:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
 )
-load(":configure_script.bzl", "create_make_script")
+load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
 def _make(ctx):
     make_data = get_make_data(ctx)
@@ -124,7 +124,7 @@ make = rule(
     implementation = _make,
     toolchains = [
         "@rules_foreign_cc//toolchains:make_toolchain",
-        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

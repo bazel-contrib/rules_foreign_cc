@@ -2,11 +2,13 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "preinstalled_toolchains")
+
+# buildifier: disable=bzl-visibility
 load(
-    "//tools/build_defs/shell_toolchain/toolchains:ws_defs.bzl",
+    "//foreign_cc/private/shell_toolchain/toolchains:ws_defs.bzl",
     shell_toolchain_workspace_initalization = "workspace_part",
 )
+load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "preinstalled_toolchains")
 
 # buildifier: disable=unnamed-macro
 def rules_foreign_cc_dependencies(
@@ -49,7 +51,7 @@ def rules_foreign_cc_dependencies(
 
         additional_shell_toolchain_mappings: Mappings of the shell toolchain functions to
             execution and target platforms constraints. Similar to what defined in
-            @rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:toolchain_mappings.bzl
+            @rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:toolchain_mappings.bzl
             in the TOOLCHAIN_MAPPINGS list. Please refer to example in @rules_foreign_cc//toolchain_examples.
 
         additional_shell_toolchain_package: A package under which additional toolchains, referencing

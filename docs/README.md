@@ -3,11 +3,9 @@
 - [boost_build](#boost_build)
 - [cmake](#cmake)
 - [cmake_tool](#cmake_tool)
-- [ConfigureParameters](#ConfigureParameters)
 - [configure_make](#configure_make)
 - [ForeignCcArtifact](#ForeignCcArtifact)
 - [ForeignCcDeps](#ForeignCcDeps)
-- [InputFiles](#InputFiles)
 - [make](#make)
 - [make_tool](#make_tool)
 - [native_tool_toolchain](#native_tool_toolchain)
@@ -15,7 +13,6 @@
 - [ninja_tool](#ninja_tool)
 - [rules_foreign_cc_dependencies](#rules_foreign_cc_dependencies)
 - [ToolInfo](#ToolInfo)
-- [WrappedOutputs](#WrappedOutputs)
 
 <a id="#boost_build"></a>
 
@@ -366,28 +363,6 @@ Rule for building Ninja. Invokes configure script and make install.
 | <a id="ninja_tool-ninja_srcs"></a>ninja_srcs |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
 
 
-<a id="#ConfigureParameters"></a>
-
-## ConfigureParameters
-
-<pre>
-ConfigureParameters(<a href="#ConfigureParameters-ctx">ctx</a>, <a href="#ConfigureParameters-attrs">attrs</a>, <a href="#ConfigureParameters-inputs">inputs</a>)
-</pre>
-
-Parameters of create_configure_script callback function, called by
-cc_external_rule_impl function. create_configure_script creates the configuration part
-of the script, and allows to reuse the inputs structure, created by the framework.
-
-**FIELDS**
-
-
-| Name  | Description |
-| :------------- | :------------- |
-| <a id="ConfigureParameters-ctx"></a>ctx |  Rule context    |
-| <a id="ConfigureParameters-attrs"></a>attrs |  Attributes struct, created by create_attrs function above    |
-| <a id="ConfigureParameters-inputs"></a>inputs |  InputFiles provider: summarized information on rule inputs, created by framework function, to be reused in script creator. Contains in particular merged compilation and linking dependencies.    |
-
-
 <a id="#ForeignCcArtifact"></a>
 
 ## ForeignCcArtifact
@@ -433,32 +408,6 @@ Provider to pass transitive information about external libraries.
 | <a id="ForeignCcDeps-artifacts"></a>artifacts |  Depset of ForeignCcArtifact    |
 
 
-<a id="#InputFiles"></a>
-
-## InputFiles
-
-<pre>
-InputFiles(<a href="#InputFiles-headers">headers</a>, <a href="#InputFiles-include_dirs">include_dirs</a>, <a href="#InputFiles-libs">libs</a>, <a href="#InputFiles-tools_files">tools_files</a>, <a href="#InputFiles-ext_build_dirs">ext_build_dirs</a>, <a href="#InputFiles-deps_compilation_info">deps_compilation_info</a>,
-           <a href="#InputFiles-deps_linking_info">deps_linking_info</a>, <a href="#InputFiles-declared_inputs">declared_inputs</a>)
-</pre>
-
-Provider to keep different kinds of input files, directories, and C/C++ compilation and linking info from dependencies
-
-**FIELDS**
-
-
-| Name  | Description |
-| :------------- | :------------- |
-| <a id="InputFiles-headers"></a>headers |  Include files built by Bazel. Will be copied into $EXT_BUILD_DEPS/include.    |
-| <a id="InputFiles-include_dirs"></a>include_dirs |  Include directories built by Bazel. Will be copied into $EXT_BUILD_DEPS/include.    |
-| <a id="InputFiles-libs"></a>libs |  Library files built by Bazel. Will be copied into $EXT_BUILD_DEPS/lib.    |
-| <a id="InputFiles-tools_files"></a>tools_files |  Files and directories with tools needed for configuration/building to be copied into the bin folder, which is added to the PATH    |
-| <a id="InputFiles-ext_build_dirs"></a>ext_build_dirs |  Directories with libraries, built by framework function. This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents.    |
-| <a id="InputFiles-deps_compilation_info"></a>deps_compilation_info |  Merged CcCompilationInfo from deps attribute    |
-| <a id="InputFiles-deps_linking_info"></a>deps_linking_info |  Merged CcLinkingInfo from deps attribute    |
-| <a id="InputFiles-declared_inputs"></a>declared_inputs |  All files and directories that must be declared as action inputs    |
-
-
 <a id="#ToolInfo"></a>
 
 ## ToolInfo
@@ -476,27 +425,6 @@ Information about the native tool
 | :------------- | :------------- |
 | <a id="ToolInfo-path"></a>path |  Absolute path to the tool in case the tool is preinstalled on the machine. Relative path to the tool in case the tool is built as part of a build; the path should be relative to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree artifact. (Please see the example <code>//examples:built_cmake_toolchain</code>)    |
 | <a id="ToolInfo-target"></a>target |  If the tool is preinstalled, must be None. If the tool is built as part of the build, the corresponding build target, which should produce the tree artifact with the binary to call.    |
-
-
-<a id="#WrappedOutputs"></a>
-
-## WrappedOutputs
-
-<pre>
-WrappedOutputs(<a href="#WrappedOutputs-log_file">log_file</a>, <a href="#WrappedOutputs-script_file">script_file</a>, <a href="#WrappedOutputs-wrapper_script">wrapper_script</a>, <a href="#WrappedOutputs-wrapper_script_file">wrapper_script_file</a>)
-</pre>
-
-Structure for passing the log and scripts file information, and wrapper script text.
-
-**FIELDS**
-
-
-| Name  | Description |
-| :------------- | :------------- |
-| <a id="WrappedOutputs-log_file"></a>log_file |  Execution log file    |
-| <a id="WrappedOutputs-script_file"></a>script_file |  Main script file    |
-| <a id="WrappedOutputs-wrapper_script"></a>wrapper_script |  Wrapper script text to execute    |
-| <a id="WrappedOutputs-wrapper_script_file"></a>wrapper_script_file |  Wrapper script file (output for debugging purposes)    |
 
 
 <a id="#rules_foreign_cc_dependencies"></a>
@@ -524,7 +452,7 @@ Call this function from the WORKSPACE file to initialize rules_foreign_cc     de
 | <a id="rules_foreign_cc_dependencies-ninja_version"></a>ninja_version |  The target version of the ninja toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.   |  <code>"1.10.2"</code> |
 | <a id="rules_foreign_cc_dependencies-register_preinstalled_tools"></a>register_preinstalled_tools |  If true, toolchains will be registered for the native built tools     installed on the exec host   |  <code>True</code> |
 | <a id="rules_foreign_cc_dependencies-register_built_tools"></a>register_built_tools |  If true, toolchains that build the tools from source are registered   |  <code>True</code> |
-| <a id="rules_foreign_cc_dependencies-additional_shell_toolchain_mappings"></a>additional_shell_toolchain_mappings |  Mappings of the shell toolchain functions to     execution and target platforms constraints. Similar to what defined in     @rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:toolchain_mappings.bzl     in the TOOLCHAIN_MAPPINGS list. Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>[]</code> |
+| <a id="rules_foreign_cc_dependencies-additional_shell_toolchain_mappings"></a>additional_shell_toolchain_mappings |  Mappings of the shell toolchain functions to     execution and target platforms constraints. Similar to what defined in     @rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:toolchain_mappings.bzl     in the TOOLCHAIN_MAPPINGS list. Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>[]</code> |
 | <a id="rules_foreign_cc_dependencies-additional_shell_toolchain_package"></a>additional_shell_toolchain_package |  A package under which additional toolchains, referencing     the generated data for the passed additonal_shell_toolchain_mappings, will be defined.     This value is needed since register_toolchains() is called for these toolchains.     Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>None</code> |
 
 

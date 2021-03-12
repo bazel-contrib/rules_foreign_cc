@@ -1,12 +1,9 @@
 """ Rule for building GNU Make from sources. """
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-load(
-    "@rules_foreign_cc//tools/build_defs:run_shell_file_utils.bzl",
-    "fictive_file_in_genroot",
-)
-load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "convert_shell_script")
-load("//tools/build_defs:detect_root.bzl", "detect_root")
+load("//foreign_cc/private:detect_root.bzl", "detect_root")
+load("//foreign_cc/private:run_shell_file_utils.bzl", "fictive_file_in_genroot")
+load("//foreign_cc/private:shell_script_helper.bzl", "convert_shell_script")
 
 def _make_tool(ctx):
     root = detect_root(ctx.attr.make_srcs)
@@ -56,7 +53,7 @@ make_tool = rule(
     output_to_genfiles = True,
     implementation = _make_tool,
     toolchains = [
-        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

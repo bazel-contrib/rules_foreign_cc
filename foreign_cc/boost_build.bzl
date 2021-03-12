@@ -1,8 +1,8 @@
 """ Rule for building Boost from sources. """
 
-load("//tools/build_defs:detect_root.bzl", "detect_root")
+load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load(
-    "//tools/build_defs:framework.bzl",
+    "//foreign_cc/private:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
@@ -49,7 +49,7 @@ boost_build = rule(
     output_to_genfiles = True,
     implementation = _boost_build,
     toolchains = [
-        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

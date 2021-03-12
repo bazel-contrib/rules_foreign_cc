@@ -1,5 +1,5 @@
 # buildifier: disable=module-docstring
-load("@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
+load("@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
 
 _REPLACE_VALUE = "\\${EXT_BUILD_DEPS}"
 

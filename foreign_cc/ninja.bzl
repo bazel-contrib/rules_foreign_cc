@@ -1,17 +1,17 @@
 """A module defining the `ninja` rule. A rule for building projects using the Ninja build tool"""
 
-load("//toolchains/native_tools:tool_access.bzl", "get_ninja_data")
 load(
-    "//tools/build_defs:detect_root.bzl",
+    "//foreign_cc/private:detect_root.bzl",
     "detect_root",
 )
 load(
-    "//tools/build_defs:framework.bzl",
+    "//foreign_cc/private:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
 )
+load("//toolchains/native_tools:tool_access.bzl", "get_ninja_data")
 
 def _ninja_impl(ctx):
     """The implementation of the `ninja` rule
@@ -119,7 +119,7 @@ ninja = rule(
     implementation = _ninja_impl,
     toolchains = [
         "@rules_foreign_cc//toolchains:ninja_toolchain",
-        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

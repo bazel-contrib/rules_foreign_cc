@@ -1,11 +1,11 @@
 # buildifier: disable=module-docstring
-load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
-load(
-    "@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl",
-    "convert_shell_script",
-)
+# buildifier: disable=bzl-visibility
+load("@rules_foreign_cc//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 
-def _impl(ctx):
+# buildifier: disable=bzl-visibility
+load("@rules_foreign_cc//foreign_cc/private:shell_script_helper.bzl", "convert_shell_script")
+
+def _symlink_contents_to_dir_test_rule_impl(ctx):
     out = ctx.actions.declare_file(ctx.attr.out)
     dir1 = detect_root(ctx.attr.dir1)
     dir2 = detect_root(ctx.attr.dir2)
@@ -30,13 +30,13 @@ def _impl(ctx):
     return [DefaultInfo(files = depset([out]))]
 
 symlink_contents_to_dir_test_rule = rule(
-    implementation = _impl,
+    implementation = _symlink_contents_to_dir_test_rule_impl,
     attrs = {
         "dir1": attr.label(allow_files = True),
         "dir2": attr.label(allow_files = True),
         "out": attr.string(),
     },
     toolchains = [
-        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
     ],
 )

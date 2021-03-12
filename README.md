@@ -139,7 +139,7 @@ http_archive(
 And in the `BUILD.bazel` file, put:
 
 ```python
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 cmake(
     name = "pcre",

@@ -1,5 +1,6 @@
 # buildifier: disable=module-docstring
-load("@rules_foreign_cc//tools/build_defs:cc_toolchain_util.bzl", "get_flags_info")
+# buildifier: disable=bzl-visibility
+load("@rules_foreign_cc//foreign_cc/private:cc_toolchain_util.bzl", "get_flags_info")
 
 def _impl(ctx):
     flags = get_flags_info(ctx)
