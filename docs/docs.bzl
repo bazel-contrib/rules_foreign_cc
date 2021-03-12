@@ -1,6 +1,5 @@
 """A module exporting symbols for Stardoc generation."""
 
-load("@rules_foreign_cc//:workspace_definitions.bzl", _rules_foreign_cc_dependencies = "rules_foreign_cc_dependencies")
 load(
     "@rules_foreign_cc//foreign_cc:defs.bzl",
     _boost_build = "boost_build",
@@ -14,6 +13,7 @@ load(
     _ForeignCcArtifact = "ForeignCcArtifact",
     _ForeignCcDeps = "ForeignCcDeps",
 )
+load("@rules_foreign_cc//foreign_cc:repositories.bzl", _rules_foreign_cc_dependencies = "rules_foreign_cc_dependencies")
 load("@rules_foreign_cc//foreign_cc/built_tools:cmake_build.bzl", _cmake_tool = "cmake_tool")
 load("@rules_foreign_cc//foreign_cc/built_tools:make_build.bzl", _make_tool = "make_tool")
 load("@rules_foreign_cc//foreign_cc/built_tools:ninja_build.bzl", _ninja_tool = "ninja_tool")
