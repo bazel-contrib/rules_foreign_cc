@@ -1,7 +1,7 @@
 workspace(name = "rules_foreign_cc")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+load("//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies()
 

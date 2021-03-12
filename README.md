@@ -109,7 +109,7 @@ http_archive(
    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.1.0.zip",
 )
 
-load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 # This sets up some common toolchains for building targets. For more details, please see
 # https://github.com/bazelbuild/rules_foreign_cc/tree/main/docs#rules_foreign_cc_dependencies
