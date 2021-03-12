@@ -1,7 +1,7 @@
 """ Rule for building CMake from sources. """
 
-load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root")
-load("@rules_foreign_cc//tools/build_defs:shell_script_helper.bzl", "convert_shell_script")
+load("//foreign_cc/private:detect_root.bzl", "detect_root")
+load("//foreign_cc/private:shell_script_helper.bzl", "convert_shell_script")
 
 def _cmake_tool(ctx):
     root = detect_root(ctx.attr.cmake_srcs)
@@ -42,7 +42,7 @@ cmake_tool = rule(
     output_to_genfiles = True,
     implementation = _cmake_tool,
     toolchains = [
-        "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains:shell_commands",
+        str(Label("//foreign_cc/private/shell_toolchain/toolchains:shell_commands")),
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

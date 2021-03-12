@@ -17,6 +17,5 @@ bzl_library(
         "//for_workspace:bzl_srcs",
         "//foreign_cc:bzl_srcs",
         "//toolchains:bzl_srcs",
-        "//tools/build_defs:bzl_srcs",
     ],
 )

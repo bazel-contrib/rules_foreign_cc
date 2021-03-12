@@ -1,77 +1,8 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-alias(
-    name = "cmake_toolchain",
-    actual = "//toolchains:cmake_toolchain",
-    deprecation = "This target has been moved to `@rules_foreign_cc//toolchains/...`",
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "ninja_toolchain",
-    actual = "//toolchains:ninja_toolchain",
-    deprecation = "This target has been moved to `@rules_foreign_cc//toolchains/...`",
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "make_toolchain",
-    actual = "//toolchains:make_toolchain",
-    deprecation = "This target has been moved to `@rules_foreign_cc//toolchains/...`",
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "built_cmake_toolchain",
-    actual = "//toolchains:built_cmake_toolchain",
-    deprecation = "This target has been moved to `@rules_foreign_cc//toolchains/...`",
-)
-
-alias(
-    name = "built_ninja_toolchain",
-    actual = "//toolchains:built_ninja_toolchain",
-    deprecation = "This target has been moved to `@rules_foreign_cc//toolchains/...`",
-)
-
-alias(
-    name = "built_make_toolchain",
-    actual = "//toolchains:built_make_toolchain",
-    deprecation = "This target has been moved to `@rules_foreign_cc//toolchains/...`",
-)
-
-# Preinstalled cmake will always be the default, if toolchain with more exact constraints
-# is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
-alias(
-    name = "preinstalled_cmake_toolchain",
-    actual = "//toolchains:preinstalled_cmake_toolchain",
-    deprecation = "This target has been moved to `@rules_foreign_cc//toolchains/...`",
-)
-
-# Preinstalled ninja will always be the default, if toolchain with more exact constraints
-# is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
-alias(
-    name = "preinstalled_ninja_toolchain",
-    actual = "//toolchains:preinstalled_ninja_toolchain",
-    deprecation = "This target has been moved to `@rules_foreign_cc//toolchains/...`",
-)
-
-# Preinstalled make will always be the default, if toolchain with more exact constraints
-# is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
-alias(
-    name = "preinstalled_make_toolchain",
-    actual = "//toolchains:preinstalled_make_toolchain",
-    deprecation = "This target has been moved to `@rules_foreign_cc//toolchains/...`",
-)
-
 bzl_library(
     name = "bzl_srcs",
     srcs = glob(["**/*.bzl"]),
     visibility = ["//:__subpackages__"],
-    deps = [
-        "//tools/build_defs/native_tools:bzl_srcs",
-        "//tools/build_defs/shell_toolchain/polymorphism:bzl_srcs",
-        "//tools/build_defs/shell_toolchain/toolchains:bzl_srcs",
-        "@bazel_skylib//lib:collections",
-        "@bazel_skylib//lib:versions",
-    ],
+    deps = [],
 )

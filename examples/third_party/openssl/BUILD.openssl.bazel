@@ -2,7 +2,7 @@
 https://github.com/bazelbuild/rules_foreign_cc/issues/337
 """
 
-load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
 
 # Read https://wiki.openssl.org/index.php/Compilation_and_Installation
 

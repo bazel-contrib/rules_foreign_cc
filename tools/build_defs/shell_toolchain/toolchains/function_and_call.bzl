@@ -1,9 +1,13 @@
-# buildifier: disable=module-docstring
-# buildifier: disable=name-conventions
-FunctionAndCall = provider(
-    doc = "Wrapper to pass function definition and (if custom) function call",
-    fields = {
-        "call": "How to call defined function, if different from <function-name> <arg1> ...<argn>",
-        "text": "Function body, without wrapping function <name>() {} fragment.",
-    },
+"""DEPRECATED: Please use the sources in `@rules_foreign_cc//foreign_cc/...`"""
+
+# buildifier: disable=bzl-visibility
+load(
+    "//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl",
+    _FunctionAndCall = "FunctionAndCall",
 )
+load("//tools/build_defs:deprecation.bzl", "print_deprecation")
+
+print_deprecation()
+
+# buildifier: disable=name-conventions
+FunctionAndCall = _FunctionAndCall

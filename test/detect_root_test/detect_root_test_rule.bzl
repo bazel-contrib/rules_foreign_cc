@@ -1,6 +1,7 @@
 """A helper rule for testing detect_root function."""
 
-load("@rules_foreign_cc//tools/build_defs:detect_root.bzl", "detect_root")
+# buildifier: disable=bzl-visibility
+load("@rules_foreign_cc//foreign_cc/private:detect_root.bzl", "detect_root")
 
 def _impl(ctx):
     detected_root = detect_root(ctx.attr.srcs)

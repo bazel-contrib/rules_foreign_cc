@@ -1,7 +1,9 @@
 """ Unit tests for some utility functions """
 
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//tools/build_defs:framework.bzl", "uniq_list_keep_order")
+
+# buildifier: disable=bzl-visibility
+load("//foreign_cc/private:framework.bzl", "uniq_list_keep_order")
 
 def _uniq_list_keep_order_test(ctx):
     env = unittest.begin(ctx)

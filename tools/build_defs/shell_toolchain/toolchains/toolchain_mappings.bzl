@@ -1,34 +1,15 @@
-# buildifier: disable=module-docstring
-# buildifier: disable=name-conventions
-ToolchainMapping = provider(
-    doc = "Mapping of toolchain definition files to platform constraints",
-    fields = {
-        "exec_compatible_with": "Compatible execution platform constraints",
-        "file": "Toolchain definition file",
-        "target_compatible_with": "Compatible target platform constraints",
-    },
-)
+"""DEPRECATED: Please use the sources in `@rules_foreign_cc//foreign_cc/...`"""
 
-TOOLCHAIN_MAPPINGS = [
-    ToolchainMapping(
-        exec_compatible_with = [
-            "@platforms//os:linux",
-        ],
-        file = "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains/impl:linux_commands.bzl",
-    ),
-    ToolchainMapping(
-        exec_compatible_with = [
-            "@platforms//os:windows",
-        ],
-        file = "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains/impl:windows_commands.bzl",
-    ),
-    ToolchainMapping(
-        exec_compatible_with = [
-            "@platforms//os:macos",
-        ],
-        file = "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains/impl:osx_commands.bzl",
-    ),
-    ToolchainMapping(
-        file = "@rules_foreign_cc//tools/build_defs/shell_toolchain/toolchains/impl:default_commands.bzl",
-    ),
-]
+# buildifier: disable=bzl-visibility
+load(
+    "//foreign_cc/private/shell_toolchain/toolchains:toolchain_mappings.bzl",
+    _TOOLCHAIN_MAPPINGS = "TOOLCHAIN_MAPPINGS",
+    _ToolchainMapping = "ToolchainMapping",
+)
+load("//tools/build_defs:deprecation.bzl", "print_deprecation")
+
+print_deprecation()
+
+# buildifier: disable=name-conventions
+ToolchainMapping = _ToolchainMapping
+TOOLCHAIN_MAPPINGS = _TOOLCHAIN_MAPPINGS

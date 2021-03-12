@@ -1,8 +1,12 @@
 """ Unit tests for CMake script creation """
 
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//tools/build_defs:cc_toolchain_util.bzl", "CxxFlagsInfo", "CxxToolsInfo")
-load("//tools/build_defs:cmake_script.bzl", "create_cmake_script", "export_for_test")
+
+# buildifier: disable=bzl-visibility
+load("//foreign_cc/private:cc_toolchain_util.bzl", "CxxFlagsInfo", "CxxToolsInfo")
+
+# buildifier: disable=bzl-visibility
+load("//foreign_cc/private:cmake_script.bzl", "create_cmake_script", "export_for_test")
 
 def _absolutize_test(ctx):
     env = unittest.begin(ctx)
