@@ -163,8 +163,3 @@ cmake = rule(
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )
-
-# This is an alias to the underlying rule and is
-# kept around for legacy compaitiblity. This should
-# not be removed without sufficent warning.
-cmake_external = cmake

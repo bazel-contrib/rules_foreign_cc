@@ -1,0 +1,17 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+alias(
+    name = "shell_commands",
+    actual = "//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
+    deprecation = "This target has been moved to `@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands`",
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "bzl_srcs",
+    srcs = glob(["**/*.bzl"]) + [
+        "@rules_foreign_cc_commands_overloads//:toolchain_data_defs.bzl",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = ["//foreign_cc/private/shell_toolchain/toolchains/impl:bzl_srcs"],
+)
