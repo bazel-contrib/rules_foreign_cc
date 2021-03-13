@@ -55,8 +55,8 @@ def create_configure_script(
         # NOCONFIGURE is pseudo standard and tells the script to not invoke configure.
         # We explicitly invoke configure later.
         autogen_env_vars = _get_autogen_env_vars(autogen_env_vars)
-        script.append("{} \"{}/{}\" {}".format(
-            " ".join(["{}=\"{}\"".format(key, autogen_env_vars[key]) for key in autogen_env_vars]),
+        script.append('{} "{}/{}" {}'.format(
+            " ".join(['{}="{}"'.format(key, autogen_env_vars[key]) for key in autogen_env_vars]),
             root_path,
             autogen_command,
             " ".join(autogen_options),
@@ -70,11 +70,11 @@ def create_configure_script(
 
     if autoreconf and configure_in_place:
         script.append("{} autoreconf {}".format(
-            " ".join(["{}=\"{}\"".format(key, autoreconf_env_vars[key]) for key in autoreconf_env_vars]),
+            " ".join(['{}="{}"'.format(key, autoreconf_env_vars[key]) for key in autoreconf_env_vars]),
             " ".join(autoreconf_options),
         ).lstrip())
 
-    script.append("{env_vars} \"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+    script.append('{env_vars} "{configure}" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}'.format(
         env_vars = env_vars_string,
         configure = configure_path,
         user_options = " ".join(user_options),
@@ -122,7 +122,7 @@ def get_env_vars(
     # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html
     vars["CPPFLAGS"] = deps_flags.flags
 
-    return " ".join(["{}=\"{}\""
+    return " ".join(['{}="{}"'
         .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
 
 def _get_autogen_env_vars(autogen_env_vars):
@@ -234,5 +234,14 @@ def _get_configure_variables(tools, flags, user_env_vars):
 def _absolutize(workspace_name, text):
     return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text)
 
+def _escape_dquote_bash(text):
+    """ Escape double quotes in flag lists for use in bash strings. """
+
+    # Objective is to escape the quotes twice for bash.
+    # 1. \\\" -> \" - when get_env_vars' strings (e.g. CXXFLAGS="<flags>") get evaluated.
+    # 2. \" -> " - when each flag containing a string is passed to the compiler.
+    # We use a starlark raw string to prevent the need to escape backslashes for starlark as well.
+    return text.replace('"', r'\\\"')
+
 def _join_flags_list(workspace_name, flags):
-    return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+    return " ".join([_absolutize(workspace_name, _escape_dquote_bash(flag)) for flag in flags])

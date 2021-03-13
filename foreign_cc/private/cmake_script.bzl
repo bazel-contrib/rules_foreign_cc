@@ -70,8 +70,14 @@ def create_cmake_script(
     if not params.cache.get("CMAKE_RANLIB"):
         params.cache.update({"CMAKE_RANLIB": ""})
 
-    set_env_vars = " ".join([key + "=\"" + params.env[key] + "\"" for key in params.env])
-    str_cmake_cache_entries = " ".join(["-D" + key + "=\"" + params.cache[key] + "\"" for key in params.cache])
+    set_env_vars = " ".join([
+        key + '="' + _escape_dquote_bash(params.env[key]) + '"'
+        for key in params.env
+    ])
+    str_cmake_cache_entries = " ".join([
+        "-D" + key + '="' + _escape_dquote_bash(params.cache[key]) + '"'
+        for key in params.cache
+    ])
     cmake_call = " ".join([
         set_env_vars,
         cmake_path,
@@ -81,6 +87,15 @@ def create_cmake_script(
     ])
 
     return "\n".join(params.commands + [cmake_call])
+
+def _escape_dquote_bash(text):
+    """ Escape double quotes in flag lists for use in bash strings. """
+
+    # Objective is to escape the quotes twice for bash.
+    # 1. \\\" -> \" - when set_env_vars' strings get evaluated.
+    # 2. \" -> " - when each flag containing a string is passed to the compiler.
+    # We use a starlark raw string to prevent the need to escape backslashes for starlark as well.
+    return text.replace('"', r'\\\"')
 
 def _wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
     for key in keys_with_empty_values_in_user_cache:
@@ -119,6 +134,13 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
 }
 
+def _escape_dquote_cmake(text):
+    """ Escape double quotes for use in bash heredoc and CMake. """
+
+    # Context:
+    # cat >> file.cmake <<"EOF"set(CXXFLAGS "{text}")EOF
+    return text.replace('"', r'\"\\\"')
+
 def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
     cache_entries = _dict_copy(user_cache)
     env_vars = _dict_copy(user_env)
@@ -128,15 +150,20 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
     lines = []
     for key in toolchain_dict:
         if ("CMAKE_AR" == key):
-            lines.append("set({} \"{}\" {})".format(key, toolchain_dict[key], "CACHE FILEPATH \"Archiver\""))
+            lines.append('set({} "{}" {})'.format(
+                key,
+                _escape_dquote_cmake(toolchain_dict[key]),
+                'CACHE FILEPATH "Archiver"',
+            ))
             continue
-        lines.append("set({} \"{}\")".format(key, toolchain_dict[key]))
+        lines.append('set({} "{}")'.format(key, _escape_dquote_cmake(toolchain_dict[key])))
 
     cache_entries.update({
         "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",
     })
     return struct(
-        commands = ["cat > crosstool_bazel.cmake <<EOF\n" + "\n".join(sorted(lines)) + "\nEOF\n"],
+        # We quote the bash heredoc word to prevent yet another layer of string escapes
+        commands = ['cat > crosstool_bazel.cmake <<"EOF"\n' + "\n".join(sorted(lines)) + "\nEOF\n"],
         env = env_vars,
         cache = cache_entries,
     )
