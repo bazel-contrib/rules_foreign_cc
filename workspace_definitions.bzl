@@ -4,7 +4,7 @@ load("//foreign_cc:repositories.bzl", _rules_foreign_cc_dependencies = "rules_fo
 
 # buildifier: disable=print
 print(
-    "`@rules_foreign_cc//foreign_cc:repositories.bzl` has been replaced by " +
+    "`@rules_foreign_cc//:workspace_definitions.bzl` has been replaced by " +
     "`@rules_foreign_cc//foreign_cc:repositories.bzl`. Please use the " +
     "updated source location",
 )
