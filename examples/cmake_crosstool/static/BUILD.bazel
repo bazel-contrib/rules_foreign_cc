@@ -26,7 +26,6 @@ cmake(
     cmake_options = ["-G \"Visual Studio 15 2017\" -A x64"],
     lib_name = "libhello",
     lib_source = ":srcs",
-    make_commands = ["MSBuild.exe INSTALL.vcxproj"],
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
     out_static_libs = ["hello.lib"],
@@ -36,10 +35,6 @@ cmake(
     name = "libhello_win_ninja",
     cmake_options = ["-GNinja"],
     lib_source = ":srcs",
-    make_commands = [
-        "ninja",
-        "ninja install",
-    ],
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
     out_static_libs = ["hello.lib"],
@@ -49,10 +44,6 @@ cmake(
     name = "libhello_win_nmake",
     cmake_options = ["-G \"NMake Makefiles\""],
     lib_source = ":srcs",
-    make_commands = [
-        "nmake",
-        "nmake install",
-    ],
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
     out_static_libs = ["hello.lib"],

@@ -35,16 +35,6 @@ cmake(
     }),
     generate_crosstool_file = False,
     lib_source = ":all_srcs",
-    make_commands = select({
-        "@platforms//os:windows": [
-            "ninja",
-            "ninja install",
-        ],
-        "//conditions:default": [
-            "make",
-            "make install",
-        ],
-    }),
     out_static_libs = select({
         "@platforms//os:windows": ["libcurl.lib"],
         "//conditions:default": ["libcurl.a"],
