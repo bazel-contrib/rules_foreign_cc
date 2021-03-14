@@ -382,25 +382,10 @@ def cc_external_rule_impl(ctx, attrs):
     if "requires-network" in ctx.attr.tags:
         execution_requirements = {"requires-network": ""}
 
-    # We need to create a native batch script on windows to ensure the wrapper
-    # script can correctly be envoked with bash.
-    wrapper = wrapped_outputs.wrapper_script_file
-    extra_tools = []
-    if "win" in execution_os_name:
-        batch_wrapper = ctx.actions.declare_file(wrapper.short_path + ".bat")
-        ctx.actions.write(
-            output = batch_wrapper,
-            content = "\n".join([
-                "@ECHO OFF",
-                "START /b /wait bash {}".format(wrapper.path),
-                "",
-            ]),
-            is_executable = True,
-        )
-        extra_tools.append(wrapper)
-        wrapper = batch_wrapper
-
-    ctx.actions.run(
+    # The use of `run_shell` here is intended to ensure bash is correctly setup on windows
+    # environments. This should not be replaced with `run` until a cross platform implementation
+    # is found that guarantees bash exists or appropriately errors out.
+    ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
         outputs = rule_outputs + [
@@ -408,13 +393,13 @@ def cc_external_rule_impl(ctx, attrs):
             wrapped_outputs.log_file,
         ],
         tools = depset(
-            [wrapped_outputs.script_file] + extra_tools + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
+            [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
             transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
         ),
         # TODO: Default to never using the default shell environment to make builds more hermetic. For now, every platform
         # but MacOS will take the default PATH passed by Bazel, not that from cc_toolchain.
         use_default_shell_env = execution_os_name != "osx",
-        executable = wrapper,
+        command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
         # this is ignored if use_default_shell_env = True
         env = cc_env,
@@ -467,10 +452,11 @@ WrappedOutputs = provider(
 )
 
 # buildifier: disable=function-docstring
-def wrap_outputs(ctx, lib_name, configure_name, script_text):
-    build_log_file = ctx.actions.declare_file("{}_logs/{}.log".format(lib_name, configure_name))
-    wrapper_script_file = ctx.actions.declare_file("{}_scripts/{}_wrapper_script.sh".format(lib_name, configure_name))
-    build_script_file = ctx.actions.declare_file("{}_scripts/{}_script.sh".format(lib_name, configure_name))
+def wrap_outputs(ctx, lib_name, configure_name, script_text, build_script_file = None):
+    build_log_file = ctx.actions.declare_file("{}_foreign_cc/{}.log".format(lib_name, configure_name))
+    build_script_file = ctx.actions.declare_file("{}_foreign_cc/build_script.sh".format(lib_name))
+    wrapper_script_file = ctx.actions.declare_file("{}_foreign_cc/wrapper_build_script.sh".format(lib_name))
+
     ctx.actions.write(
         output = build_script_file,
         content = script_text,
