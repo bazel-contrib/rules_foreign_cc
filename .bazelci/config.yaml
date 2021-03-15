@@ -31,11 +31,11 @@ tasks:
     name: Examples
     platform: ubuntu2004
     working_directory: examples
-    build_targets:
-      - "//..."
-    test_targets:
+    linux_targets: &linux_targets
       - "//..."
       - "//:third_party_examples_linux_tests"
+    build_targets: *linux_targets
+    test_targets: *linux_targets
   rbe_ubuntu1604_examples:
     name: Examples
     platform: rbe_ubuntu1604
@@ -57,11 +57,11 @@ tasks:
     name: Examples
     platform: macos
     working_directory: examples
-    build_targets:
-      - "//..."
-    test_targets:
+    macos_targets: &macos_targets
       - "//..."
       - "//:third_party_examples_macos_tests"
+    build_targets: *macos_targets
+    test_targets: *macos_targets
   windows_examples:
     name: Examples
     platform: windows
@@ -150,10 +150,10 @@ tasks:
     bazel: "3.4.0"
     platform: ubuntu1604
     working_directory: examples
-    build_targets:
+    min_supported_targets: &min_supported_targets
       - "//..."
-    test_targets:
-      - "//..."
+    build_targets: *min_supported_targets
+    test_targets: *min_supported_targets
 
 buildifier:
   version: latest
