@@ -44,7 +44,7 @@ def _create_configure_script(configureParameters):
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
 
-    define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
+    define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""
 
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
@@ -71,7 +71,11 @@ def _create_configure_script(configureParameters):
         autogen_options = ctx.attr.autogen_options,
         autogen_env_vars = ctx.attr.autogen_env_vars,
     )
-    return "\n".join([define_install_prefix, configure])
+
+    return struct(
+        commands = [define_install_prefix] + configure.commands,
+        files = configure.files,
+    )
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:

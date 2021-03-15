@@ -66,7 +66,10 @@ def create_configure_script(
         configure = configure_path,
         user_options = " ".join(user_options),
     ))
-    return "\n".join(script)
+    return struct(
+        commands = script,
+        files = []
+    )
 
 def _get_autogen_env_vars(autogen_env_vars):
     # Make a copy if necessary so we can set NOCONFIGURE.

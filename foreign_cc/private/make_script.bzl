@@ -21,7 +21,10 @@ def create_make_script(
 
     script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
     script.extend(make_commands)
-    return "\n".join(script)
+    return struct(
+        commands = script,
+        files = [],
+    )
 
 # buildifier: disable=function-docstring-args
 # buildifier: disable=function-docstring-return

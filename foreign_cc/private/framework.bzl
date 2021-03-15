@@ -344,21 +344,22 @@ def cc_external_rule_impl(ctx, attrs):
         else:
             make_commands.append(line)
 
+    configure = attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs))
+
     script_lines = [
         "##echo## \"\"",
         "##echo## \"{}\"".format(lib_header),
         "##echo## \"\"",
         "##script_prelude##",
-        "\n".join(define_variables),
+    ] + define_variables + [
         "##path## $$EXT_BUILD_ROOT$$",
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
         "##mkdirs## $$EXT_BUILD_DEPS$$",
         _print_env(),
-        "\n".join(_copy_deps_and_tools(inputs)),
+    ] + _copy_deps_and_tools(inputs) + [
         "cd $$BUILD_TMPDIR$$",
-        attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
-        "\n".join(make_commands),
+    ] + configure.commands + make_commands + [
         attrs.postfix_script or "",
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
@@ -388,7 +389,7 @@ def cc_external_rule_impl(ctx, attrs):
     # is found that guarantees bash exists or appropriately errors out.
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
-        inputs = depset(inputs.declared_inputs),
+        inputs = depset(inputs.declared_inputs + configure.files),
         outputs = rule_outputs + [
             empty.file,
             wrapped_outputs.log_file,

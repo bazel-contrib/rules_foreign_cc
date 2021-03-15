@@ -3,6 +3,7 @@
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
 def create_cmake_script(
+        ctx,
         workspace_name,
         cmake_path,
         tools,
@@ -32,6 +33,7 @@ def create_cmake_script(
         is_debug_mode: If the compilation mode is `debug`. Defaults to True.
 
     Returns:
+        struct:
         string: A formatted string of the generated build command
     """
 
@@ -45,7 +47,7 @@ def create_cmake_script(
     if no_toolchain_file:
         params = _create_cache_entries_env_vars(toolchain_dict, user_cache, user_env)
     else:
-        params = _create_crosstool_file_text(toolchain_dict, user_cache, user_env)
+        params = _create_crosstool_file(ctx, workspace_name, toolchain_dict, user_cache, user_env)
 
     build_type = params.cache.get(
         "CMAKE_BUILD_TYPE",
@@ -80,7 +82,10 @@ def create_cmake_script(
         "$EXT_BUILD_ROOT/" + root,
     ])
 
-    return "\n".join(params.commands + [cmake_call])
+    return struct(
+        commands = [cmake_call],
+        files = params.files,
+    )
 
 def _wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
     for key in keys_with_empty_values_in_user_cache:
@@ -119,11 +124,13 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
 }
 
-def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
+def _create_crosstool_file(ctx, workspace_name, toolchain_dict, user_cache, user_env):
     cache_entries = _dict_copy(user_cache)
     env_vars = _dict_copy(user_env)
     _move_dict_values(toolchain_dict, env_vars, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
     _move_dict_values(toolchain_dict, cache_entries, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
+
+    crosstool_file = ctx.actions.declare_file("{}_crosstool_bazel.cmake".format(ctx.attr.name))
 
     lines = []
     for key in toolchain_dict:
@@ -133,10 +140,11 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
         lines.append("set({} \"{}\")".format(key, toolchain_dict[key]))
 
     cache_entries.update({
-        "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "$$EXT_BUILD_ROOT$$/{}".format(crosstool_file.path),
     })
+    ctx.actions.write(crosstool_file, "\n".join(sorted(lines)))
     return struct(
-        commands = ["cat > crosstool_bazel.cmake <<EOF\n" + "\n".join(sorted(lines)) + "\nEOF\n"],
+        files = [crosstool_file],
         env = env_vars,
         cache = cache_entries,
     )
@@ -160,7 +168,7 @@ def _create_cache_entries_env_vars(toolchain_dict, user_cache, user_env):
     merged_cache.update(user_cache)
 
     return struct(
-        commands = [],
+        files = [],
         env = merged_env,
         cache = merged_cache,
     )

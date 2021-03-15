@@ -73,8 +73,9 @@ def _create_configure_script(configureParameters):
     flags = get_flags_info(ctx, "<TARGET>")
     no_toolchain_file = ctx.attr.cache_entries.get("CMAKE_TOOLCHAIN_FILE") or not ctx.attr.generate_crosstool_file
 
-    define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
+    define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""
     configure_script = create_cmake_script(
+        ctx,
         workspace_name = ctx.workspace_name,
         cmake_path = configureParameters.attrs.cmake_path,
         tools = tools,
@@ -88,7 +89,10 @@ def _create_configure_script(configureParameters):
         include_dirs = inputs.include_dirs,
         is_debug_mode = is_debug_mode(ctx),
     )
-    return define_install_prefix + configure_script
+    return struct(
+        commands = [define_install_prefix] + configure_script.commands,
+        files = configure_script.files
+    )
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:

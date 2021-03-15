@@ -22,11 +22,14 @@ def _create_configure_script(configureParameters):
     ctx = configureParameters.ctx
     root = detect_root(ctx.attr.lib_source)
 
-    return "\n".join([
-        "cd $INSTALLDIR",
-        "##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{}/. .".format(root),
-        "./bootstrap.sh {}".format(" ".join(ctx.attr.bootstrap_options)),
-    ])
+    return struct(
+	commands = [
+            "cd $INSTALLDIR",
+            "##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{}/. .".format(root),
+            "./bootstrap.sh {}".format(" ".join(ctx.attr.bootstrap_options)),
+        ],
+	files = [],
+    )
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)

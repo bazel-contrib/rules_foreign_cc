@@ -77,7 +77,10 @@ def _create_ninja_script(configureParameters):
             target = target,
         ))
 
-    return "\n".join(script)
+    return struct(
+        commands = script,
+        files = [],
+    )
 
 def _attrs():
     """Modifies the common set of attributes used by rules_foreign_cc and sets Ninja specific attrs
