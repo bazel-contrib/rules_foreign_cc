@@ -70,7 +70,7 @@ native_tool_toolchain(
 
 make_tool(
     name = "make_tool",
-    make_srcs = "@gnumake_src//:all_srcs",
+    srcs = "@gnumake_src//:all_srcs",
     tags = ["manual"],
 )
 
@@ -93,7 +93,7 @@ native_tool_toolchain(
 
 cmake_tool(
     name = "cmake_tool",
-    cmake_srcs = "@cmake_src//:all_srcs",
+    srcs = "@cmake_src//:all_srcs",
     tags = ["manual"],
 )
 
@@ -116,7 +116,7 @@ native_tool_toolchain(
 
 ninja_tool(
     name = "ninja_tool",
-    ninja_srcs = "@ninja_build_src//:all_srcs",
+    srcs = "@ninja_build_src//:all_srcs",
     tags = ["manual"],
 )
 
