@@ -7,7 +7,7 @@ def os_name():
     return "windows"
 
 def pwd():
-    return "$(type -t cygpath > /dev/null && cygpath $(pwd) -w || pwd -W)"
+    return "$(pwd -W | sed 's|\\\\|/|g')"
 
 def echo(text):
     return "echo \"{text}\"".format(text = text)

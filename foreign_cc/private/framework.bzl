@@ -14,7 +14,7 @@ load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
     "create_linking_info",
-    "get_env_vars",
+    get_cc_env_vars = "get_env_vars",
     "targets_windows",
 )
 load(":detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
@@ -292,8 +292,7 @@ def _env_prelude(ctx, lib_name, data_dependencies, target_root):
         "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
     ]
 
-    # Start with the default shell env to capture `--action_env` args
-    env = dict(ctx.configuration.default_shell_env)
+    env = dict()
 
     # Add all user defined variables
     for key, value in getattr(ctx.attr, "env", {}).items():
@@ -375,6 +374,16 @@ def cc_external_rule_impl(ctx, attrs):
     data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
     target_root = paths.dirname(installdir_copy.file.dirname)
     env_prelude = _env_prelude(ctx, lib_name, data_dependencies, target_root)
+    env = get_cc_env_vars(ctx)
+
+    is_windows = "win" in os_name(ctx)
+    
+    # Windows currently uses `use_default_shell_env` so we want to make sure
+    # all cc environment variables are set
+    if is_windows:
+        env_prelude += "\n".join([
+            "export {}={}".format(key, val) for (key, val) in _correct_path_variable(env).items()
+        ])
 
     make_commands, make_tools = _generate_make_commands(ctx)
 
@@ -430,13 +439,13 @@ def cc_external_rule_impl(ctx, attrs):
         command = "bash {}".format(wrapped_outputs.wrapper_script_file.path),
         execution_requirements = execution_requirements,
         # Ensure the cc_toolchain environment variables are set for the action
-        env = _correct_path_variable(get_env_vars(ctx)),
+        env = env,
         # TODO: This should be removed to make builds more hermetic. `use_default_shell_env` is
         # currently enabled on windows because there's no great way to locate the MSYS2 bin
         # path within this rule. This is likely something that should be solved by an action env
         # but for now we'll allow this.
         # Additionally, `env` is ignored when `use_default_shell_env` is enabled.
-        use_default_shell_env = "win" in os_name(ctx),
+        use_default_shell_env = is_windows,
     )
 
     # Gather runfiles transitively as per the documentation in:
