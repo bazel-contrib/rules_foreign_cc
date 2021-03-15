@@ -314,7 +314,7 @@ def cc_external_rule_impl(ctx, attrs):
     cc_env = _correct_path_variable(get_env_vars(ctx))
     set_cc_envs = ""
     execution_os_name = os_name(ctx)
-    if execution_os_name != "osx":
+    if "win" in execution_os_name:
         set_cc_envs = "\n".join(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
 
     lib_header = "Bazel external C/C++ Rules. Building library '{}'".format(lib_name)
@@ -420,7 +420,7 @@ def cc_external_rule_impl(ctx, attrs):
         ),
         # TODO: Default to never using the default shell environment to make builds more hermetic. For now, every platform
         # but MacOS will take the default PATH passed by Bazel, not that from cc_toolchain.
-        use_default_shell_env = execution_os_name != "osx",
+        use_default_shell_env = "win" in execution_os_name,
         executable = wrapper,
         execution_requirements = execution_requirements,
         # this is ignored if use_default_shell_env = True
