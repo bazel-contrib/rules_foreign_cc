@@ -3,6 +3,7 @@
 """
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifact", "ForeignCcDeps")
 load("//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
@@ -29,7 +30,6 @@ load(
 load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
-    "fictive_file_in_genroot",
 )
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
@@ -315,17 +315,15 @@ def cc_external_rule_impl(ctx, attrs):
     # We want the install directory output of this rule to have the same name as the library,
     # so symlink it under the same name but in a subdirectory
     installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
-
-    # we need this fictive file in the root to get the path of the root in the script
-    empty = fictive_file_in_genroot(ctx.actions, ctx.label.name)
+    target_root = paths.dirname(installdir_copy.file.dirname)
 
     data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
 
     define_variables = set_cc_envs + [
         "export EXT_BUILD_ROOT=##pwd##",
-        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
-        "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
-        "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
+        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + target_root + "/" + lib_name,
+        "export BUILD_TMPDIR=$${INSTALLDIR}$$.build_tmpdir",
+        "export EXT_BUILD_DEPS=$${INSTALLDIR}$$.ext_build_deps",
     ] + [
         "export {key}={value}".format(
             key = key,
@@ -362,7 +360,6 @@ def cc_external_rule_impl(ctx, attrs):
         "##replace_absolute_paths## $$INSTALLDIR$$ $$BUILD_TMPDIR$$",
         "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
         installdir_copy.script,
-        empty.script,
         "cd $$EXT_BUILD_ROOT$$",
     ]
 
@@ -385,10 +382,7 @@ def cc_external_rule_impl(ctx, attrs):
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
-        outputs = rule_outputs + [
-            empty.file,
-            wrapped_outputs.log_file,
-        ],
+        outputs = rule_outputs + [wrapped_outputs.log_file],
         tools = depset(
             [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
             transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies] + build_tools,
