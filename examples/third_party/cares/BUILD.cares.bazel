@@ -15,12 +15,6 @@ cmake(
     },
     cmake_options = ["-GNinja"],
     lib_source = ":all_srcs",
-    make_commands = [
-        # The correct path to the ninja tool is detected from the selected ninja_toolchain.
-        # and "ninja" will be replaced with that path if needed
-        "ninja",
-        "ninja install",
-    ],
     out_static_libs = select({
         "@platforms//os:windows": ["cares.lib"],
         "//conditions:default": ["libcares.a"],

@@ -14,10 +14,6 @@ cmake(
     },
     cmake_options = ["-GNinja"],
     lib_source = "//cmake_with_bazel_transitive/libb:b_srcs",
-    make_commands = [
-        "ninja",
-        "ninja install",
-    ],
     out_static_libs = ["libb.a"],
     # This library is with public visibility, we can reuse it here.
     deps = ["//cmake_synthetic/liba:lib_a_bazel"],

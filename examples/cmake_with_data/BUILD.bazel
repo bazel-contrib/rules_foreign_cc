@@ -20,13 +20,6 @@ cmake(
         "//cmake_with_data/lib_b",
     ],
     lib_source = "//cmake_with_data/lib_a:srcs",
-    make_commands = select({
-        "@bazel_tools//src/conditions:windows": ["MSBuild.exe INSTALL.vcxproj"],
-        "//conditions:default": [
-            "make",
-            "make install",
-        ],
-    }),
     out_static_libs = select({
         "@bazel_tools//src/conditions:windows": ["lib_a.lib"],
         "//conditions:default": ["lib_a.a"],
