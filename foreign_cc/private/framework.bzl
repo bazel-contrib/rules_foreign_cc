@@ -48,6 +48,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
         mandatory = False,
         allow_files = True,
+        cfg = "exec",
         default = [],
     ),
     "alwayslink": attr.bool(
@@ -190,7 +191,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
         mandatory = False,
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = [],
     ),
     # we need to declare this attribute to access cc_toolchain
