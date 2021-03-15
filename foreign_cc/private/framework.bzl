@@ -253,6 +253,35 @@ dependencies.""",
     ),
 )
 
+def _env_prelude(ctx, lib_name, data_dependencies, target_root):
+    """Generate a bash snippet containing environment variable definitions
+
+    Args:
+        ctx (ctx): The rule's context object
+        lib_name (str): The name of the target being built
+        data_dependencies (list): A list of targets representing dependencies
+        target_root (str): The path from the root target's directory in the build output
+
+    Returns:
+        str: A series of `export`ed environment variables
+    """
+
+    env_snippet = [
+        "export EXT_BUILD_ROOT=##pwd##",
+        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + target_root + "/" + lib_name,
+        "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
+        "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
+    ]
+
+    # Add all user defined variables
+    env = dict()
+    for key, value in getattr(ctx.attr, "env", {}).items():
+        env.update({key: ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data_dependencies)})
+
+    env_snippet.extend(["export {}={}".format(key, val) for key, val in env.items()])
+    return "\n".join(env_snippet)
+
+
 def cc_external_rule_impl(ctx, attrs):
     """Framework function for performing external C/C++ building.
 
@@ -310,12 +339,8 @@ def cc_external_rule_impl(ctx, attrs):
     inputs = _define_inputs(attrs)
     outputs = _define_outputs(ctx, attrs, lib_name)
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
-
-    cc_env = _correct_path_variable(get_env_vars(ctx))
-    set_cc_envs = ""
+    
     execution_os_name = os_name(ctx)
-    if "win" in execution_os_name:
-        set_cc_envs = "\n".join(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
 
     lib_header = "Bazel external C/C++ Rules. Building library '{}'".format(lib_name)
 
@@ -331,20 +356,11 @@ def cc_external_rule_impl(ctx, attrs):
 
     data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
 
-    define_variables = [
-        set_cc_envs,
-        "export EXT_BUILD_ROOT=##pwd##",
-        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + target_root + "/" + lib_name,
-        "export BUILD_TMPDIR=$${INSTALLDIR}$$.build_tmpdir",
-        "export EXT_BUILD_DEPS=$${INSTALLDIR}$$.ext_build_deps",
-    ] + [
-        "export {key}={value}".format(
-            key = key,
-            # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
-            value = ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies),
-        )
-        for key, value in getattr(ctx.attr, "env", {}).items()
-    ]
+    env_prelude = _env_prelude(ctx, lib_name, data_dependencies, target_root)
+
+    cc_env = _correct_path_variable(get_env_vars(ctx))
+    if "win" in execution_os_name:
+        env_prelude += "\n".join(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
 
     make_commands, make_tools = _generate_make_commands(ctx)
 
@@ -353,7 +369,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##echo## \"{}\"".format(lib_header),
         "##echo## \"\"",
         "##script_prelude##",
-        "\n".join(define_variables),
+        env_prelude,
         "##path## $$EXT_BUILD_ROOT$$",
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
@@ -404,6 +420,10 @@ def cc_external_rule_impl(ctx, attrs):
         extra_tools.append(wrapper)
         wrapper = batch_wrapper
 
+     # Start with the default shell env to capture `--action_env` args
+    env = dict(ctx.configuration.default_shell_env)
+    env.update(cc_env)
+
     ctx.actions.run(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
@@ -412,13 +432,11 @@ def cc_external_rule_impl(ctx, attrs):
             [wrapped_outputs.script_file] + extra_tools + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
             transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies] + make_tools,
         ),
-        # TODO: Default to never using the default shell environment to make builds more hermetic. For now, every platform
-        # but MacOS will take the default PATH passed by Bazel, not that from cc_toolchain.
-        use_default_shell_env = "win" in execution_os_name,
+        # use_default_shell_env = True,
         executable = wrapper,
         execution_requirements = execution_requirements,
         # this is ignored if use_default_shell_env = True
-        env = cc_env,
+        env = env,
     )
 
     # Gather runfiles transitively as per the documentation in:
