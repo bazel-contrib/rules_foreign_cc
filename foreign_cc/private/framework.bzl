@@ -416,36 +416,27 @@ def cc_external_rule_impl(ctx, attrs):
     if "requires-network" in ctx.attr.tags:
         execution_requirements = {"requires-network": ""}
 
-    # We need to create a native batch script on windows to ensure the wrapper
-    # script can correctly be envoked with bash.
-    wrapper = wrapped_outputs.wrapper_script_file
-    extra_tools = []
-    if "win" in os_name(ctx):
-        batch_wrapper = ctx.actions.declare_file(wrapper.short_path + ".bat")
-        ctx.actions.write(
-            output = batch_wrapper,
-            content = "\n".join([
-                "@ECHO OFF",
-                "START /b /wait bash {}".format(wrapper.path),
-                "",
-            ]),
-            is_executable = True,
-        )
-        extra_tools.append(wrapper)
-        wrapper = batch_wrapper
-
-    ctx.actions.run(
+    # The use of `run_shell` here is intended to ensure bash is correctly setup on windows
+    # environments. This should not be replaced with `run` until a cross platform implementation
+    # is found that guarantees bash exists or appropriately errors out.
+    ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
         outputs = rule_outputs + [wrapped_outputs.log_file],
         tools = depset(
-            [wrapped_outputs.script_file] + extra_tools + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
+            [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
             transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies] + make_tools,
         ),
-        executable = wrapper,
+        command = "bash {}".format(wrapped_outputs.wrapper_script_file.path),
         execution_requirements = execution_requirements,
         # Ensure the cc_toolchain environment variables are set for the action
         env = _correct_path_variable(get_env_vars(ctx)),
+        # TODO: This should be removed to make builds more hermetic. `use_default_shell_env` is
+        # currently enabled on windows because there's no great way to locate the MSYS2 bin
+        # path within this rule. This is likely something that should be solved by an action env
+        # but for now we'll allow this.
+        # Additionally, `env` is ignored when `use_default_shell_env` is enabled.
+        use_default_shell_env = "win" in os_name(ctx),
     )
 
     # Gather runfiles transitively as per the documentation in:
