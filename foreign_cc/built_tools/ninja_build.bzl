@@ -1,42 +1,34 @@
 """ Rule for building Ninja from sources. """
 
-load("//foreign_cc/private:detect_root.bzl", "detect_root")
-load("//foreign_cc/private:shell_script_helper.bzl", "convert_shell_script")
+load(
+    "//foreign_cc/built_tools/private:built_tools_framework.bzl",
+    "FOREIGN_CC_BUILT_TOOLS_ATTRS",
+    "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
+    "built_tool_rule_impl",
+)
 
-def _ninja_tool(ctx):
-    root = detect_root(ctx.attr.ninja_srcs)
-
-    ninja = ctx.actions.declare_directory("ninja")
+def _ninja_tool_impl(ctx):
     script = [
-        "##mkdirs## " + ninja.path,
-        "##copy_dir_contents_to_dir## ./{} {}".format(root, ninja.path),
-        "cd " + ninja.path,
         "./configure.py --bootstrap",
+        # TODO: Reduce unnecessary copys and only keep what's required
+        "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$ $$INSTALLDIR$$",
     ]
-    script_text = convert_shell_script(ctx, script)
 
-    ctx.actions.run_shell(
-        mnemonic = "BootstrapNinja",
-        inputs = ctx.attr.ninja_srcs.files,
-        outputs = [ninja],
-        tools = [],
-        use_default_shell_env = True,
-        command = script_text,
-        execution_requirements = {"block-network": ""},
+    return built_tool_rule_impl(
+        ctx,
+        script,
+        ctx.actions.declare_directory("ninja"),
+        "BootstrapNinjaBuild",
     )
 
-    return [DefaultInfo(files = depset([ninja]))]
-
 ninja_tool = rule(
-    doc = "Rule for building Ninja. Invokes configure script and make install.",
-    attrs = {
-        "ninja_srcs": attr.label(mandatory = True),
-    },
-    host_fragments = ["cpp"],
+    doc = "Rule for building Ninja. Invokes configure script.",
+    attrs = FOREIGN_CC_BUILT_TOOLS_ATTRS,
+    host_fragments = FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS,
     output_to_genfiles = True,
-    implementation = _ninja_tool,
+    implementation = _ninja_tool_impl,
     toolchains = [
-        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
+        str(Label("//foreign_cc/private/shell_toolchain/toolchains:shell_commands")),
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )
