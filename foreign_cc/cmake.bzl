@@ -239,7 +239,7 @@ def _attrs():
         ),
         "generate_args": attr.string_list(
             doc = (
-                "Arugments for CMake's generate command. Arguments should be passed as key/value pairs. eg: " +
+                "Arguments for CMake's generate command. Arguments should be passed as key/value pairs. eg: " +
                 "`[\"-G Ninja\", \"--debug-output\", \"-DFOO=bar\"]`."
             ),
             mandatory = False,
@@ -251,7 +251,7 @@ def _attrs():
                 "provided cache-entries and env_vars (some values will still be passed as `-Dkey=value` " +
                 "and environment variables). If `CMAKE_TOOLCHAIN_FILE` cache entry is passed, " +
                 "specified crosstool file will be used When using this option to cross-compile, " +
-                "it is required to specify CMAKE_SYSTEM_NAME in the cache_entries"
+                "it is required to specify `CMAKE_SYSTEM_NAME` in the cache_entries"
             ),
             mandatory = False,
             default = True,
@@ -270,7 +270,7 @@ def _attrs():
         ),
         "make_commands": attr.string_list(
             doc = (
-                "__deprecated__: Optinal hard coded commands to replace the `cmake --build` commands. It's " +
+                "__deprecated__: Optional hard coded commands to replace the `cmake --build` commands. It's " +
                 "recommended to leave this empty and use the `targets` + `build_args` attributes."
             ),
             mandatory = False,

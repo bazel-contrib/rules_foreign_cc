@@ -106,13 +106,13 @@ def _attrs():
         ),
         "prefix": attr.string(
             doc = (
-                "__deprecated__: To maintain this behavior, pass `PREFIX=<valie>` to the `args` attribute"
+                "__deprecated__: To maintain this behavior, pass `PREFIX=<value>` to the `args` attribute"
             ),
             mandatory = False,
         ),
         "targets": attr.string_list(
             doc = (
-                "A list of targets with in the foreign build system to produce. An empty string (`\"\"`) will result in " +
+                "A list of targets within the foreign build system to produce. An empty string (`\"\"`) will result in " +
                 "a call to the underlying build system with no explicit target set"
             ),
             mandatory = False,

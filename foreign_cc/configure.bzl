@@ -187,7 +187,7 @@ def _attrs():
         ),
         "targets": attr.string_list(
             doc = (
-                "A list of targets with in the foreign build system to produce. An empty string (`\"\"`) will result in " +
+                "A list of targets within the foreign build system to produce. An empty string (`\"\"`) will result in " +
                 "a call to the underlying build system with no explicit target set"
             ),
             mandatory = False,
