@@ -62,52 +62,70 @@ toolchain(
 
 native_tool_toolchain(
     name = "preinstalled_make",
-    path = "make",
+    path = select({
+        "@platforms//os:windows": "make.exe",
+        "//conditions:default": "make",
+    }),
 )
 
 make_tool(
     name = "make_tool",
-    make_srcs = "@gnumake_src//:all_srcs",
+    srcs = "@gnumake_src//:all_srcs",
     tags = ["manual"],
 )
 
 native_tool_toolchain(
     name = "built_make",
-    path = "$(execpath :make_tool)/bin/make",
+    path = select({
+        "@platforms//os:windows": "$(execpath :make_tool)/bin/make.exe",
+        "//conditions:default": "$(execpath :make_tool)/bin/make",
+    }),
     target = ":make_tool",
 )
 
 native_tool_toolchain(
     name = "preinstalled_cmake",
-    path = "cmake",
+    path = select({
+        "@platforms//os:windows": "cmake.exe",
+        "//conditions:default": "cmake",
+    }),
 )
 
 cmake_tool(
     name = "cmake_tool",
-    cmake_srcs = "@cmake_src//:all_srcs",
+    srcs = "@cmake_src//:all_srcs",
     tags = ["manual"],
 )
 
 native_tool_toolchain(
     name = "built_cmake",
-    path = "$(execpath :cmake_tool)/bin/cmake",
+    path = select({
+        "@platforms//os:windows": "$(execpath :cmake_tool)/bin/cmake.exe",
+        "//conditions:default": "$(execpath :cmake_tool)/bin/cmake",
+    }),
     target = ":cmake_tool",
 )
 
 native_tool_toolchain(
     name = "preinstalled_ninja",
-    path = "ninja",
+    path = select({
+        "@platforms//os:windows": "ninja.exe",
+        "//conditions:default": "ninja",
+    }),
 )
 
 ninja_tool(
     name = "ninja_tool",
-    ninja_srcs = "@ninja_build_src//:all_srcs",
+    srcs = "@ninja_build_src//:all_srcs",
     tags = ["manual"],
 )
 
 native_tool_toolchain(
     name = "built_ninja",
-    path = "$(execpath :ninja_tool)/ninja",
+    path = select({
+        "@platforms//os:windows": "$(execpath :ninja_tool)/ninja.exe",
+        "//conditions:default": "$(execpath :ninja_tool)/ninja",
+    }),
     target = ":ninja_tool",
 )
 

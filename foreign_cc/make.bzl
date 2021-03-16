@@ -4,7 +4,6 @@ load(
     "get_flags_info",
     "get_tools_info",
 )
-load("//foreign_cc/private:configure_script.bzl", "create_make_script")
 load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",
@@ -16,6 +15,7 @@ load(
     "cc_external_rule_impl",
     "create_attrs",
 )
+load("//foreign_cc/private:make_script.bzl", "create_make_script")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
 def _make(ctx):
