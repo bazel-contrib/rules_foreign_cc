@@ -145,10 +145,11 @@ def _get_generator_target(ctx):
     """
     known_generators = [
         "Borland Makefiles",
-        "Green Hills",
+        "Green Hills MULTI",
         "MinGW Makefiles",
         "MSYS Makefiles",
         "Ninja",
+        "Ninja Multi-Config",
         "NMake Makefiles JOM",
         "NMake Makefiles",
         "Unix Makefiles",
