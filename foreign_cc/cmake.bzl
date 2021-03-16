@@ -8,10 +8,7 @@ load(
     "is_debug_mode",
 )
 load("//foreign_cc/private:cmake_script.bzl", "create_cmake_script")
-load(
-    "//foreign_cc/private:detect_root.bzl",
-    "detect_root",
-)
+load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load(
     "//foreign_cc/private:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
@@ -20,43 +17,41 @@ load(
     "create_attrs",
 )
 load(
-    "//toolchains/native_tools:tool_access.bzl", 
-    "get_cmake_data", 
-    "get_make_data", 
+    "//foreign_cc/private:shell_script_helper.bzl",
+    "os_name",
+)
+load(
+    "//toolchains/native_tools:tool_access.bzl",
+    "get_cmake_data",
+    "get_make_data",
     "get_ninja_data",
 )
 
 def _cmake_impl(ctx):
     cmake_data = get_cmake_data(ctx)
-    make_path = None
-    ninja_path = None
 
     tools_deps = ctx.attr.tools_deps + cmake_data.deps
+    env = dict(ctx.attr.env)
 
-    # For generators using ninja, make sure it's available
-    for option in ctx.attr.cmake_options:
-        if "Ninja" in option:
-            ninja_data = get_ninja_data(ctx)
-            ninja_path = ninja_data.path
-            tools_deps.extend(ninja_data.deps)
-            break
-
-    # TODO: There should be more control over the generator CMake uses in the rules
-    # so we can provide only the necessary toolchains. This is important because we
-    # don't want to unnecessarily include "built tools" when they won't be used. This
-    # avoids potentially long build and wasted build time.
-    make_data = get_make_data(ctx)
-    make_path = make_data.path
+    generator = _get_generator_target(ctx)
+    if "Unix Makefiles" == generator:
+        make_data = get_make_data(ctx)
+        tools_deps.extend(make_data.deps)
+        env.update({"CMAKE_MAKE_PROGRAM": make_data.path})
+    elif "Ninja" in generator:
+        ninja_data = get_ninja_data(ctx)
+        tools_deps.extend(ninja_data.deps)
+        env.update({"CMAKE_MAKE_PROGRAM": ninja_data.path})
 
     attrs = create_attrs(
         ctx.attr,
+        env = env,
+        generator = generator,
         configure_name = "CMake",
         create_configure_script = _create_configure_script,
         postfix_script = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n" + ctx.attr.postfix_script,
         tools_deps = tools_deps,
         cmake_path = cmake_data.path,
-        make_path = make_path,
-        ninja_path = ninja_path,
     )
 
     return cc_external_rule_impl(ctx, attrs)
@@ -120,7 +115,8 @@ def _create_configure_script(configureParameters):
     define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
-        cmake_path = configureParameters.attrs.cmake_path,
+        generator = attrs.generator,
+        cmake_path = attrs.cmake_path,
         tools = tools,
         flags = flags,
         install_prefix = "$$INSTALL_PREFIX$$",
@@ -134,6 +130,54 @@ def _create_configure_script(configureParameters):
         is_debug_mode = is_debug_mode(ctx),
     )
     return define_install_prefix + configure_script
+
+def _get_generator_target(ctx):
+    known_generators = [
+        "Borland Makefiles",
+        "Green Hills",
+        "MinGW Makefiles",
+        "MSYS Makefiles",
+        "Ninja",
+        "NMake Makefiles JOM",
+        "NMake Makefiles",
+        "Unix Makefiles",
+        "Visual Studio 10 2010",
+        "Visual Studio 11 2012",
+        "Visual Studio 12 2013",
+        "Visual Studio 14 2015",
+        "Visual Studio 15 2017",
+        "Visual Studio 16 2019",
+        "Visual Studio 9 2008",
+        "Watcom WMake",
+        "Xcode",
+    ]
+
+    generator = None
+
+    # Search by range in case a user
+    for arg in ctx.attr.generate_args + getattr(ctx.attr, "cmake_options", []):
+        if arg.startswith("-G"):
+            generator = arg[2:]
+            generator = generator.strip(" =\"'")
+            break
+
+    if not generator:
+        execution_os_name = os_name(ctx)
+        if "win" in execution_os_name:
+            generator = "Ninja"
+        elif "macos" in execution_os_name:
+            generator = "Unix Makefiles"
+        elif "linux" in execution_os_name:
+            generator = "Unix Makefiles"
+        else:
+            fail("No generator set and no default is known. Please set the cmake `generator` attribute")
+
+    # Sanity check
+    for gen in known_generators:
+        if generator.startswith(gen):
+            return generator
+
+    fail("`{}` is not a known generator".format(generator))
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:
@@ -159,7 +203,7 @@ def _attrs():
             default = {},
         ),
         "cmake_options": attr.string_list(
-            doc = "Arugments for CMake's generate command",
+            doc = "__deprecated__: Use `generate_args`",
             mandatory = False,
             default = [],
         ),
@@ -170,6 +214,14 @@ def _attrs():
             ),
             mandatory = False,
             default = {},
+        ),
+        "generate_args": attr.string_list(
+            doc = (
+                "Arugments for CMake's generate command. Arguments should be passed as key/value pairs. eg: " +
+                "`[\"-G Ninja\", \"--debug-output\", \"-DFOO=bar\"]`."
+            ),
+            mandatory = False,
+            default = [],
         ),
         "generate_crosstool_file": attr.bool(
             doc = (

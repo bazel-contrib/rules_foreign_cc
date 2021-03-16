@@ -4,7 +4,7 @@ load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 cmake(
     name = "liba",
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     # Demonstrate non-alphanumeric name
     lib_name = "liba++",
     lib_source = "//cmake_synthetic/liba:a_srcs",
@@ -13,7 +13,7 @@ cmake(
 
 cmake(
     name = "libb",
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     lib_source = "//cmake_synthetic/libb:b_srcs",
     deps = [":liba"],
 )
@@ -24,7 +24,7 @@ cmake(
         "LIBA_DIR": "$$EXT_BUILD_DEPS$$",
         "LIBB_DIR": "$$EXT_BUILD_DEPS$$",
     },
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     lib_name = "libc",
     lib_source = "//cmake_synthetic/libc:c_srcs",
     deps = [

@@ -20,7 +20,10 @@ cmake(
 
 cmake(
     name = "libhello_win",
-    cmake_options = ["-G \"Visual Studio 15 2017\" -A x64"],
+    generate_args = [
+        "-G \"Visual Studio 15 2017\"",
+        "-A x64",
+    ],
     lib_name = "libhello",
     lib_source = ":srcs",
     # pass include/version123 to C/C++ provider as include directory
@@ -32,7 +35,7 @@ cmake(
 
 cmake(
     name = "libhello_win_ninja",
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     lib_source = ":srcs",
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
@@ -43,7 +46,7 @@ cmake(
 
 cmake(
     name = "libhello_win_nmake",
-    cmake_options = ["-G \"NMake Makefiles\""],
+    generate_args = ["-G \"NMake Makefiles\""],
     lib_source = ":srcs",
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",

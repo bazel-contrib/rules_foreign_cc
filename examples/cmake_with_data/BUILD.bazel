@@ -11,14 +11,17 @@ cmake(
         },
         "//conditions:default": {},
     }),
-    cmake_options = select({
-        "@bazel_tools//src/conditions:windows": ["-G \"Visual Studio 15 2017\" -A x64"],
-        "//conditions:default": [],
-    }),
     data = [
         "cmake_with_data.txt",
         "//cmake_with_data/lib_b",
     ],
+    generate_args = select({
+        "@bazel_tools//src/conditions:windows": [
+            "-G \"Visual Studio 15 2017\"",
+            "-A x64",
+        ],
+        "//conditions:default": [],
+    }),
     lib_source = "//cmake_with_data/lib_a:srcs",
     out_static_libs = select({
         "@bazel_tools//src/conditions:windows": ["lib_a.lib"],

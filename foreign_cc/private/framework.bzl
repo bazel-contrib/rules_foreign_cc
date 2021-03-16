@@ -346,7 +346,9 @@ def cc_external_rule_impl(ctx, attrs):
             # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
             value = ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies),
         )
-        for key, value in getattr(ctx.attr, "env", {}).items()
+        for key, value in dict(
+            getattr(ctx.attr, "env", {}).items() + getattr(attrs, "env", {}).items(),
+        ).items()
     ]
 
     make_commands, build_tools = _generate_make_commands(ctx)

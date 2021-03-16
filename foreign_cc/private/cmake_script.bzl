@@ -4,6 +4,7 @@ load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
 def create_cmake_script(
         workspace_name,
+        generator,
         cmake_path,
         tools,
         flags,
@@ -20,6 +21,7 @@ def create_cmake_script(
 
     Args:
         workspace_name: current workspace name
+        generator: The generator target for cmake to use
         cmake_path: The path to the cmake executable
         tools: cc_toolchain tools (CxxToolsInfo)
         flags: cc_toolchain flags (CxxFlagsInfo)
@@ -88,6 +90,8 @@ def create_cmake_script(
         cmake_path,
         str_cmake_cache_entries,
         " ".join(options),
+        # Generator is always set last and will override anything specified by the user
+        "-G '{}'".format(generator),
         directory,
     ]))
 

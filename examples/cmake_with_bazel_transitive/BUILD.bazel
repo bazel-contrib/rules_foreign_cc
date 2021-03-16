@@ -12,7 +12,7 @@ cmake(
         # and the headers into $EXT_BUILD_DEPS/include
         "LIBA_DIR": "$EXT_BUILD_DEPS",
     },
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     lib_source = "//cmake_with_bazel_transitive/libb:b_srcs",
     out_static_libs = ["libb.a"],
     # This library is with public visibility, we can reuse it here.
