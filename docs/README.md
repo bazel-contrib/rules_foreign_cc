@@ -69,11 +69,11 @@ Rule for building Boost. Invokes bootstrap.sh and then b2 install.
 
 <pre>
 cmake(<a href="#cmake-name">name</a>, <a href="#cmake-additional_inputs">additional_inputs</a>, <a href="#cmake-additional_tools">additional_tools</a>, <a href="#cmake-alwayslink">alwayslink</a>, <a href="#cmake-binaries">binaries</a>, <a href="#cmake-build_args">build_args</a>, <a href="#cmake-cache_entries">cache_entries</a>,
-      <a href="#cmake-cmake_options">cmake_options</a>, <a href="#cmake-data">data</a>, <a href="#cmake-defines">defines</a>, <a href="#cmake-deps">deps</a>, <a href="#cmake-env">env</a>, <a href="#cmake-env_vars">env_vars</a>, <a href="#cmake-generate_crosstool_file">generate_crosstool_file</a>, <a href="#cmake-headers_only">headers_only</a>,
-      <a href="#cmake-install">install</a>, <a href="#cmake-install_args">install_args</a>, <a href="#cmake-install_prefix">install_prefix</a>, <a href="#cmake-interface_libraries">interface_libraries</a>, <a href="#cmake-lib_name">lib_name</a>, <a href="#cmake-lib_source">lib_source</a>, <a href="#cmake-linkopts">linkopts</a>,
-      <a href="#cmake-make_commands">make_commands</a>, <a href="#cmake-out_bin_dir">out_bin_dir</a>, <a href="#cmake-out_binaries">out_binaries</a>, <a href="#cmake-out_headers_only">out_headers_only</a>, <a href="#cmake-out_include_dir">out_include_dir</a>, <a href="#cmake-out_interface_libs">out_interface_libs</a>,
-      <a href="#cmake-out_lib_dir">out_lib_dir</a>, <a href="#cmake-out_shared_libs">out_shared_libs</a>, <a href="#cmake-out_static_libs">out_static_libs</a>, <a href="#cmake-postfix_script">postfix_script</a>, <a href="#cmake-shared_libraries">shared_libraries</a>,
-      <a href="#cmake-static_libraries">static_libraries</a>, <a href="#cmake-targets">targets</a>, <a href="#cmake-tools_deps">tools_deps</a>, <a href="#cmake-working_directory">working_directory</a>)
+      <a href="#cmake-cmake_options">cmake_options</a>, <a href="#cmake-data">data</a>, <a href="#cmake-defines">defines</a>, <a href="#cmake-deps">deps</a>, <a href="#cmake-env">env</a>, <a href="#cmake-env_vars">env_vars</a>, <a href="#cmake-generate_args">generate_args</a>, <a href="#cmake-generate_crosstool_file">generate_crosstool_file</a>,
+      <a href="#cmake-headers_only">headers_only</a>, <a href="#cmake-install">install</a>, <a href="#cmake-install_args">install_args</a>, <a href="#cmake-install_prefix">install_prefix</a>, <a href="#cmake-interface_libraries">interface_libraries</a>, <a href="#cmake-lib_name">lib_name</a>, <a href="#cmake-lib_source">lib_source</a>,
+      <a href="#cmake-linkopts">linkopts</a>, <a href="#cmake-make_commands">make_commands</a>, <a href="#cmake-out_bin_dir">out_bin_dir</a>, <a href="#cmake-out_binaries">out_binaries</a>, <a href="#cmake-out_headers_only">out_headers_only</a>, <a href="#cmake-out_include_dir">out_include_dir</a>,
+      <a href="#cmake-out_interface_libs">out_interface_libs</a>, <a href="#cmake-out_lib_dir">out_lib_dir</a>, <a href="#cmake-out_shared_libs">out_shared_libs</a>, <a href="#cmake-out_static_libs">out_static_libs</a>, <a href="#cmake-postfix_script">postfix_script</a>,
+      <a href="#cmake-shared_libraries">shared_libraries</a>, <a href="#cmake-static_libraries">static_libraries</a>, <a href="#cmake-targets">targets</a>, <a href="#cmake-tools_deps">tools_deps</a>, <a href="#cmake-working_directory">working_directory</a>)
 </pre>
 
 Rule for building external library with CMake.
@@ -90,12 +90,13 @@ Rule for building external library with CMake.
 | <a id="cmake-binaries"></a>binaries |  __deprecated__: Use <code>out_binaries</code> instead.   | List of strings | optional | [] |
 | <a id="cmake-build_args"></a>build_args |  Arguments for the CMake build command   | List of strings | optional | [] |
 | <a id="cmake-cache_entries"></a>cache_entries |  CMake cache entries to initialize (they will be passed with <code>-Dkey=value</code>) Values, defined by the toolchain, will be joined with the values, passed here. (Toolchain values come first)   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
-| <a id="cmake-cmake_options"></a>cmake_options |  Arugments for CMake's generate command   | List of strings | optional | [] |
+| <a id="cmake-cmake_options"></a>cmake_options |  __deprecated__: Use <code>generate_args</code>   | List of strings | optional | [] |
 | <a id="cmake-data"></a>data |  Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="cmake-defines"></a>defines |  Optional compilation definitions to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.   | List of strings | optional | [] |
 | <a id="cmake-deps"></a>deps |  Optional dependencies to be copied into the directory structure. Typically those directly required for the external building of the library/binaries. (i.e. those that the external buidl system will be looking for and paths to which are provided by the calling rule)   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="cmake-env"></a>env |  Environment variables to set during the build. $(execpath) macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, but unlike with other rules, these will be replaced with absolute paths to those files, because the build does not run in the exec root. No other macros are supported.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 | <a id="cmake-env_vars"></a>env_vars |  CMake environment variable values to join with toolchain-defined. For example, additional <code>CXXFLAGS</code>.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="cmake-generate_args"></a>generate_args |  Arugments for CMake's generate command. Arguments should be passed as key/value pairs. eg: <code>["-G Ninja", "--debug-output", "-DFOO=bar"]</code>.   | List of strings | optional | [] |
 | <a id="cmake-generate_crosstool_file"></a>generate_crosstool_file |  When True, CMake crosstool file will be generated from the toolchain values, provided cache-entries and env_vars (some values will still be passed as <code>-Dkey=value</code> and environment variables). If <code>CMAKE_TOOLCHAIN_FILE</code> cache entry is passed, specified crosstool file will be used When using this option to cross-compile, it is required to specify CMAKE_SYSTEM_NAME in the cache_entries   | Boolean | optional | True |
 | <a id="cmake-headers_only"></a>headers_only |  __deprecated__: Use <code>out_headers_only</code> instead.   | Boolean | optional | False |
 | <a id="cmake-install"></a>install |  If True, the <code>cmake --install</code> comand will be performed after a build   | Boolean | optional | True |
@@ -127,7 +128,7 @@ Rule for building external library with CMake.
 ## cmake_tool
 
 <pre>
-cmake_tool(<a href="#cmake_tool-name">name</a>, <a href="#cmake_tool-cmake_srcs">cmake_srcs</a>)
+cmake_tool(<a href="#cmake_tool-name">name</a>, <a href="#cmake_tool-srcs">srcs</a>)
 </pre>
 
 Rule for building CMake. Invokes bootstrap script and make install.
@@ -138,7 +139,7 @@ Rule for building CMake. Invokes bootstrap script and make install.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="cmake_tool-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-| <a id="cmake_tool-cmake_srcs"></a>cmake_srcs |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="cmake_tool-srcs"></a>srcs |  The target containing the build tool's sources   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
 
 
 <a id="#configure_make"></a>
@@ -267,7 +268,7 @@ Rule for building external libraries with GNU Make. GNU Make commands (make and 
 ## make_tool
 
 <pre>
-make_tool(<a href="#make_tool-name">name</a>, <a href="#make_tool-make_srcs">make_srcs</a>)
+make_tool(<a href="#make_tool-name">name</a>, <a href="#make_tool-srcs">srcs</a>)
 </pre>
 
 Rule for building Make. Invokes configure script and make install.
@@ -278,7 +279,7 @@ Rule for building Make. Invokes configure script and make install.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="make_tool-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-| <a id="make_tool-make_srcs"></a>make_srcs |  target with the Make sources   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="make_tool-srcs"></a>srcs |  The target containing the build tool's sources   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
 
 
 <a id="#native_tool_toolchain"></a>
@@ -356,10 +357,10 @@ Rule for building external libraries with [Ninja](https://ninja-build.org/).
 ## ninja_tool
 
 <pre>
-ninja_tool(<a href="#ninja_tool-name">name</a>, <a href="#ninja_tool-ninja_srcs">ninja_srcs</a>)
+ninja_tool(<a href="#ninja_tool-name">name</a>, <a href="#ninja_tool-srcs">srcs</a>)
 </pre>
 
-Rule for building Ninja. Invokes configure script and make install.
+Rule for building Ninja. Invokes configure script.
 
 **ATTRIBUTES**
 
@@ -367,7 +368,7 @@ Rule for building Ninja. Invokes configure script and make install.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ninja_tool-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-| <a id="ninja_tool-ninja_srcs"></a>ninja_srcs |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="ninja_tool-srcs"></a>srcs |  The target containing the build tool's sources   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
 
 
 <a id="#ForeignCcArtifact"></a>
