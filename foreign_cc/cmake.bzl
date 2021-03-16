@@ -171,13 +171,14 @@ def _get_generator_target(ctx):
         if arg.startswith("-G"):
             generator_definitions.append(arg)
             break
-    
+
     if len(generator_definitions) > 1:
         fail("Please specify no more than 1 generator argument. Arguments found: {}".format(generator_definitions))
 
     for definition in generator_definitions:
         generator = definition[2:]
         generator = generator.strip(" =\"'")
+
         # Remove the argument so it's not passed twice to the cmake command
         # See create_cmake_script for more details
         generator_args.remove(definition)
