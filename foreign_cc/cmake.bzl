@@ -19,21 +19,34 @@ load(
     "cc_external_rule_impl",
     "create_attrs",
 )
-load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_ninja_data")
+load(
+    "//toolchains/native_tools:tool_access.bzl", 
+    "get_cmake_data", 
+    "get_make_data", 
+    "get_ninja_data",
+)
 
 def _cmake_impl(ctx):
     cmake_data = get_cmake_data(ctx)
+    make_path = None
     ninja_path = None
 
     tools_deps = ctx.attr.tools_deps + cmake_data.deps
 
     # For generators using ninja, make sure it's available
     for option in ctx.attr.cmake_options:
-        if "ninja" in option.lower():
+        if "Ninja" in option:
             ninja_data = get_ninja_data(ctx)
             ninja_path = ninja_data.path
             tools_deps.extend(ninja_data.deps)
             break
+
+    # TODO: There should be more control over the generator CMake uses in the rules
+    # so we can provide only the necessary toolchains. This is important because we
+    # don't want to unnecessarily include "built tools" when they won't be used. This
+    # avoids potentially long build and wasted build time.
+    make_data = get_make_data(ctx)
+    make_path = make_data.path
 
     attrs = create_attrs(
         ctx.attr,
@@ -42,6 +55,7 @@ def _cmake_impl(ctx):
         postfix_script = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n" + ctx.attr.postfix_script,
         tools_deps = tools_deps,
         cmake_path = cmake_data.path,
+        make_path = make_path,
         ninja_path = ninja_path,
     )
 
