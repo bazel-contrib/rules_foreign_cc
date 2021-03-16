@@ -33,7 +33,7 @@ def _cmake_impl(ctx):
     tools_deps = ctx.attr.tools_deps + cmake_data.deps
     env = dict(ctx.attr.env)
 
-    generator, generator_args = _get_generator_target(ctx)
+    generator, generate_args = _get_generator_target(ctx)
     if "Unix Makefiles" == generator:
         make_data = get_make_data(ctx)
         tools_deps.extend(make_data.deps)
@@ -47,7 +47,7 @@ def _cmake_impl(ctx):
         ctx.attr,
         env = env,
         generator = generator,
-        generator_args = generator_args,
+        generate_args = generate_args,
         configure_name = "CMake",
         create_configure_script = _create_configure_script,
         postfix_script = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n" + ctx.attr.postfix_script,
@@ -125,7 +125,7 @@ def _create_configure_script(configureParameters):
         no_toolchain_file = no_toolchain_file,
         user_cache = dict(ctx.attr.cache_entries),
         user_env = getattr(ctx.attr, "env_vars", {}),
-        options = attrs.generator_args,
+        options = attrs.generate_args,
         cmake_commands = cmake_commands,
         include_dirs = inputs.include_dirs,
         is_debug_mode = is_debug_mode(ctx),
@@ -167,8 +167,8 @@ def _get_generator_target(ctx):
     generator = None
 
     generator_definitions = []
-    generator_args = ctx.attr.generate_args + getattr(ctx.attr, "cmake_options", [])
-    for arg in generator_args:
+    generate_args = ctx.attr.generate_args + getattr(ctx.attr, "cmake_options", [])
+    for arg in generate_args:
         if arg.startswith("-G"):
             generator_definitions.append(arg)
             break
@@ -182,7 +182,7 @@ def _get_generator_target(ctx):
 
         # Remove the argument so it's not passed twice to the cmake command
         # See create_cmake_script for more details
-        generator_args.remove(definition)
+        generate_args.remove(definition)
 
     if not generator:
         execution_os_name = os_name(ctx)
@@ -198,7 +198,7 @@ def _get_generator_target(ctx):
     # Sanity check
     for gen in known_generators:
         if generator.startswith(gen):
-            return generator, generator_args
+            return generator, generate_args
 
     fail("`{}` is not a known generator".format(generator))
 
