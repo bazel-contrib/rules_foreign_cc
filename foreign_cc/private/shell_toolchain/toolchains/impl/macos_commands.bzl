@@ -4,7 +4,7 @@ load("@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:function_
 _REPLACE_VALUE = "\\${EXT_BUILD_DEPS}"
 
 def os_name():
-    return "osx"
+    return "macos"
 
 def pwd():
     return "$(pwd)"
