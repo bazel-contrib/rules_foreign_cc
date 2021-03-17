@@ -97,12 +97,9 @@ def create_cmake_script(
 
     script.extend(cmake_commands)
 
-    script.extend([
-        "set +x",
-        "",
-    ])
+    script.append("set +x")
 
-    return "\n".join(params.commands + script)
+    return params.commands + script
 
 def _wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
     for key in keys_with_empty_values_in_user_cache:
@@ -158,7 +155,7 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
         "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",
     })
     return struct(
-        commands = ["cat > crosstool_bazel.cmake <<EOF\n" + "\n".join(sorted(lines)) + "\nEOF\n"],
+        commands = ["cat > crosstool_bazel.cmake <<EOF"] + sorted(lines) + ["EOF", ""],
         env = env_vars,
         cache = cache_entries,
     )

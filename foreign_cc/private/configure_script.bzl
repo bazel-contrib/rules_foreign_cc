@@ -72,7 +72,7 @@ def create_configure_script(
     script.extend(make_commands)
     script.append("set +x")
 
-    return "\n".join(script)
+    return script
 
 def _get_autogen_env_vars(autogen_env_vars):
     # Make a copy if necessary so we can set NOCONFIGURE.
