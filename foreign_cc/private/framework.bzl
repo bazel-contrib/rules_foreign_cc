@@ -313,10 +313,10 @@ def cc_external_rule_impl(ctx, attrs):
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
     cc_env = _correct_path_variable(get_env_vars(ctx))
-    set_cc_envs = ""
+    set_cc_envs = []
     execution_os_name = os_name(ctx)
     if execution_os_name != "macos":
-        set_cc_envs = "\n".join(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
+        set_cc_envs = ["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env]
 
     lib_header = "Bazel external C/C++ Rules. Building library '{}'".format(lib_name)
 
@@ -334,8 +334,7 @@ def cc_external_rule_impl(ctx, attrs):
 
     data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
 
-    define_variables = [
-        set_cc_envs,
+    define_variables = set_cc_envs + [
         "export EXT_BUILD_ROOT=##pwd##",
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
         "export BUILD_TMPDIR=$${INSTALLDIR}$$.build_tmpdir",
@@ -353,22 +352,23 @@ def cc_external_rule_impl(ctx, attrs):
 
     make_commands, build_tools = _generate_make_commands(ctx)
 
+    postfix_script = [attrs.postfix_script]
+    if not attrs.postfix_script:
+        postfix_script = []
+
     script_lines = [
         "##echo## \"\"",
         "##echo## \"{}\"".format(lib_header),
         "##echo## \"\"",
         "##script_prelude##",
-        "\n".join(define_variables),
+    ] + define_variables + [
         "##path## $$EXT_BUILD_ROOT$$",
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
         "##mkdirs## $$EXT_BUILD_DEPS$$",
-        _print_env(),
-        "\n".join(_copy_deps_and_tools(inputs)),
+    ] + _print_env() + _copy_deps_and_tools(inputs) + [
         "cd $$BUILD_TMPDIR$$",
-        attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
-        "\n".join(make_commands),
-        attrs.postfix_script or "",
+    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + make_commands + postfix_script + [
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
@@ -546,11 +546,11 @@ def _get_transitive_artifacts(deps):
     return artifacts
 
 def _print_env():
-    return "\n".join([
+    return [
         "##echo## \"Environment:______________\"",
         "##env##",
         "##echo## \"__________________________\"",
-    ])
+    ]
 
 def _correct_path_variable(env):
     value = env.get("PATH", "")

@@ -113,7 +113,7 @@ def _create_configure_script(configureParameters):
                 config = configuration,
             ))
 
-    define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
+    define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
         generator = attrs.generator,

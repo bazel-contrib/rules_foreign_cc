@@ -24,7 +24,7 @@ def create_make_script(
     script.append("set -x")
     script.extend(make_commands)
     script.append("set +x")
-    return "\n".join(script)
+    return script
 
 # buildifier: disable=function-docstring-args
 # buildifier: disable=function-docstring-return
