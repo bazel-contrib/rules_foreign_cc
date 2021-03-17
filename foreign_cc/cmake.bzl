@@ -241,7 +241,10 @@ def _attrs():
         "generate_args": attr.string_list(
             doc = (
                 "Arguments for CMake's generate command. Arguments should be passed as key/value pairs. eg: " +
-                "`[\"-G Ninja\", \"--debug-output\", \"-DFOO=bar\"]`."
+                "`[\"-G Ninja\", \"--debug-output\", \"-DFOO=bar\"]`. Note that unless a generator (`-G`) argument " +
+                "is provided, the default generators are [Unix Makefiles](https://cmake.org/cmake/help/latest/generator/Unix%20Makefiles.html) " +
+                "for Linux and MacOS and [Ninja](https://cmake.org/cmake/help/latest/generator/Ninja.html) for " +
+                "Windows."
             ),
             mandatory = False,
             default = [],
