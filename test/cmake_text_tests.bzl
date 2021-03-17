@@ -241,6 +241,7 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "Unix Makefiles",
         "cmake",
         tools,
         flags,
@@ -250,8 +251,16 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
         user_cache,
         user_env,
         [],
+        cmake_commands = [],
     )
-    expected = """CC="/usr/bin/gcc" CXX="/usr/bin/gcc" CXXFLAGS="foo=\\"bar\\" -Fbat" cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB=""  $EXT_BUILD_ROOT/external/test_rule"""
+    expected = """\
+export CC="/usr/bin/gcc"
+export CXX="/usr/bin/gcc"
+export CXXFLAGS="foo=\\"bar\\" -Fbat"
+set -x
+cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB=""  -G 'Unix Makefiles' $EXT_BUILD_ROOT/external/test_rule
+set +x
+"""
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
@@ -281,6 +290,7 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "Ninja",
         "cmake",
         tools,
         flags,
@@ -289,9 +299,19 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
         True,
         user_cache,
         user_env,
-        ["-GNinja"],
+        ["--debug-output", "-Wdev"],
+        cmake_commands = [],
     )
-    expected = """CC="/usr/bin/gcc" CXX="/usr/bin/gcc" CFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" CXXFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DNOFORTRAN="on" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS;/abc/def" -DCMAKE_RANLIB="" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+    expected = """\
+export CC="/usr/bin/gcc"
+export CXX="/usr/bin/gcc"
+export CFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+export CXXFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+export ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+set -x
+cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DNOFORTRAN="on" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS;/abc/def" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $EXT_BUILD_ROOT/external/test_rule
+set +x
+"""
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
@@ -324,6 +344,7 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "Ninja",
         "cmake",
         tools,
         flags,
@@ -332,9 +353,19 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
         True,
         user_cache,
         user_env,
-        ["-GNinja"],
+        ["--debug-output", "-Wdev"],
+        cmake_commands = [],
     )
-    expected = """CC="/usr/bin/gcc" CXX="/usr/bin/gcc" CFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" CXXFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall" cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS;/abc/def" -DCMAKE_RANLIB="" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+    expected = """\
+export CC="/usr/bin/gcc"
+export CXX="/usr/bin/gcc"
+export CFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+export CXXFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+export ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+set -x
+cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS;/abc/def" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $EXT_BUILD_ROOT/external/test_rule
+set +x
+"""
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
@@ -363,6 +394,7 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "Ninja",
         "cmake",
         tools,
         flags,
@@ -371,7 +403,8 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
         False,
         user_cache,
         user_env,
-        ["-GNinja"],
+        ["--debug-output", "-Wdev"],
+        cmake_commands = [],
     )
     expected = """cat > crosstool_bazel.cmake <<EOF
 set(CMAKE_AR "/usr/bin/ar" CACHE FILEPATH "Archiver")
@@ -384,7 +417,10 @@ set(CMAKE_EXE_LINKER_FLAGS_INIT "-fuse-ld=gold -Wl -no-as-needed")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "-shared -fuse-ld=gold")
 EOF
 
- cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+set -x
+cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB=\"\" --debug-output -Wdev -G 'Ninja' $EXT_BUILD_ROOT/external/test_rule
+set +x
+"""
     asserts.equals(env, expected.splitlines(), script.splitlines())
 
     return unittest.end(env)
@@ -427,6 +463,7 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "Ninja",
         "cmake",
         tools,
         flags,
@@ -435,9 +472,20 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
         True,
         user_cache,
         user_env,
-        ["-GNinja"],
+        ["--debug-output", "-Wdev"],
+        cmake_commands = [],
     )
-    expected = """CC="sink-cc-value" CXX="sink-cxx-value" CFLAGS="-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag" CXXFLAGS="--quoted=\\"abc def\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain" ASMFLAGS="assemble assemble-user" CUSTOM_ENV="YES" cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB="" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+    expected = """\
+export CC="sink-cc-value"
+export CXX="sink-cxx-value"
+export CFLAGS="-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag"
+export CXXFLAGS="--quoted=\\"abc def\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain"
+export ASMFLAGS="assemble assemble-user"
+export CUSTOM_ENV="YES"
+set -x
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $EXT_BUILD_ROOT/external/test_rule
+set +x
+"""
     asserts.equals(env, expected, script)
 
     return unittest.end(env)
@@ -479,6 +527,7 @@ def _create_cmake_script_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "Ninja",
         "cmake",
         tools,
         flags,
@@ -487,7 +536,8 @@ def _create_cmake_script_toolchain_file_test(ctx):
         False,
         user_cache,
         user_env,
-        ["-GNinja"],
+        ["--debug-output", "-Wdev"],
+        cmake_commands = [],
     )
     expected = """cat > crosstool_bazel.cmake <<EOF
 set(CMAKE_AR "/cxx_linker_static" CACHE FILEPATH "Archiver")
@@ -504,7 +554,11 @@ set(CMAKE_SHARED_LINKER_FLAGS_INIT "shared1 shared2")
 set(CMAKE_SYSROOT "/abc/sysroot")
 EOF
 
-CUSTOM_ENV=\"YES\" cmake -DCUSTOM_CACHE=\"YES\" -DCMAKE_TOOLCHAIN_FILE=\"crosstool_bazel.cmake\" -DCMAKE_BUILD_TYPE=\"Debug\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_RANLIB=\"\" -GNinja $EXT_BUILD_ROOT/external/test_rule"""
+export CUSTOM_ENV=\"YES\"
+set -x
+cmake -DCUSTOM_CACHE=\"YES\" -DCMAKE_TOOLCHAIN_FILE=\"crosstool_bazel.cmake\" -DCMAKE_BUILD_TYPE=\"Debug\" -DCMAKE_INSTALL_PREFIX=\"test_rule\" -DCMAKE_PREFIX_PATH=\"$EXT_BUILD_DEPS\" -DCMAKE_RANLIB=\"\" --debug-output -Wdev -G 'Ninja' $EXT_BUILD_ROOT/external/test_rule
+set +x
+"""
     asserts.equals(env, expected.splitlines(), script.splitlines())
 
     return unittest.end(env)

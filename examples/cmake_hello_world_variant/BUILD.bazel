@@ -2,12 +2,8 @@ load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 cmake(
     name = "hello_world",
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     lib_source = "@cmake_hello_world_variant_src//:all",
-    make_commands = [
-        "ninja",
-        "ninja install",
-    ],
     out_binaries = select({
         "//:macos": ["CMakeHelloWorld"],
         "//:windows": ["CMakeHelloWorld.exe"],

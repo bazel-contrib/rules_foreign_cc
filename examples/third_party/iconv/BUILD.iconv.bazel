@@ -20,9 +20,9 @@ configure_make(
         "--enable-static=yes",
     ],
     lib_source = "@iconv//:all",
-    make_commands = ["make install-lib"],
     out_static_libs = [
         "libiconv.a",
     ],
+    targets = ["install-lib"],
     visibility = ["//visibility:public"],
 )
