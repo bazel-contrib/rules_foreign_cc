@@ -175,7 +175,10 @@ cmake(
     # expect to find ./lib/hello.lib as the result of the build
     name = "hello",
     # This option can be omitted
-    cmake_options = ["-G \"Visual Studio 15 2017 Win64\""],
+    generate_args = [
+        "-G \"Visual Studio 15 2017\"",
+        "-A Win64",
+    ],
     lib_source = ":srcs",
 )
 
@@ -184,17 +187,17 @@ cmake(
     # expect to find ./lib/hello.lib as the result of the build
     lib_name = "hello",
     # explicitly specify the generator
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     lib_source = ":srcs",
 )
 
 cmake(
     name = "hello_nmake",
     # explicitly specify the generator
-    cmake_options = ["-G \"NMake Makefiles\""],
+    generate_args = ["-G \"NMake Makefiles\""],
     lib_source = ":srcs",
     # expect to find ./lib/hello.lib as the result of the build
-    out_static_libs = ["hello.lib"]
+    out_static_libs = ["hello.lib"],
 )
 ```
 
