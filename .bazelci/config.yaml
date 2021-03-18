@@ -48,6 +48,7 @@ tasks:
       - "-//cmake_defines/..."
       - "-//cmake_hello_world_lib/..."
       - "-//cmake_with_data/..."
+      - "-//cmake_with_target/..."
       - "-//cmake_working_dir/..."
       - "-//configure_with_bazel_transitive/..."
       - "-//make_simple/..."
