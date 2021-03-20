@@ -71,6 +71,9 @@ fabric.properties
 # Vim swap files
 .*.sw?
 
+# Bazel CI
+bazelci.py
+
 #####
 # Bazel: https://github.com/github/gitignore/blob/master/community/Bazel.gitignore
 #####

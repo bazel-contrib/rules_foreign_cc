@@ -34,8 +34,9 @@ genrule(
     outs = ["generate_docs.sh"],
     cmd = """cat << EOF > $@
 #!/bin/bash
-set -e
+set -euo pipefail
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/README.md
+EOF
 """,
 )
 
@@ -43,4 +44,9 @@ sh_binary(
     name = "generate_docs",
     srcs = [":generate_docs_src"],
     data = [":docs"],
+)
+
+sh_binary(
+    name = "test_docs",
+    srcs = ["test_docs.sh"]
 )

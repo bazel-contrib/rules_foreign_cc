@@ -138,6 +138,8 @@ tasks:
     working_directory: docs
     build_targets:
       - //...
+    run_targets:
+      - //:test_docs
   min_supported_version:
     name: "Minimum Supported Version"
     bazel: "3.7.0"
