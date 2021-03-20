@@ -25,11 +25,11 @@ For more generalized updates, please see [NEWS.md](./NEWS.md) or checkout the
 
 ## Building CMake projects
 
-- Build libraries/binaries with CMake from sources using cmake_external rule
-- Use cmake_external targets in [cc_library][ccl], [cc_binary][ccb] targets as dependency
-- Bazel [cc_toolchain][cct] parameters are used inside cmake_external build
-- See full list of cmake_external arguments below 'example'
-- cmake_external is defined in `./tools/build_defs`
+- Build libraries/binaries with CMake from sources using cmake rule
+- Use cmake targets in [cc_library][ccl], [cc_binary][ccb] targets as dependency
+- Bazel [cc_toolchain][cct] parameters are used inside cmake build
+- See full list of cmake arguments below 'example'
+- cmake is defined in `./tools/build_defs`
 - Works on Ubuntu, Mac OS and Windows(\* see special notes below in Windows section) operating systems
 
 **Example:**
@@ -38,7 +38,7 @@ For more generalized updates, please see [NEWS.md](./NEWS.md) or checkout the
 The example for **Windows** is below, in the section 'Usage on Windows'.
 
 - In `WORKSPACE.bazel`, we use a `http_archive` to download tarballs with the libraries we use.
-- In `BUILD.bazel`, we instantiate a `cmake_external` rule which behaves similarly to a [cc_library][ccl], which can then be used in a C++ rule ([cc_binary][ccb] in this case).
+- In `BUILD.bazel`, we instantiate a `cmake` rule which behaves similarly to a [cc_library][ccl], which can then be used in a C++ rule ([cc_binary][ccb] in this case).
 
 In `WORKSPACE.bazel`, put
 
@@ -105,7 +105,7 @@ bazel build //:pcre
 
 **Usage on Windows**
 
-When using on Windows, you should start Bazel in MSYS2 shell, as the shell script inside cmake_external assumes this.
+When using on Windows, you should start Bazel in MSYS2 shell, as the shell script inside cmake assumes this.
 Also, you should explicitly specify **make commands and option to generate CMake crosstool file**.
 
 The default generator for CMake will be detected automatically, or you can specify it explicitly.

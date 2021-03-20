@@ -133,7 +133,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = [],
     ),
     "make_commands": attr.string_list(
-        doc = "Optinal make commands.",
+        doc = "Optional make commands.",
         mandatory = False,
         default = ["make", "make install"],
     ),
