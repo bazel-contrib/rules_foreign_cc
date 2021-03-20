@@ -95,7 +95,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "env": attr.string_dict(
         doc = (
             "Environment variables to set during the build. " +
-            "$(execpath) macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, " +
+            "`$(execpath)` macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, " +
             "but unlike with other rules, these will be replaced with absolute paths to those files, " +
             "because the build does not run in the exec root. " +
             "No other macros are supported."
@@ -133,7 +133,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = [],
     ),
     "make_commands": attr.string_list(
-        doc = "Optinal make commands, defaults to [\"make\", \"make install\"]",
+        doc = "Optinal make commands.",
         mandatory = False,
         default = ["make", "make install"],
     ),
