@@ -50,7 +50,6 @@ def _cmake_impl(ctx):
         generate_args = generate_args,
         configure_name = "CMake",
         create_configure_script = _create_configure_script,
-        postfix_script = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n" + ctx.attr.postfix_script,
         tools_deps = tools_deps,
         cmake_path = cmake_data.path,
     )
@@ -117,14 +116,13 @@ def _create_configure_script(configureParameters):
                 config = configuration,
             ))
 
-    define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
         generator = attrs.generator,
         cmake_path = attrs.cmake_path,
         tools = tools,
         flags = flags,
-        install_prefix = "$$INSTALL_PREFIX$$",
+        install_prefix = "$$INSTALLDIR$$",
         root = root,
         no_toolchain_file = no_toolchain_file,
         user_cache = dict(ctx.attr.cache_entries),
@@ -134,7 +132,7 @@ def _create_configure_script(configureParameters):
         include_dirs = inputs.include_dirs,
         is_debug_mode = is_debug_mode(ctx),
     )
-    return define_install_prefix + configure_script
+    return configure_script
 
 def _get_generator_target(ctx):
     """Parse the genrator arguments for a generator declaration
@@ -206,13 +204,6 @@ def _get_generator_target(ctx):
 
     fail("`{}` is not a known generator".format(generator))
 
-def _get_install_prefix(ctx):
-    if ctx.attr.install_prefix:
-        return ctx.attr.install_prefix
-    if ctx.attr.lib_name:
-        return ctx.attr.lib_name
-    return ctx.attr.name
-
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
@@ -273,7 +264,7 @@ def _attrs():
             mandatory = False,
         ),
         "install_prefix": attr.string(
-            doc = "Relative install prefix to be passed to CMake in `-DCMAKE_INSTALL_PREFIX`",
+            doc = "__deprecated__: This field is deprecated and is no longer used.",
             mandatory = False,
         ),
         "make_commands": attr.string_list(
