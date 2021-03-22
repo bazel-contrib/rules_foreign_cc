@@ -20,7 +20,7 @@ cmake(
     out_static_libs = select({
         "@platforms//os:windows": [
             "working_a.lib",
-            "working_b.lib"
+            "working_b.lib",
         ],
         "//conditions:default": [
             "libworking_a.a",

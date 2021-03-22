@@ -48,5 +48,5 @@ sh_binary(
 
 sh_binary(
     name = "test_docs",
-    srcs = ["test_docs.sh"]
+    srcs = ["test_docs.sh"],
 )
