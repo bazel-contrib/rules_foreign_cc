@@ -89,7 +89,6 @@ def _create_configure_script(configureParameters):
         # Generate commands for all the targets, ensuring there's
         # always at least 1 call to the default target.
         for target in ctx.attr.targets or [""]:
-
             # There's no need to use the `--target` argument for an empty/"all" target
             if target:
                 target = "--target '{}'".format(target)
