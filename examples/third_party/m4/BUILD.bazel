@@ -1,0 +1,8 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+
+build_test(
+    name = "m4_build_test",
+    tags = ["manual"],  # Linux Only
+    targets = ["@m4//:m4"],
+    visibility = ["//:__pkg__"],
+)
