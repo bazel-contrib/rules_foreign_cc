@@ -7,13 +7,32 @@ filegroup(
     srcs = glob(["**"]),
 )
 
-# I tested and this builds for me on MAC and Linux, did not check Windows thouigh
+# I tested and this builds for me on MAC and Linux, did not check Windows though
 configure_make(
     name = "bison",
+    configure_env_vars = select({
+        "@platforms//os:macos": {"AR": ""},
+        "//conditions:default": {},
+    }),
+    configure_options = select({
+        "@platforms//os:macos": [
+            "--with-libiconv=yes",
+            "--with-libiconv-prefix=$$EXT_BUILD_DEPS$$",
+        ],
+        "//conditions:default": [],
+    }),
+    env = {
+        "M4": "$EXT_BUILD_DEPS/m4/bin/m4",
+    },
     lib_source = ":all_srcs",
     out_binaries = [
         "bison",
         "yacc",
     ],
     out_static_libs = ["liby.a"],
+    tools_deps = ["@m4"],
+    deps = select({
+        "@platforms//os:macos": ["@iconv"],
+        "//conditions:default": [],
+    }),
 )
