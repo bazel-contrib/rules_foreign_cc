@@ -101,7 +101,7 @@ Rule for building external library with CMake.
 | <a id="cmake-headers_only"></a>headers_only |  __deprecated__: Use <code>out_headers_only</code> instead.   | Boolean | optional | False |
 | <a id="cmake-install"></a>install |  If True, the <code>cmake --install</code> comand will be performed after a build   | Boolean | optional | True |
 | <a id="cmake-install_args"></a>install_args |  Arguments for the CMake install command   | List of strings | optional | [] |
-| <a id="cmake-install_prefix"></a>install_prefix |  Relative install prefix to be passed to CMake in <code>-DCMAKE_INSTALL_PREFIX</code>   | String | optional | "" |
+| <a id="cmake-install_prefix"></a>install_prefix |  __deprecated__: This field is deprecated and is no longer used.   | String | optional | "" |
 | <a id="cmake-interface_libraries"></a>interface_libraries |  __deprecated__: Use <code>out_interface_libs</code> instead.   | List of strings | optional | [] |
 | <a id="cmake-lib_name"></a>lib_name |  Library name. Defines the name of the install directory and the name of the static library, if no output files parameters are defined (any of static_libraries, shared_libraries, interface_libraries, binaries_names) Optional. If not defined, defaults to the target's name.   | String | optional | "" |
 | <a id="cmake-lib_source"></a>lib_source |  Label with source code to build. Typically a filegroup for the source of remote repository. Mandatory.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
