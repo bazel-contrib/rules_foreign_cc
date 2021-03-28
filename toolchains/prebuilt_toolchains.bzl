@@ -2678,11 +2678,11 @@ def _ninja_toolchains(version):
             tool = "ninja",
         )
 
-        native.register_toolchains(
-            "@ninja_1.10.2_toolchains//:ninja_1.10.2_linux_toolchain",
-            "@ninja_1.10.2_toolchains//:ninja_1.10.2_mac_toolchain",
-            "@ninja_1.10.2_toolchains//:ninja_1.10.2_win_toolchain",
-        )
+        #native.register_toolchains(
+        #    "@ninja_1.10.2_toolchains//:ninja_1.10.2_linux_toolchain",
+        #    "@ninja_1.10.2_toolchains//:ninja_1.10.2_mac_toolchain",
+        #    "@ninja_1.10.2_toolchains//:ninja_1.10.2_win_toolchain",
+        #)
 
         return
 
