@@ -45,7 +45,6 @@ tasks:
       - "//:third_party_examples_linux_rbe_tests"
       # Gives error: zipalign: error while loading shared libraries: /usr/local/lib/libc++.so: file too short
       - "-//cmake_android/..."
-      - "-//configure_with_bazel_transitive/..."
     build_targets: *rbe_targets
     test_targets: *rbe_targets
   macos_examples:
