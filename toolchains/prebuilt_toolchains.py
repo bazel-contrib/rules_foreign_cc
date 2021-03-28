@@ -11,6 +11,8 @@ CMAKE_SHA256_URL_TEMPLATE = "https://cmake.org/files/v{minor}/cmake-{full}-SHA-2
 CMAKE_URL_TEMPLATE = "https://github.com/Kitware/CMake/releases/download/v{full}/{file}"
 
 CMAKE_VERSIONS = [
+    "3.20.0",
+    "3.19.7",
     "3.19.6",
     "3.19.5",
     "3.18.6",
@@ -25,6 +27,14 @@ CMAKE_TARGETS = {
         "@platforms//cpu:x86_64",
         "@platforms//os:macos",
     ],
+    "linux-aarch64": [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+    "linux-x86_64": [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
     "Linux-aarch64": [
         "@platforms//cpu:aarch64",
         "@platforms//os:linux",
@@ -35,6 +45,14 @@ CMAKE_TARGETS = {
     ],
     "macos-universal": [
         "@platforms//os:macos",
+    ],
+    "windows-i386": [
+        "@platforms//cpu:x86_32",
+        "@platforms//os:windows",
+    ],
+    "windows-x86_64": [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:windows",
     ],
     "win32-x86": [
         "@platforms//cpu:x86_32",
@@ -135,7 +153,7 @@ filegroup(
 
 native_tool_toolchain(
     name = "cmake_tool",
-    path = "bin/{bin}",
+    path = "bin/{{bin}}",
     target = ":cmake_data",
 )
 \"\"\"
