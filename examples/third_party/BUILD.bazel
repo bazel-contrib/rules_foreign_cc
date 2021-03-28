@@ -27,8 +27,7 @@ test_suite(
         # Attempts to access git sha during configure of build so fails
         #"//gn:gn_launch_test",
         "//libgit2:libgit2_build_test",
-        # Fails to find the zlib dependency via ZLIB_ROOT
-        #"//libpng:test_libpng",
+        "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
