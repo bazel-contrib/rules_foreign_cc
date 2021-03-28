@@ -37,11 +37,11 @@ def _cmake_impl(ctx):
     if "Unix Makefiles" == generator:
         make_data = get_make_data(ctx)
         tools_deps.extend(make_data.deps)
-        env.update({"CMAKE_MAKE_PROGRAM": make_data.path})
+        generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(make_data.path))
     elif "Ninja" in generator:
         ninja_data = get_ninja_data(ctx)
         tools_deps.extend(ninja_data.deps)
-        env.update({"CMAKE_MAKE_PROGRAM": ninja_data.path})
+        generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(ninja_data.path))
 
     attrs = create_attrs(
         ctx.attr,

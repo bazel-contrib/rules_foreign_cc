@@ -42,16 +42,10 @@ tasks:
     working_directory: examples
     rbe_targets: &rbe_targets
       - "//..."
-      # TODO: fix these targets on RBE
-      - "-//:third_party_examples_linux_tests"
+      - "//:third_party_examples_linux_rbe_tests"
+      # Gives error: zipalign: error while loading shared libraries: /usr/local/lib/libc++.so: file too short
       - "-//cmake_android/..."
-      - "-//cmake_defines/..."
-      - "-//cmake_hello_world_lib/..."
-      - "-//cmake_with_data/..."
-      - "-//cmake_with_target/..."
-      - "-//cmake_working_dir/..."
       - "-//configure_with_bazel_transitive/..."
-      - "-//make_simple/..."
     build_targets: *rbe_targets
     test_targets: *rbe_targets
   macos_examples:

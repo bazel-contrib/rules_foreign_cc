@@ -23,6 +23,12 @@ test_suite(
 )
 
 test_suite(
+    name = "third_party_examples_linux_rbe_tests",
+    tags = ["manual"],
+    tests = ["@rules_foreign_cc_examples_third_party//:linux_rbe_tests"],
+)
+
+test_suite(
     name = "third_party_examples_macos_tests",
     tags = ["manual"],
     tests = ["@rules_foreign_cc_examples_third_party//:macos_tests"],
