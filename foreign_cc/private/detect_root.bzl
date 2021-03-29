@@ -15,54 +15,16 @@ def detect_root(source):
     if len(sources) == 0:
         return ""
 
-    root = None
-    level = -1
-
     # find topmost directory
+    root = None
     for file in sources:
-        file_level = _get_level(file.path)
-
-        # If there is no level set or the current file's level
-        # is greather than what we have logged, update the root
-        if level == -1 or level > file_level:
-            root = file
-            level = file_level
+        if root == None or root.startswith(file.dirname):
+            root = file.dirname
 
     if not root:
         fail("No root source or directory was found")
 
-    if root.is_source:
-        return root.dirname
-
-    # Note this code path will never be hit due to a bug upstream Bazel
-    # https://github.com/bazelbuild/bazel/issues/12954
-
-    # If the root is not a source file, it must be a directory.
-    # Thus the path is returned
-    return root.path
-
-def _get_level(path):
-    """Determine the number of sub directories `path` is contained in
-
-    Args:
-        path (string): The target path
-
-    Returns:
-        int: The directory depth of `path`
-    """
-    normalized = path
-
-    # This for loop ensures there are no double `//` substrings.
-    # A for loop is used because there's not currently a `while`
-    # or a better mechanism for guaranteeing all `//` have been
-    # cleaned up.
-    for i in range(len(path)):
-        new_normalized = normalized.replace("//", "/")
-        if len(new_normalized) == len(normalized):
-            break
-        normalized = new_normalized
-
-    return normalized.count("/")
+    return root
 
 # buildifier: disable=function-docstring-header
 # buildifier: disable=function-docstring-args
