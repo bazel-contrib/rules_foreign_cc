@@ -36,12 +36,6 @@ def filter_containing_dirs_from_inputs(input_files_list):
     The parent directories will be created for us in the execroot anyway,
     so we filter them out."""
 
-    # This puts directories in front of their children in list
-    sorted_list = sorted(input_files_list)
-    contains_map = {}
-    for input in input_files_list:
-        # If the immediate parent directory is already in the list, remove it
-        if contains_map.get(input.dirname):
-            contains_map.pop(input.dirname)
-        contains_map[input.path] = input
-    return contains_map.values()
+    populated_dirs = {f.dirname: None for f in input_files_list}
+    return [f for f in input_files_list if f.path not in populated_dirs]
+    
