@@ -16,53 +16,17 @@ def detect_root(source):
         return ""
 
     root = None
-    level = -1
 
-    # find topmost directory
+    # Find topmost directory by searching for the file.dirname that is a
+    # prefix of all other files.
     for file in sources:
-        file_level = _get_level(file.path)
-
-        # If there is no level set or the current file's level
-        # is greather than what we have logged, update the root
-        if level == -1 or level > file_level:
-            root = file
-            level = file_level
+        if root == None or root.startswith(file.dirname):
+            root = file.dirname
 
     if not root:
         fail("No root source or directory was found")
 
-    if root.is_source:
-        return root.dirname
-
-    # Note this code path will never be hit due to a bug upstream Bazel
-    # https://github.com/bazelbuild/bazel/issues/12954
-
-    # If the root is not a source file, it must be a directory.
-    # Thus the path is returned
-    return root.path
-
-def _get_level(path):
-    """Determine the number of sub directories `path` is contained in
-
-    Args:
-        path (string): The target path
-
-    Returns:
-        int: The directory depth of `path`
-    """
-    normalized = path
-
-    # This for loop ensures there are no double `//` substrings.
-    # A for loop is used because there's not currently a `while`
-    # or a better mechanism for guaranteeing all `//` have been
-    # cleaned up.
-    for i in range(len(path)):
-        new_normalized = normalized.replace("//", "/")
-        if len(new_normalized) == len(normalized):
-            break
-        normalized = new_normalized
-
-    return normalized.count("/")
+    return root
 
 # buildifier: disable=function-docstring-header
 # buildifier: disable=function-docstring-args
@@ -74,12 +38,7 @@ def filter_containing_dirs_from_inputs(input_files_list):
     The parent directories will be created for us in the execroot anyway,
     so we filter them out."""
 
-    # This puts directories in front of their children in list
-    sorted_list = sorted(input_files_list)
-    contains_map = {}
-    for input in input_files_list:
-        # If the immediate parent directory is already in the list, remove it
-        if contains_map.get(input.dirname):
-            contains_map.pop(input.dirname)
-        contains_map[input.path] = input
-    return contains_map.values()
+    # Find all the directories that have at least one file or dir inside them.
+    populated_dirs = {f.dirname: None for f in input_files_list}
+    # Filter out any files which are members of populated_dirs.
+    return [f for f in input_files_list if f.path not in populated_dirs]
