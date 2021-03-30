@@ -36,6 +36,7 @@ def _configure_make(ctx):
 
 def _create_configure_script(configureParameters):
     ctx = configureParameters.ctx
+    attrs = configureParameters.attrs
     inputs = configureParameters.inputs
 
     root = detect_root(ctx.attr.lib_source)
@@ -44,7 +45,26 @@ def _create_configure_script(configureParameters):
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
 
-    define_install_prefix = "export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\"\n"
+    define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
+
+    data = ctx.attr.data or list()
+
+    # Generate a list of arguments for make
+    args = " ".join([
+        ctx.expand_location(arg, data)
+        for arg in ctx.attr.args
+    ])
+
+    make_commands = []
+
+    if not ctx.attr.make_commands:
+        for target in ctx.attr.targets:
+            make_commands.append("{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
+                make = attrs.make_path,
+                root = root,
+                args = args,
+                target = target,
+            ))
 
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
@@ -70,8 +90,9 @@ def _create_configure_script(configureParameters):
         autogen_command = ctx.attr.autogen_command,
         autogen_options = ctx.attr.autogen_options,
         autogen_env_vars = ctx.attr.autogen_env_vars,
+        make_commands = make_commands,
     )
-    return "\n".join([define_install_prefix, configure])
+    return define_install_prefix + configure
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:
@@ -83,6 +104,9 @@ def _get_install_prefix(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
+        "args": attr.string_list(
+            doc = "A list of arguments to pass to the call to `make`",
+        ),
         "autoconf": attr.bool(
             mandatory = False,
             default = False,
@@ -161,7 +185,16 @@ def _attrs():
             ),
             mandatory = False,
         ),
+        "targets": attr.string_list(
+            doc = (
+                "A list of targets within the foreign build system to produce. An empty string (`\"\"`) will result in " +
+                "a call to the underlying build system with no explicit target set"
+            ),
+            mandatory = False,
+            default = ["", "install"],
+        ),
     })
+
     return attrs
 
 configure_make = rule(

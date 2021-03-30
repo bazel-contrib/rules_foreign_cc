@@ -32,15 +32,3 @@ def repositories():
         sha256 = RULES_JVM_EXTERNAL_SHA,
         url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
     )
-
-    maybe(
-        http_archive,
-        name = "cmake_hello_world_variant_src",
-        build_file_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])""",
-        strip_prefix = "cmake-hello-world-master",
-        urls = [
-            "https://mirror.bazel.build/github.com/jameskbride/cmake-hello-world/archive/master.zip",
-            "https://github.com/jameskbride/cmake-hello-world/archive/master.zip",
-        ],
-        sha256 = "d613cf222bbb05b8cff7a1c03c37345ed33744a4ebaf3a8bfd5f56a76e25ca08",
-    )

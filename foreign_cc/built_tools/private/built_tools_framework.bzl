@@ -39,9 +39,7 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic):
     root = detect_root(ctx.attr.srcs)
 
     script = [
-        # TODO: The script prelude should be used but for some reason it fails
-        # on RBE builds.
-        # "##script_prelude##",
+        "##script_prelude##",
         "export EXT_BUILD_ROOT=##pwd##",
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/{}".format(out_dir.path),
         "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",

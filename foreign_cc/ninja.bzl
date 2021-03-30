@@ -77,7 +77,7 @@ def _create_ninja_script(configureParameters):
             target = target,
         ))
 
-    return "\n".join(script)
+    return script
 
 def _attrs():
     """Modifies the common set of attributes used by rules_foreign_cc and sets Ninja specific attrs
@@ -98,12 +98,6 @@ def _attrs():
             doc = (
                 "A directory to pass as the `-C` argument. The rule will always use the root " +
                 "directory of the `lib_sources` attribute if this attribute is not set"
-            ),
-        ),
-        "targets": attr.string_list(
-            doc = (
-                "A list of ninja targets to build. To call the default target, simply pass `\"\"` as " +
-                "one of the items to this attribute."
             ),
         ),
     })

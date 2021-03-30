@@ -12,9 +12,9 @@ configure_make(
     name = "simple",
     configure_in_place = True,
     lib_source = "//configure_with_bazel_transitive/simple_lib:simple_srcs",
-    make_commands = [
-        "make simple",
-        "make install",
+    targets = [
+        "simple",
+        "install",
     ],
     deps = [":built_with_bazel"],
 )

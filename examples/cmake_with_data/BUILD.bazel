@@ -11,22 +11,18 @@ cmake(
         },
         "//conditions:default": {},
     }),
-    cmake_options = select({
-        "@bazel_tools//src/conditions:windows": ["-G \"Visual Studio 15 2017\" -A x64"],
-        "//conditions:default": [],
-    }),
     data = [
         "cmake_with_data.txt",
         "//cmake_with_data/lib_b",
     ],
-    lib_source = "//cmake_with_data/lib_a:srcs",
-    make_commands = select({
-        "@bazel_tools//src/conditions:windows": ["MSBuild.exe INSTALL.vcxproj"],
-        "//conditions:default": [
-            "make",
-            "make install",
+    generate_args = select({
+        "@bazel_tools//src/conditions:windows": [
+            "-G \"Visual Studio 15 2017\"",
+            "-A x64",
         ],
+        "//conditions:default": [],
     }),
+    lib_source = "//cmake_with_data/lib_a:srcs",
     out_static_libs = select({
         "@bazel_tools//src/conditions:windows": ["lib_a.lib"],
         "//conditions:default": ["lib_a.a"],

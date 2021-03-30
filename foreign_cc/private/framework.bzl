@@ -7,6 +7,11 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifact", "ForeignCcDeps")
 load("//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 load(
+    "//toolchains/native_tools:tool_access.bzl",
+    "get_make_data",
+    "get_ninja_data",
+)
+load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
     "create_linking_info",
@@ -90,7 +95,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "env": attr.string_dict(
         doc = (
             "Environment variables to set during the build. " +
-            "$(execpath) macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, " +
+            "`$(execpath)` macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, " +
             "but unlike with other rules, these will be replaced with absolute paths to those files, " +
             "because the build does not run in the exec root. " +
             "No other macros are supported."
@@ -128,7 +133,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = [],
     ),
     "make_commands": attr.string_list(
-        doc = "Optinal make commands, defaults to [\"make\", \"make install\"]",
+        doc = "Optional make commands.",
         mandatory = False,
         default = ["make", "make install"],
     ),
@@ -182,6 +187,13 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     ),
     "static_libraries": attr.string_list(
         doc = "__deprecated__: Use `out_static_libs` instead.",
+        mandatory = False,
+    ),
+    "targets": attr.string_list(
+        doc = (
+            "A list of targets with in the foreign build system to produce. An empty string (`\"\"`) will result in " +
+            "a call to the underlying build system with no explicit target set"
+        ),
         mandatory = False,
     ),
     "tools_deps": attr.label_list(
@@ -301,10 +313,10 @@ def cc_external_rule_impl(ctx, attrs):
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
     cc_env = _correct_path_variable(get_env_vars(ctx))
-    set_cc_envs = ""
+    set_cc_envs = []
     execution_os_name = os_name(ctx)
-    if execution_os_name != "osx":
-        set_cc_envs = "\n".join(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
+    if execution_os_name != "macos":
+        set_cc_envs = ["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env]
 
     lib_header = "Bazel external C/C++ Rules. Building library '{}'".format(lib_name)
 
@@ -322,8 +334,7 @@ def cc_external_rule_impl(ctx, attrs):
 
     data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
 
-    define_variables = [
-        set_cc_envs,
+    define_variables = set_cc_envs + [
         "export EXT_BUILD_ROOT=##pwd##",
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
         "export BUILD_TMPDIR=$${INSTALLDIR}$$.build_tmpdir",
@@ -334,32 +345,30 @@ def cc_external_rule_impl(ctx, attrs):
             # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
             value = ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies),
         )
-        for key, value in getattr(ctx.attr, "env", {}).items()
+        for key, value in dict(
+            getattr(ctx.attr, "env", {}).items() + getattr(attrs, "env", {}).items(),
+        ).items()
     ]
 
-    make_commands = []
-    for line in attrs.make_commands:
-        if line == "make" or line.startswith("make "):
-            make_commands.append(line.replace("make", attrs.make_path, 1))
-        else:
-            make_commands.append(line)
+    make_commands, build_tools = _generate_make_commands(ctx)
+
+    postfix_script = [attrs.postfix_script]
+    if not attrs.postfix_script:
+        postfix_script = []
 
     script_lines = [
         "##echo## \"\"",
         "##echo## \"{}\"".format(lib_header),
         "##echo## \"\"",
         "##script_prelude##",
-        "\n".join(define_variables),
+    ] + define_variables + [
         "##path## $$EXT_BUILD_ROOT$$",
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
         "##mkdirs## $$EXT_BUILD_DEPS$$",
-        _print_env(),
-        "\n".join(_copy_deps_and_tools(inputs)),
+    ] + _print_env() + _copy_deps_and_tools(inputs) + [
         "cd $$BUILD_TMPDIR$$",
-        attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)),
-        "\n".join(make_commands),
-        attrs.postfix_script or "",
+    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + make_commands + postfix_script + [
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
@@ -395,11 +404,11 @@ def cc_external_rule_impl(ctx, attrs):
         ],
         tools = depset(
             [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
-            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
+            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies] + build_tools,
         ),
         # TODO: Default to never using the default shell environment to make builds more hermetic. For now, every platform
         # but MacOS will take the default PATH passed by Bazel, not that from cc_toolchain.
-        use_default_shell_env = execution_os_name != "osx",
+        use_default_shell_env = execution_os_name != "macos",
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
         # this is ignored if use_default_shell_env = True
@@ -537,11 +546,11 @@ def _get_transitive_artifacts(deps):
     return artifacts
 
 def _print_env():
-    return "\n".join([
+    return [
         "##echo## \"Environment:______________\"",
         "##env##",
         "##echo## \"__________________________\"",
-    ])
+    ]
 
 def _correct_path_variable(env):
     value = env.get("PATH", "")
@@ -857,3 +866,30 @@ def _collect_libs(cc_linking):
                 if library:
                     libs.append(library)
     return collections.uniq(libs)
+
+def _generate_make_commands(ctx):
+    make_commands = getattr(ctx.attr, "make_commands", [])
+    tools_deps = []
+
+    # Early out if there are no commands set
+    if not make_commands:
+        return make_commands, tools_deps
+
+    if _uses_tool(ctx.attr.make_commands, "make"):
+        make_data = get_make_data(ctx)
+        tools_deps += make_data.deps
+        make_commands = [command.replace("make", make_data.path) for command in make_commands]
+
+    if _uses_tool(ctx.attr.make_commands, "ninja"):
+        ninja_data = get_ninja_data(ctx)
+        tools_deps += ninja_data.deps
+        make_commands = [command.replace("ninja", ninja_data.path) for command in make_commands]
+
+    return make_commands, [tool.files for tool in tools_deps]
+
+def _uses_tool(make_commands, tool):
+    for command in make_commands:
+        (before, separator, after) = command.partition(" ")
+        if before == tool:
+            return True
+    return False

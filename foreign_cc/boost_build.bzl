@@ -9,10 +9,10 @@ load(
     "create_attrs",
 )
 
-def _boost_build(ctx):
+def _boost_build_impl(ctx):
     attrs = create_attrs(
         ctx.attr,
-        configure_name = "BuildBoost",
+        configure_name = "BoostBuild",
         create_configure_script = _create_configure_script,
         make_commands = ["./b2 install {} --prefix=.".format(" ".join(ctx.attr.user_options))],
     )
@@ -22,14 +22,16 @@ def _create_configure_script(configureParameters):
     ctx = configureParameters.ctx
     root = detect_root(ctx.attr.lib_source)
 
-    return "\n".join([
+    return [
         "cd $INSTALLDIR",
         "##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{}/. .".format(root),
         "./bootstrap.sh {}".format(" ".join(ctx.attr.bootstrap_options)),
-    ])
+    ]
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
+    attrs.pop("targets")
+    attrs.pop("make_commands")
     attrs.update({
         "bootstrap_options": attr.string_list(
             doc = "any additional flags to pass to bootstrap.sh",
@@ -47,7 +49,7 @@ boost_build = rule(
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
-    implementation = _boost_build,
+    implementation = _boost_build_impl,
     toolchains = [
         "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
         "@bazel_tools//tools/cpp:toolchain_type",

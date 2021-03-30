@@ -4,25 +4,17 @@ load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 cmake(
     name = "liba",
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     # Demonstrate non-alphanumeric name
     lib_name = "liba++",
     lib_source = "//cmake_synthetic/liba:a_srcs",
-    make_commands = [
-        "ninja",
-        "ninja install",
-    ],
     postfix_script = "cp $$INSTALLDIR$$/lib/liba.a $$INSTALLDIR$$/lib/liba++.a",
 )
 
 cmake(
     name = "libb",
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     lib_source = "//cmake_synthetic/libb:b_srcs",
-    make_commands = [
-        "ninja",
-        "ninja install",
-    ],
     deps = [":liba"],
 )
 
@@ -32,13 +24,9 @@ cmake(
         "LIBA_DIR": "$$EXT_BUILD_DEPS$$",
         "LIBB_DIR": "$$EXT_BUILD_DEPS$$",
     },
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     lib_name = "libc",
     lib_source = "//cmake_synthetic/libc:c_srcs",
-    make_commands = [
-        "ninja",
-        "ninja install",
-    ],
     deps = [
         "//cmake_synthetic/liba:lib_a_bazel",
         "//cmake_synthetic/libb:lib_b_bazel",

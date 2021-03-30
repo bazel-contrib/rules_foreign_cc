@@ -4,6 +4,7 @@ load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
 def create_cmake_script(
         workspace_name,
+        generator,
         cmake_path,
         tools,
         flags,
@@ -13,12 +14,14 @@ def create_cmake_script(
         user_cache,
         user_env,
         options,
+        cmake_commands,
         include_dirs = [],
         is_debug_mode = True):
     """Constructs CMake script to be passed to cc_external_rule_impl.
 
     Args:
         workspace_name: current workspace name
+        generator: The generator target for cmake to use
         cmake_path: The path to the cmake executable
         tools: cc_toolchain tools (CxxToolsInfo)
         flags: cc_toolchain flags (CxxFlagsInfo)
@@ -28,6 +31,7 @@ def create_cmake_script(
         user_cache: dictionary with user's values of cache initializers
         user_env: dictionary with user's values for CMake environment variables
         options: other CMake options specified by user
+        cmake_commands: A list of cmake commands for building and installing targets
         include_dirs: Optional additional include directories. Defaults to [].
         is_debug_mode: If the compilation mode is `debug`. Defaults to True.
 
@@ -70,23 +74,37 @@ def create_cmake_script(
     if not params.cache.get("CMAKE_RANLIB"):
         params.cache.update({"CMAKE_RANLIB": ""})
 
-    set_env_vars = " ".join([
-        key + '="' + _escape_dquote_bash(params.env[key]) + '"'
+    set_env_vars = [
+        "export {}=\"{}\"".format(key, _escape_dquote_bash(params.env[key]))
         for key in params.env
-    ])
+    ]
     str_cmake_cache_entries = " ".join([
-        "-D" + key + '="' + _escape_dquote_bash(params.cache[key]) + '"'
+        "-D{}=\"{}\"".format(key, _escape_dquote_bash(params.cache[key]))
         for key in params.cache
     ])
-    cmake_call = " ".join([
-        set_env_vars,
+
+    # Add definitions for all environment variables
+    script = set_env_vars
+
+    directory = "$EXT_BUILD_ROOT/" + root
+
+    script.append("set -x")
+
+    # Configure the CMake generate command
+    script.append(" ".join([
         cmake_path,
         str_cmake_cache_entries,
         " ".join(options),
-        "$EXT_BUILD_ROOT/" + root,
-    ])
+        # Generator is always set last and will override anything specified by the user
+        "-G '{}'".format(generator),
+        directory,
+    ]))
 
-    return "\n".join(params.commands + [cmake_call])
+    script.extend(cmake_commands)
+
+    script.append("set +x")
+
+    return params.commands + script
 
 def _escape_dquote_bash(text):
     """ Escape double quotes in flag lists for use in bash strings. """
@@ -163,7 +181,7 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
     })
     return struct(
         # We quote the bash heredoc word to prevent yet another layer of string escapes
-        commands = ['cat > crosstool_bazel.cmake <<"EOF"\n' + "\n".join(sorted(lines)) + "\nEOF\n"],
+        commands = ['cat > crosstool_bazel.cmake <<"EOF"'] + sorted(lines) + ["EOF", ""],
         env = env_vars,
         cache = cache_entries,
     )
