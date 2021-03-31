@@ -33,7 +33,7 @@ def create_configure_script(
     root_path = "$$EXT_BUILD_ROOT$$/{}".format(root)
     configure_path = "{}/{}".format(root_path, configure_command)
     if configure_in_place:
-        script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
+        script.append("##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
         root_path = "$$BUILD_TMPDIR$$"
         configure_path = "{}/{}".format(root_path, configure_command)
 
