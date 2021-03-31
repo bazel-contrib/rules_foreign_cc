@@ -175,7 +175,7 @@ Rule for building external libraries with configure-make pattern. Some 'configur
 | <a id="configure_make-lib_name"></a>lib_name |  Library name. Defines the name of the install directory and the name of the static library, if no output files parameters are defined (any of static_libraries, shared_libraries, interface_libraries, binaries_names) Optional. If not defined, defaults to the target's name.   | String | optional | "" |
 | <a id="configure_make-lib_source"></a>lib_source |  Label with source code to build. Typically a filegroup for the source of remote repository. Mandatory.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
 | <a id="configure_make-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
-| <a id="configure_make-make_commands"></a>make_commands |  Optional make commands.   | List of strings | optional | ["make", "make install"] |
+| <a id="configure_make-make_commands"></a>make_commands |  Optional make commands.   | List of strings | optional | ["make -C $$BUILD_TMPDIR$$", "make -C $$BUILD_TMPDIR$$ install"] |
 | <a id="configure_make-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
 | <a id="configure_make-out_binaries"></a>out_binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
 | <a id="configure_make-out_headers_only"></a>out_headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
