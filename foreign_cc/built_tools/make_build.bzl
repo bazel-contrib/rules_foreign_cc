@@ -12,16 +12,10 @@ def _make_tool_impl(ctx):
     script = [
         "./configure --disable-dependency-tracking --prefix=$$INSTALLDIR$$",
         "./build.sh",
+        "./make{} install-binPROGRAMS".format(
+            ".exe" if "win" in os_name(ctx) else ""
+        ,)
     ]
-
-    if "win" in os_name(ctx):
-        script.extend([
-            "./make.exe install",
-        ])
-    else:
-        script.extend([
-            "./make install",
-        ])
 
     return built_tool_rule_impl(
         ctx,
