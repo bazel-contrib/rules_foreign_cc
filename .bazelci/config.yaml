@@ -38,6 +38,7 @@ tasks:
     build_flags:
       - "--action_env=RULES_FOREIGN_CC_STANDALONE=1"
       - "--spawn_strategy=standalone"
+      - "-k"
     test_targets: *linux_targets_standalone
     test_flags:
       - "--action_env=RULES_FOREIGN_CC_STANDALONE=1"
