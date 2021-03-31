@@ -108,7 +108,7 @@ def _create_configure_script(configureParameters):
 
         cmake_commands.append("{cmake} --install {dir} --config {config} {args}".format(
             cmake = attrs.cmake_path,
-            dir = ".",
+            dir = "$$BUILD_TMPDIR$$",
             args = install_args,
             config = configuration,
         ))

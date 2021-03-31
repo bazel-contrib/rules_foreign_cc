@@ -97,7 +97,8 @@ def create_cmake_script(
         " ".join(options),
         # Generator is always set last and will override anything specified by the user
         "-G '{}'".format(generator),
-        directory,
+        "-B $$BUILD_TMPDIR$$",
+        "-S {}".format(directory),
     ]))
 
     script.extend(cmake_commands)
@@ -177,10 +178,10 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
         lines.append('set({} "{}")'.format(key, _escape_dquote_cmake(toolchain_dict[key])))
 
     cache_entries.update({
-        "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "$$BUILD_TMPDIR$$/crosstool_bazel.cmake",
     })
     return struct(
-        commands = ["cat > crosstool_bazel.cmake << EOF"] + sorted(lines) + ["EOF", ""],
+        commands = ["cat > $$BUILD_TMPDIR$$/crosstool_bazel.cmake <<EOF"] + sorted(lines) + ["EOF", ""],
         env = env_vars,
         cache = cache_entries,
     )

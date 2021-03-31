@@ -123,7 +123,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "make_commands": attr.string_list(
         doc = "Optional make commands.",
         mandatory = False,
-        default = ["make", "make install"],
+        default = ["make -C $$BUILD_TMPDIR$$", "make -C $$BUILD_TMPDIR$$ install"],
     ),
     "out_bin_dir": attr.string(
         doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'.",
@@ -346,9 +346,11 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
         "##mkdirs## $$EXT_BUILD_DEPS$$",
-    ] + _print_env() + _copy_deps_and_tools(inputs) + [
-        "cd $$BUILD_TMPDIR$$",
-    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + make_commands + postfix_script + [
+    ] + _print_env() +\
+    _copy_deps_and_tools(inputs) +\
+    attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) +\
+    make_commands +\
+    postfix_script + [
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
@@ -356,7 +358,6 @@ def cc_external_rule_impl(ctx, attrs):
         "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
         installdir_copy.script,
         empty.script,
-        "cd $$EXT_BUILD_ROOT$$",
     ]
 
     script_text = "\n".join([

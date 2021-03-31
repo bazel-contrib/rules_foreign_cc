@@ -92,7 +92,7 @@ def _create_configure_script(configureParameters):
         autogen_env_vars = ctx.attr.autogen_env_vars,
         make_commands = make_commands,
     )
-    return define_install_prefix + configure
+    return define_install_prefix + ["cd $$BUILD_TMPDIR$$"] + configure
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:
