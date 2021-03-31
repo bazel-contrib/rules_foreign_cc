@@ -43,9 +43,7 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic):
         "export EXT_BUILD_ROOT=##pwd##",
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/{}".format(out_dir.path),
         "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
-        "##mkdirs## $$BUILD_TMPDIR$$",
-        "##copy_dir_contents_to_dir## ./{} $$BUILD_TMPDIR$$".format(root),
-        "cd $$BUILD_TMPDIR$$",
+        "cd ./{}".format(root),
     ]
 
     script.append("set -x")
