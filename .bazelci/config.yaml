@@ -27,6 +27,24 @@ tasks:
       # TODO: https://github.com/bazelbuild/rules_foreign_cc/issues/495
       - "-//test:shell_method_symlink_contents_to_dir_test"
       - "-//test:shell_script_inner_fun_test"
+  ubuntu1804_examples_standalone:
+    name: Examples (spawn_strategy=standalone)
+    platform: ubuntu1804
+    working_directory: examples
+    linux_targets: &linux_targets_standalone
+      - "//..."
+      - "//:third_party_examples_linux_tests"
+    build_targets: *linux_targets_standalone
+    build_flags:
+      - "-c"
+      - "dbg"
+      - "--spawn_strategy=standalone"
+      - "-k"
+    test_targets: *linux_targets_standalone
+    test_flags:
+      - "-c"
+      - "dbg"
+      - "--spawn_strategy=standalone"
   ubuntu2004_examples:
     name: Examples
     platform: ubuntu2004
@@ -47,6 +65,24 @@ tasks:
       - "-//cmake_android/..."
     build_targets: *rbe_targets
     test_targets: *rbe_targets
+  macos_examples_standalone:
+    name: Examples (spawn_strategy=standalone)
+    platform: macos
+    working_directory: examples
+    macos_targets: &macos_targets_standalone
+      - "//..."
+      - "//:third_party_examples_macos_tests"
+    build_targets: *macos_targets_standalone
+    build_flags:
+      - "-c"
+      - "dbg"
+      - "--spawn_strategy=standalone"
+      - "-k"
+    test_targets: *macos_targets_standalone
+    test_flags:
+      - "-c"
+      - "dbg"
+      - "--spawn_strategy=standalone"
   macos_examples:
     name: Examples
     platform: macos
