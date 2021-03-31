@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Slightly contrived example of a tool
+# that resolves the symlinks to the real file
+# and attempts to modify it
+# (Using perl here for replacement to avoid difference in in-place
+# arguments on macOS sed)
+# Note that perl -i would just replace the symlink
+# if used directly
+
+perl -i -pe 's/42/0/' $(readlink src/simple.c)
+echo "CC = $CC" > Makefile
+echo "CPPFLAGS = $CPPFLAGS" >> Makefile
+echo "LDFLAGS = $LDFLAGS" >> Makefile
+cat Makefile.in >> Makefile

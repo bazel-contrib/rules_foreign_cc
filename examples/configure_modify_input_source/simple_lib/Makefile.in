@@ -1,0 +1,11 @@
+simple: simple.a
+
+simple.a: ./src/simple.c
+	$(CC) $(CPPFLAGS) $(LDFLAGS) -o simple.o -c ./src/simple.c -I./include -I.
+	ar rcs simple.a simple.o
+
+install: simple.a
+	mkdir -p simple 
+	mkdir -p simple/lib
+	cp simple.a ./simple/lib/simple.a
+	cp -r ./include ./simple
