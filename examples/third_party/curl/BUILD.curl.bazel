@@ -29,7 +29,7 @@ cmake(
         "@platforms//os:macos": _MACOS_CACHE_ENTRIES,
         "//conditions:default": _CACHE_ENTRIES,
     }),
-    cmake_options = select({
+    generate_args = select({
         "@platforms//os:windows": ["-GNinja"],
         "//conditions:default": [],
     }),
