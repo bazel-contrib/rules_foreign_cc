@@ -9,7 +9,7 @@ load(
 
 def _cmake_tool_impl(ctx):
     script = [
-        "./bootstrap --prefix=$$INSTALLDIR$$",
+        "$$SRC_ROOT$$/bootstrap --prefix=$$INSTALLDIR$$",
         # TODO: Use make from a toolchain
         "make",
         "make install",

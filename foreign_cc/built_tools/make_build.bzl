@@ -10,8 +10,8 @@ load("//foreign_cc/private:shell_script_helper.bzl", "os_name")
 
 def _make_tool_impl(ctx):
     script = [
-        "./configure --disable-dependency-tracking --prefix=$$INSTALLDIR$$",
-        "./build.sh",
+        "$$SRC_ROOT$$/configure --disable-dependency-tracking --prefix=$$INSTALLDIR$$",
+        "$$SRC_ROOT$$/build.sh",
     ]
 
     if "win" in os_name(ctx):

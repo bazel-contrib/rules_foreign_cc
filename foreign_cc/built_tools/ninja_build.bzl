@@ -10,7 +10,7 @@ load("//foreign_cc/private:shell_script_helper.bzl", "os_name")
 
 def _ninja_tool_impl(ctx):
     script = [
-        "./configure.py --bootstrap",
+        "$$SRC_ROOT$$/configure.py --bootstrap",
         "mkdir $$INSTALLDIR$$/bin",
         "cp ./ninja{} $$INSTALLDIR$$/bin/".format(
             ".exe" if "win" in os_name(ctx) else "",
