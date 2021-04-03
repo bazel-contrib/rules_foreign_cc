@@ -22,13 +22,11 @@ def _configure_make(ctx):
 
     tools_deps = ctx.attr.tools_deps + make_data.deps
 
-    copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
-
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Configure",
         create_configure_script = _create_configure_script,
-        postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
+        postfix_script = ctx.attr.postfix_script,
         tools_deps = tools_deps,
         make_path = make_data.path,
     )
@@ -40,12 +38,9 @@ def _create_configure_script(configureParameters):
     inputs = configureParameters.inputs
 
     root = detect_root(ctx.attr.lib_source)
-    install_prefix = _get_install_prefix(ctx)
 
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
-
-    define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
 
     data = ctx.attr.data or list()
 
@@ -92,14 +87,7 @@ def _create_configure_script(configureParameters):
         autogen_env_vars = ctx.attr.autogen_env_vars,
         make_commands = make_commands,
     )
-    return define_install_prefix + configure
-
-def _get_install_prefix(ctx):
-    if ctx.attr.install_prefix:
-        return ctx.attr.install_prefix
-    if ctx.attr.lib_name:
-        return ctx.attr.lib_name
-    return ctx.attr.name
+    return configure
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
