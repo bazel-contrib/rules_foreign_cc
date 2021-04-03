@@ -10,7 +10,6 @@ cc_library(
 
 configure_make(
     name = "simple",
-    configure_in_place = True,
     lib_source = "//configure_with_bazel_transitive/simple_lib:simple_srcs",
     targets = [
         "simple",
@@ -23,4 +22,21 @@ cc_test(
     name = "test",
     srcs = ["testSimple.c"],
     deps = [":simple"],
+)
+
+configure_make(
+    name = "simple_in_place",
+    configure_in_place = True,
+    lib_source = "//configure_with_bazel_transitive/simple_lib:simple_srcs",
+    targets = [
+        "simple",
+        "install",
+    ],
+    deps = [":built_with_bazel"],
+)
+
+cc_test(
+    name = "test_in_place",
+    srcs = ["testSimple.c"],
+    deps = [":simple_in_place"],
 )

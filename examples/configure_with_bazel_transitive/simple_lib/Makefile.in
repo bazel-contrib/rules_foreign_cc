@@ -1,7 +1,6 @@
-simple: ./src/simple.c
-	$(CC) $(CPPFLAGS) $(LDFLAGS) -o simple.a -c ./src/simple.c -I./include -I.
+simple: $(SRC_ROOT)/src/simple.c
+	$(CC) $(CPPFLAGS) $(LDFLAGS) -o simple.a -c $(SRC_ROOT)/src/simple.c -I$(SRC_ROOT)/include -I$(SRC_ROOT)
 install:
-	mkdir -p simple
-	mkdir -p simple/lib
-	cp simple.a ./simple/lib/simple.a
-	cp -r ./include ./simple
+	mkdir -p $(PREFIX)/lib
+	cp simple.a $(PREFIX)/lib/simple.a
+	cp -r $(SRC_ROOT)/include $(PREFIX)/

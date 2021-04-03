@@ -1,6 +1,19 @@
-ls "$EXT_BUILD_DEPS/lib"
-echo "CC = $CC" > Makefile
+#!/usr/bin/env bash
+
+prefix="--prefix="
+for var in "$@"
+do
+    if [[ $var == $prefix* ]]; then
+        PREFIX=${var#$prefix}
+    fi
+done
+
+SRC_ROOT="$(dirname $0)"
+
+echo "PREFIX = $PREFIX" > Makefile
+echo "CC = $CC" >> Makefile
 echo "CPPFLAGS = $CPPFLAGS" >> Makefile
 echo "LDFLAGS = $LDFLAGS" >> Makefile
 echo "BUILT_WITH_BAZEL = $EXT_BUILD_DEPS/lib/libbuilt_with_bazel.a" >> Makefile
-cat Makefile.in >> Makefile
+echo "SRC_ROOT = $SRC_ROOT" >> Makefile
+cat "$SRC_ROOT/Makefile.in" >> Makefile
