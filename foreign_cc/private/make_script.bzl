@@ -48,7 +48,7 @@ def get_env_vars(
         user_vars,
         deps,
         inputs):
-    vars = _get_configure_variables(tools, flags, user_vars)
+    vars = _get_configure_variables(workspace_name, tools, flags, user_vars)
     deps_flags = _define_deps_flags(deps, inputs)
 
     if "LDFLAGS" in vars.keys():
@@ -124,7 +124,7 @@ _CONFIGURE_TOOLS = {
     # missing: cxx_linker_executable
 }
 
-def _get_configure_variables(tools, flags, user_env_vars):
+def _get_configure_variables(workspace_name, tools, flags, user_env_vars):
     vars = {}
 
     for flag in _CONFIGURE_FLAGS:
@@ -142,7 +142,8 @@ def _get_configure_variables(tools, flags, user_env_vars):
     for tool in _CONFIGURE_TOOLS:
         tool_value = getattr(tools, _CONFIGURE_TOOLS[tool])
         if tool_value:
-            tools_dict[tool] = [tool_value]
+            # Force absolutize of tool paths, which may relative to the workspace dir (hermetic toolchains) be provided in project repositories (i.e hermetic toolchains)
+            tools_dict[tool] = [_absolutize(workspace_name, tool_value, True)]
 
     # Replace tools paths if user passed other values
     for user_var in user_env_vars:
@@ -159,8 +160,8 @@ def _get_configure_variables(tools, flags, user_env_vars):
 
     return vars
 
-def _absolutize(workspace_name, text):
-    return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text)
+def _absolutize(workspace_name, text, force = False):
+    return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
