@@ -64,9 +64,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = False,
     ),
-    "binaries": attr.string_list(
-        doc = "__deprecated__: Use `out_binaries` instead.",
-    ),
     "data": attr.label_list(
         doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
         mandatory = False,
@@ -100,15 +97,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
             "because the build does not run in the exec root. " +
             "No other macros are supported."
         ),
-    ),
-    "headers_only": attr.bool(
-        doc = "__deprecated__: Use `out_headers_only` instead.",
-        mandatory = False,
-        default = False,
-    ),
-    "interface_libraries": attr.string_list(
-        doc = "__deprecated__: Use `out_interface_libs` instead.",
-        mandatory = False,
     ),
     "lib_name": attr.string(
         doc = (
@@ -179,14 +167,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     ),
     "postfix_script": attr.string(
         doc = "Optional part of the shell script to be added after the make commands",
-        mandatory = False,
-    ),
-    "shared_libraries": attr.string_list(
-        doc = "__deprecated__: Use `out_shared_libs` instead.",
-        mandatory = False,
-    ),
-    "static_libraries": attr.string_list(
-        doc = "__deprecated__: Use `out_static_libs` instead.",
         mandatory = False,
     ),
     "targets": attr.string_list(

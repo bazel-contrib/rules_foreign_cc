@@ -9,7 +9,7 @@ filegroup(
 
 cmake(
     name = "zlib",
-    cmake_options = select({
+    generate_args = select({
         "@platforms//os:windows": ["-GNinja"],
         "//conditions:default": [],
     }),

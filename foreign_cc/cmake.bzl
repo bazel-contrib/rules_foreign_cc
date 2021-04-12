@@ -73,48 +73,45 @@ def _create_configure_script(configureParameters):
 
     cmake_commands = []
 
-    # If the legacy `make_commands` attribute was not set, use the new
-    # `targets` api for building our target.
-    if not ctx.attr.make_commands:
-        data = ctx.attr.data + getattr(ctx.attr, "tools_deps", [])
-        configuration = "Debug" if is_debug_mode(ctx) else "Release"
+    data = ctx.attr.data + getattr(ctx.attr, "tools_deps", [])
+    configuration = "Debug" if is_debug_mode(ctx) else "Release"
 
-        # Generate a list of arguments for cmake's build command
-        build_args = " ".join([
+    # Generate a list of arguments for cmake's build command
+    build_args = " ".join([
+        ctx.expand_location(arg, data)
+        for arg in ctx.attr.build_args
+    ])
+
+    # Generate commands for all the targets, ensuring there's
+    # always at least 1 call to the default target.
+    for target in ctx.attr.targets or [""]:
+        # There's no need to use the `--target` argument for an empty/"all" target
+        if target:
+            target = "--target '{}'".format(target)
+
+        # Note that even though directory is always passed, the
+        # following arguments can take precedence.
+        cmake_commands.append("{cmake} --build {dir} --config {config} {target} {args}".format(
+            cmake = attrs.cmake_path,
+            dir = ".",
+            args = build_args,
+            target = target,
+            config = configuration,
+        ))
+
+    if ctx.attr.install:
+        # Generate a list of arguments for cmake's install command
+        install_args = " ".join([
             ctx.expand_location(arg, data)
-            for arg in ctx.attr.build_args
+            for arg in ctx.attr.install_args
         ])
 
-        # Generate commands for all the targets, ensuring there's
-        # always at least 1 call to the default target.
-        for target in ctx.attr.targets or [""]:
-            # There's no need to use the `--target` argument for an empty/"all" target
-            if target:
-                target = "--target '{}'".format(target)
-
-            # Note that even though directory is always passed, the
-            # following arguments can take precedence.
-            cmake_commands.append("{cmake} --build {dir} --config {config} {target} {args}".format(
-                cmake = attrs.cmake_path,
-                dir = ".",
-                args = build_args,
-                target = target,
-                config = configuration,
-            ))
-
-        if ctx.attr.install:
-            # Generate a list of arguments for cmake's install command
-            install_args = " ".join([
-                ctx.expand_location(arg, data)
-                for arg in ctx.attr.install_args
-            ])
-
-            cmake_commands.append("{cmake} --install {dir} --config {config} {args}".format(
-                cmake = attrs.cmake_path,
-                dir = ".",
-                args = install_args,
-                config = configuration,
-            ))
+        cmake_commands.append("{cmake} --install {dir} --config {config} {args}".format(
+            cmake = attrs.cmake_path,
+            dir = ".",
+            args = install_args,
+            config = configuration,
+        ))
 
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
@@ -169,7 +166,9 @@ def _get_generator_target(ctx):
     generator = None
 
     generator_definitions = []
-    generate_args = ctx.attr.generate_args + getattr(ctx.attr, "cmake_options", [])
+
+    # Create a mutable list
+    generate_args = list(ctx.attr.generate_args)
     for arg in generate_args:
         if arg.startswith("-G"):
             generator_definitions.append(arg)
@@ -206,6 +205,7 @@ def _get_generator_target(ctx):
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
+    attrs.pop("make_commands")
     attrs.update({
         "build_args": attr.string_list(
             doc = "Arguments for the CMake build command",
@@ -219,11 +219,6 @@ def _attrs():
             ),
             mandatory = False,
             default = {},
-        ),
-        "cmake_options": attr.string_list(
-            doc = "__deprecated__: Use `generate_args`",
-            mandatory = False,
-            default = [],
         ),
         "env_vars": attr.string_dict(
             doc = (
@@ -261,17 +256,6 @@ def _attrs():
         ),
         "install_args": attr.string_list(
             doc = "Arguments for the CMake install command",
-            mandatory = False,
-        ),
-        "install_prefix": attr.string(
-            doc = "__deprecated__: This field is deprecated and is no longer used.",
-            mandatory = False,
-        ),
-        "make_commands": attr.string_list(
-            doc = (
-                "__deprecated__: Optional hard coded commands to replace the `cmake --build` commands. It's " +
-                "recommended to leave this empty and use the `targets` + `build_args` attributes."
-            ),
             mandatory = False,
         ),
         "working_directory": attr.string(

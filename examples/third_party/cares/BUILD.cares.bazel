@@ -13,7 +13,7 @@ cmake(
         "CARES_SHARED": "no",
         "CARES_STATIC": "on",
     },
-    cmake_options = ["-GNinja"],
+    generate_args = ["-GNinja"],
     lib_source = ":all_srcs",
     out_static_libs = select({
         "@platforms//os:windows": ["cares.lib"],
