@@ -153,11 +153,11 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
 }
 
 def _escape_dquote_cmake(text):
-    """ Escape double quotes for use in bash heredoc and CMake. """
+    """ Escape double quotes for use in bash heredoc and CMake crosstool. """
 
     # Context:
-    # cat >> file.cmake <<"EOF"set(CXXFLAGS "{text}")EOF
-    return text.replace('"', r'\"\\\"')
+    # cat >> file.cmake <<EOF set(CXXFLAGS "{text}")EOF
+    return text.replace('"', r'\"\\\\\\"')
 
 def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
     cache_entries = _dict_copy(user_cache)
@@ -181,7 +181,7 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
     })
     return struct(
         # We quote the bash heredoc word to prevent yet another layer of string escapes
-        commands = ['cat > crosstool_bazel.cmake <<"EOF"'] + sorted(lines) + ["EOF", ""],
+        commands = ['cat > crosstool_bazel.cmake << EOF'] + sorted(lines) + ["EOF", ""],
         env = env_vars,
         cache = cache_entries,
     )

@@ -404,7 +404,7 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
         ["--debug-output", "-Wdev"],
         cmake_commands = [],
     )
-    expected = r"""cat > crosstool_bazel.cmake <<"EOF"
+    expected = r"""cat > crosstool_bazel.cmake << EOF
 set(CMAKE_AR "/usr/bin/ar" CACHE FILEPATH "Archiver")
 set(CMAKE_ASM_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
 set(CMAKE_CXX_COMPILER "/usr/bin/gcc")
@@ -536,12 +536,12 @@ def _create_cmake_script_toolchain_file_test(ctx):
         ["--debug-output", "-Wdev"],
         cmake_commands = [],
     )
-    expected = r"""cat > crosstool_bazel.cmake <<"EOF"
+    expected = r"""cat > crosstool_bazel.cmake << EOF
 set(CMAKE_AR "/cxx_linker_static" CACHE FILEPATH "Archiver")
 set(CMAKE_ASM_FLAGS_INIT "assemble assemble-user")
 set(CMAKE_CXX_COMPILER "sink-cxx-value")
 set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "cxx-toolchain")
-set(CMAKE_CXX_FLAGS_INIT "--quoted=\"\\\"abc def\"\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain")
+set(CMAKE_CXX_FLAGS_INIT "--quoted=\"\\\\\\"abc def\"\\\\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain")
 set(CMAKE_CXX_LINK_EXECUTABLE "became")
 set(CMAKE_C_COMPILER "sink-cc-value")
 set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "cc-toolchain")
