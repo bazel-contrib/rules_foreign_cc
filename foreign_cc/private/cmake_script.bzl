@@ -181,7 +181,7 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
     })
     return struct(
         # We quote the bash heredoc word to prevent yet another layer of string escapes
-        commands = ['cat > crosstool_bazel.cmake << EOF'] + sorted(lines) + ["EOF", ""],
+        commands = ["cat > crosstool_bazel.cmake << EOF"] + sorted(lines) + ["EOF", ""],
         env = env_vars,
         cache = cache_entries,
     )
