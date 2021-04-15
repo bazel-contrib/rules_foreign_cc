@@ -45,8 +45,8 @@ def create_configure_script(
         # NOCONFIGURE is pseudo standard and tells the script to not invoke configure.
         # We explicitly invoke configure later.
         autogen_env_vars = _get_autogen_env_vars(autogen_env_vars)
-        script.append("{} \"{}/{}\" {}".format(
-            " ".join(["{}=\"{}\"".format(key, autogen_env_vars[key]) for key in autogen_env_vars]),
+        script.append('{} "{}/{}" {}'.format(
+            " ".join(['{}="{}"'.format(key, autogen_env_vars[key]) for key in autogen_env_vars]),
             root_path,
             autogen_command,
             " ".join(autogen_options),
@@ -60,11 +60,11 @@ def create_configure_script(
 
     if autoreconf and configure_in_place:
         script.append("{} autoreconf {}".format(
-            " ".join(["{}=\"{}\"".format(key, autoreconf_env_vars[key]) for key in autoreconf_env_vars]),
+            " ".join(['{}="{}"'.format(key, autoreconf_env_vars[key]) for key in autoreconf_env_vars]),
             " ".join(autoreconf_options),
         ).lstrip())
 
-    script.append("{env_vars} \"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+    script.append('{env_vars} "{configure}" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}'.format(
         env_vars = env_vars_string,
         configure = configure_path,
         user_options = " ".join(user_options),
