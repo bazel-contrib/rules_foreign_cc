@@ -40,5 +40,6 @@ def filter_containing_dirs_from_inputs(input_files_list):
 
     # Find all the directories that have at least one file or dir inside them.
     populated_dirs = {f.dirname: None for f in input_files_list}
+
     # Filter out any files which are members of populated_dirs.
     return [f for f in input_files_list if f.path not in populated_dirs]

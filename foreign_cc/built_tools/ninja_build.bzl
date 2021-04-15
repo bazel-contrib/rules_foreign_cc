@@ -6,12 +6,15 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
     "built_tool_rule_impl",
 )
+load("//foreign_cc/private:shell_script_helper.bzl", "os_name")
 
 def _ninja_tool_impl(ctx):
     script = [
         "./configure.py --bootstrap",
-        # TODO: Reduce unnecessary copys and only keep what's required
-        "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$ $$INSTALLDIR$$",
+        "mkdir $$INSTALLDIR$$/bin",
+        "cp ./ninja{} $$INSTALLDIR$$/bin/".format(
+            ".exe" if "win" in os_name(ctx) else "",
+        ),
     ]
 
     return built_tool_rule_impl(

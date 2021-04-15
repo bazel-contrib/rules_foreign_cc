@@ -62,8 +62,8 @@ fi
 
 def copy_dir_contents_to_dir(source, target):
     return """cp -L -r --no-target-directory "{source}" "{target}" && find {target} -type f -exec touch -r "{source}" "{{}}" \\;""".format(
-        source=source,
-        target=target,
+        source = source,
+        target = target,
     )
 
 def symlink_contents_to_dir(source, target):

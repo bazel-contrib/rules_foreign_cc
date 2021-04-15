@@ -123,8 +123,8 @@ ninja_tool(
 native_tool_toolchain(
     name = "built_ninja",
     path = select({
-        "@platforms//os:windows": "$(execpath :ninja_tool)/ninja.exe",
-        "//conditions:default": "$(execpath :ninja_tool)/ninja",
+        "@platforms//os:windows": "$(execpath :ninja_tool)/bin/ninja.exe",
+        "//conditions:default": "$(execpath :ninja_tool)/bin/ninja",
     }),
     target = ":ninja_tool",
 )

@@ -65,6 +65,110 @@ def prebuilt_toolchains(cmake_version, ninja_version):
     _make_toolchains()
 
 def _cmake_toolchains(version):
+    if "3.20.1" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.20.1-linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.1/cmake-3.20.1-linux-aarch64.tar.gz",
+            ],
+            sha256 = "5ad1f8139498a1956df369c401658ec787f63c8cb4e9759f2edaa51626a86512",
+            strip_prefix = "cmake-3.20.1-linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.20.1-linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.1/cmake-3.20.1-linux-x86_64.tar.gz",
+            ],
+            sha256 = "b8c141bd7a6d335600ab0a8a35e75af79f95b837f736456b5532f4d717f20a09",
+            strip_prefix = "cmake-3.20.1-linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.20.1-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.1/cmake-3.20.1-macos-universal.tar.gz",
+            ],
+            sha256 = "44143d47fdcc7fc3042576c6a8b661e3b65a18143666f74d6e8d93ca3ab5cd95",
+            strip_prefix = "cmake-3.20.1-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.20.1-windows-i386",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.1/cmake-3.20.1-windows-i386.zip",
+            ],
+            sha256 = "650026534e66dabe0ed6be3422e86fabce5fa86d43927171ea8b8dfd0877fc9d",
+            strip_prefix = "cmake-3.20.1-windows-i386",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.20.1-windows-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.1/cmake-3.20.1-windows-x86_64.zip",
+            ],
+            sha256 = "9ed05401722f60e006420f5974c164795b321f0d8d8e7f2c0ed1180b5382201b",
+            strip_prefix = "cmake-3.20.1-windows-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.20.1_toolchains",
+            repos = {
+                "cmake-3.20.1-linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.20.1-linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.20.1-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.20.1-windows-i386": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.20.1-windows-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.20.1_toolchains//:cmake-3.20.1-linux-aarch64_toolchain",
+            "@cmake_3.20.1_toolchains//:cmake-3.20.1-linux-x86_64_toolchain",
+            "@cmake_3.20.1_toolchains//:cmake-3.20.1-macos-universal_toolchain",
+            "@cmake_3.20.1_toolchains//:cmake-3.20.1-windows-i386_toolchain",
+            "@cmake_3.20.1_toolchains//:cmake-3.20.1-windows-x86_64_toolchain",
+        )
+
+        return
+
     if "3.20.0" == version:
         maybe(
             http_archive,
@@ -138,23 +242,23 @@ def _cmake_toolchains(version):
             repos = {
                 "cmake-3.20.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.20.0-linux-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.20.0-macos-universal": [
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "cmake-3.20.0-windows-i386": [
                     "@platforms//cpu:x86_32",
-                    "@platforms//os:windows"
+                    "@platforms//os:windows",
                 ],
                 "cmake-3.20.0-windows-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "cmake",
         )
@@ -165,6 +269,110 @@ def _cmake_toolchains(version):
             "@cmake_3.20.0_toolchains//:cmake-3.20.0-macos-universal_toolchain",
             "@cmake_3.20.0_toolchains//:cmake-3.20.0-windows-i386_toolchain",
             "@cmake_3.20.0_toolchains//:cmake-3.20.0-windows-x86_64_toolchain",
+        )
+
+        return
+
+    if "3.19.8" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.19.8-Linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.19.8/cmake-3.19.8-Linux-aarch64.tar.gz",
+            ],
+            sha256 = "807f5afb2a560e00af9640e496d5673afefc2888bf0ed076412884a5ebb547a1",
+            strip_prefix = "cmake-3.19.8-Linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.19.8-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.19.8/cmake-3.19.8-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "db0d7d225150dd6e08ce54995e671f9b4801b8e93e22df1eef52339f6bbbecd9",
+            strip_prefix = "cmake-3.19.8-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.19.8-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.19.8/cmake-3.19.8-macos-universal.tar.gz",
+            ],
+            sha256 = "0976d23d982af05dcbfb3aa34fcb62ead43bea27f0e3bb95222f2a78161423f2",
+            strip_prefix = "cmake-3.19.8-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.19.8-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.19.8/cmake-3.19.8-win32-x86.zip",
+            ],
+            sha256 = "f82bbfc56fe1c9f9f137991f742d09b79ec31168ef99eb67f8f4fa92276d9efb",
+            strip_prefix = "cmake-3.19.8-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.19.8-win64-x64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.19.8/cmake-3.19.8-win64-x64.zip",
+            ],
+            sha256 = "2a30877a3d6b50da305b289f4d1c03befdfaeb2edba02a563c681e883d810380",
+            strip_prefix = "cmake-3.19.8-win64-x64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.19.8_toolchains",
+            repos = {
+                "cmake-3.19.8-Linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.19.8-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.19.8-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.19.8-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.19.8-win64-x64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.19.8_toolchains//:cmake-3.19.8-Linux-aarch64_toolchain",
+            "@cmake_3.19.8_toolchains//:cmake-3.19.8-Linux-x86_64_toolchain",
+            "@cmake_3.19.8_toolchains//:cmake-3.19.8-macos-universal_toolchain",
+            "@cmake_3.19.8_toolchains//:cmake-3.19.8-win32-x86_toolchain",
+            "@cmake_3.19.8_toolchains//:cmake-3.19.8-win64-x64_toolchain",
         )
 
         return
@@ -242,23 +450,23 @@ def _cmake_toolchains(version):
             repos = {
                 "cmake-3.19.7-Linux-aarch64": [
                     "@platforms//cpu:aarch64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.19.7-Linux-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.19.7-macos-universal": [
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "cmake-3.19.7-win32-x86": [
                     "@platforms//cpu:x86_32",
-                    "@platforms//os:windows"
+                    "@platforms//os:windows",
                 ],
                 "cmake-3.19.7-win64-x64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "cmake",
         )
@@ -346,23 +554,23 @@ def _cmake_toolchains(version):
             repos = {
                 "cmake-3.19.6-Linux-aarch64": [
                     "@platforms//cpu:aarch64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.19.6-Linux-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.19.6-macos-universal": [
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "cmake-3.19.6-win32-x86": [
                     "@platforms//cpu:x86_32",
-                    "@platforms//os:windows"
+                    "@platforms//os:windows",
                 ],
                 "cmake-3.19.6-win64-x64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "cmake",
         )
@@ -450,23 +658,23 @@ def _cmake_toolchains(version):
             repos = {
                 "cmake-3.19.5-Linux-aarch64": [
                     "@platforms//cpu:aarch64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.19.5-Linux-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.19.5-macos-universal": [
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "cmake-3.19.5-win32-x86": [
                     "@platforms//cpu:x86_32",
-                    "@platforms//os:windows"
+                    "@platforms//os:windows",
                 ],
                 "cmake-3.19.5-win64-x64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "cmake",
         )
@@ -541,20 +749,20 @@ def _cmake_toolchains(version):
             repos = {
                 "cmake-3.18.6-Darwin-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "cmake-3.18.6-Linux-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.18.6-win32-x86": [
                     "@platforms//cpu:x86_32",
-                    "@platforms//os:windows"
+                    "@platforms//os:windows",
                 ],
                 "cmake-3.18.6-win64-x64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "cmake",
         )
@@ -628,20 +836,20 @@ def _cmake_toolchains(version):
             repos = {
                 "cmake-3.17.5-Darwin-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "cmake-3.17.5-Linux-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.17.5-win32-x86": [
                     "@platforms//cpu:x86_32",
-                    "@platforms//os:windows"
+                    "@platforms//os:windows",
                 ],
                 "cmake-3.17.5-win64-x64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "cmake",
         )
@@ -715,20 +923,20 @@ def _cmake_toolchains(version):
             repos = {
                 "cmake-3.16.9-Darwin-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "cmake-3.16.9-Linux-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.16.9-win32-x86": [
                     "@platforms//cpu:x86_32",
-                    "@platforms//os:windows"
+                    "@platforms//os:windows",
                 ],
                 "cmake-3.16.9-win64-x64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "cmake",
         )
@@ -802,20 +1010,20 @@ def _cmake_toolchains(version):
             repos = {
                 "cmake-3.15.7-Darwin-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "cmake-3.15.7-Linux-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.15.7-win32-x86": [
                     "@platforms//cpu:x86_32",
-                    "@platforms//os:windows"
+                    "@platforms//os:windows",
                 ],
                 "cmake-3.15.7-win64-x64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "cmake",
         )
@@ -889,20 +1097,20 @@ def _cmake_toolchains(version):
             repos = {
                 "cmake-3.14.7-Darwin-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "cmake-3.14.7-Linux-x86_64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "cmake-3.14.7-win32-x86": [
                     "@platforms//cpu:x86_32",
-                    "@platforms//os:windows"
+                    "@platforms//os:windows",
                 ],
                 "cmake-3.14.7-win64-x64": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "cmake",
         )
@@ -966,16 +1174,16 @@ def _ninja_toolchains(version):
             repos = {
                 "ninja_1.10.2_linux": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "ninja_1.10.2_mac": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "ninja_1.10.2_win": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "ninja",
         )
@@ -1035,16 +1243,16 @@ def _ninja_toolchains(version):
             repos = {
                 "ninja_1.10.1_linux": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "ninja_1.10.1_mac": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "ninja_1.10.1_win": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "ninja",
         )
@@ -1104,16 +1312,16 @@ def _ninja_toolchains(version):
             repos = {
                 "ninja_1.10.0_linux": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "ninja_1.10.0_mac": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "ninja_1.10.0_win": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "ninja",
         )
@@ -1173,16 +1381,16 @@ def _ninja_toolchains(version):
             repos = {
                 "ninja_1.9.0_linux": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "ninja_1.9.0_mac": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "ninja_1.9.0_win": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "ninja",
         )
@@ -1242,16 +1450,16 @@ def _ninja_toolchains(version):
             repos = {
                 "ninja_1.8.2_linux": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:linux"
+                    "@platforms//os:linux",
                 ],
                 "ninja_1.8.2_mac": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:macos"
+                    "@platforms//os:macos",
                 ],
                 "ninja_1.8.2_win": [
                     "@platforms//cpu:x86_64",
-                    "@platforms//os:windows"
-                ]
+                    "@platforms//os:windows",
+                ],
             },
             tool = "ninja",
         )

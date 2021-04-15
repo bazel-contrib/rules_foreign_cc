@@ -38,7 +38,6 @@ def _create_make_script(configureParameters):
     inputs = configureParameters.inputs
 
     root = detect_root(ctx.attr.lib_source)
-    install_prefix = _get_install_prefix(ctx)
 
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
@@ -52,63 +51,26 @@ def _create_make_script(configureParameters):
     ])
 
     make_commands = []
-
-    if not ctx.attr.make_commands:
-        for target in ctx.attr.targets:
-            make_commands.append("{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
-                make = attrs.make_path,
-                root = root,
-                args = args,
-                target = target,
-            ))
+    for target in ctx.attr.targets:
+        make_commands.append("{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
+            make = attrs.make_path,
+            root = root,
+            args = args,
+            target = target,
+        ))
 
     return create_make_script(
-        workspace_name = ctx.workspace_name,
-        tools = tools,
-        flags = flags,
         root = root,
-        user_vars = dict(ctx.attr.make_env_vars),
-        deps = ctx.attr.deps,
         inputs = inputs,
-        prefix = install_prefix,
         make_commands = make_commands,
     )
 
-def _get_install_prefix(ctx):
-    if ctx.attr.prefix:
-        return ctx.attr.prefix
-    return "$$INSTALLDIR$$"
-
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
+    attrs.pop("make_commands")
     attrs.update({
         "args": attr.string_list(
             doc = "A list of arguments to pass to the call to `make`",
-        ),
-        "keep_going": attr.bool(
-            doc = (
-                "__deprecated__: To maintain this behavior, pass `-k` to the `args` attribute " +
-                "when not using the `make_commands` attribute."
-            ),
-            mandatory = False,
-            default = True,
-        ),
-        "make_commands": attr.string_list(
-            doc = (
-                "__deprecated__: A list of hard coded bash commands for building source code. It's " +
-                "recommended to leave this empty and use the `targets` + `args` attributes."
-            ),
-            mandatory = False,
-            default = [],
-        ),
-        "make_env_vars": attr.string_dict(
-            doc = "__deprecated__: Use the `env` attribute",
-        ),
-        "prefix": attr.string(
-            doc = (
-                "__deprecated__: To maintain this behavior, pass `PREFIX=<value>` to the `args` attribute"
-            ),
-            mandatory = False,
         ),
         "targets": attr.string_list(
             doc = (
