@@ -30,6 +30,7 @@ def _cmake_toolchain(version):
             http_archive,
             name = "cmake_src",
             build_file_content = _ALL_CONTENT,
+            sha256 = "3f1808b9b00281df06c91dd7a021d7f52f724101000da7985a401678dfe035b0",
             strip_prefix = "cmake-3.20.1",
             urls = [
                 "https://github.com/Kitware/CMake/releases/download/v3.20.1/cmake-3.20.1.tar.gz",
