@@ -317,8 +317,8 @@ def cc_external_rule_impl(ctx, attrs):
     define_variables = set_cc_envs + [
         "export EXT_BUILD_ROOT=##pwd##",
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
-        "export BUILD_TMPDIR=$${INSTALLDIR}$$.build_tmpdir",
-        "export EXT_BUILD_DEPS=$${INSTALLDIR}$$.ext_build_deps",
+        "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
+        "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
     ] + [
         "export {key}={value}".format(
             key = key,
