@@ -86,7 +86,7 @@ def create_cmake_script(
     # Add definitions for all environment variables
     script = set_env_vars
 
-    directory = "$EXT_BUILD_ROOT/" + root
+    directory = "$$EXT_BUILD_ROOT$$/" + root
 
     script.append("set -x")
 
@@ -123,7 +123,7 @@ def _wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
 # From CMake documentation: ;-list of directories specifying installation prefixes to be searched...
 def _merge_prefix_path(user_cache, include_dirs):
     user_prefix = user_cache.get("CMAKE_PREFIX_PATH")
-    values = ["$EXT_BUILD_DEPS"] + include_dirs
+    values = ["$$EXT_BUILD_DEPS$$"] + include_dirs
     if user_prefix != None:
         # remove it, it is gonna be merged specifically
         user_cache.pop("CMAKE_PREFIX_PATH")
@@ -338,7 +338,7 @@ def _tail_if_starts_with(str, start):
 def _absolutize(workspace_name, text, force = False):
     if text.strip(" ").startswith("C:") or text.strip(" ").startswith("c:"):
         return text
-    return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text, force)
+    return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
