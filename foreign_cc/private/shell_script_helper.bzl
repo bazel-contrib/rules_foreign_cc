@@ -4,21 +4,21 @@ the shell script into the actual shell script for the concrete platform.
 Notation:
 
 1. `export <varname>=<value>`
-Define the environment variable with the name <varname> and value <value>.
-If the <value> contains the toolchain command call (see 3), the call is replaced with needed value.
+    Define the environment variable with the name <varname> and value <value>.
+    If the <value> contains the toolchain command call (see 3), the call is replaced with needed value.
 
 2. `$$<varname>$$`
-Refer the environment variable with the name <varname>,
-i.e. this will become $<varname> on Linux/MacOS, and %<varname>% on Windows.
+    Refer the environment variable with the name <varname>,
+    i.e. this will become $<varname> on Linux/MacOS, and %<varname>% on Windows.
 
 3. `##<funname>## <arg1> ... <argn>`
-Find the shell toolchain command Starlark method with the name <funname> for that command
-in a toolchain, and call it, passing <arg1> .. <argn>.
-(see ./shell_toolchain/commands.bzl, ./shell_toolchain/impl/linux_commands.bzl etc.)
-The arguments are space-separated; if the argument is quoted, the spaces inside the quites are
-ignored.
-! Escaping of the quotes inside the quoted argument is not supported, as it was not needed for now.
-(quoted arguments are used for paths and never for any arbitrary string.)
+    Find the shell toolchain command Starlark method with the name <funname> for that command
+    in a toolchain, and call it, passing <arg1> .. <argn>.
+    (see ./shell_toolchain/commands.bzl, ./shell_toolchain/impl/linux_commands.bzl etc.)
+    The arguments are space-separated; if the argument is quoted, the spaces inside the quites are
+    ignored.
+    ! Escaping of the quotes inside the quoted argument is not supported, as it was not needed for now.
+    (quoted arguments are used for paths and never for any arbitrary string.)
 
 The call of a shell toolchain Starlark method is performed through
 //foreign_cc/private/shell_toolchain/toolchains:access.bzl; please refer there for the details.
