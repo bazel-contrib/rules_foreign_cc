@@ -60,6 +60,11 @@ def check_argument_types(method_, args_list):
     descriptor = PLATFORM_COMMANDS[method_]
     args_info = descriptor.arguments
 
+    # Methods with `_` as their only argument ignore all arguments
+    if len(args_info) == 1:
+        if args_info[0].name == "_":
+            return
+
     if len(args_list) != len(args_info):
         fail("Wrong number ({}) of arguments ({}) in a call to '{}'".format(
             len(args_list),

@@ -534,14 +534,12 @@ def _print_env():
         "##echo## \"__________________________\"",
     ]
 
-def _correct_path_variable(env):
+def _correct_path_variable(ctx, env):
     value = env.get("PATH", "")
     if not value:
         return env
-    value = env.get("PATH", "").replace("C:\\", "/c/")
-    value = value.replace("\\", "/")
-    value = value.replace(";", ":")
-    env["PATH"] = "$PATH:" + value
+
+    env["PATH"] = "$$PATH$$" + path_sep(ctx) + value
     return env
 
 def _depset(item):

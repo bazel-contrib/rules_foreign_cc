@@ -91,7 +91,7 @@ def _create_configure_script(configureParameters):
 
         # Note that even though directory is always passed, the
         # following arguments can take precedence.
-        cmake_commands.append("{cmake} --build {dir} --config {config} {target} {args}".format(
+        cmake_commands.append("##invoke## {cmake} --build {dir} --config {config} {target} {args}".format(
             cmake = attrs.cmake_path,
             dir = ".",
             args = build_args,
@@ -106,7 +106,7 @@ def _create_configure_script(configureParameters):
             for arg in ctx.attr.install_args
         ])
 
-        cmake_commands.append("{cmake} --install {dir} --config {config} {args}".format(
+        cmake_commands.append("##invoke## {cmake} --install {dir} --config {config} {args}".format(
             cmake = attrs.cmake_path,
             dir = ".",
             args = install_args,

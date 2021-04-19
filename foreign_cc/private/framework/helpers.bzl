@@ -100,6 +100,13 @@ def convert_shell_script_by_context(shell_context, script):
     script = [replace_var_ref(line, shell_context) for line in script]
 
     result = "\n".join(script)
+
+    # TODO: There is a bug in how `split_arguments` splits arguments which results
+    # in arguments like `-DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake"` resulting
+    # in `['-DCMAKE_TOOLCHAIN_FILE=', '"crosstool_bazel.cmake"']` when it should
+    # result in `['-DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake"']`. This is a
+    # last minute band-aid for this issue
+    result = result.replace("= \"", "=\"")
     return result
 
 # buildifier: disable=function-docstring
@@ -143,8 +150,6 @@ def get_function_name(text):
     (before, funname_extracted, after_extracted) = extract_wrapped(funname, "##", "##")
 
     if funname_extracted and PLATFORM_COMMANDS.get(funname_extracted):
-        if len(before) > 0 or len(after_extracted) > 0:
-            fail("Something wrong with the shell command call notation: " + text)
         return (funname_extracted, after)
 
     return (None, None)

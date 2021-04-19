@@ -52,6 +52,12 @@ PLATFORM_COMMANDS = {
         ],
         doc = "Output the file contents to stdout",
     ),
+    "invoke": _command_info(
+        arguments = [
+            _argument_info(name = "_", data_type = type(""), doc = "Arguments may be provided but are unused"),
+        ],
+        doc = "Run a command",
+    ),
     "cat_eof_start": _command_info(
         arguments = [
             _argument_info(name = "filepath", data_type = type(""), doc = "Path to the file"),

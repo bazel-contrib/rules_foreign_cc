@@ -172,6 +172,9 @@ def cat_eof_end(filepath):
 def redirect_out_err(from_process, to_file):
     return from_process + " &> " + to_file
 
+def invoke():
+    return ""
+
 def assert_script_errors():
     return "set -e"
 

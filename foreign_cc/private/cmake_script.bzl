@@ -91,7 +91,7 @@ def create_cmake_script(
     script.append("##enable_tracing##")
 
     # Configure the CMake generate command
-    script.append(" ".join([
+    script.append("##invoke## " + " ".join([
         cmake_path,
         str_cmake_cache_entries,
         " ".join(options),
