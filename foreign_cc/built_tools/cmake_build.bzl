@@ -29,7 +29,7 @@ cmake_tool = rule(
     output_to_genfiles = True,
     implementation = _cmake_tool_impl,
     toolchains = [
-        str(Label("//foreign_cc/private/shell_toolchain/toolchains:shell_commands")),
+        str(Label("//foreign_cc/private/framework:toolchain_type")),
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

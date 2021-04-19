@@ -1,10 +1,14 @@
-# buildifier: disable=module-docstring
-load("@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
+"""Define MacOS foreign_cc framework commands. Windows uses Bash"""
+
+load(":commands.bzl", "FunctionAndCall")
 
 _REPLACE_VALUE = "\\${EXT_BUILD_DEPS}"
 
-def os_name():
-    return "macos"
+def shebang():
+    return "#!/usr/bin/env bash"
+
+def wrapper_extension():
+    return ".sh"
 
 def pwd():
     return "$(pwd)"
@@ -29,6 +33,12 @@ def path(expression):
 
 def touch(path):
     return "touch " + path
+
+def enable_tracing():
+    return "set -x"
+
+def disable_tracing():
+    return "set +x"
 
 def mkdirs(path):
     return "mkdir -p " + path
@@ -153,6 +163,12 @@ done
 def cat(filepath):
     return "cat \"{}\"".format(filepath)
 
+def cat_eof_start(filepath):
+    return "cat > {} << EOF".format(filepath)
+
+def cat_eof_end(filepath):
+    return "EOF"
+
 def redirect_out_err(from_process, to_file):
     return from_process + " &> " + to_file
 
@@ -162,9 +178,7 @@ def assert_script_errors():
 def cleanup_function(on_success, on_failure):
     text = "\n".join([
         "local ecode=$?",
-        "if [ $ecode -eq 0 ]; then",
-        on_success,
-        "else",
+        "if [ $ecode -ne 0 ]; then",
         on_failure,
         "fi",
     ])

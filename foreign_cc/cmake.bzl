@@ -17,7 +17,7 @@ load(
     "create_attrs",
 )
 load(
-    "//foreign_cc/private:shell_script_helper.bzl",
+    "//foreign_cc/private/framework:platform.bzl",
     "os_name",
 )
 load(
@@ -279,7 +279,7 @@ cmake = rule(
         "@rules_foreign_cc//toolchains:cmake_toolchain",
         "@rules_foreign_cc//toolchains:ninja_toolchain",
         "@rules_foreign_cc//toolchains:make_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/framework:toolchain_type",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

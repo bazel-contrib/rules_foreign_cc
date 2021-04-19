@@ -4,7 +4,7 @@ load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 
 # buildifier: disable=bzl-visibility
 load(
-    "//foreign_cc/private:shell_script_helper.bzl",
+    "//foreign_cc/private/framework:helpers.bzl",
     "convert_shell_script_by_context",
     "do_function_call",
     "replace_var_ref",
@@ -12,7 +12,7 @@ load(
 )
 
 # buildifier: disable=bzl-visibility
-load("//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
+load("//foreign_cc/private/framework/toolchains:commands.bzl", "FunctionAndCall")
 
 def _use_var_linux(varname):
     return "$" + varname
@@ -108,7 +108,6 @@ def _do_function_call_test(ctx):
 
     cases = {
         "##echo## \"\ntext\n\"": "echo1 \"\ntext\n\"",
-        "##os_name##": "Fuchsia",
         "##script_prelude##": "set -euo pipefail",
         "##symlink_contents_to_dir## 1 2": "1_2",
         "export ROOT=\"A B C\"": "export1 ROOT=\"A B C\"",

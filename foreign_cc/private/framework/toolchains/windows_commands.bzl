@@ -1,13 +1,17 @@
-# buildifier: disable=module-docstring
-load("@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
+"""Define windows foreign_cc framework commands. Windows uses Powershell"""
+
+load(":commands.bzl", "FunctionAndCall")
 
 _REPLACE_VALUE = "\\${EXT_BUILD_DEPS}"
 
-def os_name():
-    return "linux"
+def shebang():
+    return "#!/usr/bin/env bash"
+
+def wrapper_extension():
+    return ".sh"
 
 def pwd():
-    return "$(pwd)"
+    return "$(type -t cygpath > /dev/null && cygpath $(pwd) -w || pwd -W)"
 
 def echo(text):
     return "echo \"{text}\"".format(text = text)
@@ -29,6 +33,12 @@ def path(expression):
 
 def touch(path):
     return "touch " + path
+
+def enable_tracing():
+    return "set -x"
+
+def disable_tracing():
+    return "set +x"
 
 def mkdirs(path):
     return "mkdir -p " + path
@@ -55,7 +65,7 @@ def replace_in_files(dir, from_, to_):
     return FunctionAndCall(
         text = """\
 if [ -d "$1" ]; then
-  find -L $1 -type f   \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \\)   -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
+  $REAL_FIND -L $1 -type f   \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \\)   -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
 fi
 """,
     )
@@ -78,9 +88,9 @@ elif [[ -L "$1" ]]; then
 elif [[ -d "$1" ]]; then
   SAVEIFS=$IFS
   IFS=$'\n'
-  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
+  local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
-  for child in "${children[@]:-}"; do
+  for child in "${children[@]}"; do
     ##symlink_to_dir## "$child" "$target"
   done
 fi
@@ -99,10 +109,10 @@ elif [[ -L "$1" ]]; then
 elif [[ -d "$1" ]]; then
   SAVEIFS=$IFS
   IFS=$'\n'
-  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
+  local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
   local dirname=$(basename "$1")
-  for child in "${children[@]:-}"; do
+  for child in "${children[@]}"; do
     if [[ "$dirname" != *.ext_build_deps ]]; then
       ##symlink_to_dir## "$child" "$target/$dirname"
     fi
@@ -114,11 +124,21 @@ fi
     return FunctionAndCall(text = text)
 
 def script_prelude():
-    return "set -euo pipefail"
+    return """\
+set -euo pipefail
+if [ -f /usr/bin/find ]; then
+  REAL_FIND="/usr/bin/find"
+else
+  REAL_FIND="$(which find)"
+fi
+export MSYS_NO_PATHCONV=1
+export MSYS2_ARG_CONV_EXCL="*"
+export SYSTEMDRIVE="C:"
+"""
 
 def increment_pkg_config_path(source):
     text = """\
-local children=$(find $1 -mindepth 1 -name '*.pc')
+local children=$($REAL_FIND $1 -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
   export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$(dirname $child)"
@@ -130,6 +150,12 @@ done
 def cat(filepath):
     return "cat \"{}\"".format(filepath)
 
+def cat_eof_start(filepath):
+    return "cat > {} << EOF".format(filepath)
+
+def cat_eof_end(filepath):
+    return "EOF"
+
 def redirect_out_err(from_process, to_file):
     return from_process + " &> " + to_file
 
@@ -139,9 +165,7 @@ def assert_script_errors():
 def cleanup_function(on_success, on_failure):
     text = "\n".join([
         "local ecode=$?",
-        "if [ $ecode -eq 0 ]; then",
-        on_success,
-        "else",
+        "if [ $ecode -ne 0 ]; then",
         on_failure,
         "fi",
     ])
@@ -150,7 +174,7 @@ def cleanup_function(on_success, on_failure):
 def children_to_path(dir_):
     text = """\
 if [ -d {dir_} ]; then
-  local tools=$(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)
+  local tools=$($REAL_FIND $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)
   for tool in $tools;
   do
     if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then

@@ -75,7 +75,7 @@ def create_cmake_script(
         params.cache.update({"CMAKE_RANLIB": ""})
 
     set_env_vars = [
-        "export {}=\"{}\"".format(key, _escape_dquote_bash(params.env[key]))
+        "##export_var## {} \"{}\"".format(key, _escape_dquote_bash(params.env[key]))
         for key in params.env
     ]
     str_cmake_cache_entries = " ".join([
@@ -86,9 +86,9 @@ def create_cmake_script(
     # Add definitions for all environment variables
     script = set_env_vars
 
-    directory = "$EXT_BUILD_ROOT/" + root
+    directory = "$$EXT_BUILD_ROOT$$/" + root
 
-    script.append("set -x")
+    script.append("##enable_tracing##")
 
     # Configure the CMake generate command
     script.append(" ".join([
@@ -102,7 +102,7 @@ def create_cmake_script(
 
     script.extend(cmake_commands)
 
-    script.append("set +x")
+    script.append("##disable_tracing##")
 
     return params.commands + script
 
@@ -123,7 +123,7 @@ def _wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
 # From CMake documentation: ;-list of directories specifying installation prefixes to be searched...
 def _merge_prefix_path(user_cache, include_dirs):
     user_prefix = user_cache.get("CMAKE_PREFIX_PATH")
-    values = ["$EXT_BUILD_DEPS"] + include_dirs
+    values = ["$$EXT_BUILD_DEPS$$"] + include_dirs
     if user_prefix != None:
         # remove it, it is gonna be merged specifically
         user_cache.pop("CMAKE_PREFIX_PATH")
@@ -180,7 +180,7 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
         "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",
     })
     return struct(
-        commands = ["cat > crosstool_bazel.cmake << EOF"] + sorted(lines) + ["EOF", ""],
+        commands = ["##cat_eof_start## crosstool_bazel.cmake"] + sorted(lines) + ["##cat_eof_end## crosstool_bazel.cmake", ""],
         env = env_vars,
         cache = cache_entries,
     )
@@ -338,7 +338,7 @@ def _tail_if_starts_with(str, start):
 def _absolutize(workspace_name, text, force = False):
     if text.strip(" ").startswith("C:") or text.strip(" ").startswith("c:"):
         return text
-    return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text, force)
+    return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])

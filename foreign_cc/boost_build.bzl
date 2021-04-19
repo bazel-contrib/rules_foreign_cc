@@ -51,7 +51,7 @@ boost_build = rule(
     output_to_genfiles = True,
     implementation = _boost_build_impl,
     toolchains = [
-        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/framework:toolchain_type",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

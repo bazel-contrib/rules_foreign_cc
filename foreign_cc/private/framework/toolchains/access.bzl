@@ -1,24 +1,29 @@
 # buildifier: disable=module-docstring
-load("//foreign_cc/private/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
-load(":function_and_call.bzl", "FunctionAndCall")
+load(":commands.bzl", "FunctionAndCall", "PLATFORM_COMMANDS")
 
 _function_and_call_type = type(FunctionAndCall(text = ""))
 
 def create_context(ctx):
     return struct(
-        shell = ctx.toolchains["@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands"].data,
+        shell = ctx.toolchains[str(Label("//foreign_cc/private/framework:toolchain_type"))].commands,
         prelude = {},
     )
 
-# buildifier: disable=function-docstring-header
-# buildifier: disable=function-docstring-args
-# buildifier: disable=function-docstring-return
 def call_shell(shell_context, method_, *args):
     """Calls the 'method_' shell command from the toolchain.
+
     Checks the number and types of passed arguments.
     If the command returns the resulting text wrapped into FunctionAndCall provider,
     puts the text of the function into the 'prelude' dictionary in the 'shell_context',
     and returns only the call of that function.
+
+    Args:
+        shell_context (struct): A shell_context created by `create_context`
+        method_ (str): The command to invoke from teh shell context's commands
+        *args: Optinal arguments to accomponany `method_`
+
+    Returns:
+        str: the rendered command
     """
     check_argument_types(method_, args)
 
@@ -28,8 +33,7 @@ def call_shell(shell_context, method_, *args):
     if type(result) == _function_and_call_type:
         # If needed, add function definition to the prelude part of the script
         if not shell_context.prelude.get(method_):
-            define_function = getattr(shell_context.shell, "define_function")
-            shell_context.prelude[method_] = define_function(method_, result.text)
+            shell_context.prelude[method_] = shell_context.shell.define_function(method_, result.text)
 
         # use provided method of calling a defined function or use default
         if hasattr(result, "call"):
@@ -46,8 +50,13 @@ def _wrap_if_needed(arg):
         return "\"" + arg + "\""
     return arg
 
-# buildifier: disable=function-docstring
 def check_argument_types(method_, args_list):
+    """Check a method's argument types
+
+    Args:
+        method_ (str): The target method
+        args_list (list): A list of arguments to check
+    """
     descriptor = PLATFORM_COMMANDS[method_]
     args_info = descriptor.arguments
 
@@ -59,5 +68,5 @@ def check_argument_types(method_, args_list):
         ))
 
     for idx in range(0, len(args_list)):
-        if type(args_list[idx]) != args_info[idx].type_:
+        if type(args_list[idx]) != args_info[idx].data_type:
             fail("Wrong argument '{}' type: '{}'".format(args_info[idx].name, type(args_list[idx])))

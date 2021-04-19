@@ -1,6 +1,6 @@
 # buildifier: disable=module-docstring
 # buildifier: disable=bzl-visibility
-load("//foreign_cc/private:shell_script_helper.bzl", "convert_shell_script")
+load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script")
 
 def _impl(ctx):
     text = convert_shell_script(ctx, ctx.attr.script)
@@ -18,6 +18,6 @@ shell_script_helper_test_rule = rule(
         "script": attr.string_list(mandatory = True),
     },
     toolchains = [
-        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/framework:toolchain_type",
     ],
 )

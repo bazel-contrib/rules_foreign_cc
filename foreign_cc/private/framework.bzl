@@ -7,6 +7,14 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifact", "ForeignCcDeps")
 load("//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 load(
+    "//foreign_cc/private/framework:helpers.bzl",
+    "convert_shell_script",
+    "create_function",
+    "shebang",
+    "wrapper_extension",
+)
+load("//foreign_cc/private/framework:platform.bzl", "os_name")
+load(
     "//toolchains/native_tools:tool_access.bzl",
     "get_make_data",
     "get_ninja_data",
@@ -22,12 +30,6 @@ load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
     "fictive_file_in_genroot",
-)
-load(
-    ":shell_script_helper.bzl",
-    "convert_shell_script",
-    "create_function",
-    "os_name",
 )
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
@@ -190,6 +192,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
     ),
+    "_foreign_cc_framework_platform": attr.label(
+        doc = "Information about the execution platform",
+        cfg = "exec",
+        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
+    ),
 }
 
 # A list of common fragments required by rules using this framework
@@ -296,7 +303,7 @@ def cc_external_rule_impl(ctx, attrs):
     set_cc_envs = []
     execution_os_name = os_name(ctx)
     if execution_os_name != "macos":
-        set_cc_envs = ["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env]
+        set_cc_envs = ["##export_var## {} \"{}\"".format(key, cc_env[key]) for key in cc_env]
 
     lib_header = "Bazel external C/C++ Rules. Building library '{}'".format(lib_name)
 
@@ -315,12 +322,12 @@ def cc_external_rule_impl(ctx, attrs):
     data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
 
     define_variables = set_cc_envs + [
-        "export EXT_BUILD_ROOT=##pwd##",
-        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
-        "export BUILD_TMPDIR=$${INSTALLDIR}$$.build_tmpdir",
-        "export EXT_BUILD_DEPS=$${INSTALLDIR}$$.ext_build_deps",
+        "##export_var## EXT_BUILD_ROOT " + convert_shell_script(ctx, ["##pwd##"]),
+        "##export_var## INSTALLDIR \"$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name + "\"",
+        "##export_var## BUILD_TMPDIR \"$$INSTALLDIR$$.build_tmpdir\"",
+        "##export_var## EXT_BUILD_DEPS \"$$INSTALLDIR$$.ext_build_deps\"",
     ] + [
-        "export {key}={value}".format(
+        "##export_var## {key} {value}".format(
             key = key,
             # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
             value = ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies),
@@ -360,7 +367,7 @@ def cc_external_rule_impl(ctx, attrs):
     ]
 
     script_text = "\n".join([
-        "#!/usr/bin/env bash",
+        shebang(ctx),
         convert_shell_script(ctx, script_lines),
     ])
     wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
@@ -443,9 +450,10 @@ WrappedOutputs = provider(
 
 # buildifier: disable=function-docstring
 def wrap_outputs(ctx, lib_name, configure_name, script_text, build_script_file = None):
+    extension = wrapper_extension(ctx)
     build_log_file = ctx.actions.declare_file("{}_foreign_cc/{}.log".format(lib_name, configure_name))
-    build_script_file = ctx.actions.declare_file("{}_foreign_cc/build_script.sh".format(lib_name))
-    wrapper_script_file = ctx.actions.declare_file("{}_foreign_cc/wrapper_build_script.sh".format(lib_name))
+    build_script_file = ctx.actions.declare_file("{}_foreign_cc/build_script{}".format(lib_name, extension))
+    wrapper_script_file = ctx.actions.declare_file("{}_foreign_cc/wrapper_build_script{}".format(lib_name, extension))
 
     ctx.actions.write(
         output = build_script_file,
@@ -453,11 +461,6 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, build_script_file =
         is_executable = True,
     )
 
-    cleanup_on_success_function = create_function(
-        ctx,
-        "cleanup_on_success",
-        "rm -rf $BUILD_TMPDIR $EXT_BUILD_DEPS",
-    )
     cleanup_on_failure_function = create_function(
         ctx,
         "cleanup_on_failure",
@@ -479,20 +482,19 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, build_script_file =
 
     build_command_lines = [
         "##assert_script_errors##",
-        cleanup_on_success_function,
+        "##export_var## BUILD_WRAPPER_SCRIPT \"{}\"".format(wrapper_script_file.path),
+        "##export_var## BUILD_SCRIPT \"{}\"".format(build_script_file.path),
+        "##export_var## BUILD_LOG \"{}\"".format(build_log_file.path),
         cleanup_on_failure_function,
         # the call trap is defined inside, in a way how the shell function should be called
         # see, for instance, linux_commands.bzl
         trap_function,
-        "export BUILD_WRAPPER_SCRIPT=\"{}\"".format(wrapper_script_file.path),
-        "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
-        "export BUILD_LOG=\"{}\"".format(build_log_file.path),
         # sometimes the log file is not created, we do not want our script to fail because of this
         "##touch## $$BUILD_LOG$$",
         "##redirect_out_err## $$BUILD_SCRIPT$$ $$BUILD_LOG$$",
     ]
     build_command = "\n".join([
-        "#!/usr/bin/env bash",
+        shebang(ctx),
         convert_shell_script(ctx, build_command_lines),
         "",
     ])

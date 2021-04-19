@@ -5,7 +5,6 @@ bzl_library(
     srcs = glob(["**/*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
-        "//foreign_cc/private/shell_toolchain/polymorphism:bzl_srcs",
-        "//foreign_cc/private/shell_toolchain/toolchains:bzl_srcs",
+        "//foreign_cc/private/framework:bzl_srcs",
     ],
 )

@@ -45,7 +45,7 @@ def _access_and_expect_label_copied(toolchain_type_, ctx, tool_name):
         return struct(
             deps = [tool_data.target],
             # as the tool will be copied into tools directory
-            path = "$EXT_BUILD_ROOT/{}".format(cmd_file.path),
+            path = "$$EXT_BUILD_ROOT$$/{}".format(cmd_file.path),
         )
     else:
         return struct(
