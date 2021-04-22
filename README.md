@@ -65,7 +65,7 @@ _ALL_CONTENT = """\
 filegroup(
     name = "all_srcs",
     srcs = glob(["**"]),
-    visibility = ["//visibility:public],
+    visibility = ["//visibility:public"],
 )
 """
 
