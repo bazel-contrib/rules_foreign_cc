@@ -145,10 +145,6 @@ PLATFORM_COMMANDS = {
         arguments = [_argument_info(name = "path", data_type = type(""), doc = "Path to directory")],
         doc = "Creates a directory and, if neccesary, it's parents",
     ),
-    "os_name": _command_info(
-        arguments = [],
-        doc = "Returns OS name",
-    ),
     "path": _command_info(
         arguments = [
             _argument_info(name = "expression", data_type = type(""), doc = "Path"),
