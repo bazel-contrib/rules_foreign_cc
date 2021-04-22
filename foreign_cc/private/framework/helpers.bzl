@@ -37,6 +37,28 @@ load("//foreign_cc/private/framework/toolchains:commands.bzl", "PLATFORM_COMMAND
 def os_name(ctx):
     return call_shell(create_context(ctx), "os_name")
 
+def script_extension(ctx):
+    """A helper method for getting the script extension of the current foreign_cc framework toolchain
+
+    Args:
+        ctx (ctx): The current rule's context object
+
+    Returns:
+        str: A script extension. eg: `.sh`
+    """
+    return call_shell(create_context(ctx), "script_extension")
+
+def shebang(ctx):
+    """A helper method for getting the shebang of the current foreign_cc framework toolchain
+
+    Args:
+        ctx (ctx): The current rule's context object
+
+    Returns:
+        str: A shebang for a script. eg: `#!/usr/bin/env bash`
+    """
+    return call_shell(create_context(ctx), "shebang")
+
 def create_function(ctx, name, text):
     return call_shell(create_context(ctx), "define_function", name, text)
 

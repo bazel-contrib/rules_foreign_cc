@@ -11,6 +11,8 @@ load(
     "convert_shell_script",
     "create_function",
     "os_name",
+    "script_extension",
+    "shebang",
 )
 load(
     "//toolchains/native_tools:tool_access.bzl",
@@ -360,7 +362,7 @@ def cc_external_rule_impl(ctx, attrs):
     ]
 
     script_text = "\n".join([
-        "#!/usr/bin/env bash",
+        shebang(ctx),
         convert_shell_script(ctx, script_lines),
     ])
     wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
@@ -443,9 +445,10 @@ WrappedOutputs = provider(
 
 # buildifier: disable=function-docstring
 def wrap_outputs(ctx, lib_name, configure_name, script_text, build_script_file = None):
+    extension = script_extension(ctx)
     build_log_file = ctx.actions.declare_file("{}_foreign_cc/{}.log".format(lib_name, configure_name))
-    build_script_file = ctx.actions.declare_file("{}_foreign_cc/build_script.sh".format(lib_name))
-    wrapper_script_file = ctx.actions.declare_file("{}_foreign_cc/wrapper_build_script.sh".format(lib_name))
+    build_script_file = ctx.actions.declare_file("{}_foreign_cc/build_script{}".format(lib_name, extension))
+    wrapper_script_file = ctx.actions.declare_file("{}_foreign_cc/wrapper_build_script{}".format(lib_name, extension))
 
     ctx.actions.write(
         output = build_script_file,
@@ -492,7 +495,7 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, build_script_file =
         "##redirect_out_err## $$BUILD_SCRIPT$$ $$BUILD_LOG$$",
     ]
     build_command = "\n".join([
-        "#!/usr/bin/env bash",
+        shebang(ctx),
         convert_shell_script(ctx, build_command_lines),
         "",
     ])

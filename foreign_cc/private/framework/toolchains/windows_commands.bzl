@@ -7,6 +7,12 @@ _REPLACE_VALUE = "\\${EXT_BUILD_DEPS}"
 def os_name():
     return "windows"
 
+def shebang():
+    return "#!/usr/bin/env bash"
+
+def script_extension():
+    return ".sh"
+
 def pwd():
     return "$(type -t cygpath > /dev/null && cygpath $(pwd) -w || pwd -W)"
 
@@ -30,6 +36,12 @@ def path(expression):
 
 def touch(path):
     return "touch " + path
+
+def enable_tracing():
+    return "set -x"
+
+def disable_tracing():
+    return "set +x"
 
 def mkdirs(path):
     return "mkdir -p " + path
