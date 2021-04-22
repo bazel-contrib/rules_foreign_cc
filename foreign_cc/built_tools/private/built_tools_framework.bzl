@@ -3,7 +3,7 @@
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:framework.bzl", "wrap_outputs")
-load("//foreign_cc/private:shell_script_helper.bzl", "convert_shell_script")
+load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script")
 
 # Common attributes for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_ATTRS = {

@@ -6,7 +6,7 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
     "built_tool_rule_impl",
 )
-load("//foreign_cc/private:shell_script_helper.bzl", "os_name")
+load("//foreign_cc/private/framework:helpers.bzl", "os_name")
 
 def _ninja_tool_impl(ctx):
     script = [
@@ -31,7 +31,7 @@ ninja_tool = rule(
     output_to_genfiles = True,
     implementation = _ninja_tool_impl,
     toolchains = [
-        str(Label("//foreign_cc/private/shell_toolchain/toolchains:shell_commands")),
+        str(Label("//foreign_cc/private/framework:toolchain_type")),
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

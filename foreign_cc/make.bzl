@@ -96,7 +96,7 @@ make = rule(
     implementation = _make,
     toolchains = [
         "@rules_foreign_cc//toolchains:make_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/framework:toolchain_type",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
     # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported

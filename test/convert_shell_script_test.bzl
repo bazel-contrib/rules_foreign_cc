@@ -4,7 +4,7 @@ load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 
 # buildifier: disable=bzl-visibility
 load(
-    "//foreign_cc/private:shell_script_helper.bzl",
+    "//foreign_cc/private/framework:helpers.bzl",
     "convert_shell_script_by_context",
     "do_function_call",
     "replace_var_ref",
@@ -12,7 +12,7 @@ load(
 )
 
 # buildifier: disable=bzl-visibility
-load("//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCallInfo")
+load("//foreign_cc/private/framework/toolchains:commands.bzl", "FunctionAndCallInfo")
 
 def _use_var_linux(varname):
     return "$" + varname

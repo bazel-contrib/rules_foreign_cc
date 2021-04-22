@@ -1,10 +1,11 @@
-# buildifier: disable=module-docstring
-load("@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCallInfo")
+"""Define Linux foreign_cc framework commands. Default platforms uses Bash"""
+
+load(":commands.bzl", "FunctionAndCallInfo")
 
 _REPLACE_VALUE = "\\${EXT_BUILD_DEPS}"
 
 def os_name():
-    return "linux"
+    return "default"
 
 def pwd():
     return "$(pwd)"
@@ -34,7 +35,7 @@ def mkdirs(path):
     return "mkdir -p " + path
 
 def if_else(condition, if_text, else_text):
-    return """\
+    return """
 if [ {condition} ]; then
   {if_text}
 else
@@ -93,15 +94,15 @@ local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ln -s -f -t "$target" "$1"
-elif [[ -L "$1" ]]; then
-  local actual=$(readlink "$1")
-  ##symlink_to_dir## "$actual" "$target"
+elif [[ -L "$1" && ! -d "$1" ]]; then
+  cp "$1" "$2"
 elif [[ -d "$1" ]]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
   local dirname=$(basename "$1")
+  mkdir -p "$target/$dirname"
   for child in "${children[@]:-}"; do
     if [[ "$dirname" != *.ext_build_deps ]]; then
       ##symlink_to_dir## "$child" "$target/$dirname"

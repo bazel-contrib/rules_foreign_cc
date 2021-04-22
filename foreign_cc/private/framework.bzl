@@ -7,6 +7,12 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifact", "ForeignCcDeps")
 load("//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 load(
+    "//foreign_cc/private/framework:helpers.bzl",
+    "convert_shell_script",
+    "create_function",
+    "os_name",
+)
+load(
     "//toolchains/native_tools:tool_access.bzl",
     "get_make_data",
     "get_ninja_data",
@@ -22,12 +28,6 @@ load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
     "fictive_file_in_genroot",
-)
-load(
-    ":shell_script_helper.bzl",
-    "convert_shell_script",
-    "create_function",
-    "os_name",
 )
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
