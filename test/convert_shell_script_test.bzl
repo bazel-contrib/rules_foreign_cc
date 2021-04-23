@@ -12,7 +12,7 @@ load(
 )
 
 # buildifier: disable=bzl-visibility
-load("//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
+load("//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCallInfo")
 
 def _use_var_linux(varname):
     return "$" + varname
@@ -134,7 +134,7 @@ def _do_function_call_test(ctx):
 
 def _touch(path):
     text = "call_touch $1"
-    return FunctionAndCall(text = text)
+    return FunctionAndCallInfo(text = text)
 
 def _define_function(name, text):
     return "function " + name + "() {\n  " + text + "\n}"
@@ -156,7 +156,7 @@ def _cleanup_function(message_cleaning, message_keeping):
         "echo \"\"",
         "fi",
     ])
-    return FunctionAndCall(text = text)
+    return FunctionAndCallInfo(text = text)
 
 def _do_function_call_with_body_test(ctx):
     env = unittest.begin(ctx)
@@ -210,7 +210,7 @@ for child in $children; do
   ##symlink_to_dir## $child $target
 done
 """
-    return FunctionAndCall(text = text)
+    return FunctionAndCallInfo(text = text)
 
 def _symlink_to_dir(source, target):
     text = """local target="$2"
@@ -226,7 +226,7 @@ else
   echo "Can not copy $1"
 fi
 """
-    return FunctionAndCall(text = text)
+    return FunctionAndCallInfo(text = text)
 
 def _script_conversion_test(ctx):
     env = unittest.begin(ctx)

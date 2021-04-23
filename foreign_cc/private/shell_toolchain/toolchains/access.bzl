@@ -1,8 +1,8 @@
 # buildifier: disable=module-docstring
 load("//foreign_cc/private/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
-load(":function_and_call.bzl", "FunctionAndCall")
+load(":function_and_call.bzl", "FunctionAndCallInfo")
 
-_function_and_call_type = type(FunctionAndCall(text = ""))
+_function_and_call_type = type(FunctionAndCallInfo(text = ""))
 
 def create_context(ctx):
     return struct(
@@ -16,7 +16,7 @@ def create_context(ctx):
 def call_shell(shell_context, method_, *args):
     """Calls the 'method_' shell command from the toolchain.
     Checks the number and types of passed arguments.
-    If the command returns the resulting text wrapped into FunctionAndCall provider,
+    If the command returns the resulting text wrapped into FunctionAndCallInfo provider,
     puts the text of the function into the 'prelude' dictionary in the 'shell_context',
     and returns only the call of that function.
     """

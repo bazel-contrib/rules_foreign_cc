@@ -1,5 +1,5 @@
 # buildifier: disable=module-docstring
-load("@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCall")
+load("@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:function_and_call.bzl", "FunctionAndCallInfo")
 
 _REPLACE_VALUE = "\\${EXT_BUILD_DEPS}"
 
@@ -52,7 +52,7 @@ def define_function(name, text):
     return "\n".join(lines)
 
 def replace_in_files(dir, from_, to_):
-    return FunctionAndCall(
+    return FunctionAndCallInfo(
         text = """\
 if [ -d "$1" ]; then
   $REAL_FIND -L $1 -type f   \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \\)   -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
@@ -85,7 +85,7 @@ elif [[ -d "$1" ]]; then
   done
 fi
 """
-    return FunctionAndCall(text = text)
+    return FunctionAndCallInfo(text = text)
 
 def symlink_to_dir(source, target):
     text = """\
@@ -111,7 +111,7 @@ else
   echo "Can not copy $1"
 fi
 """
-    return FunctionAndCall(text = text)
+    return FunctionAndCallInfo(text = text)
 
 def script_prelude():
     return """\
@@ -135,7 +135,7 @@ for child in $children; do
   return
 done
 """
-    return FunctionAndCall(text = text)
+    return FunctionAndCallInfo(text = text)
 
 def cat(filepath):
     return "cat \"{}\"".format(filepath)
@@ -155,7 +155,7 @@ def cleanup_function(on_success, on_failure):
         on_failure,
         "fi",
     ])
-    return FunctionAndCall(text = text, call = "trap \"cleanup_function\" EXIT")
+    return FunctionAndCallInfo(text = text, call = "trap \"cleanup_function\" EXIT")
 
 def children_to_path(dir_):
     text = """\
@@ -168,7 +168,7 @@ if [ -d {dir_} ]; then
     fi
   done
 fi""".format(dir_ = dir_)
-    return FunctionAndCall(text = text)
+    return FunctionAndCallInfo(text = text)
 
 def define_absolute_paths(dir_, abs_path):
     return "##replace_in_files## {dir_} {REPLACE_VALUE} {abs_path}".format(
