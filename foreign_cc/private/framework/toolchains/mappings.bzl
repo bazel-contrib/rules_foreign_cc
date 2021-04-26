@@ -37,7 +37,4 @@ TOOLCHAIN_MAPPINGS = [
         ],
         file = Label("@rules_foreign_cc//foreign_cc/private/framework/toolchains:macos_commands.bzl"),
     ),
-    _toolchain_mapping(
-        file = Label("@rules_foreign_cc//foreign_cc/private/framework/toolchains:default_commands.bzl"),
-    ),
 ]
