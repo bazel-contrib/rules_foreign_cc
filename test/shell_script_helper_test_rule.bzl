@@ -18,6 +18,6 @@ shell_script_helper_test_rule = rule(
         "script": attr.string_list(mandatory = True),
     },
     toolchains = [
-        "@rules_foreign_cc//foreign_cc/private/framework:toolchain_type",
+        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
     ],
 )

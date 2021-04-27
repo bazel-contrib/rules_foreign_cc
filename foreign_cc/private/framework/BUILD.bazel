@@ -1,7 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 toolchain_type(
-    name = "toolchain_type",
+    name = "shell_toolchain",
     visibility = ["//visibility:public"],
 )
 

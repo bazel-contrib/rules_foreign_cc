@@ -31,7 +31,7 @@ ninja_tool = rule(
     output_to_genfiles = True,
     implementation = _ninja_tool_impl,
     toolchains = [
-        str(Label("//foreign_cc/private/framework:toolchain_type")),
+        str(Label("//foreign_cc/private/framework:shell_toolchain")),
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

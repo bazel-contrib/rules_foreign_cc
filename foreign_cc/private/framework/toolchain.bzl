@@ -16,7 +16,7 @@ foreign_cc_framework_toolchain(
 
 toolchain(
     name = "toolchain",
-    toolchain_type = "@rules_foreign_cc//foreign_cc/private/framework:toolchain_type",
+    toolchain_type = "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
     toolchain = "//:commands",
     exec_compatible_with = {exec_compat},
     target_compatible_with = {target_compat},
@@ -69,7 +69,7 @@ def _framework_toolchain_repository_impl(repository_ctx):
     ))
 
 framework_toolchain_repository = repository_rule(
-    doc = "A repository rule which defines a `@rules_foreign_cc//foreign_cc/private/framework:toolchain_type` toolchain.",
+    doc = "A repository rule which defines a `@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain` toolchain.",
     implementation = _framework_toolchain_repository_impl,
     attrs = {
         "commands_src": attr.label(

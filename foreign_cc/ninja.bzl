@@ -113,7 +113,7 @@ ninja = rule(
     implementation = _ninja_impl,
     toolchains = [
         "@rules_foreign_cc//toolchains:ninja_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/framework:toolchain_type",
+        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
     # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
