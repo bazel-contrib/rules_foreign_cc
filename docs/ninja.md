@@ -8,9 +8,9 @@ A rule for building projects using the [Ninja](https://ninja-build.org/) build t
 
 <pre>
 ninja(<a href="#ninja-name">name</a>, <a href="#ninja-additional_inputs">additional_inputs</a>, <a href="#ninja-additional_tools">additional_tools</a>, <a href="#ninja-alwayslink">alwayslink</a>, <a href="#ninja-args">args</a>, <a href="#ninja-build_data">build_data</a>, <a href="#ninja-data">data</a>, <a href="#ninja-defines">defines</a>, <a href="#ninja-deps">deps</a>,
-      <a href="#ninja-directory">directory</a>, <a href="#ninja-env">env</a>, <a href="#ninja-lib_name">lib_name</a>, <a href="#ninja-lib_source">lib_source</a>, <a href="#ninja-linkopts">linkopts</a>, <a href="#ninja-out_bin_dir">out_bin_dir</a>, <a href="#ninja-out_binaries">out_binaries</a>, <a href="#ninja-out_headers_only">out_headers_only</a>,
-      <a href="#ninja-out_include_dir">out_include_dir</a>, <a href="#ninja-out_interface_libs">out_interface_libs</a>, <a href="#ninja-out_lib_dir">out_lib_dir</a>, <a href="#ninja-out_shared_libs">out_shared_libs</a>, <a href="#ninja-out_static_libs">out_static_libs</a>,
-      <a href="#ninja-postfix_script">postfix_script</a>, <a href="#ninja-targets">targets</a>, <a href="#ninja-tool_prefix">tool_prefix</a>, <a href="#ninja-tools_deps">tools_deps</a>)
+      <a href="#ninja-directory">directory</a>, <a href="#ninja-env">env</a>, <a href="#ninja-lib_name">lib_name</a>, <a href="#ninja-lib_source">lib_source</a>, <a href="#ninja-linkopts">linkopts</a>, <a href="#ninja-out_bin_dir">out_bin_dir</a>, <a href="#ninja-out_binaries">out_binaries</a>, <a href="#ninja-out_data_dirs">out_data_dirs</a>,
+      <a href="#ninja-out_headers_only">out_headers_only</a>, <a href="#ninja-out_include_dir">out_include_dir</a>, <a href="#ninja-out_interface_libs">out_interface_libs</a>, <a href="#ninja-out_lib_dir">out_lib_dir</a>, <a href="#ninja-out_shared_libs">out_shared_libs</a>,
+      <a href="#ninja-out_static_libs">out_static_libs</a>, <a href="#ninja-postfix_script">postfix_script</a>, <a href="#ninja-targets">targets</a>, <a href="#ninja-tool_prefix">tool_prefix</a>, <a href="#ninja-tools_deps">tools_deps</a>)
 </pre>
 
 Rule for building external libraries with [Ninja](https://ninja-build.org/).
@@ -36,6 +36,7 @@ Rule for building external libraries with [Ninja](https://ninja-build.org/).
 | <a id="ninja-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
 | <a id="ninja-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
 | <a id="ninja-out_binaries"></a>out_binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="ninja-out_data_dirs"></a>out_data_dirs |  Optional names of additional directories created by the build that should be declared as bazel action outputs   | List of strings | optional | [] |
 | <a id="ninja-out_headers_only"></a>out_headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
 | <a id="ninja-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
 | <a id="ninja-out_interface_libs"></a>out_interface_libs |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |
