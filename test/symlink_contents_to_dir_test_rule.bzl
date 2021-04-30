@@ -3,7 +3,7 @@
 load("@rules_foreign_cc//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 
 # buildifier: disable=bzl-visibility
-load("@rules_foreign_cc//foreign_cc/private:shell_script_helper.bzl", "convert_shell_script")
+load("@rules_foreign_cc//foreign_cc/private/framework:helpers.bzl", "convert_shell_script")
 
 def _symlink_contents_to_dir_test_rule_impl(ctx):
     out = ctx.actions.declare_file(ctx.attr.out)
@@ -37,6 +37,6 @@ symlink_contents_to_dir_test_rule = rule(
         "out": attr.string(),
     },
     toolchains = [
-        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
     ],
 )

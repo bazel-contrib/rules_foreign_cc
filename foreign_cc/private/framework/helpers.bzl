@@ -31,8 +31,8 @@ Since function definitions can call other functions, we perform the fictive tran
 of the function bodies to populate the "prelude" part of the script.
 """
 
-load("//foreign_cc/private/shell_toolchain/toolchains:access.bzl", "call_shell", "create_context")
-load("//foreign_cc/private/shell_toolchain/toolchains:commands.bzl", "PLATFORM_COMMANDS")
+load("//foreign_cc/private/framework/toolchains:access.bzl", "call_shell", "create_context")
+load("//foreign_cc/private/framework/toolchains:commands.bzl", "PLATFORM_COMMANDS")
 
 def os_name(ctx):
     return call_shell(create_context(ctx), "os_name")

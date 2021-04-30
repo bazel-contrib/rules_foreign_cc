@@ -16,10 +16,7 @@ load(
     "cc_external_rule_impl",
     "create_attrs",
 )
-load(
-    "//foreign_cc/private:shell_script_helper.bzl",
-    "os_name",
-)
+load("//foreign_cc/private/framework:helpers.bzl", "os_name")
 load(
     "//toolchains/native_tools:tool_access.bzl",
     "get_cmake_data",
@@ -279,7 +276,7 @@ cmake = rule(
         "@rules_foreign_cc//toolchains:cmake_toolchain",
         "@rules_foreign_cc//toolchains:ninja_toolchain",
         "@rules_foreign_cc//toolchains:make_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
     # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
