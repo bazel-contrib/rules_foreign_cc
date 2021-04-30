@@ -88,7 +88,7 @@ def create_cmake_script(
 
     directory = "$$EXT_BUILD_ROOT$$/" + root
 
-    script.append("set -x")
+    script.append("##enable_tracing##")
 
     # Configure the CMake generate command
     script.append(" ".join([
@@ -102,7 +102,7 @@ def create_cmake_script(
 
     script.extend(cmake_commands)
 
-    script.append("set +x")
+    script.append("##disable_tracing##")
 
     return params.commands + script
 

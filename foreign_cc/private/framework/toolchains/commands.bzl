@@ -90,9 +90,17 @@ PLATFORM_COMMANDS = {
         ],
         doc = "Defines a function with 'text' as the function body.",
     ),
+    "disable_tracing": _command_info(
+        arguments = [],
+        doc = "Disable script tracing. eg: `set +x`",
+    ),
     "echo": _command_info(
         arguments = [_argument_info(name = "text", data_type = type(""), doc = "Text to output")],
         doc = "Outputs 'text' to stdout",
+    ),
+    "enable_tracing": _command_info(
+        arguments = [],
+        doc = "Enable script tracing. eg: `set -x`",
     ),
     "env": _command_info(
         arguments = [],
@@ -173,9 +181,17 @@ PLATFORM_COMMANDS = {
         ],
         doc = "Replaces all occurrences of 'from_' to 'to_' recursively in the directory 'dir'.",
     ),
+    "script_extension": _command_info(
+        arguments = [],
+        doc = "Return the extension for the current set of commands (`.sh` for bash, `.ps1` for powershell)",
+    ),
     "script_prelude": _command_info(
         arguments = [],
         doc = "Function for setting necessary environment variables for the platform",
+    ),
+    "shebang": _command_info(
+        arguments = [],
+        doc = "The shebang for the current shell executable",
     ),
     "symlink_contents_to_dir": _command_info(
         arguments = [

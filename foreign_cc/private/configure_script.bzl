@@ -70,9 +70,9 @@ def create_configure_script(
         user_options = " ".join(user_options),
     ))
 
-    script.append("set -x")
+    script.append("##enable_tracing##")
     script.extend(make_commands)
-    script.append("set +x")
+    script.append("##disable_tracing##")
 
     return script
 
