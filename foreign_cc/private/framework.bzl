@@ -10,10 +10,10 @@ load(
     "//foreign_cc/private/framework:helpers.bzl",
     "convert_shell_script",
     "create_function",
-    "os_name",
     "script_extension",
     "shebang",
 )
+load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load(
     "//toolchains/native_tools:tool_access.bzl",
     "get_make_data",
@@ -191,6 +191,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+    ),
+    "_foreign_cc_framework_platform": attr.label(
+        doc = "Information about the execution platform",
+        cfg = "exec",
+        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
     ),
 }
 

@@ -108,7 +108,6 @@ def _do_function_call_test(ctx):
 
     cases = {
         "##echo## \"\ntext\n\"": "echo1 \"\ntext\n\"",
-        "##os_name##": "Fuchsia",
         "##script_prelude##": "set -euo pipefail",
         "##symlink_contents_to_dir## 1 2": "1_2",
         "export ROOT=\"A B C\"": "export1 ROOT=\"A B C\"",
