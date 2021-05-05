@@ -31,7 +31,7 @@ _framework_platform_info = rule(
 )
 
 def framework_platform_info(name = "platform_info"):
-    """Define a target contianing platform information used in the foreign_cc framework"""
+    """Define a target containing platform information used in the foreign_cc framework"""
     _framework_platform_info(
         name = name,
         os = select({
