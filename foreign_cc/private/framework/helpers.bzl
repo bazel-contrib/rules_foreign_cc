@@ -34,9 +34,6 @@ of the function bodies to populate the "prelude" part of the script.
 load("//foreign_cc/private/framework/toolchains:access.bzl", "call_shell", "create_context")
 load("//foreign_cc/private/framework/toolchains:commands.bzl", "PLATFORM_COMMANDS")
 
-def os_name(ctx):
-    return call_shell(create_context(ctx), "os_name")
-
 def script_extension(ctx):
     """A helper method for getting the script extension of the current foreign_cc framework toolchain
 

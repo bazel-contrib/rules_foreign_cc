@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":platform.bzl", "framework_platform_info")
 
 toolchain_type(
     name = "shell_toolchain",
@@ -11,3 +12,5 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = ["//foreign_cc/private/framework/toolchains:bzl_srcs"],
 )
+
+framework_platform_info()

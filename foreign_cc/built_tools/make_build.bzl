@@ -6,7 +6,7 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
     "built_tool_rule_impl",
 )
-load("//foreign_cc/private/framework:helpers.bzl", "os_name")
+load("//foreign_cc/private/framework:platform.bzl", "os_name")
 
 def _make_tool_impl(ctx):
     script = [
