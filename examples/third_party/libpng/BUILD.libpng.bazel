@@ -10,6 +10,7 @@ filegroup(
 cmake(
     name = "libpng",
     cache_entries = {
+        "CMAKE_BUILD_TYPE": "RELEASE",
         "CMAKE_POLICY_DEFAULT_CMP0074": "NEW",
         "ZLIB_ROOT": "$EXT_BUILD_DEPS/zlib",
     },
