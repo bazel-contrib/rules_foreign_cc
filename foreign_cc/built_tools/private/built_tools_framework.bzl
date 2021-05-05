@@ -11,7 +11,14 @@ FOREIGN_CC_BUILT_TOOLS_ATTRS = {
         doc = "The target containing the build tool's sources",
         mandatory = True,
     ),
-    "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+    "_cc_toolchain": attr.label(
+        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+    ),
+    "_foreign_cc_framework_platform": attr.label(
+        doc = "Information about the execution platform",
+        cfg = "exec",
+        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
+    ),
 }
 
 # Common host fragments for all built_tool rules

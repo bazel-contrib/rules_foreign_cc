@@ -4,9 +4,6 @@ load(":commands.bzl", "FunctionAndCallInfo")
 
 _REPLACE_VALUE = "\\${EXT_BUILD_DEPS}"
 
-def os_name():
-    return "macos"
-
 def shebang():
     return "#!/usr/bin/env bash"
 
