@@ -25,7 +25,7 @@ rule clean
   description = Cleaning directory $builddir
 
 rule install
-  command = mkdir -p $$INSTALLDIR/lib $$INSTALLDIR/include && cp -rv $builddir/*.a $$INSTALLDIR/lib/ && cp liba.h $$INSTALLDIR/include/
+  command = mkdir -p $$INSTALLDIR/lib $$INSTALLDIR/include && cp -rpv $builddir/*.a $$INSTALLDIR/lib/ && cp -p liba.h $$INSTALLDIR/include/
   description = Installing compiled lib
 
 # Builds

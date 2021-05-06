@@ -104,7 +104,7 @@ mkdir -p "$target"
 if [[ -f "$1" ]]; then
   ln -s -f -t "$target" "$1"
 elif [[ -L "$1" && ! -d "$1" ]]; then
-  cp "$1" "$2"
+  cp -a "$1" "$2"
 elif [[ -d "$1" ]]; then
   SAVEIFS=$IFS
   IFS=$'\n'

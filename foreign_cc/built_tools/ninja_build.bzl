@@ -12,7 +12,7 @@ def _ninja_tool_impl(ctx):
     script = [
         "./configure.py --bootstrap",
         "mkdir $$INSTALLDIR$$/bin",
-        "cp ./ninja{} $$INSTALLDIR$$/bin/".format(
+        "cp -a ./ninja{} $$INSTALLDIR$$/bin/".format(
             ".exe" if "win" in os_name(ctx) else "",
         ),
     ]
