@@ -619,40 +619,11 @@ _Outputs = provider(
 )
 
 def _define_outputs(ctx, attrs, lib_name):
-    attr_binaries_libs = []
+    attr_binaries_libs = attrs.out_binaries
     attr_headers_only = attrs.out_headers_only
-    attr_interface_libs = []
-    attr_shared_libs = []
-    attr_static_libs = []
-
-    # TODO: Until the the deprecated attributes are removed, we must
-    # create a mutatable list so we can ensure they're being included
-    attr_binaries_libs.extend(getattr(attrs, "out_binaries", []))
-    attr_interface_libs.extend(getattr(attrs, "out_interface_libs", []))
-    attr_shared_libs.extend(getattr(attrs, "out_shared_libs", []))
-    attr_static_libs.extend(getattr(attrs, "out_static_libs", []))
-
-    # TODO: These names are deprecated, remove
-    if getattr(attrs, "binaries", []):
-        # buildifier: disable=print
-        print("The `binaries` attr is deprecated in favor of `out_binaries`. Please update the target `{}`".format(ctx.label))
-        attr_binaries_libs.extend(getattr(attrs, "binaries", []))
-    if getattr(attrs, "headers_only", False):
-        # buildifier: disable=print
-        print("The `headers_only` attr is deprecated in favor of `out_headers_only`. Please update the target `{}`".format(ctx.label))
-        attr_headers_only = attrs.headers_only
-    if getattr(attrs, "interface_libraries", []):
-        # buildifier: disable=print
-        print("The `interface_libraries` attr is deprecated in favor of `out_interface_libs`. Please update the target `{}`".format(ctx.label))
-        attr_interface_libs.extend(getattr(attrs, "interface_libraries", []))
-    if getattr(attrs, "shared_libraries", []):
-        # buildifier: disable=print
-        print("The `shared_libraries` attr is deprecated in favor of `out_shared_libs`. Please update the target `{}`".format(ctx.label))
-        attr_shared_libs.extend(getattr(attrs, "shared_libraries", []))
-    if getattr(attrs, "static_libraries", []):
-        # buildifier: disable=print
-        print("The `static_libraries` attr is deprecated in favor of `out_static_libs`. Please update the target `{}`".format(ctx.label))
-        attr_static_libs.extend(getattr(attrs, "static_libraries", []))
+    attr_interface_libs = attrs.out_interface_libs
+    attr_shared_libs = attrs.out_shared_libs
+    attr_static_libs = attrs.out_static_libs
 
     static_libraries = []
     if not attr_headers_only:
