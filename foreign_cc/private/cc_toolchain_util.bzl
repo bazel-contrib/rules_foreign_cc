@@ -44,6 +44,16 @@ CxxFlagsInfo = provider(
     ),
 )
 
+# Since we're calling an external build system we can't support some
+# features that may be enabled on the toolchain - so we disable
+# them here when configuring the toolchain flags to pass to the external
+# build system.
+FOREIGN_CC_DISABLED_FEATURES = [
+    "layering_check",
+    "module_maps",
+    "thin_lto",
+]
+
 def _to_list(element):
     if element == None:
         return []
@@ -60,7 +70,7 @@ def _configure_features(ctx, cc_toolchain):
         ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+        unsupported_features = ctx.disabled_features + FOREIGN_CC_DISABLED_FEATURES,
     )
 
 def _create_libraries_to_link(ctx, files):
