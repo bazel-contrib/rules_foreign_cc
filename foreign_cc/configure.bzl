@@ -22,6 +22,21 @@ def _configure_make(ctx):
 
     tools_deps = ctx.attr.tools_deps + make_data.deps
 
+    if ctx.attr.autogen and not ctx.attr.configure_in_place:
+        fail("`autogen` requires `configure_in_place = True`. Please update {}".format(
+            ctx.label,
+        ))
+
+    if ctx.attr.autoconf and not ctx.attr.configure_in_place:
+        fail("`autoconf` requires `configure_in_place = True`. Please update {}".format(
+            ctx.label,
+        ))
+
+    if ctx.attr.autoreconf and not ctx.attr.configure_in_place:
+        fail("`autoreconf` requires `configure_in_place = True`. Please update {}".format(
+            ctx.label,
+        ))
+
     copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
 
     attrs = create_attrs(
@@ -112,7 +127,7 @@ def _attrs():
             default = False,
             doc = (
                 "Set to True if 'autoconf' should be invoked before 'configure', " +
-                "currently requires 'configure_in_place' to be True."
+                "currently requires `configure_in_place` to be True."
             ),
         ),
         "autoconf_env_vars": attr.string_dict(
@@ -124,7 +139,7 @@ def _attrs():
         "autogen": attr.bool(
             doc = (
                 "Set to True if 'autogen.sh' should be invoked before 'configure', " +
-                "currently requires 'configure_in_place' to be True."
+                "currently requires `configure_in_place` to be True."
             ),
             mandatory = False,
             default = False,
@@ -146,7 +161,7 @@ def _attrs():
         "autoreconf": attr.bool(
             doc = (
                 "Set to True if 'autoreconf' should be invoked before 'configure.', " +
-                "currently requires 'configure_in_place' to be True."
+                "currently requires `configure_in_place` to be True."
             ),
             mandatory = False,
             default = False,
