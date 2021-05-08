@@ -65,7 +65,17 @@ def replace_in_files(dir, from_, to_):
     return FunctionAndCallInfo(
         text = """\
 if [ -d "$1" ]; then
-  find -L $1 -type f   \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \\)   -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
+  SAVEIFS=$IFS
+  IFS=$'\n'
+  # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
+  local files=$(find -P $1 \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  IFS=$SAVEIFS
+  for file in ${files[@]}; do
+    sed -i 's@'"$2"'@'"$3"'@g' "${file}"
+    if [[ "$?" -ne "0" ]]; then
+      exit 1
+    fi
+  done
 fi
 """,
     )
