@@ -1,10 +1,12 @@
-# buildifier: disable=module-docstring
+"""A centralized module defining all repositories required for third party examples of rules_foreign_cc"""
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//bison:bison_repositories.bzl", "bison_repositories")
 load("//cares:cares_repositories.bzl", "cares_repositories")
 load("//curl:curl_repositories.bzl", "curl_repositories")
 load("//gn:gn_repositories.bzl", "gn_repositories")
+load("//gperftools:gperftools_repositories.bzl", "gperftools_repositories")
 load("//iconv:iconv_repositories.bzl", "iconv_repositories")
 load("//libgit2:libgit2_repositories.bzl", "libgit2_repositories")
 load("//libpng:libpng_repositories.bzl", "libpng_repositories")
@@ -20,6 +22,7 @@ def repositories():
     cares_repositories()
     curl_repositories()
     gn_repositories()
+    gperftools_repositories()
     iconv_repositories()
     libgit2_repositories()
     libpng_repositories()
