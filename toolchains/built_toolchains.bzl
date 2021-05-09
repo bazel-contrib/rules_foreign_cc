@@ -25,6 +25,19 @@ def _cmake_toolchain(version):
     native.register_toolchains(
         "@rules_foreign_cc//toolchains:built_cmake_toolchain",
     )
+    if "3.20.2" == version:
+        maybe(
+            http_archive,
+            name = "cmake_src",
+            build_file_content = _ALL_CONTENT,
+            sha256 = "aecf6ecb975179eb3bb6a4a50cae192d41e92b9372b02300f9e8f1d5f559544e",
+            strip_prefix = "cmake-3.20.2",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.2/cmake-3.20.2.tar.gz",
+            ],
+        )
+        return
+
     if "3.20.1" == version:
         maybe(
             http_archive,
