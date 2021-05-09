@@ -106,6 +106,7 @@ def _create_configure_script(configureParameters):
         autogen_options = ctx.attr.autogen_options,
         autogen_env_vars = ctx.attr.autogen_env_vars,
         make_commands = make_commands,
+        make_path = attrs.make_path,
     )
     return define_install_prefix + configure
 
