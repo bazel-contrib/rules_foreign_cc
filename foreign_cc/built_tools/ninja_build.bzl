@@ -10,7 +10,7 @@ load("//foreign_cc/private/framework:platform.bzl", "os_name")
 
 def _ninja_tool_impl(ctx):
     script = [
-        "./configure.py --bootstrap",
+        "CXX=$$CC$$ ./configure.py --bootstrap",
         "mkdir $$INSTALLDIR$$/bin",
         "cp -p ./ninja{} $$INSTALLDIR$$/bin/".format(
             ".exe" if "win" in os_name(ctx) else "",
