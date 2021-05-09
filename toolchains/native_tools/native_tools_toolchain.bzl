@@ -49,6 +49,7 @@ native_tool_toolchain = rule(
         ),
         "target": attr.label(
             mandatory = False,
+            cfg = "exec",
             doc = (
                 "If the tool is preinstalled, must be None. " +
                 "If the tool is built as part of the build, the corresponding build target, " +
@@ -56,4 +57,5 @@ native_tool_toolchain = rule(
             ),
         ),
     },
+    incompatible_use_toolchain_transition = True,
 )
