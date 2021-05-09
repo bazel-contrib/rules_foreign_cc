@@ -42,7 +42,7 @@ def create_configure_script(
         root_path = "$$BUILD_TMPDIR$$"
         configure_path = "{}/{}".format(root_path, configure_command)
 
-    script.append("export MAKE={}".format(make_path))
+    script.append("##export_var## MAKE {}".format(make_path))
 
     if autogen:
         # NOCONFIGURE is pseudo standard and tells the script to not invoke configure.
