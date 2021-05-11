@@ -65,7 +65,18 @@ def replace_in_files(dir, from_, to_):
     return FunctionAndCallInfo(
         text = """\
 if [ -d "$1" ]; then
-  $REAL_FIND -L $1 -type f   \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.cmake" \\)   -exec sed -i 's@'"$2"'@'"$3"'@g' {} ';'
+  # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
+  SAVEIFS=$IFS
+  IFS=$'\n'
+  # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
+  local files=$($REAL_FIND -P $1 -type f  \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  IFS=$SAVEIFS
+  for file in ${files[@]}; do
+    sed -i 's@'"$2"'@'"$3"'@g' "${file}"
+    if [[ "$?" -ne "0" ]]; then
+      exit 1
+    fi
+  done
 fi
 """,
     )
@@ -102,7 +113,14 @@ def symlink_to_dir(source, target):
 local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
-  ln -s -f -t "$target" "$1"
+  # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
+  # files so updating them is possible.
+  if [[ "$1" == *.pc || "$1" == *.la || "$1" == *-config || "$1" == *.mk || "$1" == *.cmake ]]; then
+    dest="$target/$(basename $1)"
+    cp "$1" "$dest" && chmod +w "$dest" && touch -r "$1" "$dest"
+  else
+    ln -s -f -t "$target" "$1"
+  fi
 elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
   ##symlink_to_dir## "$actual" "$target"

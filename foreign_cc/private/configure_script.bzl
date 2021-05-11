@@ -27,6 +27,7 @@ def create_configure_script(
         autogen_command,
         autogen_options,
         autogen_env_vars,
+        make_path,
         make_commands):
     env_vars_string = _get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
 
@@ -41,7 +42,9 @@ def create_configure_script(
         root_path = "$$BUILD_TMPDIR$$"
         configure_path = "{}/{}".format(root_path, configure_command)
 
-    if autogen and configure_in_place:
+    script.append("##export_var## MAKE {}".format(make_path))
+
+    if autogen:
         # NOCONFIGURE is pseudo standard and tells the script to not invoke configure.
         # We explicitly invoke configure later.
         autogen_env_vars = _get_autogen_env_vars(autogen_env_vars)
@@ -52,13 +55,13 @@ def create_configure_script(
             " ".join(autogen_options),
         ).lstrip())
 
-    if autoconf and configure_in_place:
+    if autoconf:
         script.append("{} autoconf {}".format(
             " ".join(["{}=\"{}\"".format(key, autoconf_env_vars[key]) for key in autoconf_env_vars]),
             " ".join(autoconf_options),
         ).lstrip())
 
-    if autoreconf and configure_in_place:
+    if autoreconf:
         script.append("{} autoreconf {}".format(
             " ".join(['{}="{}"'.format(key, autoreconf_env_vars[key]) for key in autoreconf_env_vars]),
             " ".join(autoreconf_options),
