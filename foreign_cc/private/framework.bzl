@@ -337,7 +337,7 @@ def cc_external_rule_impl(ctx, attrs):
         ).items()
     ]
 
-    make_commands, build_tools = _generate_make_commands(ctx)
+    make_commands, build_tools = _generate_make_commands(ctx, attrs)
 
     postfix_script = [attrs.postfix_script]
     if not attrs.postfix_script:
@@ -826,25 +826,31 @@ def _collect_libs(cc_linking):
                     libs.append(library)
     return collections.uniq(libs)
 
-def _generate_make_commands(ctx):
-    make_commands = getattr(ctx.attr, "make_commands", [])
+def _generate_make_commands(ctx, attrs):
+    make_commands = getattr(attrs, "make_commands", [])
     tools_deps = []
 
     # Early out if there are no commands set
     if not make_commands:
         return make_commands, tools_deps
 
-    if _uses_tool(ctx.attr.make_commands, "make"):
+    if _uses_tool(attrs.make_commands, "make"):
         make_data = get_make_data(ctx)
         tools_deps += make_data.deps
-        make_commands = [command.replace("make", make_data.path) for command in make_commands]
+        make_commands = [_expand_command_path("make", make_data.path, command) for command in make_commands]
 
-    if _uses_tool(ctx.attr.make_commands, "ninja"):
+    if _uses_tool(attrs.make_commands, "ninja"):
         ninja_data = get_ninja_data(ctx)
         tools_deps += ninja_data.deps
-        make_commands = [command.replace("ninja", ninja_data.path) for command in make_commands]
+        make_commands = [_expand_command_path("ninja", ninja_data.path, command) for command in make_commands]
 
     return make_commands, [tool.files for tool in tools_deps]
+
+def _expand_command_path(binary, path, command):
+    if command == binary or command.startswith(binary + " "):
+        return command.replace(binary, path, 1)
+    else:
+        return command
 
 def _uses_tool(make_commands, tool):
     for command in make_commands:
