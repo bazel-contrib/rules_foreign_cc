@@ -300,9 +300,13 @@ def cc_external_rule_impl(ctx, attrs):
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
     cc_env = _correct_path_variable(get_env_vars(ctx))
+
+    # Because windows will be using `use_default_shell_env`, any environment variables
+    # set on the build action will be ignored. To solve for this, we explicitly set
+    # environment variables to tools for the current cc_toolchain in use.
     set_cc_envs = []
     execution_os_name = os_name(ctx)
-    if execution_os_name != "macos":
+    if "win" in execution_os_name:
         set_cc_envs = ["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env]
 
     lib_header = "Bazel external C/C++ Rules. Building library '{}'".format(lib_name)
@@ -387,9 +391,10 @@ def cc_external_rule_impl(ctx, attrs):
             [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
             transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies] + build_tools,
         ),
-        # TODO: Default to never using the default shell environment to make builds more hermetic. For now, every platform
-        # but MacOS will take the default PATH passed by Bazel, not that from cc_toolchain.
-        use_default_shell_env = execution_os_name != "macos",
+        # TODO: Windows is the only platform which requires this as there's no
+        # consistent way to get the path to the bash tools that are expected
+        # to be available by the foreign_cc framework.
+        use_default_shell_env = "win" in execution_os_name,
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
         # this is ignored if use_default_shell_env = True
