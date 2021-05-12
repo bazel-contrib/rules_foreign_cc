@@ -127,6 +127,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = [],
     ),
+    "local_defines": attr.string_list(
+        doc = "List of defines to add to the compile line for this target only.",
+        mandatory = False,
+        default = [],
+    ),
     "make_commands": attr.string_list(
         doc = "Optional make commands.",
         mandatory = False,
