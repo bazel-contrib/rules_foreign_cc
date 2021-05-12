@@ -68,7 +68,7 @@ if [ -d "$1" ]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
-  local files=$(find -P -f $1 \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  local files=$(find -P -f $1 \\( -type f -and \\( -name "libtool" -or -name "*.pc" -or -name "*.lai" -or -name "*.la" -or -name "*-config" -or -name "*.nice" -or -name "*.mk" -or -name "*.cmake" \\) \\))
   IFS=$SAVEIFS
   for file in ${files[@]}; do
     sed -i '' -e 's@'"$2"'@'"$3"'@g' "${file}"
@@ -138,8 +138,9 @@ mkdir -p "$target"
 if [[ -f "$1" ]]; then
   # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
   # files so updating them is possible.
-  if [[ "$1" == *.pc || "$1" == *.la || "$1" == *-config || "$1" == *.mk || "$1" == *.cmake ]]; then
-    dest="$target/$(basename $1)"
+  local input_basename="$(basename "$1")"
+  if [[ "$input_basename" == "libtool" || "$1" == *.pc || "$1" == *.la || "$1" == *.lai || "$1" == *-config || "$1" == *.nice || "$1" == *.mk || "$1" == *.cmake ]]; then
+    local dest="$target/$input_basename"
     cp "$1" "$dest" && chmod +w "$dest" && touch -r "$1" "$dest"
   else
     ln -s -f "$1" "$target"
