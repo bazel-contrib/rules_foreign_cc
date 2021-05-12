@@ -241,6 +241,48 @@ dependencies.""",
     ),
 )
 
+def _env_prelude(ctx, lib_name, data_dependencies, target_root):
+    """Generate a bash snippet containing environment variable definitions
+
+    Args:
+        ctx (ctx): The rule's context object
+        lib_name (str): The name of the target being built
+        data_dependencies (list): A list of targets representing dependencies
+        target_root (str): The path from the root target's directory in the build output
+
+    Returns:
+        tuple: A list of environment variables to define in the build script and a dict
+            of environment variables
+    """
+    env_snippet = [
+        "export EXT_BUILD_ROOT=##pwd##",
+        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + target_root + "/" + lib_name,
+        "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
+        "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
+    ]
+
+    # Start with the default shell env to capture `--action_env` args
+    env = dict(ctx.configuration.default_shell_env)
+
+    # Add all environment variables from the cc_toolchain
+    cc_env = _correct_path_variable(get_env_vars(ctx))
+    env.update(cc_env)
+
+    # Because windows will be using `use_default_shell_env`, any environment variables
+    # set on the build action will be ignored. To solve for this, we explicitly set
+    # environment variables to tools for the current cc_toolchain in use.
+    if "win" in os_name(ctx):
+        env_snippet.extend(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
+
+    # Add all user defined variables
+    attr_env = dict()
+    for key, value in getattr(ctx.attr, "env", {}).items():
+        # Ensure the values of the environemnt variables have absolute paths
+        attr_env.update({key: ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data_dependencies)})
+    env_snippet.extend(["export {}={}".format(key, val) for key, val in attr_env.items()])
+
+    return env_snippet, env
+
 def cc_external_rule_impl(ctx, attrs):
     """Framework function for performing external C/C++ building.
 
@@ -299,16 +341,6 @@ def cc_external_rule_impl(ctx, attrs):
     outputs = _define_outputs(ctx, attrs, lib_name)
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
-    cc_env = _correct_path_variable(get_env_vars(ctx))
-
-    # Because windows will be using `use_default_shell_env`, any environment variables
-    # set on the build action will be ignored. To solve for this, we explicitly set
-    # environment variables to tools for the current cc_toolchain in use.
-    set_cc_envs = []
-    execution_os_name = os_name(ctx)
-    if "win" in execution_os_name:
-        set_cc_envs = ["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env]
-
     lib_header = "Bazel external C/C++ Rules. Building library '{}'".format(lib_name)
 
     # We can not declare outputs of the action, which are in parent-child relashion,
@@ -323,21 +355,7 @@ def cc_external_rule_impl(ctx, attrs):
 
     data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
 
-    define_variables = set_cc_envs + [
-        "export EXT_BUILD_ROOT=##pwd##",
-        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + target_root + "/" + lib_name,
-        "export BUILD_TMPDIR=$${INSTALLDIR}$$.build_tmpdir",
-        "export EXT_BUILD_DEPS=$${INSTALLDIR}$$.ext_build_deps",
-    ] + [
-        "export {key}={value}".format(
-            key = key,
-            # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
-            value = ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies),
-        )
-        for key, value in dict(
-            getattr(ctx.attr, "env", {}).items() + getattr(attrs, "env", {}).items(),
-        ).items()
-    ]
+    env_prelude, env = _env_prelude(ctx, lib_name, data_dependencies, target_root)
 
     make_commands, build_tools = _generate_make_commands(ctx, attrs)
 
@@ -350,7 +368,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##echo## \"{}\"".format(lib_header),
         "##echo## \"\"",
         "##script_prelude##",
-    ] + define_variables + [
+    ] + env_prelude + [
         "##path## $$EXT_BUILD_ROOT$$",
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
@@ -391,14 +409,14 @@ def cc_external_rule_impl(ctx, attrs):
             [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
             transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies] + build_tools,
         ),
+        command = wrapped_outputs.wrapper_script_file.path,
+        execution_requirements = execution_requirements,
         # TODO: Windows is the only platform which requires this as there's no
         # consistent way to get the path to the bash tools that are expected
         # to be available by the foreign_cc framework.
-        use_default_shell_env = "win" in execution_os_name,
-        command = wrapped_outputs.wrapper_script_file.path,
-        execution_requirements = execution_requirements,
+        use_default_shell_env = "win" in os_name(ctx),
         # this is ignored if use_default_shell_env = True
-        env = cc_env,
+        env = env,
     )
 
     # Gather runfiles transitively as per the documentation in:
