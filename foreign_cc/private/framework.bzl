@@ -866,14 +866,20 @@ def _generate_make_commands(ctx, attrs):
     if _uses_tool(attrs.make_commands, "make"):
         make_data = get_make_data(ctx)
         tools_deps += make_data.deps
-        make_commands = [command.replace("make", make_data.path) for command in make_commands]
+        make_commands = [_expand_command_path("make", make_data.path, command) for command in make_commands]
 
     if _uses_tool(attrs.make_commands, "ninja"):
         ninja_data = get_ninja_data(ctx)
         tools_deps += ninja_data.deps
-        make_commands = [command.replace("ninja", ninja_data.path) for command in make_commands]
+        make_commands = [_expand_command_path("ninja", ninja_data.path, command) for command in make_commands]
 
     return make_commands, [tool.files for tool in tools_deps]
+
+def _expand_command_path(binary, path, command):
+    if command == binary or command.startswith(binary + " "):
+        return command.replace(binary, path, 1)
+    else:
+        return command
 
 def _uses_tool(make_commands, tool):
     for command in make_commands:
