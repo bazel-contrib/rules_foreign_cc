@@ -5,4 +5,4 @@
 This is **not an officially supported Google product**
 (meaning, support and/or new releases may be limited.)
 
-For a full list of all rules. See [here](./README.md)
+For a full list of all rules. See [here](./docs/README.md)

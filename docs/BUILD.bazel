@@ -1,0 +1,47 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
+
+genrule(
+    name = "flatten_header_vm",
+    srcs = [
+        "gen_header.sh",
+        "docs.bzl",
+    ],
+    outs = ["flatten_header.vm"],
+    cmd = "$(location gen_header.sh) $(location docs.bzl) $@",
+    output_to_bindir = True,
+)
+
+stardoc(
+    name = "docs",
+    out = "docs.md",
+    header_template = ":flatten_header_vm",
+    input = "docs.bzl",
+    deps = ["@rules_foreign_cc//:bzl_srcs"],
+)
+
+build_test(
+    name = "docs_build_test",
+    targets = [
+        ":docs",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "generate_docs_src",
+    srcs = [":docs"],
+    outs = ["generate_docs.sh"],
+    cmd = """cat << EOF > $@
+#!/bin/bash
+set -euo pipefail
+cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/README.md
+EOF
+""",
+)
+
+sh_binary(
+    name = "generate_docs",
+    srcs = [":generate_docs_src"],
+    data = [":docs"],
+)

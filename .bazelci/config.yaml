@@ -1,0 +1,12 @@
+---
+tasks:
+  docs_linux:
+    name: Docs
+    platform: ubuntu2004
+    working_directory: docs
+    build_targets:
+      - //...
+
+buildifier:
+  version: latest
+  warnings: "all"
