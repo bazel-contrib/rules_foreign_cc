@@ -261,8 +261,7 @@ def _env_prelude(ctx, lib_name, data_dependencies, target_root):
         "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
     ]
 
-    # Start with the default shell env to capture `--action_env` args
-    env = dict(ctx.configuration.default_shell_env)
+    env = dict()
 
     # Add all environment variables from the cc_toolchain
     cc_env = _correct_path_variable(get_env_vars(ctx))
@@ -273,6 +272,9 @@ def _env_prelude(ctx, lib_name, data_dependencies, target_root):
     # environment variables to tools for the current cc_toolchain in use.
     if "win" in os_name(ctx):
         env_snippet.extend(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
+
+    # Capture `action_env` and allow it to take precedence over cc env
+    env.update(ctx.configuration.default_shell_env)
 
     # Add all user defined variables
     attr_env = dict()
