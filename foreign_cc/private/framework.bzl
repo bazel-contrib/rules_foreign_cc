@@ -277,7 +277,7 @@ def _env_prelude(ctx, lib_name, data_dependencies, target_root):
     # Add all user defined variables
     attr_env = dict()
     for key, value in getattr(ctx.attr, "env", {}).items():
-        # Ensure the values of the environemnt variables have absolute paths
+        # Ensure the values of the environment variables have absolute paths
         attr_env.update({key: ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data_dependencies)})
     env_snippet.extend(["export {}={}".format(key, val) for key, val in attr_env.items()])
 
