@@ -1,4 +1,5 @@
-# buildifier: disable=module-docstring
+"""A rule for building projects using the [GNU Make](https://www.gnu.org/software/make/) build tool"""
+
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
