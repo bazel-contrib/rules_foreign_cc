@@ -8,6 +8,7 @@ test_suite(
         "//cares:test_c_ares",
         "//curl:curl_build_test",
         "//gn:gn_launch_test",
+        "//gperftools:test",
         "//libgit2:libgit2_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
@@ -21,11 +22,12 @@ test_suite(
     tags = ["manual"],
     tests = [
         # Missing a new enough m4 to build
-        #"//bison:bison_build_test",
+        # "//bison:bison_build_test",
         "//cares:test_c_ares",
         "//curl:curl_build_test",
         # Attempts to access git sha during configure of build so fails
-        #"//gn:gn_launch_test",
+        # "//gn:gn_launch_test",
+        "//gperftools:test",
         "//libgit2:libgit2_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
@@ -41,6 +43,7 @@ test_suite(
         "//cares:test_c_ares",
         "//curl:curl_build_test",
         "//gn:gn_launch_test",
+        "//gperftools:test",
         "//iconv:iconv_build_test",
         "//libgit2:libgit2_build_test",
         "//libpng:test_libpng",
