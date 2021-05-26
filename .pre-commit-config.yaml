@@ -1,0 +1,19 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: local
+    hooks:
+      - id: bazel-format
+        name: bazel format
+        description: Auto-formats starlark code
+        entry: buildifier --lint=off --mode=fix
+        files: '^(.*/)?(BUILD\.bazel|BUILD|WORKSPACE)$|\.BUILD$|\.bzl$'
+        language: system
+
+      - id: bazel-lint
+        name: bazel lint
+        description: Checks for code style violations in starlark code
+        # Keep the warnings argument in sync with .bazelci/presubmit.yml
+        entry: buildifier --lint=warn --mode=fix -v --warnings=all
+        files: '^(.*/)?(BUILD\.bazel|BUILD|WORKSPACE)$|\.BUILD$|\.bzl$'
+        language: system
