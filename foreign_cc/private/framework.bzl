@@ -385,11 +385,19 @@ def cc_external_rule_impl(ctx, attrs):
         "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
         installdir_copy.script,
         "cd $$EXT_BUILD_ROOT$$",
+    ] + [
+        "##replace_symlink## {}".format(file.path)
+        for file in (
+            outputs.libraries.static_libraries +
+            outputs.libraries.shared_libraries +
+            outputs.libraries.interface_libraries
+        )
     ]
 
     script_text = "\n".join([
         shebang(ctx),
         convert_shell_script(ctx, script_lines),
+        "",
     ])
     wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
 

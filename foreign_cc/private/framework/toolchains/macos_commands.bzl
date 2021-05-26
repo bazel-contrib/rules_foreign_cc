@@ -91,11 +91,11 @@ local target="$2"
 mkdir -p "${target}"
 for child in "${children[@]:-}"; do
   if [[ -f "$child" ]]; then
-    cp -a "$child" "$target"
+    cp -pR "$child" "$target"
   elif [[ -L "$child" ]]; then
     local actual=$(readlink "$child")
     if [[ -f "$actual" ]]; then
-      cp -a "$actual" "$target"
+      cp -pR "$actual" "$target"
     else
       local dirn=$(basename "$actual")
       mkdir -p "$target/$dirn"
@@ -112,6 +112,14 @@ done
 
 def symlink_contents_to_dir(source, target):
     text = """\
+if [[ -z "$1" ]]; then
+  echo "arg 1 to symlink_contents_to_dir is unexpectedly empty"
+  exit 1
+fi
+if [[ -z "$2" ]]; then
+  echo "arg 2 to symlink_contents_to_dir is unexpectedly empty"
+  exit 1
+fi
 local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
@@ -133,6 +141,14 @@ fi
 
 def symlink_to_dir(source, target):
     text = """\
+if [[ -z "$1" ]]; then
+  echo "arg 1 to symlink_to_dir is unexpectedly empty"
+  exit 1
+fi
+if [[ -z "$2" ]]; then
+  echo "arg 2 to symlink_to_dir is unexpectedly empty"
+  exit 1
+fi
 local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
@@ -145,7 +161,7 @@ if [[ -f "$1" ]]; then
     ln -s -f "$1" "$target"
   fi
 elif [[ -L "$1" && ! -d "$1" ]]; then
-  cp -a "$1" "$2"
+  cp -pR "$1" "$2"
 elif [[ -d "$1" ]]; then
   SAVEIFS=$IFS
   IFS=$'\n'
@@ -154,7 +170,7 @@ elif [[ -d "$1" ]]; then
   local dirname=$(basename "$1")
   mkdir -p "$target/$dirname"
   for child in "${children[@]:-}"; do
-    if [[ "$dirname" != *.ext_build_deps ]]; then
+    if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
       ##symlink_to_dir## "$child" "$target/$dirname"
     fi
   done
@@ -224,3 +240,15 @@ def replace_absolute_paths(dir_, abs_path):
         REPLACE_VALUE = _REPLACE_VALUE,
         abs_path = abs_path,
     )
+
+def replace_symlink(file):
+    # On macos, the `readlink` binary doesn't have a `-f` argument like the linux
+    # equivilant. As a result, we need another way to fully resolve chaining symlinks.
+    # Python is used to do this as it's expected to be available on all systems, just
+    # as `readlink` is.
+    return """\
+if [[ -L "{file}" ]]; then
+  target="$(python -c "import os; print(os.path.realpath('{file}'))")"
+  rm "{file}" && cp -a "${{target}}" "{file}"
+fi
+""".format(file = file)

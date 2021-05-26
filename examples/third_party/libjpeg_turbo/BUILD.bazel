@@ -2,15 +2,15 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
 exports_files(
     [
-        "BUILD.libssh2.bazel",
+        "BUILD.libjpeg_turbo.bazel",
     ],
     visibility = ["//visibility:public"],
 )
 
 build_test(
-    name = "libssh2_build_test",
+    name = "libjpeg_turbo_build_test",
     targets = [
-        "@libssh2//:libssh2",
+        "@libjpeg_turbo//:libjpeg_turbo",
     ],
     visibility = ["//:__pkg__"],
 )

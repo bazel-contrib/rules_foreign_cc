@@ -177,6 +177,18 @@ PLATFORM_COMMANDS = {
         ],
         doc = "Replaces all occurrences of 'from_' to 'to_' recursively in the directory 'dir'.",
     ),
+    "replace_symlink": _command_info(
+        arguments = [
+            _argument_info(
+                name = "file",
+                data_type = type(""),
+                doc = "Target file",
+            ),
+        ],
+        doc = (
+            "Replace the target symlink with resolved file it points to if `file` is a symlink"
+        ),
+    ),
     "script_extension": _command_info(
         arguments = [],
         doc = "Return the extension for the current set of commands (`.sh` for bash, `.ps1` for powershell)",
