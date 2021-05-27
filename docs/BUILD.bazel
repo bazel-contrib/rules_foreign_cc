@@ -1,4 +1,5 @@
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
 
 genrule(
@@ -20,33 +21,26 @@ stardoc(
     deps = ["@rules_foreign_cc//:bzl_srcs"],
 )
 
-build_test(
-    name = "docs_build_test",
-    targets = [
-        ":docs",
-    ],
-    visibility = ["//visibility:public"],
+# When this test fails, run
+# (cd docs; bazel run :generate_docs)
+diff_test(
+    name = "test",
+    file1 = ":docs",
+    file2 = "README.md",
 )
 
-genrule(
+write_file(
     name = "generate_docs_src",
-    srcs = [":docs"],
-    outs = ["generate_docs.sh"],
-    cmd = """cat << EOF > $@
-#!/bin/bash
-set -euo pipefail
-cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/README.md
-EOF
-""",
+    out = "update.sh",
+    content = [
+        "#!/usr/bin/env bash",
+        "cd $BUILD_WORKSPACE_DIRECTORY",
+        "cp -fv bazel-bin/docs.md README.md",
+    ],
 )
 
 sh_binary(
     name = "generate_docs",
     srcs = [":generate_docs_src"],
     data = [":docs"],
-)
-
-sh_binary(
-    name = "test_docs",
-    srcs = ["test_docs.sh"],
 )
