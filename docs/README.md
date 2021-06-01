@@ -1,3 +1,4 @@
+<!-- Generated with Stardoc, Do Not Edit! -->
 # Rules Foreign CC
 
 - [boost_build](#boost_build)
