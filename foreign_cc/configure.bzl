@@ -1,4 +1,7 @@
-# buildifier: disable=module-docstring
+"""A rule for building projects using the[Configure+Make][cm] build tool
+[cm]: https://www.gnu.org/prep/standards/html_node/Configuration.html
+"""
+
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",

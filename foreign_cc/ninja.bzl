@@ -1,4 +1,4 @@
-"""A module defining the `ninja` rule. A rule for building projects using the Ninja build tool"""
+"""A rule for building projects using the [Ninja](https://ninja-build.org/) build tool"""
 
 load(
     "//foreign_cc/private:detect_root.bzl",
