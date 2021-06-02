@@ -10,8 +10,8 @@ load(
 )
 load(
     "@rules_foreign_cc//foreign_cc:providers.bzl",
-    _ForeignCcArtifact = "ForeignCcArtifact",
-    _ForeignCcDeps = "ForeignCcDeps",
+    _ForeignCcArtifactInfo = "ForeignCcArtifactInfo",
+    _ForeignCcDepsInfo = "ForeignCcDepsInfo",
 )
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", _rules_foreign_cc_dependencies = "rules_foreign_cc_dependencies")
 load("@rules_foreign_cc//foreign_cc/built_tools:cmake_build.bzl", _cmake_tool = "cmake_tool")
@@ -35,11 +35,6 @@ ninja = _ninja
 ninja_tool = _ninja_tool
 rules_foreign_cc_dependencies = _rules_foreign_cc_dependencies
 
-# buildifier: disable=name-conventions
-ForeignCcArtifact = _ForeignCcArtifact
-
-# buildifier: disable=name-conventions
-ForeignCcDeps = _ForeignCcDeps
-
-# buildifier: disable=name-conventions
+ForeignCcArtifactInfo = _ForeignCcArtifactInfo
+ForeignCcDepsInfo = _ForeignCcDepsInfo
 ToolInfo = _ToolInfo

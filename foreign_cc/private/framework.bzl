@@ -5,7 +5,7 @@
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-load("//foreign_cc:providers.bzl", "ForeignCcArtifact", "ForeignCcDeps")
+load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
 load("//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 load(
     "//foreign_cc/private/framework:helpers.bzl",
@@ -435,7 +435,7 @@ def cc_external_rule_impl(ctx, attrs):
     for target in [ctx.attr.lib_source] + ctx.attr.additional_inputs + ctx.attr.deps + ctx.attr.data:
         runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
 
-    externally_built = ForeignCcArtifact(
+    externally_built = ForeignCcArtifactInfo(
         gen_dir = installdir_copy.file,
         bin_dir_name = attrs.out_bin_dir,
         lib_dir_name = attrs.out_lib_dir,
@@ -454,7 +454,7 @@ def cc_external_rule_impl(ctx, attrs):
             runfiles = runfiles,
         ),
         OutputGroupInfo(**output_groups),
-        ForeignCcDeps(artifacts = depset(
+        ForeignCcDepsInfo(artifacts = depset(
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
         )),
@@ -791,7 +791,7 @@ def uniq_list_keep_order(list):
     return result
 
 def get_foreign_cc_dep(dep):
-    return dep[ForeignCcDeps] if ForeignCcDeps in dep else None
+    return dep[ForeignCcDepsInfo] if ForeignCcDepsInfo in dep else None
 
 # consider optimization here to do not iterate both collections
 def _get_headers(compilation_info):
