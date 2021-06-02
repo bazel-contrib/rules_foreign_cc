@@ -25,6 +25,7 @@ def _create_configure_script(configureParameters):
     return [
         "cd $INSTALLDIR",
         "##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{}/. .".format(root),
+        "chmod -R +w .",
         "./bootstrap.sh {}".format(" ".join(ctx.attr.bootstrap_options)),
     ]
 
