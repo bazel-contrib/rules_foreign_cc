@@ -89,6 +89,14 @@ def copy_dir_contents_to_dir(source, target):
 
 def symlink_contents_to_dir(source, target):
     text = """\
+if [[ -z "$1" ]]; then
+  echo "arg 1 to symlink_contents_to_dir is unexpectedly empty"
+  exit 1
+fi
+if [[ -z "$2" ]]; then
+  echo "arg 2 to symlink_contents_to_dir is unexpectedly empty"
+  exit 1
+fi
 local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
@@ -110,6 +118,14 @@ fi
 
 def symlink_to_dir(source, target):
     text = """\
+if [[ -z "$1" ]]; then
+  echo "arg 1 to symlink_to_dir is unexpectedly empty"
+  exit 1
+fi
+if [[ -z "$2" ]]; then
+  echo "arg 2 to symlink_to_dir is unexpectedly empty"
+  exit 1
+fi
 local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
@@ -131,7 +147,7 @@ elif [[ -d "$1" ]]; then
   IFS=$SAVEIFS
   local dirname=$(basename "$1")
   for child in "${children[@]}"; do
-    if [[ "$dirname" != *.ext_build_deps ]]; then
+    if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
       ##symlink_to_dir## "$child" "$target/$dirname"
     fi
   done
@@ -211,3 +227,11 @@ def replace_absolute_paths(dir_, abs_path):
         REPLACE_VALUE = _REPLACE_VALUE,
         abs_path = abs_path,
     )
+
+def replace_symlink(file):
+    return """\
+if [[ -L "{file}" ]]; then
+  target="$(readlink -f "{file}")"
+  rm "{file}" && cp -a "${{target}}" "{file}"
+fi
+""".format(file = file)

@@ -2,5 +2,5 @@
 
 int main(int argc, char* argv[])
 {
-  std::cout << "Hi there!";
+    std::cout << "Hi there!";
 }

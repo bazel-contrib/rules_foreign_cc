@@ -165,10 +165,8 @@ tasks:
     name: Docs
     platform: ubuntu2004
     working_directory: docs
-    build_targets:
+    test_targets:
       - //...
-    run_targets:
-      - //:test_docs
   min_supported_version:
     name: "Minimum Supported Version"
     bazel: "3.7.0"

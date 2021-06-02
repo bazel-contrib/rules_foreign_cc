@@ -25,6 +25,7 @@ TABLE_OF_CONTENTS=$(grep "=" "$1" \
 )
 
 cat << EOF > "$2"
+<!-- Generated with Stardoc, Do Not Edit! -->
 # Rules Foreign CC
 
 ${TABLE_OF_CONTENTS}

@@ -1,4 +1,12 @@
 function symlink_contents_to_dir() {
+if [[ -z "$1" ]]; then
+echo "arg 1 to symlink_contents_to_dir is unexpectedly empty"
+exit 1
+fi
+if [[ -z "$2" ]]; then
+echo "arg 2 to symlink_contents_to_dir is unexpectedly empty"
+exit 1
+fi
 local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
@@ -18,6 +26,14 @@ done
 fi
 }
 function symlink_to_dir() {
+if [[ -z "$1" ]]; then
+echo "arg 1 to symlink_to_dir is unexpectedly empty"
+exit 1
+fi
+if [[ -z "$2" ]]; then
+echo "arg 2 to symlink_to_dir is unexpectedly empty"
+exit 1
+fi
 local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
@@ -30,7 +46,7 @@ else
 ln -s -f "$1" "$target"
 fi
 elif [[ -L "$1" && ! -d "$1" ]]; then
-cp -a "$1" "$2"
+cp -pR "$1" "$2"
 elif [[ -d "$1" ]]; then
 SAVEIFS=$IFS
 IFS=$'
@@ -40,7 +56,7 @@ IFS=$SAVEIFS
 local dirname=$(basename "$1")
 mkdir -p "$target/$dirname"
 for child in "${children[@]:-}"; do
-if [[ "$dirname" != *.ext_build_deps ]]; then
+if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
 symlink_to_dir "$child" "$target/$dirname"
 fi
 done
