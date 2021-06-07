@@ -187,4 +187,5 @@ tasks:
 
 buildifier:
   version: latest
+  # keep this argument in sync with .pre-commit-config.yaml
   warnings: "all"
