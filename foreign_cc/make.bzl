@@ -70,7 +70,6 @@ def _create_make_script(configureParameters):
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
-    attrs.pop("make_commands")
     attrs.update({
         "args": attr.string_list(
             doc = "A list of arguments to pass to the call to `make`",

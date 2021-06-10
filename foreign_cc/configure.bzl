@@ -57,7 +57,6 @@ def _create_configure_script(configureParameters):
     attrs = configureParameters.attrs
     inputs = configureParameters.inputs
 
-    root = detect_root(ctx.attr.lib_source)
     install_prefix = _get_install_prefix(ctx)
 
     tools = get_tools_info(ctx)
@@ -77,15 +76,14 @@ def _create_configure_script(configureParameters):
     prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
     configure_prefix = "{} ".format(ctx.expand_location(ctx.attr.configure_prefix, data)) if ctx.attr.configure_prefix else ""
 
-    if not ctx.attr.make_commands:
-        for target in ctx.attr.targets:
-            make_commands.append("{prefix}{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
-                prefix = prefix,
-                make = attrs.make_path,
-                root = root,
-                args = args,
-                target = target,
-            ))
+    for target in ctx.attr.targets:
+        # Configure will have generated sources into `$BUILD_TMPDIR` so make sure we `cd` there
+        make_commands.append("{prefix}{make} -C $$BUILD_TMPDIR$$ {target} {args}".format(
+            prefix = prefix,
+            make = attrs.make_path,
+            args = args,
+            target = target,
+        ))
 
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
@@ -93,7 +91,7 @@ def _create_configure_script(configureParameters):
         target_os = os_name(ctx),
         tools = tools,
         flags = flags,
-        root = root,
+        root = detect_root(ctx.attr.lib_source),
         user_options = ctx.attr.configure_options,
         user_vars = dict(ctx.attr.configure_env_vars),
         is_debug = is_debug_mode(ctx),

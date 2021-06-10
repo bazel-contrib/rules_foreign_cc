@@ -16,11 +16,6 @@ load(
 )
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load(
-    "//toolchains/native_tools:tool_access.bzl",
-    "get_make_data",
-    "get_ninja_data",
-)
-load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
     "create_linking_info",
@@ -127,11 +122,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Optional link options to be passed up to the dependencies of this library",
         mandatory = False,
         default = [],
-    ),
-    "make_commands": attr.string_list(
-        doc = "Optional make commands.",
-        mandatory = False,
-        default = ["make", "make install"],
     ),
     "out_bin_dir": attr.string(
         doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'.",
@@ -336,9 +326,8 @@ def cc_external_rule_impl(ctx, attrs):
 
         These variables should be used by the calling rule to refer to the created directory structure.
     4. calls 'attrs.create_configure_script'
-    5. calls 'attrs.make_commands'
-    6. calls 'attrs.postfix_script'
-    7. replaces absolute paths in possibly created scripts with a placeholder value
+    5. calls 'attrs.postfix_script'
+    6. replaces absolute paths in possibly created scripts with a placeholder value
 
     Please see cmake.bzl for example usage.
 
@@ -381,8 +370,6 @@ def cc_external_rule_impl(ctx, attrs):
 
     env_prelude, env = _env_prelude(ctx, lib_name, data_dependencies, target_root)
 
-    make_commands, build_tools = _generate_make_commands(ctx, attrs)
-
     postfix_script = [attrs.postfix_script]
     if not attrs.postfix_script:
         postfix_script = []
@@ -399,7 +386,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$EXT_BUILD_DEPS$$",
     ] + _print_env() + _copy_deps_and_tools(inputs) + [
         "cd $$BUILD_TMPDIR$$",
-    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + make_commands + postfix_script + [
+    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + postfix_script + [
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
@@ -443,7 +430,7 @@ def cc_external_rule_impl(ctx, attrs):
         outputs = rule_outputs + [wrapped_outputs.log_file],
         tools = depset(
             [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.build_data + legacy_tools,
-            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies] + build_tools,
+            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
         ),
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
@@ -885,35 +872,8 @@ def _collect_libs(cc_linking):
                     libs.append(library)
     return collections.uniq(libs)
 
-def _generate_make_commands(ctx, attrs):
-    make_commands = getattr(attrs, "make_commands", [])
-    tools_deps = []
-
-    # Early out if there are no commands set
-    if not make_commands:
-        return make_commands, tools_deps
-
-    if _uses_tool(attrs.make_commands, "make"):
-        make_data = get_make_data(ctx)
-        tools_deps += make_data.deps
-        make_commands = [_expand_command_path("make", make_data.path, command) for command in make_commands]
-
-    if _uses_tool(attrs.make_commands, "ninja"):
-        ninja_data = get_ninja_data(ctx)
-        tools_deps += ninja_data.deps
-        make_commands = [_expand_command_path("ninja", ninja_data.path, command) for command in make_commands]
-
-    return make_commands, [tool.files for tool in tools_deps]
-
 def _expand_command_path(binary, path, command):
     if command == binary or command.startswith(binary + " "):
         return command.replace(binary, path, 1)
     else:
         return command
-
-def _uses_tool(make_commands, tool):
-    for command in make_commands:
-        (before, separator, after) = command.partition(" ")
-        if before == tool:
-            return True
-    return False
