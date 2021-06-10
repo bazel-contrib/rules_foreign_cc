@@ -36,7 +36,7 @@ def create_cmake_script(
         is_debug_mode: If the compilation mode is `debug`. Defaults to True.
 
     Returns:
-        string: A formatted string of the generated build command
+        list: Lines of bash which make up the build script
     """
 
     merged_prefix_path = _merge_prefix_path(user_cache, include_dirs)

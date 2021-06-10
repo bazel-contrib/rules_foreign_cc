@@ -1,9 +1,19 @@
-# buildifier: disable=module-docstring
-# buildifier: disable=function-docstring
+"""A module for creating the build script for `make` builds"""
+
 def create_make_script(
         root,
         inputs,
         make_commands):
+    """Constructs Make script to be passed to cc_external_rule_impl.
+
+    Args:
+        root (str): sources root relative to the $EXT_BUILD_ROOT
+        inputs (struct): An InputFiles provider
+        make_commands (list): Lines of bash which invoke make
+
+    Returns:
+        list: Lines of bash which make up the build script
+    """
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -15,10 +25,15 @@ def create_make_script(
     script.append("##disable_tracing##")
     return script
 
-# buildifier: disable=function-docstring-args
-# buildifier: disable=function-docstring-return
 def pkgconfig_script(ext_build_dirs):
-    """Create a script fragment to configure pkg-config"""
+    """Create a script fragment to configure pkg-config
+
+    Args:
+        ext_build_dirs (list): A list of directories (str)
+
+    Returns:
+        list: Lines of bash that perform the update of `pkg-config`
+    """
     script = []
     if ext_build_dirs:
         for ext_dir in ext_build_dirs:
