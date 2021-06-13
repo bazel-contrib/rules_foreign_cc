@@ -7,7 +7,7 @@ filegroup(
 
 configure_make(
     name = "sqlite",
-    configure_env_vars = select({
+    env = select({
         "@platforms//os:macos": {"AR": ""},
         "//conditions:default": {},
     }),
