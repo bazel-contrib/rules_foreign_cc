@@ -259,7 +259,7 @@ def _create_configure_script(configureParameters):
         root = root,
         no_toolchain_file = no_toolchain_file,
         user_cache = dict(ctx.attr.cache_entries),
-        user_env = getattr(ctx.attr, "env_vars", {}),
+        user_env = {key: ctx.expand_location(value, data) for (key, value) in ctx.attr.env},
         options = attrs.generate_args,
         cmake_commands = cmake_commands,
         cmake_prefix = ctx.expand_location(attrs.tool_prefix, data) if attrs.tool_prefix else "",
@@ -352,14 +352,6 @@ def _attrs():
                 "CMake cache entries to initialize (they will be passed with `-Dkey=value`) " +
                 "Values, defined by the toolchain, will be joined with the values, passed here. " +
                 "(Toolchain values come first)"
-            ),
-            mandatory = False,
-            default = {},
-        ),
-        "env_vars": attr.string_dict(
-            doc = (
-                "CMake environment variable values to join with toolchain-defined. " +
-                "For example, additional `CXXFLAGS`."
             ),
             mandatory = False,
             default = {},

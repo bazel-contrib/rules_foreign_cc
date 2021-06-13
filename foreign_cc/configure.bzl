@@ -72,6 +72,8 @@ def _create_configure_script(configureParameters):
         for arg in ctx.attr.args
     ])
 
+    user_env = {key: ctx.expand_location(value, data) for (key, value) in ctx.attr.env.items()}
+
     make_commands = []
     prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
     configure_prefix = "{} ".format(ctx.expand_location(ctx.attr.configure_prefix, data)) if ctx.attr.configure_prefix else ""
@@ -93,23 +95,20 @@ def _create_configure_script(configureParameters):
         flags = flags,
         root = detect_root(ctx.attr.lib_source),
         user_options = ctx.attr.configure_options,
-        user_vars = dict(ctx.attr.configure_env_vars),
         is_debug = is_debug_mode(ctx),
         configure_prefix = configure_prefix,
         configure_command = ctx.attr.configure_command,
         deps = ctx.attr.deps,
         inputs = inputs,
+        env_vars = user_env,
         configure_in_place = ctx.attr.configure_in_place,
         autoconf = ctx.attr.autoconf,
         autoconf_options = ctx.attr.autoconf_options,
-        autoconf_env_vars = ctx.attr.autoconf_env_vars,
         autoreconf = ctx.attr.autoreconf,
         autoreconf_options = ctx.attr.autoreconf_options,
-        autoreconf_env_vars = ctx.attr.autoreconf_env_vars,
         autogen = ctx.attr.autogen,
         autogen_command = ctx.attr.autogen_command,
         autogen_options = ctx.attr.autogen_options,
-        autogen_env_vars = ctx.attr.autogen_env_vars,
         make_commands = make_commands,
         make_path = attrs.make_path,
     )
@@ -136,9 +135,6 @@ def _attrs():
                 "currently requires `configure_in_place` to be True."
             ),
         ),
-        "autoconf_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for 'autoconf' invocation.",
-        ),
         "autoconf_options": attr.string_list(
             doc = "Any options to be put in the 'autoconf.sh' command line.",
         ),
@@ -158,9 +154,6 @@ def _attrs():
             ),
             default = "autogen.sh",
         ),
-        "autogen_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for 'autogen' invocation.",
-        ),
         "autogen_options": attr.string_list(
             doc = "Any options to be put in the 'autogen.sh' command line.",
         ),
@@ -172,9 +165,6 @@ def _attrs():
             mandatory = False,
             default = False,
         ),
-        "autoreconf_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for 'autoreconf' invocation.",
-        ),
         "autoreconf_options": attr.string_list(
             doc = "Any options to be put in the 'autoreconf.sh' command line.",
         ),
@@ -184,9 +174,6 @@ def _attrs():
                 "The file must be in the root of the source directory."
             ),
             default = "configure",
-        ),
-        "configure_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for the 'configure' invocation.",
         ),
         "configure_in_place": attr.bool(
             doc = (
