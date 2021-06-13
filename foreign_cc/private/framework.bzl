@@ -41,8 +41,7 @@ load(
 CC_EXTERNAL_RULE_ATTRIBUTES = {
     "additional_inputs": attr.label_list(
         doc = (
-            "Optional additional inputs to be declared as needed for the shell script action." +
-            "Not used by the shell script part in cc_external_rule_impl."
+            "__deprecated__: Please use the `build_data` attribute."
         ),
         mandatory = False,
         allow_files = True,
@@ -50,8 +49,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     ),
     "additional_tools": attr.label_list(
         doc = (
-            "Optional additional tools needed for the building. " +
-            "Not used by the shell script part in cc_external_rule_impl."
+            "__deprecated__: Please use the `build_data` attribute."
         ),
         mandatory = False,
         allow_files = True,
@@ -66,10 +64,18 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = False,
     ),
+    "build_data": attr.label_list(
+        doc = "Files needed by this rule only during build/compile time. May list file or rule targets. Generally allows any target.",
+        mandatory = False,
+        allow_files = True,
+        cfg = "exec",
+        default = [],
+    ),
     "data": attr.label_list(
         doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
         mandatory = False,
         allow_files = True,
+        cfg = "target",
         default = [],
     ),
     "defines": attr.string_list(
@@ -94,7 +100,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "env": attr.string_dict(
         doc = (
             "Environment variables to set during the build. " +
-            "`$(execpath)` macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, " +
+            "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_deps`, " +
             "but unlike with other rules, these will be replaced with absolute paths to those files, " +
             "because the build does not run in the exec root. " +
             "No other macros are supported."
@@ -179,10 +185,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
     ),
     "tools_deps": attr.label_list(
-        doc = (
-            "Optional tools to be copied into the directory structure. " +
-            "Similar to deps, those directly required for the external building of the library/binaries."
-        ),
+        doc = "__deprecated__: Please use the `build_data` attribute.",
         mandatory = False,
         allow_files = True,
         cfg = "exec",
@@ -203,6 +206,17 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
 CC_EXTERNAL_RULE_FRAGMENTS = [
     "cpp",
 ]
+
+# buildifier: disable=print
+def _print_deprecation_warnings(ctx):
+    if ctx.attr.tools_deps:
+        print(ctx.label, "Attribute `tools_deps` is deprecated. Please use `build_data`.")
+
+    if ctx.attr.additional_inputs:
+        print(ctx.label, "Attribute `additional_inputs` is deprecated. Please use `build_data`.")
+
+    if ctx.attr.additional_tools:
+        print(ctx.label, "Attribute `additional_tools` is deprecated. Please use `build_data`.")
 
 # buildifier: disable=function-docstring-header
 # buildifier: disable=function-docstring-args
@@ -337,6 +351,7 @@ def cc_external_rule_impl(ctx, attrs):
     Returns:
         A list of providers
     """
+    _print_deprecation_warnings(ctx)
     lib_name = attrs.lib_name or ctx.attr.name
 
     inputs = _define_inputs(attrs)
@@ -355,7 +370,10 @@ def cc_external_rule_impl(ctx, attrs):
     installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
     target_root = paths.dirname(installdir_copy.file.dirname)
 
-    data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
+    data_dependencies = ctx.attr.data + ctx.attr.build_data
+
+    # Also add legacy dependencies while they're still available
+    data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
 
     env_prelude, env = _env_prelude(ctx, lib_name, data_dependencies, target_root)
 
@@ -408,6 +426,9 @@ def cc_external_rule_impl(ctx, attrs):
     if "requires-network" in ctx.attr.tags:
         execution_requirements = {"requires-network": ""}
 
+    # TODO: `additional_tools` is deprecated, remove.
+    legacy_tools = ctx.files.additional_tools + ctx.files.tools_deps
+
     # The use of `run_shell` here is intended to ensure bash is correctly setup on windows
     # environments. This should not be replaced with `run` until a cross platform implementation
     # is found that guarantees bash exists or appropriately errors out.
@@ -416,7 +437,7 @@ def cc_external_rule_impl(ctx, attrs):
         inputs = depset(inputs.declared_inputs),
         outputs = rule_outputs + [wrapped_outputs.log_file],
         tools = depset(
-            [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
+            [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.build_data + legacy_tools,
             transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies] + build_tools,
         ),
         command = wrapped_outputs.wrapper_script_file.path,
@@ -432,8 +453,12 @@ def cc_external_rule_impl(ctx, attrs):
     # Gather runfiles transitively as per the documentation in:
     # https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
     runfiles = ctx.runfiles(files = ctx.files.data)
-    for target in [ctx.attr.lib_source] + ctx.attr.additional_inputs + ctx.attr.deps + ctx.attr.data:
+    for target in [ctx.attr.lib_source] + ctx.attr.deps + ctx.attr.data:
         runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
+
+    # TODO: `additional_inputs` is deprecated, remove.
+    for legacy in [ctx.attr.additional_inputs]:
+        runfiles = runfiles.merge(legacy[DefaultInfo].default_runfiles)
 
     externally_built = ForeignCcArtifactInfo(
         gen_dir = installdir_copy.file,
@@ -752,10 +777,12 @@ def _define_inputs(attrs):
         for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
+    # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:
         for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
+    # TODO: Remove, `additional_inputs` is deprecated.
     for input in attrs.additional_inputs:
         for file_list in input.files.to_list():
             input_files += _list(file_list)

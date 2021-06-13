@@ -158,7 +158,11 @@ load(
 def _cmake_impl(ctx):
     cmake_data = get_cmake_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + cmake_data.deps
+    tools_deps = cmake_data.deps
+
+    # TODO: `tool_deps` is deprecated. Remove
+    tools_deps += ctx.attr.tools_deps
+
     env = dict(ctx.attr.env)
 
     generator, generate_args = _get_generator_target(ctx)
