@@ -15,12 +15,15 @@ cmake(
     out_shared_libs = select({
         "@platforms//os:linux": [
             "libjpeg.so",
+            "libturbojpeg.so",
         ],
         "@platforms//os:macos": [
+            "libjpeg.dylib",
             "libturbojpeg.dylib",
         ],
         "@platforms//os:windows": [
             "libjpeg.dll",
+            "libturbojpeg.dll",
         ],
     }),
     visibility = ["//visibility:public"],
