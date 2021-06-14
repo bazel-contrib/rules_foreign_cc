@@ -100,7 +100,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "env": attr.string_dict(
         doc = (
             "Environment variables to set during the build. " +
-            "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_deps`, " +
+            "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_data`, " +
             "but unlike with other rules, these will be replaced with absolute paths to those files, " +
             "because the build does not run in the exec root. " +
             "No other macros are supported."
