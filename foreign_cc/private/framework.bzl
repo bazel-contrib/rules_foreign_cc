@@ -184,6 +184,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
         mandatory = False,
     ),
+    "tool_prefix": attr.string(
+        doc = "A prefix for build commands",
+        mandatory = False,
+    ),
     "tools_deps": attr.label_list(
         doc = "__deprecated__: Please use the `build_data` attribute.",
         mandatory = False,
@@ -457,7 +461,7 @@ def cc_external_rule_impl(ctx, attrs):
         runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
 
     # TODO: `additional_inputs` is deprecated, remove.
-    for legacy in [ctx.attr.additional_inputs]:
+    for legacy in ctx.attr.additional_inputs:
         runfiles = runfiles.merge(legacy[DefaultInfo].default_runfiles)
 
     externally_built = ForeignCcArtifactInfo(

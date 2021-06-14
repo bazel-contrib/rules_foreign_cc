@@ -46,13 +46,14 @@ def _create_ninja_script(configureParameters):
         str: A string representing a section of a bash script
     """
     ctx = configureParameters.ctx
+    attrs = configureParameters.attrs
 
     script = []
 
     root = detect_root(ctx.attr.lib_source)
     script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
 
-    data = ctx.attr.data or list()
+    data = ctx.attr.data + ctx.attr.build_data
 
     # Generate a list of arguments for ninja
     args = " ".join([
@@ -65,13 +66,16 @@ def _create_ninja_script(configureParameters):
     if ctx.attr.directory:
         directory = ctx.expand_location(ctx.attr.directory, data)
 
+    prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
+
     # Generate commands for all the targets, ensuring there's
     # always at least 1 call to the default target.
     for target in ctx.attr.targets or [""]:
         # Note that even though directory is always passed, the
         # following arguments can take precedence.
-        script.append("{ninja} -C {dir} {args} {target}".format(
-            ninja = configureParameters.attrs.ninja_path,
+        script.append("{prefix}{ninja} -C {dir} {args} {target}".format(
+            prefix = prefix,
+            ninja = attrs.ninja_path,
             dir = directory,
             args = args,
             target = target,
