@@ -158,7 +158,11 @@ load(
 def _cmake_impl(ctx):
     cmake_data = get_cmake_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + cmake_data.deps
+    tools_deps = cmake_data.deps
+
+    # TODO: `tool_deps` is deprecated. Remove
+    tools_deps += ctx.attr.tools_deps
+
     env = dict(ctx.attr.env)
 
     generator, generate_args = _get_generator_target(ctx)
@@ -201,14 +205,20 @@ def _create_configure_script(configureParameters):
 
     cmake_commands = []
 
-    data = ctx.attr.data + getattr(ctx.attr, "tools_deps", [])
     configuration = "Debug" if is_debug_mode(ctx) else "Release"
+
+    data = ctx.attr.data + ctx.attr.build_data
+
+    # TODO: The following attributes are deprecated. Remove
+    data += ctx.attr.tools_deps
 
     # Generate a list of arguments for cmake's build command
     build_args = " ".join([
         ctx.expand_location(arg, data)
         for arg in ctx.attr.build_args
     ])
+
+    prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
 
     # Generate commands for all the targets, ensuring there's
     # always at least 1 call to the default target.
@@ -219,7 +229,8 @@ def _create_configure_script(configureParameters):
 
         # Note that even though directory is always passed, the
         # following arguments can take precedence.
-        cmake_commands.append("{cmake} --build {dir} --config {config} {target} {args}".format(
+        cmake_commands.append("{prefix}{cmake} --build {dir} --config {config} {target} {args}".format(
+            prefix = prefix,
             cmake = attrs.cmake_path,
             dir = ".",
             args = build_args,
@@ -234,7 +245,8 @@ def _create_configure_script(configureParameters):
             for arg in ctx.attr.install_args
         ])
 
-        cmake_commands.append("{cmake} --install {dir} --config {config} {args}".format(
+        cmake_commands.append("{prefix}{cmake} --install {dir} --config {config} {args}".format(
+            prefix = prefix,
             cmake = attrs.cmake_path,
             dir = ".",
             args = install_args,

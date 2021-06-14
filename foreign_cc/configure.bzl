@@ -74,10 +74,13 @@ def _create_configure_script(configureParameters):
     ])
 
     make_commands = []
+    prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
+    configure_prefix = "{} ".format(ctx.expand_location(ctx.attr.configure_prefix, data)) if ctx.attr.configure_prefix else ""
 
     if not ctx.attr.make_commands:
         for target in ctx.attr.targets:
-            make_commands.append("{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
+            make_commands.append("{prefix}{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
+                prefix = prefix,
                 make = attrs.make_path,
                 root = root,
                 args = args,
@@ -94,6 +97,7 @@ def _create_configure_script(configureParameters):
         user_options = ctx.attr.configure_options,
         user_vars = dict(ctx.attr.configure_env_vars),
         is_debug = is_debug_mode(ctx),
+        configure_prefix = configure_prefix,
         configure_command = ctx.attr.configure_command,
         deps = ctx.attr.deps,
         inputs = inputs,
@@ -196,6 +200,9 @@ def _attrs():
         ),
         "configure_options": attr.string_list(
             doc = "Any options to be put on the 'configure' command line.",
+        ),
+        "configure_prefix": attr.string(
+            doc = "A prefix for the call to the `configure_command`.",
         ),
         "install_prefix": attr.string(
             doc = (

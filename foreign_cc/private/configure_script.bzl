@@ -13,6 +13,7 @@ def create_configure_script(
         user_options,
         user_vars,
         is_debug,
+        configure_prefix,
         configure_command,
         deps,
         inputs,
@@ -67,8 +68,9 @@ def create_configure_script(
             " ".join(autoreconf_options),
         ).lstrip())
 
-    script.append('{env_vars} "{configure}" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}'.format(
+    script.append('{env_vars} {prefix}"{configure}" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}'.format(
         env_vars = env_vars_string,
+        prefix = configure_prefix,
         configure = configure_path,
         user_options = " ".join(user_options),
     ))

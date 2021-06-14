@@ -43,7 +43,7 @@ def _create_make_script(configureParameters):
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
 
-    data = ctx.attr.data or list()
+    data = ctx.attr.data + ctx.attr.build_data
 
     # Generate a list of arguments for make
     args = " ".join([
@@ -52,8 +52,10 @@ def _create_make_script(configureParameters):
     ])
 
     make_commands = []
+    prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
     for target in ctx.attr.targets:
-        make_commands.append("{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
+        make_commands.append("{prefix}{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
+            prefix = prefix,
             make = attrs.make_path,
             root = root,
             args = args,
