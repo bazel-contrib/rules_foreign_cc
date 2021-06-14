@@ -17,6 +17,7 @@ test_suite(
         "//libssh2:libssh2_build_test",
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
+        "//sqlite:sqlite_build_test",
     ],
 )
 
@@ -39,6 +40,8 @@ test_suite(
         "//libssh2:libssh2_build_test",
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
+        # Missing a new enough automake to build
+        #"//sqlite:sqlite_build_test",
     ],
 )
 
@@ -59,6 +62,7 @@ test_suite(
         "//libssh2:libssh2_build_test",
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
+        "//sqlite:sqlite_build_test",
     ],
 )
 
