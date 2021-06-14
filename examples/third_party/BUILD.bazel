@@ -18,6 +18,7 @@ test_suite(
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
         "//sqlite:sqlite_build_test",
+        "//subversion:subversion_build_test",
     ],
 )
 
@@ -42,6 +43,7 @@ test_suite(
         "//pcre:pcre_build_test",
         # Missing a new enough automake to build
         #"//sqlite:sqlite_build_test",
+        #"//subversion:subversion_build_test",
     ],
 )
 
@@ -63,6 +65,7 @@ test_suite(
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
         "//sqlite:sqlite_build_test",
+        "//subversion:subversion_build_test",
     ],
 )
 
