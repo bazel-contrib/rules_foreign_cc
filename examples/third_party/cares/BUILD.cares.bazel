@@ -10,7 +10,8 @@ filegroup(
 cmake(
     name = "cares",
     cache_entries = {
-        "CARES_SHARED": "no",
+        "CARES_BUILD_TOOLS": "off",
+        "CARES_SHARED": "off",
         "CARES_STATIC": "on",
     },
     generate_args = ["-GNinja"],
