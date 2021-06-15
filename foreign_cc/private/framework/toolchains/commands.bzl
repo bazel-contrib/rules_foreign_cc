@@ -90,6 +90,13 @@ PLATFORM_COMMANDS = {
         ],
         doc = "Defines a function with 'text' as the function body.",
     ),
+    "define_sandbox_paths": _command_info(
+        arguments = [
+            _argument_info(name = "dir_", data_type = type(""), doc = "Directory where to replace"),
+            _argument_info(name = "abs_path", data_type = type(""), doc = "Absolute path value"),
+        ],
+        doc = "Replaces sandbox path placeholder inside 'dir_' with a provided value 'abs_path'",
+    ),
     "disable_tracing": _command_info(
         arguments = [],
         doc = "Disable script tracing. eg: `set +x`",
@@ -176,6 +183,13 @@ PLATFORM_COMMANDS = {
             _argument_info(name = "to_", data_type = type(""), doc = "Replace target"),
         ],
         doc = "Replaces all occurrences of 'from_' to 'to_' recursively in the directory 'dir'.",
+    ),
+    "replace_sandbox_paths": _command_info(
+        arguments = [
+            _argument_info(name = "dir_", data_type = type(""), doc = "Directory where to replace"),
+            _argument_info(name = "abs_path", data_type = type(""), doc = "Absolute path value"),
+        ],
+        doc = "Replaces sandbox path 'abs_path' inside 'dir_' with a placeholder value",
     ),
     "replace_symlink": _command_info(
         arguments = [

@@ -1,0 +1,97 @@
+diff -ruN configure configure
+--- configure	2019-04-01 19:56:23.000000000 +0200
++++ configure	2019-04-01 19:56:23.000000000 +0200
+@@ -24475,6 +24475,7 @@
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #include <stdio.h>
++$ac_includes_default
+ #include <sys/types.h>
+ #ifdef WIN32
+ #define binmode "b"
+@@ -24485,7 +24486,7 @@
+ {
+   FILE *f=fopen("conftestval", "w" binmode);
+   if (!f) exit(1);
+-  fprintf(f, "%d\n", sizeof(pid_t));
++  fprintf(f, "%zd\n", sizeof(pid_t));
+   exit(0);
+ }
+ _ACEOF
+@@ -24800,6 +24801,7 @@
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #include <stdio.h>
++$ac_includes_default
+ #include <sys/types.h>
+ #ifdef WIN32
+ #define binmode "b"
+@@ -24810,7 +24812,7 @@
+ {
+   FILE *f=fopen("conftestval", "w" binmode);
+   if (!f) exit(1);
+-  fprintf(f, "%d\n", sizeof(ssize_t));
++  fprintf(f, "%zd\n", sizeof(ssize_t));
+   exit(0);
+ }
+ _ACEOF
+@@ -24863,6 +24865,7 @@
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #include <stdio.h>
++$ac_includes_default
+ #include <stddef.h>
+ #ifdef WIN32
+ #define binmode "b"
+@@ -24873,7 +24876,7 @@
+ {
+   FILE *f=fopen("conftestval", "w" binmode);
+   if (!f) exit(1);
+-  fprintf(f, "%d\n", sizeof(size_t));
++  fprintf(f, "%zd\n", sizeof(size_t));
+   exit(0);
+ }
+ _ACEOF
+@@ -24927,6 +24930,7 @@
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #include <stdio.h>
++$ac_includes_default
+ #include <sys/types.h>
+ #ifdef WIN32
+ #define binmode "b"
+@@ -24937,7 +24941,7 @@
+ {
+   FILE *f=fopen("conftestval", "w" binmode);
+   if (!f) exit(1);
+-  fprintf(f, "%d\n", sizeof(off_t));
++  fprintf(f, "%zd\n", sizeof(off_t));
+   exit(0);
+ }
+ _ACEOF
+@@ -25308,7 +25312,7 @@
+ {
+   FILE *f=fopen("conftestval", "w" binmode);
+   if (!f) exit(1);
+-  fprintf(f, "%d\n", sizeof(ino_t));
++  fprintf(f, "%zd\n", sizeof(ino_t));
+   exit(0);
+ }
+ _ACEOF
+@@ -25584,6 +25588,7 @@
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #include <stdio.h>
++$ac_includes_default
+ #include <sys/types.h>
+ #include <sys/uio.h>
+ #ifdef WIN32
+@@ -25595,7 +25600,7 @@
+ {
+   FILE *f=fopen("conftestval", "w" binmode);
+   if (!f) exit(1);
+-  fprintf(f, "%d\n", sizeof(struct iovec));
++  fprintf(f, "%zd\n", sizeof(struct iovec));
+   exit(0);
+ }
+ _ACEOF

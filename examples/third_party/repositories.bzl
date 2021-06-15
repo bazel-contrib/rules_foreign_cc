@@ -2,6 +2,8 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("//apr:apr_repositories.bzl", "apr_repositories")
+load("//apr_util:apr_util_repositories.bzl", "apr_util_repositories")
 load("//bison:bison_repositories.bzl", "bison_repositories")
 load("//cares:cares_repositories.bzl", "cares_repositories")
 load("//curl:curl_repositories.bzl", "curl_repositories")
@@ -14,11 +16,15 @@ load("//libpng:libpng_repositories.bzl", "libpng_repositories")
 load("//libssh2:libssh2_repositories.bzl", "libssh2_repositories")
 load("//openssl:openssl_repositories.bzl", "openssl_repositories")
 load("//pcre:pcre_repositories.bzl", "pcre_repositories")
+load("//sqlite:sqlite_repositories.bzl", "sqlite_repositories")
+load("//subversion:subversion_repositories.bzl", "subversion_repositories")
 load("//zlib:zlib_repositories.bzl", "zlib_repositories")
 
+# buildifier: disable=unnamed-macro
 def repositories():
     """Load all repositories needed for the targets of rules_foreign_cc_examples_third_party"""
-
+    apr_repositories()
+    apr_util_repositories()
     bison_repositories()
     cares_repositories()
     curl_repositories()
@@ -31,6 +37,8 @@ def repositories():
     libssh2_repositories()
     openssl_repositories()
     pcre_repositories()
+    sqlite_repositories()
+    subversion_repositories()
     zlib_repositories()
 
     maybe(

@@ -405,6 +405,7 @@ def cc_external_rule_impl(ctx, attrs):
         # for the results which are in $INSTALLDIR (with placeholder)
         "##replace_absolute_paths## $$INSTALLDIR$$ $$BUILD_TMPDIR$$",
         "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
+        "##replace_sandbox_paths## $$INSTALLDIR$$ $$EXT_BUILD_ROOT$$",
         installdir_copy.script,
         "cd $$EXT_BUILD_ROOT$$",
     ] + [
