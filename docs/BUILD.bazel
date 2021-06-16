@@ -52,12 +52,21 @@ stardoc(
     deps = ["@rules_foreign_cc//:bzl_srcs"],
 )
 
+stardoc(
+    name = "providers_docs",
+    out = "providers.md",
+    header_template = "common_header.vm",
+    input = "@rules_foreign_cc//foreign_cc:providers.bzl",
+    deps = ["@rules_foreign_cc//:bzl_srcs"],
+)
+
 DOCS_TARGETS = [
     ":flatten_docs",
     ":cmake_docs",
     ":ninja_docs",
     ":make_docs",
     ":configure_make_docs",
+    ":providers_docs",
 ]
 
 build_test(
@@ -78,6 +87,7 @@ cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:cmake_docs) > \\$${BUILD_WORKS
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:ninja_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/ninja.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/make.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:configure_make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/configure_make.md
+cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:providers_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/providers.md
 EOF
 """,
 )
