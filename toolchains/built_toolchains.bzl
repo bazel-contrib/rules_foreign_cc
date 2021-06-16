@@ -25,6 +25,32 @@ def _cmake_toolchain(version):
     native.register_toolchains(
         "@rules_foreign_cc//toolchains:built_cmake_toolchain",
     )
+    if "3.20.4" == version:
+        maybe(
+            http_archive,
+            name = "cmake_src",
+            build_file_content = _ALL_CONTENT,
+            sha256 = "87a4060298f2c6bb09d479de1400bc78195a5b55a65622a7dceeb3d1090a1b16",
+            strip_prefix = "cmake-3.20.4",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.4/cmake-3.20.4.tar.gz",
+            ],
+        )
+        return
+
+    if "3.20.3" == version:
+        maybe(
+            http_archive,
+            name = "cmake_src",
+            build_file_content = _ALL_CONTENT,
+            sha256 = "4d008ac3461e271fcfac26a05936f77fc7ab64402156fb371d41284851a651b8",
+            strip_prefix = "cmake-3.20.3",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.3/cmake-3.20.3.tar.gz",
+            ],
+        )
+        return
+
     if "3.20.2" == version:
         maybe(
             http_archive,
