@@ -4,6 +4,8 @@ test_suite(
     name = "linux_tests",
     tags = ["manual"],
     tests = [
+        "//apr:apr_build_test",
+        "//apr_util:apr_util_build_test",
         "//bison:bison_build_test",
         "//cares:test_c_ares",
         "//curl:curl_build_test",
@@ -15,6 +17,8 @@ test_suite(
         "//libssh2:libssh2_build_test",
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
+        "//sqlite:sqlite_build_test",
+        "//subversion:subversion_build_test",
     ],
 )
 
@@ -22,6 +26,8 @@ test_suite(
     name = "linux_rbe_tests",
     tags = ["manual"],
     tests = [
+        "//apr:apr_build_test",
+        "//apr_util:apr_util_build_test",
         # Missing a new enough m4 to build
         # "//bison:bison_build_test",
         "//cares:test_c_ares",
@@ -35,6 +41,9 @@ test_suite(
         "//libssh2:libssh2_build_test",
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
+        # Missing a new enough automake to build
+        #"//sqlite:sqlite_build_test",
+        #"//subversion:subversion_build_test",
     ],
 )
 
@@ -42,6 +51,8 @@ test_suite(
     name = "macos_tests",
     tags = ["manual"],
     tests = [
+        "//apr:apr_build_test",
+        "//apr_util:apr_util_build_test",
         "//cares:test_c_ares",
         "//curl:curl_build_test",
         "//gn:gn_launch_test",
@@ -53,6 +64,8 @@ test_suite(
         "//libssh2:libssh2_build_test",
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
+        "//sqlite:sqlite_build_test",
+        "//subversion:subversion_build_test",
     ],
 )
 
