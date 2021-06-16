@@ -345,7 +345,6 @@ def _get_generator_target(ctx):
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
-    attrs.pop("make_commands")
     attrs.update({
         "build_args": attr.string_list(
             doc = "Arguments for the CMake build command",

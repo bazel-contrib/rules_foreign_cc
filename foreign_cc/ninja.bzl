@@ -32,7 +32,6 @@ def _ninja_impl(ctx):
         create_configure_script = _create_ninja_script,
         tools_deps = tools_deps,
         ninja_path = ninja_data.path,
-        make_commands = [],
     )
     return cc_external_rule_impl(ctx, attrs)
 
@@ -90,9 +89,6 @@ def _attrs():
         dict: Attributes of the `ninja` rule
     """
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
-
-    # Drop old vars
-    attrs.pop("make_commands")
 
     attrs.update({
         "args": attr.string_list(
