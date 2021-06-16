@@ -14,7 +14,7 @@ and relative bin, include and lib directories.
 Serves to pass transitive information about externally built artifacts up the dependency chain.
 
 Can not be used as a top-level provider.
-Instances of ForeignCcArtifactInfo are encapsulated in a depset ForeignCcDepsInfo#artifacts.""",
+Instances of ForeignCcArtifactInfo are encapsulated in a depset [ForeignCcDepsInfo::artifacts](#ForeignCcDepsInfo-artifacts).""",
     fields = {
         "bin_dir_name": "Bin directory, relative to install directory",
         "gen_dir": "Install directory",
