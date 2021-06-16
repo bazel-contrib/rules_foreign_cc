@@ -38,7 +38,6 @@ def _cmake_toolchain(version):
         )
         return
 
-
     if "3.20.3" == version:
         maybe(
             http_archive,
