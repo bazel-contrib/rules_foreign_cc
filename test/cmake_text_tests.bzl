@@ -253,7 +253,7 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
         user_env,
         [],
         cmake_commands = [],
-        cmake_prefix = "emcmake"
+        cmake_prefix = "emcmake",
     )
     expected = r"""export CC="/usr/bin/gcc"
 export CXX="/usr/bin/gcc"
