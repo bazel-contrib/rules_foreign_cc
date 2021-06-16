@@ -285,10 +285,7 @@ def _env_prelude(ctx, lib_name, data_dependencies, target_root):
     env.update(ctx.configuration.default_shell_env)
 
     # Add all user defined variables
-    attr_env = dict()
-    for key, value in getattr(ctx.attr, "env", {}).items():
-        # Ensure the values of the environment variables have absolute paths
-        attr_env.update({key: ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data_dependencies)})
+    attr_env = expand_locations(ctx, ctx.attr.env, data_dependencies)
     env_snippet.extend(["export {}={}".format(key, val) for key, val in attr_env.items()])
 
     return env_snippet, env
@@ -877,3 +874,26 @@ def _expand_command_path(binary, path, command):
         return command.replace(binary, path, 1)
     else:
         return command
+
+def expand_locations(ctx, environ, data):
+    """Expand locations on a dictionary while ensuring `execpath` is always set to an absolute path
+
+    This function is not expected to be passed to any action.env argument but instead rendered into
+    build scripts.
+
+    Args:
+        ctx (ctx): The rule's context object
+        environ (dict): A dictionary of environment variables
+        data (list): A list of targets
+
+    Returns:
+        dict: An expanded dict of environment variables
+    """
+    expanded_env = dict()
+    for key, value in environ.items():
+        # If `EXT_BUILD_ROOT` exists in the string, we assume the user has added it themselves
+        if "EXT_BUILD_ROOT" in value:
+            expanded_env.update({key: ctx.expand_location(value, data)})
+        else:
+            expanded_env.update({key: ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data)})
+    return expanded_env

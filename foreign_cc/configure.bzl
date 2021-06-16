@@ -16,6 +16,7 @@ load(
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
+    "expand_locations",
 )
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
@@ -72,7 +73,7 @@ def _create_configure_script(configureParameters):
         for arg in ctx.attr.args
     ])
 
-    user_env = {key: ctx.expand_location(value, data) for (key, value) in ctx.attr.env.items()}
+    user_env = expand_locations(ctx, ctx.attr.env, data)
 
     make_commands = []
     prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
