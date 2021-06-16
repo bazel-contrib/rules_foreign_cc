@@ -25,8 +25,8 @@ http_archive(
     #       https://github.com/bazelbuild/rules_foreign_cc/releases
     #
     # sha256 = "...",
-    strip_prefix = "rules_foreign_cc-0.3.0",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.3.0.tar.gz",
+    strip_prefix = "rules_foreign_cc-0.4.0",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.4.0.tar.gz",
 )
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
