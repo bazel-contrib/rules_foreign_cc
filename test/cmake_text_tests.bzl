@@ -253,12 +253,13 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
         user_env,
         [],
         cmake_commands = [],
+        cmake_prefix = "emcmake"
     )
     expected = r"""export CC="/usr/bin/gcc"
 export CXX="/usr/bin/gcc"
 export CXXFLAGS="foo=\\\"bar\\\" -Fbat"
 ##enable_tracing##
-cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=""  -G 'Unix Makefiles' $$EXT_BUILD_ROOT$$/external/test_rule
+emcmake cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=""  -G 'Unix Makefiles' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
