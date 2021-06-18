@@ -16,6 +16,7 @@ def create_cmake_script(
         options,
         cmake_commands,
         include_dirs = [],
+        cmake_prefix = None,
         is_debug_mode = True):
     """Constructs CMake script to be passed to cc_external_rule_impl.
 
@@ -33,6 +34,7 @@ def create_cmake_script(
         options: other CMake options specified by user
         cmake_commands: A list of cmake commands for building and installing targets
         include_dirs: Optional additional include directories. Defaults to [].
+        cmake_prefix: Optional prefix before the cmake command (without the trailing space).
         is_debug_mode: If the compilation mode is `debug`. Defaults to True.
 
     Returns:
@@ -91,7 +93,8 @@ def create_cmake_script(
     script.append("##enable_tracing##")
 
     # Configure the CMake generate command
-    script.append(" ".join([
+    cmake_prefixes = [cmake_prefix] if cmake_prefix else []
+    script.append(" ".join(cmake_prefixes + [
         cmake_path,
         str_cmake_cache_entries,
         " ".join(options),

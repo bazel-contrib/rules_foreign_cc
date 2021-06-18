@@ -218,8 +218,6 @@ def _create_configure_script(configureParameters):
         for arg in ctx.attr.build_args
     ])
 
-    prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
-
     # Generate commands for all the targets, ensuring there's
     # always at least 1 call to the default target.
     for target in ctx.attr.targets or [""]:
@@ -229,8 +227,7 @@ def _create_configure_script(configureParameters):
 
         # Note that even though directory is always passed, the
         # following arguments can take precedence.
-        cmake_commands.append("{prefix}{cmake} --build {dir} --config {config} {target} {args}".format(
-            prefix = prefix,
+        cmake_commands.append("{cmake} --build {dir} --config {config} {target} {args}".format(
             cmake = attrs.cmake_path,
             dir = ".",
             args = build_args,
@@ -245,8 +242,7 @@ def _create_configure_script(configureParameters):
             for arg in ctx.attr.install_args
         ])
 
-        cmake_commands.append("{prefix}{cmake} --install {dir} --config {config} {args}".format(
-            prefix = prefix,
+        cmake_commands.append("{cmake} --install {dir} --config {config} {args}".format(
             cmake = attrs.cmake_path,
             dir = ".",
             args = install_args,
@@ -266,6 +262,7 @@ def _create_configure_script(configureParameters):
         user_env = getattr(ctx.attr, "env_vars", {}),
         options = attrs.generate_args,
         cmake_commands = cmake_commands,
+        cmake_prefix = ctx.expand_location(attrs.tool_prefix, data) if attrs.tool_prefix else "",
         include_dirs = inputs.include_dirs,
         is_debug_mode = is_debug_mode(ctx),
     )
