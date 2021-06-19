@@ -9,6 +9,7 @@ test_suite(
         "//bison:bison_build_test",
         "//cares:test_c_ares",
         "//curl:curl_build_test",
+        "//file:file_build_test",
         "//gn:gn_launch_test",
         "//gperftools:test",
         "//libgit2:libgit2_build_test",
@@ -32,6 +33,7 @@ test_suite(
         # "//bison:bison_build_test",
         "//cares:test_c_ares",
         "//curl:curl_build_test",
+        "//file:file_build_test",
         # Attempts to access git sha during configure of build so fails
         # "//gn:gn_launch_test",
         "//gperftools:test",
@@ -55,6 +57,7 @@ test_suite(
         "//apr_util:apr_util_build_test",
         "//cares:test_c_ares",
         "//curl:curl_build_test",
+        "//file:file_build_test",
         "//gn:gn_launch_test",
         "//gperftools:test",
         "//iconv:iconv_build_test",
@@ -73,6 +76,6 @@ test_suite(
     name = "windows_tests",
     tags = ["manual"],
     tests = [
-        # TODO: Add windows tests
+        "//file:file_build_test",
     ],
 )

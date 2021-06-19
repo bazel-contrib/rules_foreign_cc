@@ -66,12 +66,21 @@ def _configure_features(ctx, cc_toolchain):
     )
 
 def _create_libraries_to_link(ctx, files):
+    """Generate a depset of libraries needed for linking the build outputs
+
+    Args:
+        ctx (ctx): The rule's context object
+        files (LibrariesToLink): A proivder containing information about build outputs
+
+    Returns:
+        depset: A depset of linkable libraries
+    """
     libs = []
 
-    static_map = _files_map(_filter(files.static_libraries or [], _is_position_independent, True))
-    pic_static_map = _files_map(_filter(files.static_libraries or [], _is_position_independent, False))
-    shared_map = _files_map(files.shared_libraries or [])
-    interface_map = _files_map(files.interface_libraries or [])
+    static_map = _files_map(_filter(files.static_libraries.values() or [], _is_position_independent, True))
+    pic_static_map = _files_map(_filter(files.static_libraries.values() or [], _is_position_independent, False))
+    shared_map = _files_map(files.shared_libraries.values() or [])
+    interface_map = _files_map(files.interface_libraries.values() or [])
 
     names = collections.uniq(static_map.keys() + pic_static_map.keys() + shared_map.keys() + interface_map.keys())
 

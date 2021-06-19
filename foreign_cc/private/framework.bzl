@@ -398,9 +398,9 @@ def cc_external_rule_impl(ctx, attrs):
     ] + [
         "##replace_symlink## {}".format(file.path)
         for file in (
-            outputs.libraries.static_libraries +
-            outputs.libraries.shared_libraries +
-            outputs.libraries.interface_libraries
+            outputs.libraries.static_libraries.values() +
+            outputs.libraries.shared_libraries.values() +
+            outputs.libraries.interface_libraries.values()
         )
     ]
 
@@ -563,11 +563,20 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, build_script_file =
     )
 
 def _declare_output_groups(installdir, outputs):
-    dict_ = {}
-    dict_["gen_dir"] = depset([installdir])
-    for output in outputs:
-        dict_[output.basename] = [output]
-    return dict_
+    """Declare a dict of OutputGroupInfo data
+
+    Args:
+        installdir (File): The directory the build was installed into
+        outputs (dict): A mapping of keys to files
+
+    Returns:
+        dict: A dict consumable by OutputGroupInfo
+    """
+    output_groups = {}
+    output_groups["gen_dir"] = depset([installdir])
+    for id, output in outputs.items():
+        output_groups[id] = [output]
+    return output_groups
 
 def _get_transitive_artifacts(deps):
     artifacts = []
@@ -633,8 +642,11 @@ def _symlink_contents_to_dir(dir_name, files_list):
     for file in files_list:
         path = _file_path(file).strip()
         if path:
-            lines.append("##symlink_contents_to_dir## \
-$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name))
+            lines.append(" ".join([
+                "##symlink_contents_to_dir##",
+                "$$EXT_BUILD_ROOT$$/{}".format(path),
+                "$$EXT_BUILD_DEPS$$/{}".format(dir_name),
+            ]))
 
     return lines
 
@@ -656,8 +668,8 @@ _Outputs = provider(
     doc = "Provider to keep different kinds of the external build output files and directories",
     fields = dict(
         out_include_dir = "Directory with header files (relative to install directory)",
-        out_binary_files = "Binary files, which will be created by the action",
-        libraries = "Library files, which will be created by the action",
+        out_binary_files = "Dict of attribute values to binary files, which will be created by the action",
+        libraries = "Dict of attribute values to library files, which will be created by the action",
         declared_outputs = "All output files and directories of the action",
     ),
 )
@@ -688,9 +700,9 @@ def _define_outputs(ctx, attrs, lib_name):
         interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attr_interface_libs),
     )
 
-    declared_outputs = [out_include_dir] + out_binary_files
-    declared_outputs += libraries.static_libraries
-    declared_outputs += libraries.shared_libraries + libraries.interface_libraries
+    declared_outputs = [out_include_dir] + out_binary_files.values()
+    declared_outputs += libraries.static_libraries.values()
+    declared_outputs += libraries.shared_libraries.values() + libraries.interface_libraries.values()
 
     return _Outputs(
         out_include_dir = out_include_dir,
@@ -699,10 +711,21 @@ def _define_outputs(ctx, attrs, lib_name):
         declared_outputs = declared_outputs,
     )
 
-def _declare_out(ctx, lib_name, dir_, files):
-    if files and len(files) > 0:
-        return [ctx.actions.declare_file("/".join([lib_name, dir_, file])) for file in files]
-    return []
+def _declare_out(ctx, lib_name, output_dir, files):
+    """Declares File objects for each value passed to `files`
+
+    Args:
+        ctx (ctx): The rule's context object
+        lib_name (str): The name of the target being built
+        output_dir (str): The name of the output directory (eg. `bin`, `lib`).
+        files (list): A list of file names/paths
+
+    Returns:
+        dict: A mapping of attribute value to File
+    """
+    if not files:
+        return dict()
+    return {file: ctx.actions.declare_file("/".join([lib_name, output_dir, file])) for file in files}
 
 # buildifier: disable=name-conventions
 InputFiles = provider(

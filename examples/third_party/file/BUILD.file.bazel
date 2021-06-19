@@ -1,0 +1,25 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make", "foreign_cc_binary")
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+configure_make(
+    name = "file_build",
+    configure_in_place = True,
+    env = select({
+        "@platforms//os:macos": {"AR": ""},
+        "//conditions:default": {},
+    }),
+    lib_source = ":all_srcs",
+    out_binaries = [
+        "file",
+    ],
+)
+
+foreign_cc_binary(
+    name = "file",
+    target = ":file_build",
+    visibility = ["//visibility:public"],
+)
