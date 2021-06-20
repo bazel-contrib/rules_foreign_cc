@@ -286,7 +286,7 @@ def _env_prelude(ctx, lib_name, data_dependencies, target_root):
 
     # Add all user defined variables
     attr_env = expand_locations(ctx, ctx.attr.env, data_dependencies)
-    env_snippet.extend(["export {}={}".format(key, val) for key, val in attr_env.items()])
+    env_snippet.extend(["export {}=\"{}\"".format(key, val) for key, val in attr_env.items()])
 
     return env_snippet, env
 
