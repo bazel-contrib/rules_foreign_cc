@@ -1,5 +1,5 @@
-"""A rule for building projects using the[Configure+Make][cm] build tool
-[cm]: https://www.gnu.org/prep/standards/html_node/Configuration.html
+"""A rule for building projects using the [Configure+Make](https://www.gnu.org/prep/standards/html_node/Configuration.html)
+build tool
 """
 
 load(
