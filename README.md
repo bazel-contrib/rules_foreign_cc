@@ -9,7 +9,7 @@ This is **not an officially supported Google product**
 
 ## Documentation
 
-Documentation for all rules and providers are available [here](https://docs.aspect.dev/rules_foreign_cc/)
+Documentation for all rules and providers are available [here](./docs/index.md).
 
 ## Bazel versions compatibility
 
