@@ -249,6 +249,17 @@ dependencies.""",
     ),
 )
 
+def _escape_dquote(text):
+    """Escape double quotes for use in bash variable definitions
+
+    Args:
+        text (str): The text to escape
+
+    Returns:
+        str: text with escaped `"` characters.
+    """
+    return text.replace('"', r'\"\\\\\\"')
+
 def _env_prelude(ctx, lib_name, data_dependencies, target_root):
     """Generate a bash snippet containing environment variable definitions
 
@@ -286,7 +297,7 @@ def _env_prelude(ctx, lib_name, data_dependencies, target_root):
 
     # Add all user defined variables
     attr_env = expand_locations(ctx, ctx.attr.env, data_dependencies)
-    env_snippet.extend(["export {}=\"{}\"".format(key, val) for key, val in attr_env.items()])
+    env_snippet.extend(["export {}=\"{}\"".format(key, _escape_dquote(val)) for key, val in attr_env.items()])
 
     return env_snippet, env
 
