@@ -65,7 +65,7 @@ def _create_configure_script(configureParameters):
 
     define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
 
-    data = ctx.attr.data or list()
+    data = ctx.attr.data + ctx.attr.build_data
 
     # Generate a list of arguments for make
     args = " ".join([
