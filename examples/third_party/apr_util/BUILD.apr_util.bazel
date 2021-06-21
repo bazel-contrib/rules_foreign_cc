@@ -7,14 +7,14 @@ filegroup(
 
 configure_make(
     name = "apr_util",
-    configure_env_vars = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     configure_in_place = True,
     configure_options = [
         "--with-apr=$EXT_BUILD_DEPS/apr",
     ],
+    env = select({
+        "@platforms//os:macos": {"AR": ""},
+        "//conditions:default": {},
+    }),
     lib_source = ":all_srcs",
     out_static_libs = ["libaprutil-1.a"],
     visibility = ["//visibility:public"],
