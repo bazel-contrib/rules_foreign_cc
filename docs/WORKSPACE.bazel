@@ -7,6 +7,23 @@ local_repository(
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
+# `bazel_skylib` is explicitly loaded so a patch can be applied to allow for unique error
+# messages to be added to `diff_test` targets. This can be removed after an upstream PR is
+# merged and the rev updated in `rules_foreign_cc`: https://github.com/bazelbuild/bazel-skylib/pull/307
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "bazel_skylib",
+    patch_args = ["-p1"],
+    patches = ["//:bazel_skylib-diff_test.patch"],
+    sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+    ],
+)
+
 rules_foreign_cc_dependencies()
 
 load("//:stardoc_repository.bzl", "stardoc_repository")

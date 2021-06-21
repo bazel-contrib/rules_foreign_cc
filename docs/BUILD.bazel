@@ -1,4 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
 
 genrule(
@@ -12,9 +13,13 @@ genrule(
     output_to_bindir = True,
 )
 
+# Note that the stardoc `out` files are prefixed with `stardoc_` so the
+# `diff_test` targets which ensure documentation is up to date can access the
+# committed markdown files instead ouf the `out` targets from the stardoc rules
+
 stardoc(
     name = "flatten_docs",
-    out = "flatten.md",
+    out = "stardoc_flatten.md",
     header_template = ":flatten_header_vm",
     input = "docs.bzl",
     deps = ["@rules_foreign_cc//:bzl_srcs"],
@@ -22,7 +27,7 @@ stardoc(
 
 stardoc(
     name = "cmake_docs",
-    out = "cmake.md",
+    out = "stardoc_cmake.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:cmake.bzl",
     deps = ["@rules_foreign_cc//:bzl_srcs"],
@@ -30,7 +35,7 @@ stardoc(
 
 stardoc(
     name = "make_docs",
-    out = "make.md",
+    out = "stardoc_make.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:make.bzl",
     deps = ["@rules_foreign_cc//:bzl_srcs"],
@@ -38,7 +43,7 @@ stardoc(
 
 stardoc(
     name = "ninja_docs",
-    out = "ninja.md",
+    out = "stardoc_ninja.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:ninja.bzl",
     deps = ["@rules_foreign_cc//:bzl_srcs"],
@@ -46,7 +51,7 @@ stardoc(
 
 stardoc(
     name = "configure_make_docs",
-    out = "configure_make.md",
+    out = "stardoc_configure_make.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:configure.bzl",
     deps = ["@rules_foreign_cc//:bzl_srcs"],
@@ -54,7 +59,7 @@ stardoc(
 
 stardoc(
     name = "providers_docs",
-    out = "providers.md",
+    out = "stardoc_providers.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:providers.bzl",
     deps = ["@rules_foreign_cc//:bzl_srcs"],
@@ -75,6 +80,7 @@ build_test(
     visibility = ["//visibility:public"],
 )
 
+# Run this target to upate/generate docs
 genrule(
     name = "generate_docs_src",
     srcs = DOCS_TARGETS,
@@ -91,6 +97,25 @@ cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:providers_docs) > \\$${BUILD_W
 EOF
 """,
 )
+
+# When this test fails, run
+# (cd docs; bazel run :generate_docs)
+[
+    diff_test(
+        name = "{}_test".format(doc),
+        failure_message = "Please run 'cd docs && bazel run :generate_docs' to update documentation.",
+        file1 = ":{}_docs".format(doc),
+        file2 = "{}.md".format(doc),
+    )
+    for doc in [
+        "flatten",
+        "cmake",
+        "ninja",
+        "make",
+        "configure_make",
+        "providers",
+    ]
+]
 
 sh_binary(
     name = "generate_docs",
