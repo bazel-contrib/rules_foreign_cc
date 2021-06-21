@@ -143,6 +143,7 @@ load(
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
+    "expand_locations",
 )
 load(
     "//foreign_cc/private/framework:platform.bzl",
@@ -249,6 +250,8 @@ def _create_configure_script(configureParameters):
             config = configuration,
         ))
 
+    prefix = expand_locations(ctx, {"prefix": attrs.tool_prefix}, data)["prefix"] if attrs.tool_prefix else ""
+
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
         generator = attrs.generator,
@@ -259,10 +262,10 @@ def _create_configure_script(configureParameters):
         root = root,
         no_toolchain_file = no_toolchain_file,
         user_cache = dict(ctx.attr.cache_entries),
-        user_env = getattr(ctx.attr, "env_vars", {}),
+        user_env = expand_locations(ctx, ctx.attr.env, data),
         options = attrs.generate_args,
         cmake_commands = cmake_commands,
-        cmake_prefix = ctx.expand_location(attrs.tool_prefix, data) if attrs.tool_prefix else "",
+        cmake_prefix = prefix,
         include_dirs = inputs.include_dirs,
         is_debug_mode = is_debug_mode(ctx),
     )
@@ -352,14 +355,6 @@ def _attrs():
                 "CMake cache entries to initialize (they will be passed with `-Dkey=value`) " +
                 "Values, defined by the toolchain, will be joined with the values, passed here. " +
                 "(Toolchain values come first)"
-            ),
-            mandatory = False,
-            default = {},
-        ),
-        "env_vars": attr.string_dict(
-            doc = (
-                "CMake environment variable values to join with toolchain-defined. " +
-                "For example, additional `CXXFLAGS`."
             ),
             mandatory = False,
             default = {},
