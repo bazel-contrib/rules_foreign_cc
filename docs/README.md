@@ -2,7 +2,7 @@
 
 # Rules ForeignCc Docs
 
-Up to date documentation can be found [here](./index.md)
+Up to date documentation can be found at: https://bazelbuild.github.io/rules_foreign_cc/
 
 ## Legacy documentation
 

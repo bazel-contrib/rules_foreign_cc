@@ -1,4 +1,4 @@
-"""# CMake
+"""# [CMake](#cmake)
 
 ## Building CMake projects
 
@@ -6,8 +6,7 @@
 - Use cmake targets in [cc_library][ccl], [cc_binary][ccb] targets as dependency
 - Bazel [cc_toolchain][cct] parameters are used inside cmake build
 - See full list of cmake arguments below 'example'
-- cmake is defined in `./tools/build_defs`
-- Works on Ubuntu, Mac OS and Windows(\\* see special notes below in Windows section) operating systems
+- Works on Ubuntu, Mac OS and Windows (*see special notes below in Windows section*) operating systems
 
 **Example:**
 (Please see full examples in ./examples)

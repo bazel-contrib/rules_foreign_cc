@@ -165,7 +165,7 @@ tasks:
     name: Docs
     platform: ubuntu2004
     working_directory: docs
-    test_targets:
+    build_targets:
       - //...
   min_supported_version:
     name: "Minimum Supported Version"

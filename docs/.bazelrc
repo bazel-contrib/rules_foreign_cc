@@ -1,0 +1,3 @@
+# Bazel configuration flags for rules_foregin_cc_docs
+
+build --workspace_status_command=tools/workspace_status.sh
