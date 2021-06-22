@@ -10,10 +10,6 @@ filegroup(
 # I tested and this builds for me on MAC and Linux, did not check Windows though
 configure_make(
     name = "bison",
-    configure_env_vars = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     configure_options = select({
         "@platforms//os:macos": [
             "--with-libiconv=yes",
@@ -23,6 +19,7 @@ configure_make(
     }),
     env = {
         "M4": "$EXT_BUILD_DEPS/m4/bin/m4",
+        "AR": "",
     },
     lib_source = ":all_srcs",
     out_binaries = [
