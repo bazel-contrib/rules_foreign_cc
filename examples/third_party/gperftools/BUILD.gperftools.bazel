@@ -7,15 +7,15 @@ filegroup(
 
 configure_make(
     name = "gperftools_build",
-    configure_env_vars = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     configure_options = [
         "--enable-shared=no",
         "--enable-frame-pointers",
         "--disable-libunwind",
     ],
+    env = select({
+        "@platforms//os:macos": {"AR": ""},
+        "//conditions:default": {},
+    }),
     lib_source = ":all_srcs",
     out_static_libs = ["libtcmalloc_and_profiler.a"],
     visibility = ["//visibility:public"],

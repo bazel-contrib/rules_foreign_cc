@@ -83,33 +83,19 @@ fi
     )
 
 def copy_dir_contents_to_dir(source, target):
-    text = """\
-SAVEIFS=$IFS
-IFS=$'\n'
-local children=($(find "$1/" -maxdepth 1 -mindepth 1))
-IFS=$SAVEIFS
-local target="$2"
-mkdir -p "${target}"
-for child in "${children[@]:-}"; do
-  if [[ -f "$child" ]]; then
-    cp -pR "$child" "$target"
-  elif [[ -L "$child" ]]; then
-    local actual=$(readlink "$child")
-    if [[ -f "$actual" ]]; then
-      cp -pR "$actual" "$target"
-    else
-      local dirn=$(basename "$actual")
-      mkdir -p "$target/$dirn"
-      ##copy_dir_contents_to_dir## "$actual" "$target/$dirn"
-    fi
-  elif [[ -d "$child" ]]; then
-    local dirn=$(basename "$child")
-    mkdir -p "$target/$dirn"
-    ##copy_dir_contents_to_dir## "$child" "$target/$dirn"
-  fi
-done
-"""
-    return FunctionAndCallInfo(text = text)
+    # Beause macos `cp` doesn't have `--no-copy-directory`, we have to
+    # do something more complext for this environment.
+    return """\
+if [[ -d "{source}" ]]; then
+  cp -L -R "{source}"/* "{target}"
+else
+  cp -L -R "{source}" "{target}"
+fi
+find {target} -type f -exec touch -r "{source}" "{{}}" \\;
+""".format(
+        source = source,
+        target = target,
+    )
 
 def symlink_contents_to_dir(source, target):
     text = """\

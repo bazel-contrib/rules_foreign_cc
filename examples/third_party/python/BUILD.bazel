@@ -1,0 +1,57 @@
+load("@rules_python//python:defs.bzl", "py_runtime", "py_runtime_pair", "py_test")
+
+exports_files(
+    [
+        "BUILD.python2.bazel",
+        "BUILD.python3.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+py_runtime(
+    name = "py2_runtime",
+    files = ["@python2"],
+    interpreter = "@python2//:python2_bin",
+    python_version = "PY2",
+)
+
+py_runtime(
+    name = "py3_runtime",
+    files = ["@python3"],
+    interpreter = "@python3//:python3_bin",
+    python_version = "PY3",
+)
+
+py_runtime_pair(
+    name = "py_runtime_pair",
+    py2_runtime = ":py2_runtime",
+    py3_runtime = ":py3_runtime",
+)
+
+toolchain(
+    name = "python_toolchain",
+    toolchain = ":py_runtime_pair",
+    toolchain_type = "@rules_python//python:toolchain_type",
+)
+
+py_test(
+    name = "python2_test",
+    srcs = ["python2_test.py"],
+    python_version = "PY2",
+    visibility = ["//:__pkg__"],
+)
+
+py_test(
+    name = "python3_test",
+    srcs = ["python3_test.py"],
+    python_version = "PY3",
+    visibility = ["//:__pkg__"],
+)
+
+test_suite(
+    name = "python_tests",
+    tests = [
+        ":python2_test",
+        ":python3_test",
+    ],
+)
