@@ -1,0 +1,13 @@
+diff --git a/docs/BUILD.bazel b/docs/BUILD.bazel
+index 2bdbf6e..418dd13 100644
+--- a/docs/BUILD.bazel
++++ b/docs/BUILD.bazel
+@@ -97,7 +97,7 @@ set -euo pipefail
+ short_commit="$${SHORT_COMMIT}"
+ commit="$${COMMIT}"
+ release="$${RELEASE}"
+-if [[ -n "\\$${RELEASE}" ]]; then
++if [[ -n "\\$${RELEASE:-}" ]]; then
+     release="\\$${RELEASE}"
+ fi
+ mkdir -p \\$${BUILD_WORKSPACE_DIRECTORY}/src
