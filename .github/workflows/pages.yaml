@@ -11,6 +11,7 @@ jobs:
         # Create a job for each target triple
         include:
           - ref: main
+          - ref: "0.4.0"
           - ref: "0.3.0"
           - ref: "0.2.0"
           - ref: "0.1.0"
