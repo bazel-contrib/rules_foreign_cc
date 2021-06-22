@@ -17,6 +17,7 @@ test_suite(
         "//libssh2:libssh2_build_test",
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
+        "//python:python_tests",
         "//sqlite:sqlite_build_test",
         "//subversion:subversion_build_test",
     ],
@@ -41,6 +42,7 @@ test_suite(
         "//libssh2:libssh2_build_test",
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
+        "//python:python_tests",
         # Missing a new enough automake to build
         #"//sqlite:sqlite_build_test",
         #"//subversion:subversion_build_test",
@@ -64,6 +66,7 @@ test_suite(
         "//libssh2:libssh2_build_test",
         "//openssl:openssl_build_test",
         "//pcre:pcre_build_test",
+        "//python:python_tests",
         "//sqlite:sqlite_build_test",
         "//subversion:subversion_build_test",
     ],

@@ -8,7 +8,7 @@ A rule for building projects using the [GNU Make](https://www.gnu.org/software/m
 
 <pre>
 make(<a href="#make-name">name</a>, <a href="#make-additional_inputs">additional_inputs</a>, <a href="#make-additional_tools">additional_tools</a>, <a href="#make-alwayslink">alwayslink</a>, <a href="#make-args">args</a>, <a href="#make-build_data">build_data</a>, <a href="#make-data">data</a>, <a href="#make-defines">defines</a>, <a href="#make-deps">deps</a>,
-     <a href="#make-env">env</a>, <a href="#make-lib_name">lib_name</a>, <a href="#make-lib_source">lib_source</a>, <a href="#make-linkopts">linkopts</a>, <a href="#make-out_bin_dir">out_bin_dir</a>, <a href="#make-out_binaries">out_binaries</a>, <a href="#make-out_headers_only">out_headers_only</a>,
+     <a href="#make-env">env</a>, <a href="#make-lib_name">lib_name</a>, <a href="#make-lib_source">lib_source</a>, <a href="#make-linkopts">linkopts</a>, <a href="#make-out_bin_dir">out_bin_dir</a>, <a href="#make-out_binaries">out_binaries</a>, <a href="#make-out_data_dirs">out_data_dirs</a>, <a href="#make-out_headers_only">out_headers_only</a>,
      <a href="#make-out_include_dir">out_include_dir</a>, <a href="#make-out_interface_libs">out_interface_libs</a>, <a href="#make-out_lib_dir">out_lib_dir</a>, <a href="#make-out_shared_libs">out_shared_libs</a>, <a href="#make-out_static_libs">out_static_libs</a>,
      <a href="#make-postfix_script">postfix_script</a>, <a href="#make-targets">targets</a>, <a href="#make-tool_prefix">tool_prefix</a>, <a href="#make-tools_deps">tools_deps</a>)
 </pre>
@@ -35,6 +35,7 @@ Rule for building external libraries with GNU Make. GNU Make commands (make and 
 | <a id="make-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
 | <a id="make-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
 | <a id="make-out_binaries"></a>out_binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="make-out_data_dirs"></a>out_data_dirs |  Optional names of additional directories created by the build that should be declared as bazel action outputs   | List of strings | optional | [] |
 | <a id="make-out_headers_only"></a>out_headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
 | <a id="make-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
 | <a id="make-out_interface_libs"></a>out_interface_libs |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |

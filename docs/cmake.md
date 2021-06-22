@@ -138,9 +138,9 @@ cmake(
 <pre>
 cmake(<a href="#cmake-name">name</a>, <a href="#cmake-additional_inputs">additional_inputs</a>, <a href="#cmake-additional_tools">additional_tools</a>, <a href="#cmake-alwayslink">alwayslink</a>, <a href="#cmake-build_args">build_args</a>, <a href="#cmake-build_data">build_data</a>, <a href="#cmake-cache_entries">cache_entries</a>,
       <a href="#cmake-data">data</a>, <a href="#cmake-defines">defines</a>, <a href="#cmake-deps">deps</a>, <a href="#cmake-env">env</a>, <a href="#cmake-generate_args">generate_args</a>, <a href="#cmake-generate_crosstool_file">generate_crosstool_file</a>, <a href="#cmake-install">install</a>, <a href="#cmake-install_args">install_args</a>,
-      <a href="#cmake-lib_name">lib_name</a>, <a href="#cmake-lib_source">lib_source</a>, <a href="#cmake-linkopts">linkopts</a>, <a href="#cmake-out_bin_dir">out_bin_dir</a>, <a href="#cmake-out_binaries">out_binaries</a>, <a href="#cmake-out_headers_only">out_headers_only</a>, <a href="#cmake-out_include_dir">out_include_dir</a>,
-      <a href="#cmake-out_interface_libs">out_interface_libs</a>, <a href="#cmake-out_lib_dir">out_lib_dir</a>, <a href="#cmake-out_shared_libs">out_shared_libs</a>, <a href="#cmake-out_static_libs">out_static_libs</a>, <a href="#cmake-postfix_script">postfix_script</a>, <a href="#cmake-targets">targets</a>,
-      <a href="#cmake-tool_prefix">tool_prefix</a>, <a href="#cmake-tools_deps">tools_deps</a>, <a href="#cmake-working_directory">working_directory</a>)
+      <a href="#cmake-lib_name">lib_name</a>, <a href="#cmake-lib_source">lib_source</a>, <a href="#cmake-linkopts">linkopts</a>, <a href="#cmake-out_bin_dir">out_bin_dir</a>, <a href="#cmake-out_binaries">out_binaries</a>, <a href="#cmake-out_data_dirs">out_data_dirs</a>, <a href="#cmake-out_headers_only">out_headers_only</a>,
+      <a href="#cmake-out_include_dir">out_include_dir</a>, <a href="#cmake-out_interface_libs">out_interface_libs</a>, <a href="#cmake-out_lib_dir">out_lib_dir</a>, <a href="#cmake-out_shared_libs">out_shared_libs</a>, <a href="#cmake-out_static_libs">out_static_libs</a>,
+      <a href="#cmake-postfix_script">postfix_script</a>, <a href="#cmake-targets">targets</a>, <a href="#cmake-tool_prefix">tool_prefix</a>, <a href="#cmake-tools_deps">tools_deps</a>, <a href="#cmake-working_directory">working_directory</a>)
 </pre>
 
 Rule for building external library with CMake.
@@ -170,6 +170,7 @@ Rule for building external library with CMake.
 | <a id="cmake-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
 | <a id="cmake-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
 | <a id="cmake-out_binaries"></a>out_binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="cmake-out_data_dirs"></a>out_data_dirs |  Optional names of additional directories created by the build that should be declared as bazel action outputs   | List of strings | optional | [] |
 | <a id="cmake-out_headers_only"></a>out_headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
 | <a id="cmake-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
 | <a id="cmake-out_interface_libs"></a>out_interface_libs |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |
