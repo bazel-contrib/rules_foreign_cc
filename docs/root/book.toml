@@ -1,0 +1,5 @@
+[book]
+title = "Rules ForeignCc"
+
+[output.html]
+git-repository-url = "https://github.com/bazelbuild/rules_foreign_cc"

@@ -9,16 +9,16 @@ filegroup(
 
 configure_make(
     name = "iconv",
-    configure_env_vars = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     configure_in_place = True,
     configure_options = [
         "--enable-relocatable",
         "--enable-shared=no",
         "--enable-static=yes",
     ],
+    env = select({
+        "@platforms//os:macos": {"AR": ""},
+        "//conditions:default": {},
+    }),
     lib_source = "@iconv//:all",
     out_static_libs = [
         "libiconv.a",

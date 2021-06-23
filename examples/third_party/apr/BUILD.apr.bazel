@@ -7,14 +7,14 @@ filegroup(
 
 configure_make(
     name = "apr",
-    configure_env_vars = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     configure_in_place = True,
     configure_options = [
         "--disable-shared",
     ],
+    env = select({
+        "@platforms//os:macos": {"AR": ""},
+        "//conditions:default": {},
+    }),
     lib_source = ":all_srcs",
     out_static_libs = ["libapr-1.a"],
     visibility = ["//visibility:public"],

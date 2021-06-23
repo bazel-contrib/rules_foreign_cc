@@ -11,27 +11,22 @@ def create_configure_script(
         flags,
         root,
         user_options,
-        user_vars,
         is_debug,
         configure_prefix,
         configure_command,
         deps,
         inputs,
+        env_vars,
         configure_in_place,
         autoconf,
         autoconf_options,
-        autoconf_env_vars,
         autoreconf,
         autoreconf_options,
-        autoreconf_env_vars,
         autogen,
         autogen_command,
         autogen_options,
-        autogen_env_vars,
         make_path,
         make_commands):
-    env_vars_string = _get_env_vars(workspace_name, tools, flags, user_vars, deps, inputs)
-
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -44,38 +39,44 @@ def create_configure_script(
         configure_path = "{}/{}".format(root_path, configure_command)
 
     script.append("##export_var## MAKE {}".format(make_path))
+    script.append("##enable_tracing##")
 
     if autogen:
         # NOCONFIGURE is pseudo standard and tells the script to not invoke configure.
         # We explicitly invoke configure later.
-        autogen_env_vars = _get_autogen_env_vars(autogen_env_vars)
-        script.append('{} "{}/{}" {}'.format(
-            " ".join(['{}="{}"'.format(key, autogen_env_vars[key]) for key in autogen_env_vars]),
-            root_path,
-            autogen_command,
-            " ".join(autogen_options),
+        autogen_env_vars = _get_autogen_env_vars(env_vars)
+        script.append("{env_vars} \"{root_dir}/{autogen}\" {options}".format(
+            env_vars = " ".join(["{}=\"{}\"".format(key, value) for (key, value) in autogen_env_vars.items()]),
+            root_dir = root_path,
+            autogen = autogen_command,
+            options = " ".join(autogen_options),
         ).lstrip())
 
+    env_vars_string = " ".join(["{}=\"{}\"".format(key, value) for (key, value) in env_vars.items()])
+
     if autoconf:
-        script.append("{} autoconf {}".format(
-            " ".join(["{}=\"{}\"".format(key, autoconf_env_vars[key]) for key in autoconf_env_vars]),
-            " ".join(autoconf_options),
+        script.append("{env_vars} {autoconf} {options}".format(
+            env_vars = env_vars_string,
+            # TODO: Pass autoconf via a toolchain
+            autoconf = "autoconf",
+            options = " ".join(autoconf_options),
         ).lstrip())
 
     if autoreconf:
-        script.append("{} autoreconf {}".format(
-            " ".join(['{}="{}"'.format(key, autoreconf_env_vars[key]) for key in autoreconf_env_vars]),
-            " ".join(autoreconf_options),
+        script.append("{env_vars} {autoreconf} {options}".format(
+            env_vars = env_vars_string,
+            # TODO: Pass autoreconf via a toolchain
+            autoreconf = "autoreconf",
+            options = " ".join(autoreconf_options),
         ).lstrip())
 
-    script.append('{env_vars} {prefix}"{configure}" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}'.format(
-        env_vars = env_vars_string,
+    script.append("{env_vars} {prefix}\"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+        env_vars = _get_env_vars(workspace_name, tools, flags, env_vars, deps, inputs),
         prefix = configure_prefix,
         configure = configure_path,
         user_options = " ".join(user_options),
     ))
 
-    script.append("##enable_tracing##")
     script.extend(make_commands)
     script.append("##disable_tracing##")
 
