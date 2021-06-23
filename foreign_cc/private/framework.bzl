@@ -395,6 +395,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##echo## \"\"",
         "##script_prelude##",
     ] + env_prelude + [
+        "##enable_tracing##",
         "##path## $$EXT_BUILD_ROOT$$",
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
