@@ -142,7 +142,23 @@ if [[ -f "$1" ]]; then
 elif [[ -L "$1" && ! -d "$1" ]]; then
   cp -pR "$1" "$2"
 elif [[ -d "$1" ]]; then
-  ln -s -f -t "$target" "$1"
+  # Test if there are any files we would modify using `replace_in_files`
+  local files=$(find -P $1 \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  if [ ${#files[@]} -eq 0 ]; then
+    ln -s -f -t "$target" "$1"
+  else
+    SAVEIFS=$IFS
+    IFS=$'\n'
+    local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
+    IFS=$SAVEIFS
+    local dirname=$(basename "$1")
+    mkdir -p "$target/$dirname"
+    for child in "${children[@]:-}"; do
+      if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
+        ##symlink_to_dir## "$child" "$target/$dirname"
+      fi
+    done
+  fi
 else
   echo "Can not copy $1"
 fi
