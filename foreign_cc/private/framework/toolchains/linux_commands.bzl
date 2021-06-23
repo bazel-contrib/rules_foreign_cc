@@ -66,7 +66,7 @@ if [ -d "$1" ]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
-  local files=$(find -P $1 \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  local files=$(find -P "$1" \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
   IFS=$SAVEIFS
   for file in ${files[@]}; do
     local backup=$(mktemp)
@@ -143,7 +143,7 @@ elif [[ -L "$1" && ! -d "$1" ]]; then
   cp -pR "$1" "$2"
 elif [[ -d "$1" ]]; then
   # Test if there are any files we would modify using `replace_in_files`
-  local files=$(find -P $1 \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  local files=$(find -H "$1" \( -type f -and \( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \) \))
   if [ ${#files[@]} -eq 0 ]; then
     ln -s -f -t "$target" "$1"
   else
