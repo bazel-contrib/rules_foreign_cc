@@ -143,10 +143,13 @@ elif [[ -L "$1" && ! -d "$1" ]]; then
   cp -pR "$1" "$2"
 elif [[ -d "$1" ]]; then
   # Test if there are any files we would modify using `replace_in_files`
-  local files=$(find -H "$1" ( -type f -and ( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" ) ))
-  if [ ${#files[@]} -eq 0 ]; then
+  local files=$(find -H "$1" \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\) )
+  set +u
+  if [[ ${#files[@]} -eq 0 ]]; then
+    set -u
     ln -s -f -t "$target" "$1"
   else
+    set -u
     SAVEIFS=$IFS
     IFS=$'\n'
     local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
