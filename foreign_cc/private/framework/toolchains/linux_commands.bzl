@@ -137,6 +137,7 @@ if [[ -f "$1" ]]; then
     cp "$1" "$dest" && chmod +w "$dest" && touch -r "$1" "$dest"
   else
     ln -s -f -t "$target" "$1"
+    touch -h -r "$1" "$target"
   fi
 elif [[ -L "$1" && ! -d "$1" ]]; then
   cp -pR "$1" "$2"
