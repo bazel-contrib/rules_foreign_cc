@@ -130,7 +130,7 @@ fi
 local target="$2"
 mkdir -p "$target"
 if [[ -f "$1" ]]; then
-  # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
+  # In order to be able to use `replace_in_files`, we ensure that we create copies of specified
   # files so updating them is possible.
   if [[ "$1" == *.pc || "$1" == *.la || "$1" == *-config || "$1" == *.mk || "$1" == *.cmake ]]; then
     dest="$target/$(basename $1)"
@@ -142,17 +142,7 @@ if [[ -f "$1" ]]; then
 elif [[ -L "$1" && ! -d "$1" ]]; then
   cp -pR "$1" "$2"
 elif [[ -d "$1" ]]; then
-  SAVEIFS=$IFS
-  IFS=$'\n'
-  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
-  IFS=$SAVEIFS
-  local dirname=$(basename "$1")
-  mkdir -p "$target/$dirname"
-  for child in "${children[@]:-}"; do
-    if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
-      ##symlink_to_dir## "$child" "$target/$dirname"
-    fi
-  done
+  ln -s -f -t "$target" "$1"
 else
   echo "Can not copy $1"
 fi
