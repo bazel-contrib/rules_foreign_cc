@@ -118,7 +118,7 @@ fi
     return FunctionAndCallInfo(text = text)
 
 def symlink_to_dir(source, target):
-    text = """\
+    text = r"""\
 if [[ -z "$1" ]]; then
   echo "arg 1 to symlink_to_dir is unexpectedly empty"
   exit 1
