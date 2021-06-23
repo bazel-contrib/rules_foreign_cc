@@ -1,5 +1,11 @@
-name: Deploy mdBook
+name: Generate docs
 on:
+  pull_request: 
+    branches:
+      - main
+    paths:
+      - '.github/**'
+      - 'docs/**'
   push:
     branches:
       - main
@@ -8,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Create a job for each target triple
+        # Create a job for release
         include:
           - ref: main
           - ref: "0.4.0"
@@ -58,6 +64,7 @@ jobs:
           name: "${{ matrix.ref }}"
           path: ${{ github.workspace }}/docs/book
           if-no-files-found: error
+        if: ${{ github.event_name != 'pull_request' }}
       - name: Build root
         run: ${{ github.workspace }}/bin/mdbook build
         if: ${{ matrix.ref == 'main' }}
@@ -68,9 +75,10 @@ jobs:
           name: "${{ matrix.ref }}-root"
           path: ${{ github.workspace }}/docs/root/book
           if-no-files-found: error
-        if: ${{ matrix.ref == 'main' }}
+        if: ${{ matrix.ref == 'main' && github.event_name != 'pull_request' }}
   publish:
     needs: pages
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
     - name: Fetch artifacts (first root then others so the ordering is correct)

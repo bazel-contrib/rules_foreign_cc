@@ -25,12 +25,12 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "rules_foreign_cc",
-    # TODO: Get the latest sha256 value from the latest release on the releases page
-    #       https://github.com/bazelbuild/rules_foreign_cc/releases
+    # TODO: Get the latest sha256 value from a bazel debug message or the latest 
+    #       release on the releases page: https://github.com/bazelbuild/rules_foreign_cc/releases
     #
     # sha256 = "...",
-    strip_prefix = "rules_foreign_cc-{release}",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/{release}.tar.gz",
+    strip_prefix = "rules_foreign_cc-{release_archive}",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/{release_archive}.tar.gz",
 )
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
