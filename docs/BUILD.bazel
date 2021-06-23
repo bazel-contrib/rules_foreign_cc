@@ -94,12 +94,21 @@ export RELEASE="$$(cat bazel-out/stable-status.txt | grep STABLE_RELEASE | cut -
 cat << EOF > $@
 #!/bin/bash
 set -euo pipefail
+
 short_commit="$${SHORT_COMMIT}"
 commit="$${COMMIT}"
 release="$${RELEASE}"
+release_archive="$${RELEASE}"
+
+# TODO: If a release is set, we assume it's set to a branch name.
+# thus we defautl the archive value to a commit. This is likely
+# only appropriate when publishing on the branch in specified
+# and a smarter solution should be found to avoid unexpected behavior. 
 if [[ -n "\\$${RELEASE:-}" ]]; then
     release="\\$${RELEASE}"
+    release_archive="\\$${commit}"
 fi
+
 mkdir -p \\$${BUILD_WORKSPACE_DIRECTORY}/src
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:flatten_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/flatten.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:cmake_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/cmake.md
@@ -113,6 +122,7 @@ cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(rootpath index.md)  \
 | sed "s/{short_commit}/\\$${short_commit}/" \
 | sed "s/{commit}/\\$${commit}/" \
 | sed "s/{release}/\\$${release}/" \
+| sed "s/{release_archive}/\\$${release_archive}/" \
 > \\$${BUILD_WORKSPACE_DIRECTORY}/src/index.md
 EOF
 """,
