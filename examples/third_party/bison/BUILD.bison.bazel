@@ -18,8 +18,8 @@ configure_make(
         "//conditions:default": [],
     }),
     env = {
-        "M4": "$EXT_BUILD_DEPS/m4/bin/m4",
         "AR": "",
+        "M4": "$EXT_BUILD_DEPS/m4/bin/m4",
     },
     lib_source = ":all_srcs",
     out_binaries = [
