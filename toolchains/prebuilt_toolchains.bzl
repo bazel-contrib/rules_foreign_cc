@@ -65,6 +65,110 @@ def prebuilt_toolchains(cmake_version, ninja_version):
     _make_toolchains()
 
 def _cmake_toolchains(version):
+    if "3.20.5" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.20.5-linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.5/cmake-3.20.5-linux-aarch64.tar.gz",
+            ],
+            sha256 = "d2fa6678e5f716de349be23f7096a935f35ed69caebea982f6d16368489c45a0",
+            strip_prefix = "cmake-3.20.5-linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.20.5-linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.5/cmake-3.20.5-linux-x86_64.tar.gz",
+            ],
+            sha256 = "5ffbc450c992cbc383c787576385ff35aefb762b0f05cbde8bab2c995ab045aa",
+            strip_prefix = "cmake-3.20.5-linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.20.5-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.5/cmake-3.20.5-macos-universal.tar.gz",
+            ],
+            sha256 = "000828af55268853ba21b91f8ce3bfb9365aa72aee960fc7f0c01a71f3a2217a",
+            strip_prefix = "cmake-3.20.5-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.20.5-windows-i386",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.5/cmake-3.20.5-windows-i386.zip",
+            ],
+            sha256 = "3e288bb1b85d5bfab6671c9bdcea4192eeb02eae1fbf23d0e872e160bb644afa",
+            strip_prefix = "cmake-3.20.5-windows-i386",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.20.5-windows-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.20.5/cmake-3.20.5-windows-x86_64.zip",
+            ],
+            sha256 = "d064e3b4f76d9b8c63ea119c545f769d7bdbf19b484dc94df11508c4f3e05d6d",
+            strip_prefix = "cmake-3.20.5-windows-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.20.5_toolchains",
+            repos = {
+                "cmake-3.20.5-linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.20.5-linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.20.5-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.20.5-windows-i386": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.20.5-windows-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.20.5_toolchains//:cmake-3.20.5-linux-aarch64_toolchain",
+            "@cmake_3.20.5_toolchains//:cmake-3.20.5-linux-x86_64_toolchain",
+            "@cmake_3.20.5_toolchains//:cmake-3.20.5-macos-universal_toolchain",
+            "@cmake_3.20.5_toolchains//:cmake-3.20.5-windows-i386_toolchain",
+            "@cmake_3.20.5_toolchains//:cmake-3.20.5-windows-x86_64_toolchain",
+        )
+
+        return
+
     if "3.20.4" == version:
         maybe(
             http_archive,
@@ -1432,6 +1536,1080 @@ def _cmake_toolchains(version):
             "@cmake_3.14.7_toolchains//:cmake-3.14.7-Linux-x86_64_toolchain",
             "@cmake_3.14.7_toolchains//:cmake-3.14.7-win32-x86_toolchain",
             "@cmake_3.14.7_toolchains//:cmake-3.14.7-win64-x64_toolchain",
+        )
+
+        return
+
+    if "3.13.5" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.13.5-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.13.5/cmake-3.13.5-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "e04bcd52c64c2ee44f6def2ac4d5a610f01b329d0db65aecc2bb5135602ebfe0",
+            strip_prefix = "cmake-3.13.5-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.13.5-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.13.5/cmake-3.13.5-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "e2fd0080a6f0fc1ec84647acdcd8e0b4019770f48d83509e6a5b0b6ea27e5864",
+            strip_prefix = "cmake-3.13.5-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.13.5-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.13.5/cmake-3.13.5-win32-x86.zip",
+            ],
+            sha256 = "0b61adede8f858464849d79d55044127032564c4c8a091322f8efb30ff4da3c4",
+            strip_prefix = "cmake-3.13.5-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.13.5-win64-x64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.13.5/cmake-3.13.5-win64-x64.zip",
+            ],
+            sha256 = "bdc4622f2fcf26cc16838d264b1cef0d5bc2e5b455d4a26ab7952781965eae79",
+            strip_prefix = "cmake-3.13.5-win64-x64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.13.5_toolchains",
+            repos = {
+                "cmake-3.13.5-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.13.5-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.13.5-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.13.5-win64-x64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.13.5_toolchains//:cmake-3.13.5-Darwin-x86_64_toolchain",
+            "@cmake_3.13.5_toolchains//:cmake-3.13.5-Linux-x86_64_toolchain",
+            "@cmake_3.13.5_toolchains//:cmake-3.13.5-win32-x86_toolchain",
+            "@cmake_3.13.5_toolchains//:cmake-3.13.5-win64-x64_toolchain",
+        )
+
+        return
+
+    if "3.12.4" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.12.4-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.12.4/cmake-3.12.4-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "95d76c00ccb9ecb5cb51de137de00965c5e8d34b2cf71556cf8ba40577d1cff3",
+            strip_prefix = "cmake-3.12.4-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.12.4-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.12.4/cmake-3.12.4-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "486edd6710b5250946b4b199406ccbf8f567ef0e23cfe38f7938b8c78a2ffa5f",
+            strip_prefix = "cmake-3.12.4-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.12.4-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.12.4/cmake-3.12.4-win32-x86.zip",
+            ],
+            sha256 = "2c1c3c269ca4a222c8768d8f966d8556365b9bf7af77f9885d0b29a19cbf5354",
+            strip_prefix = "cmake-3.12.4-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.12.4-win64-x64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.12.4/cmake-3.12.4-win64-x64.zip",
+            ],
+            sha256 = "4dd43cdc0fef6c70e3d92a8aef4f2c66a8c5f4ad08a66ed2b376766dbd815069",
+            strip_prefix = "cmake-3.12.4-win64-x64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.12.4_toolchains",
+            repos = {
+                "cmake-3.12.4-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.12.4-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.12.4-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.12.4-win64-x64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.12.4_toolchains//:cmake-3.12.4-Darwin-x86_64_toolchain",
+            "@cmake_3.12.4_toolchains//:cmake-3.12.4-Linux-x86_64_toolchain",
+            "@cmake_3.12.4_toolchains//:cmake-3.12.4-win32-x86_toolchain",
+            "@cmake_3.12.4_toolchains//:cmake-3.12.4-win64-x64_toolchain",
+        )
+
+        return
+
+    if "3.11.4" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.11.4-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.11.4/cmake-3.11.4-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "2b5eb705f036b1906a5e0bce996e9cd56d43d73bdee8318ece3e5ce31657b812",
+            strip_prefix = "cmake-3.11.4-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.11.4-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.11.4/cmake-3.11.4-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "6dab016a6b82082b8bcd0f4d1e53418d6372015dd983d29367b9153f1a376435",
+            strip_prefix = "cmake-3.11.4-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.11.4-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.11.4/cmake-3.11.4-win32-x86.zip",
+            ],
+            sha256 = "b068001ff879f86e704977c50a8c5917e4b4406c66242366dba2674abe316579",
+            strip_prefix = "cmake-3.11.4-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.11.4-win64-x64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.11.4/cmake-3.11.4-win64-x64.zip",
+            ],
+            sha256 = "d3102abd0ded446c898252b58857871ee170312d8e7fd5cbff01fbcb1068a6e5",
+            strip_prefix = "cmake-3.11.4-win64-x64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.11.4_toolchains",
+            repos = {
+                "cmake-3.11.4-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.11.4-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.11.4-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.11.4-win64-x64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.11.4_toolchains//:cmake-3.11.4-Darwin-x86_64_toolchain",
+            "@cmake_3.11.4_toolchains//:cmake-3.11.4-Linux-x86_64_toolchain",
+            "@cmake_3.11.4_toolchains//:cmake-3.11.4-win32-x86_toolchain",
+            "@cmake_3.11.4_toolchains//:cmake-3.11.4-win64-x64_toolchain",
+        )
+
+        return
+
+    if "3.10.3" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.10.3-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.10.3/cmake-3.10.3-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "e88d31a5200274407b7ea83cb2195ffc18cd6ceb1278b36c0501be6a118039a8",
+            strip_prefix = "cmake-3.10.3-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.10.3-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.10.3/cmake-3.10.3-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "9e7c48b797484f74c5ee3ae55132b40b16ed8e81ee762402da8971205b0a896b",
+            strip_prefix = "cmake-3.10.3-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.10.3-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.10.3/cmake-3.10.3-win32-x86.zip",
+            ],
+            sha256 = "edbbfb7f6f4e4f913de4a16d228cf6156ac7071596b6d25f2891a60a006735ea",
+            strip_prefix = "cmake-3.10.3-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.10.3-win64-x64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.10.3/cmake-3.10.3-win64-x64.zip",
+            ],
+            sha256 = "3bd57d1cfcf720a4cc72db77bda4c76a7b700fb0341821ad868963ad28856cd0",
+            strip_prefix = "cmake-3.10.3-win64-x64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.10.3_toolchains",
+            repos = {
+                "cmake-3.10.3-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.10.3-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.10.3-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.10.3-win64-x64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.10.3_toolchains//:cmake-3.10.3-Darwin-x86_64_toolchain",
+            "@cmake_3.10.3_toolchains//:cmake-3.10.3-Linux-x86_64_toolchain",
+            "@cmake_3.10.3_toolchains//:cmake-3.10.3-win32-x86_toolchain",
+            "@cmake_3.10.3_toolchains//:cmake-3.10.3-win64-x64_toolchain",
+        )
+
+        return
+
+    if "3.9.6" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.9.6-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.9.6/cmake-3.9.6-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "1694f3e183954ab6aadb2d7f85552aa2e050fab97ef4cbc817b1165255703599",
+            strip_prefix = "cmake-3.9.6-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.9.6-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.9.6/cmake-3.9.6-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "062bf45bee36ce7c2a55ae26b8b5324720f370d420a05cba91b9448c64ffdbea",
+            strip_prefix = "cmake-3.9.6-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.9.6-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.9.6/cmake-3.9.6-win32-x86.zip",
+            ],
+            sha256 = "8dd4b6c35afa8e0c044789b55645327cc4bb75276f87c6758f9997c08f559256",
+            strip_prefix = "cmake-3.9.6-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.9.6-win64-x64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.9.6/cmake-3.9.6-win64-x64.zip",
+            ],
+            sha256 = "fa667bf658fa526e4e2489a9704f83f851e5ded66a18904424ba1b8505fd4dc0",
+            strip_prefix = "cmake-3.9.6-win64-x64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.9.6_toolchains",
+            repos = {
+                "cmake-3.9.6-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.9.6-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.9.6-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.9.6-win64-x64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.9.6_toolchains//:cmake-3.9.6-Darwin-x86_64_toolchain",
+            "@cmake_3.9.6_toolchains//:cmake-3.9.6-Linux-x86_64_toolchain",
+            "@cmake_3.9.6_toolchains//:cmake-3.9.6-win32-x86_toolchain",
+            "@cmake_3.9.6_toolchains//:cmake-3.9.6-win64-x64_toolchain",
+        )
+
+        return
+
+    if "3.8.2" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.8.2-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.8.2/cmake-3.8.2-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "d164a1fa2a3d2f276c83ab55c7014b14b501b939d1a5a56f6788eb5cddc7acb6",
+            strip_prefix = "cmake-3.8.2-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.8.2-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.8.2/cmake-3.8.2-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "33e4851d3219b720f4b64fcf617151168f1bffdf5afad25eb4b7f5f58cee3a08",
+            strip_prefix = "cmake-3.8.2-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.8.2-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.8.2/cmake-3.8.2-win32-x86.zip",
+            ],
+            sha256 = "3fa45a8ad473a8e0579ec826b3355f864750a7455987ed425a9c6fdf4820b5f2",
+            strip_prefix = "cmake-3.8.2-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.8.2-win64-x64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.8.2/cmake-3.8.2-win64-x64.zip",
+            ],
+            sha256 = "202c2416c964fb7199e5d7ce92336a44c7ba65d5ccca36246f41d7d09bd8ffe2",
+            strip_prefix = "cmake-3.8.2-win64-x64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.8.2_toolchains",
+            repos = {
+                "cmake-3.8.2-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.8.2-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.8.2-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.8.2-win64-x64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.8.2_toolchains//:cmake-3.8.2-Darwin-x86_64_toolchain",
+            "@cmake_3.8.2_toolchains//:cmake-3.8.2-Linux-x86_64_toolchain",
+            "@cmake_3.8.2_toolchains//:cmake-3.8.2-win32-x86_toolchain",
+            "@cmake_3.8.2_toolchains//:cmake-3.8.2-win64-x64_toolchain",
+        )
+
+        return
+
+    if "3.7.2" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.7.2-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.7.2/cmake-3.7.2-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "0175e97748052dfc15ebd3c0aa65286e5ec20ca22ed606ce88940e699496b03c",
+            strip_prefix = "cmake-3.7.2-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.7.2-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.7.2/cmake-3.7.2-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "0e6ec35d4fa9bf79800118916b51928b6471d5725ff36f1d0de5ebb34dcd5406",
+            strip_prefix = "cmake-3.7.2-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.7.2-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.7.2/cmake-3.7.2-win32-x86.zip",
+            ],
+            sha256 = "ec5e299d412e0272e01d4de5bf07718f42c96361f83d51cc39f91bf49cc3e5c3",
+            strip_prefix = "cmake-3.7.2-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.7.2-win64-x64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.7.2/cmake-3.7.2-win64-x64.zip",
+            ],
+            sha256 = "def3bb81dfd922ce1ea2a0647645eefb60e128d520c8ca707c5996c331bc8b48",
+            strip_prefix = "cmake-3.7.2-win64-x64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.7.2_toolchains",
+            repos = {
+                "cmake-3.7.2-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.7.2-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.7.2-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.7.2-win64-x64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.7.2_toolchains//:cmake-3.7.2-Darwin-x86_64_toolchain",
+            "@cmake_3.7.2_toolchains//:cmake-3.7.2-Linux-x86_64_toolchain",
+            "@cmake_3.7.2_toolchains//:cmake-3.7.2-win32-x86_toolchain",
+            "@cmake_3.7.2_toolchains//:cmake-3.7.2-win64-x64_toolchain",
+        )
+
+        return
+
+    if "3.6.3" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.6.3-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.6.3/cmake-3.6.3-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "cba5b50365fa79c36bb954dc44d6e3455e431c47937fe13e6ddd06b61fe428a4",
+            strip_prefix = "cmake-3.6.3-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.6.3-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.6.3/cmake-3.6.3-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "9d915d505c07d84b610e1be6242c7cad68b4b7a4090ce85ecf9cec5effa47c43",
+            strip_prefix = "cmake-3.6.3-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.6.3-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.6.3/cmake-3.6.3-win32-x86.zip",
+            ],
+            sha256 = "556628f134b2372b8f02688787ca44b02d893c57b6eeaa9271ac51a4a2d4a4ed",
+            strip_prefix = "cmake-3.6.3-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.6.3-win64-x64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.6.3/cmake-3.6.3-win64-x64.zip",
+            ],
+            sha256 = "263b78aba6e63098353b2f8beecf293f5f307f9a70575a81867c3f8cb18a6a99",
+            strip_prefix = "cmake-3.6.3-win64-x64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.6.3_toolchains",
+            repos = {
+                "cmake-3.6.3-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.6.3-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.6.3-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.6.3-win64-x64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.6.3_toolchains//:cmake-3.6.3-Darwin-x86_64_toolchain",
+            "@cmake_3.6.3_toolchains//:cmake-3.6.3-Linux-x86_64_toolchain",
+            "@cmake_3.6.3_toolchains//:cmake-3.6.3-win32-x86_toolchain",
+            "@cmake_3.6.3_toolchains//:cmake-3.6.3-win64-x64_toolchain",
+        )
+
+        return
+
+    if "3.5.2" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.5.2-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.5.2/cmake-3.5.2-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "0263be8f59ba1ae88172d5db769c2af69bcd8b2cbd4a9b1a981c406ce609a4ca",
+            strip_prefix = "cmake-3.5.2-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.5.2-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.5.2/cmake-3.5.2-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "5f7aeaebe33521647625e0411467de71a2886743e4aa2c179e04c9e141c6c8cd",
+            strip_prefix = "cmake-3.5.2-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.5.2-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.5.2/cmake-3.5.2-win32-x86.zip",
+            ],
+            sha256 = "671073aee66b3480a564d0736792e40570a11e861bb34819bb7ae7858bbdfb80",
+            strip_prefix = "cmake-3.5.2-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.5.2_toolchains",
+            repos = {
+                "cmake-3.5.2-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.5.2-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.5.2-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.5.2_toolchains//:cmake-3.5.2-Darwin-x86_64_toolchain",
+            "@cmake_3.5.2_toolchains//:cmake-3.5.2-Linux-x86_64_toolchain",
+            "@cmake_3.5.2_toolchains//:cmake-3.5.2-win32-x86_toolchain",
+        )
+
+        return
+
+    if "3.4.3" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.4.3-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.4.3/cmake-3.4.3-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "dec18a78b8ed6b2ff24bd61d578063c2cd667327d62892592121cf600c83f635",
+            strip_prefix = "cmake-3.4.3-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.4.3-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.4.3/cmake-3.4.3-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "66b8d315c852908be9f79e1a18b8778714659fce4ddb2d041af8680a239202fc",
+            strip_prefix = "cmake-3.4.3-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.4.3-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.4.3/cmake-3.4.3-win32-x86.zip",
+            ],
+            sha256 = "448e894dd3df7f3f1ae509ab940f6fd5653ce86eba0677e19ad4bccb44a585ae",
+            strip_prefix = "cmake-3.4.3-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.4.3_toolchains",
+            repos = {
+                "cmake-3.4.3-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.4.3-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.4.3-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.4.3_toolchains//:cmake-3.4.3-Darwin-x86_64_toolchain",
+            "@cmake_3.4.3_toolchains//:cmake-3.4.3-Linux-x86_64_toolchain",
+            "@cmake_3.4.3_toolchains//:cmake-3.4.3-win32-x86_toolchain",
+        )
+
+        return
+
+    if "3.3.2" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.3.2-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.3.2/cmake-3.3.2-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "7e685d4e2ef90e0b9b837138049c98f4b0cbda2ee27db77c3d39b6053b7a7e71",
+            strip_prefix = "cmake-3.3.2-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.3.2-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.3.2/cmake-3.3.2-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "0c6e1d1dedf58b21f6bd3de9f03ca435c3d13c4e709b1d67432ca12df07d8208",
+            strip_prefix = "cmake-3.3.2-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.3.2-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.3.2/cmake-3.3.2-win32-x86.zip",
+            ],
+            sha256 = "eaaa54ebb915fe56f4117edf78d9f8197623e8559918860079d3c63a075f58db",
+            strip_prefix = "cmake-3.3.2-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.3.2_toolchains",
+            repos = {
+                "cmake-3.3.2-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.3.2-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.3.2-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.3.2_toolchains//:cmake-3.3.2-Darwin-x86_64_toolchain",
+            "@cmake_3.3.2_toolchains//:cmake-3.3.2-Linux-x86_64_toolchain",
+            "@cmake_3.3.2_toolchains//:cmake-3.3.2-win32-x86_toolchain",
+        )
+
+        return
+
+    if "3.2.3" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.2.3-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.2.3/cmake-3.2.3-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "76dbf1f37bb716a39d720a6ec517d0c7f71784f0be9549574cb05a881aa89374",
+            strip_prefix = "cmake-3.2.3-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.2.3-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.2.3/cmake-3.2.3-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "f65c5533079bac88deafeee00df6d62d640622d874d4bc207d46efed5720ca5b",
+            strip_prefix = "cmake-3.2.3-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.2.3-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.2.3/cmake-3.2.3-win32-x86.zip",
+            ],
+            sha256 = "d4dccb7dfba6c788efde1906474ff4039af05b6b44256e776977b5660dee2231",
+            strip_prefix = "cmake-3.2.3-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.2.3_toolchains",
+            repos = {
+                "cmake-3.2.3-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.2.3-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.2.3-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.2.3_toolchains//:cmake-3.2.3-Darwin-x86_64_toolchain",
+            "@cmake_3.2.3_toolchains//:cmake-3.2.3-Linux-x86_64_toolchain",
+            "@cmake_3.2.3_toolchains//:cmake-3.2.3-win32-x86_toolchain",
+        )
+
+        return
+
+    if "3.1.3" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.1.3-Darwin-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.1.3/cmake-3.1.3-Darwin-x86_64.tar.gz",
+            ],
+            sha256 = "11d79718f10ba5b181f129d44eae7bece2ced0c98f41fcad003556d28d896001",
+            strip_prefix = "cmake-3.1.3-Darwin-x86_64/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.1.3-Linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.1.3/cmake-3.1.3-Linux-x86_64.tar.gz",
+            ],
+            sha256 = "d251b95829d29e4529dfdbc1e676cd0ef86e9544976603db2f5c26364ad71146",
+            strip_prefix = "cmake-3.1.3-Linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.1.3-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.1.3/cmake-3.1.3-win32-x86.zip",
+            ],
+            sha256 = "ec7c3c7e2e071cda54a3718e65e50af322685b960d12046525063c1633c7865c",
+            strip_prefix = "cmake-3.1.3-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.1.3_toolchains",
+            repos = {
+                "cmake-3.1.3-Darwin-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.1.3-Linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.1.3-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.1.3_toolchains//:cmake-3.1.3-Darwin-x86_64_toolchain",
+            "@cmake_3.1.3_toolchains//:cmake-3.1.3-Linux-x86_64_toolchain",
+            "@cmake_3.1.3_toolchains//:cmake-3.1.3-win32-x86_toolchain",
+        )
+
+        return
+
+    if "3.0.2" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.0.2-win32-x86",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.0.2/cmake-3.0.2-win32-x86.zip",
+            ],
+            sha256 = "4a83978bf2f5b92f66398ab3a2630d65e9c1942aed7d51599c056bd419b39bb5",
+            strip_prefix = "cmake-3.0.2-win32-x86",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.0.2_toolchains",
+            repos = {
+                "cmake-3.0.2-win32-x86": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        native.register_toolchains(
+            "@cmake_3.0.2_toolchains//:cmake-3.0.2-win32-x86_toolchain",
         )
 
         return
