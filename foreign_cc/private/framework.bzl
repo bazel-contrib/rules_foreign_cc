@@ -452,6 +452,10 @@ def cc_external_rule_impl(ctx, attrs):
         use_default_shell_env = "win" in os_name(ctx),
         # this is ignored if use_default_shell_env = True
         env = env,
+        progress_message = "Foreign Cc - {configure_name}: Building {target_name}".format(
+            configure_name = attrs.configure_name,
+            target_name = ctx.attr.name,
+        ),
     )
 
     # Gather runfiles transitively as per the documentation in:
