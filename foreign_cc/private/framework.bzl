@@ -285,7 +285,7 @@ def _env_prelude(ctx, lib_name, data_dependencies, target_root):
     ]
 
     if os_name(ctx) == "macos":
-        env_snippet.extend(["export DEVELOPER_DIR=$(xcode-select --print-path)"])
+        env_snippet.extend(["export DEVELOPER_DIR=\"$(xcode-select --print-path)\"", "export SDKROOT=\"$(xcrun --sdk macosx --show-sdk-path)\""])
 
     env = dict()
 
