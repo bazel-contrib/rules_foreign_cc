@@ -284,6 +284,9 @@ def _env_prelude(ctx, lib_name, data_dependencies, target_root):
         "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
     ]
 
+    if os_name(ctx) == "macos":
+        env_snippet.extend(["export DEVELOPER_DIR=$(xcode-select --print-path)"])
+
     env = dict()
 
     # Add all environment variables from the cc_toolchain
