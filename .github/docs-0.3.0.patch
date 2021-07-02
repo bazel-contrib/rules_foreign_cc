@@ -1,0 +1,82 @@
+diff --git a/docs/BUILD.bazel b/docs/BUILD.bazel
+index 461df15..efa4c26 100644
+--- a/docs/BUILD.bazel
++++ b/docs/BUILD.bazel
+@@ -68,16 +68,17 @@ build_test(
+ 
+ genrule(
+     name = "generate_docs_src",
+-    srcs = DOCS_TARGETS,
++    srcs = DOCS_TARGETS + ["index.md"],
+     outs = ["generate_docs.sh"],
+     cmd = """cat << EOF > $@
+ #!/bin/bash
+ set -euo pipefail
+-cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:flatten_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/flatten.md
+-cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:cmake_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/cmake.md
+-cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:ninja_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/ninja.md
+-cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/make.md
+-cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:configure_make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/configure_make.md
++cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:flatten_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/flatten.md
++cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:cmake_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/cmake.md
++cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:ninja_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/ninja.md
++cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/make.md
++cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:configure_make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/configure_make.md
++cp \\$${BUILD_WORKSPACE_DIRECTORY}/$(rootpath index.md) \\$${BUILD_WORKSPACE_DIRECTORY}/src/index.md
+ EOF
+ """,
+ )
+diff --git a/docs/book.toml b/docs/book.toml
+new file mode 100644
+index 0000000..5096728
+--- /dev/null
++++ b/docs/book.toml
+@@ -0,0 +1,5 @@
++[book]
++title = "Rules ForeignCc"
++
++[output.html]
++git-repository-url = "https://github.com/bazelbuild/rules_foreign_cc"
+diff --git a/docs/index.md b/docs/index.md
+index 3a91e41..14c8e3b 100644
+--- a/docs/index.md
++++ b/docs/index.md
+@@ -21,9 +21,12 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+ 
+ http_archive(
+     name = "rules_foreign_cc",
+-    sha256 = "d54742ffbdc6924f222d2179f0e10e911c5c659c4ae74158e9fe827aad862ac6",
+-    strip_prefix = "rules_foreign_cc-0.2.0",
+-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.2.0.tar.gz",
++    # TODO: Get the latest sha256 value from the latest release on the releases page
++    #       https://github.com/bazelbuild/rules_foreign_cc/releases
++    #
++    # sha256 = "...",
++    strip_prefix = "rules_foreign_cc-0.3.0",
++    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.3.0.tar.gz",
+ )
+ 
+ load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+diff --git a/docs/src/SUMMARY.md b/docs/src/SUMMARY.md
+new file mode 100644
+index 0000000..9e77270
+--- /dev/null
++++ b/docs/src/SUMMARY.md
+@@ -0,0 +1,8 @@
++# SUMMARY
++
++- [Rules ForeignCc](index.md)
++    - [cmake](cmake.md)
++    - [configure_make](configure_make.md)
++    - [make](make.md)
++    - [ninja](ninja.md)
++    - [Full API](flatten.md)
+diff --git a/version.bzl b/version.bzl
+new file mode 100644
+index 0000000..98bb722
+--- /dev/null
++++ b/version.bzl
+@@ -0,0 +1,3 @@
++"""A module represeting the version of rules_foreign_cc"""
++
++VERSION = "0.3.0"

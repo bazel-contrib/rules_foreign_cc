@@ -1,20 +1,20 @@
 """ A module containing all public facing providers """
 
-# buildifier: disable=name-conventions
-ForeignCcDeps = provider(
+ForeignCcDepsInfo = provider(
     doc = """Provider to pass transitive information about external libraries.""",
-    fields = {"artifacts": "Depset of ForeignCcArtifact"},
+    fields = {
+        "artifacts": "Depset of ForeignCcArtifactInfo",
+    },
 )
 
-# buildifier: disable=name-conventions
-ForeignCcArtifact = provider(
+ForeignCcArtifactInfo = provider(
     doc = """Groups information about the external library install directory,
 and relative bin, include and lib directories.
 
 Serves to pass transitive information about externally built artifacts up the dependency chain.
 
 Can not be used as a top-level provider.
-Instances of ForeignCcArtifact are incapsulated in a depset ForeignCcDeps#artifacts.""",
+Instances of ForeignCcArtifactInfo are encapsulated in a depset [ForeignCcDepsInfo::artifacts](#ForeignCcDepsInfo-artifacts).""",
     fields = {
         "bin_dir_name": "Bin directory, relative to install directory",
         "gen_dir": "Install directory",

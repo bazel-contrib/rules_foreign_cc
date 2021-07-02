@@ -1,4 +1,5 @@
-# buildifier: disable=module-docstring
+"""A rule for building projects using the [GNU Make](https://www.gnu.org/software/make/) build tool"""
+
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
@@ -42,7 +43,7 @@ def _create_make_script(configureParameters):
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
 
-    data = ctx.attr.data or list()
+    data = ctx.attr.data + ctx.attr.build_data
 
     # Generate a list of arguments for make
     args = " ".join([
@@ -51,8 +52,10 @@ def _create_make_script(configureParameters):
     ])
 
     make_commands = []
+    prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
     for target in ctx.attr.targets:
-        make_commands.append("{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
+        make_commands.append("{prefix}{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
+            prefix = prefix,
             make = attrs.make_path,
             root = root,
             args = args,
@@ -67,7 +70,6 @@ def _create_make_script(configureParameters):
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
-    attrs.pop("make_commands")
     attrs.update({
         "args": attr.string_list(
             doc = "A list of arguments to pass to the call to `make`",
@@ -96,7 +98,7 @@ make = rule(
     implementation = _make,
     toolchains = [
         "@rules_foreign_cc//toolchains:make_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
     # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported

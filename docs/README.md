@@ -1,28 +1,23 @@
-# Rules Foreign CC
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
-- [boost_build](#boost_build)
-- [cmake](#cmake)
-- [cmake_tool](#cmake_tool)
-- [configure_make](#configure_make)
-- [ForeignCcArtifact](#ForeignCcArtifact)
-- [ForeignCcDeps](#ForeignCcDeps)
-- [make](#make)
-- [make_tool](#make_tool)
-- [native_tool_toolchain](#native_tool_toolchain)
-- [ninja](#ninja)
-- [ninja_tool](#ninja_tool)
-- [rules_foreign_cc_dependencies](#rules_foreign_cc_dependencies)
-- [ToolInfo](#ToolInfo)
+# Rules ForeignCc Docs
+
+Up to date documentation can be found at: https://bazelbuild.github.io/rules_foreign_cc/
+
+## Legacy documentation
+
+The sections below exist to maintain links to the previous build rules. Again, the link above
+should be used instead.
 
 <a id="#boost_build"></a>
 
-## boost_build
+### boost_build
 
 <pre>
 boost_build(<a href="#boost_build-name">name</a>, <a href="#boost_build-additional_inputs">additional_inputs</a>, <a href="#boost_build-additional_tools">additional_tools</a>, <a href="#boost_build-alwayslink">alwayslink</a>, <a href="#boost_build-bootstrap_options">bootstrap_options</a>, <a href="#boost_build-data">data</a>, <a href="#boost_build-defines">defines</a>,
-            <a href="#boost_build-deps">deps</a>, <a href="#boost_build-env">env</a>, <a href="#boost_build-lib_name">lib_name</a>, <a href="#boost_build-lib_source">lib_source</a>, <a href="#boost_build-linkopts">linkopts</a>, <a href="#boost_build-out_bin_dir">out_bin_dir</a>, <a href="#boost_build-out_binaries">out_binaries</a>, <a href="#boost_build-out_headers_only">out_headers_only</a>,
-            <a href="#boost_build-out_include_dir">out_include_dir</a>, <a href="#boost_build-out_interface_libs">out_interface_libs</a>, <a href="#boost_build-out_lib_dir">out_lib_dir</a>, <a href="#boost_build-out_shared_libs">out_shared_libs</a>, <a href="#boost_build-out_static_libs">out_static_libs</a>,
-            <a href="#boost_build-postfix_script">postfix_script</a>, <a href="#boost_build-tools_deps">tools_deps</a>, <a href="#boost_build-user_options">user_options</a>)
+            <a href="#boost_build-deps">deps</a>, <a href="#boost_build-env">env</a>, <a href="#boost_build-lib_name">lib_name</a>, <a href="#boost_build-lib_source">lib_source</a>, <a href="#boost_build-linkopts">linkopts</a>, <a href="#boost_build-out_bin_dir">out_bin_dir</a>, <a href="#boost_build-out_binaries">out_binaries</a>, <a href="#boost_build-out_data_dirs">out_data_dirs</a>,
+            <a href="#boost_build-out_headers_only">out_headers_only</a>, <a href="#boost_build-out_include_dir">out_include_dir</a>, <a href="#boost_build-out_interface_libs">out_interface_libs</a>, <a href="#boost_build-out_lib_dir">out_lib_dir</a>, <a href="#boost_build-out_shared_libs">out_shared_libs</a>,
+            <a href="#boost_build-out_static_libs">out_static_libs</a>, <a href="#boost_build-postfix_script">postfix_script</a>, <a href="#boost_build-tools_deps">tools_deps</a>, <a href="#boost_build-user_options">user_options</a>)
 </pre>
 
 Rule for building Boost. Invokes bootstrap.sh and then b2 install.
@@ -46,6 +41,7 @@ Rule for building Boost. Invokes bootstrap.sh and then b2 install.
 | <a id="boost_build-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
 | <a id="boost_build-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
 | <a id="boost_build-out_binaries"></a>out_binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="boost_build-out_data_dirs"></a>out_data_dirs |  Optional names of additional directories created by the build that should be declared as bazel action outputs   | List of strings | optional | [] |
 | <a id="boost_build-out_headers_only"></a>out_headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
 | <a id="boost_build-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
 | <a id="boost_build-out_interface_libs"></a>out_interface_libs |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |
@@ -59,14 +55,14 @@ Rule for building Boost. Invokes bootstrap.sh and then b2 install.
 
 <a id="#cmake"></a>
 
-## cmake
+### cmake
 
 <pre>
 cmake(<a href="#cmake-name">name</a>, <a href="#cmake-additional_inputs">additional_inputs</a>, <a href="#cmake-additional_tools">additional_tools</a>, <a href="#cmake-alwayslink">alwayslink</a>, <a href="#cmake-build_args">build_args</a>, <a href="#cmake-cache_entries">cache_entries</a>, <a href="#cmake-data">data</a>,
       <a href="#cmake-defines">defines</a>, <a href="#cmake-deps">deps</a>, <a href="#cmake-env">env</a>, <a href="#cmake-env_vars">env_vars</a>, <a href="#cmake-generate_args">generate_args</a>, <a href="#cmake-generate_crosstool_file">generate_crosstool_file</a>, <a href="#cmake-install">install</a>, <a href="#cmake-install_args">install_args</a>,
-      <a href="#cmake-lib_name">lib_name</a>, <a href="#cmake-lib_source">lib_source</a>, <a href="#cmake-linkopts">linkopts</a>, <a href="#cmake-out_bin_dir">out_bin_dir</a>, <a href="#cmake-out_binaries">out_binaries</a>, <a href="#cmake-out_headers_only">out_headers_only</a>, <a href="#cmake-out_include_dir">out_include_dir</a>,
-      <a href="#cmake-out_interface_libs">out_interface_libs</a>, <a href="#cmake-out_lib_dir">out_lib_dir</a>, <a href="#cmake-out_shared_libs">out_shared_libs</a>, <a href="#cmake-out_static_libs">out_static_libs</a>, <a href="#cmake-postfix_script">postfix_script</a>, <a href="#cmake-targets">targets</a>,
-      <a href="#cmake-tools_deps">tools_deps</a>, <a href="#cmake-working_directory">working_directory</a>)
+      <a href="#cmake-lib_name">lib_name</a>, <a href="#cmake-lib_source">lib_source</a>, <a href="#cmake-linkopts">linkopts</a>, <a href="#cmake-out_bin_dir">out_bin_dir</a>, <a href="#cmake-out_binaries">out_binaries</a>, <a href="#cmake-out_data_dirs">out_data_dirs</a>, <a href="#cmake-out_headers_only">out_headers_only</a>,
+      <a href="#cmake-out_include_dir">out_include_dir</a>, <a href="#cmake-out_interface_libs">out_interface_libs</a>, <a href="#cmake-out_lib_dir">out_lib_dir</a>, <a href="#cmake-out_shared_libs">out_shared_libs</a>, <a href="#cmake-out_static_libs">out_static_libs</a>,
+      <a href="#cmake-postfix_script">postfix_script</a>, <a href="#cmake-targets">targets</a>, <a href="#cmake-tools_deps">tools_deps</a>, <a href="#cmake-working_directory">working_directory</a>)
 </pre>
 
 Rule for building external library with CMake.
@@ -96,6 +92,7 @@ Rule for building external library with CMake.
 | <a id="cmake-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
 | <a id="cmake-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
 | <a id="cmake-out_binaries"></a>out_binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="cmake-out_data_dirs"></a>out_data_dirs |  Optional names of additional directories created by the build that should be declared as bazel action outputs   | List of strings | optional | [] |
 | <a id="cmake-out_headers_only"></a>out_headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
 | <a id="cmake-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
 | <a id="cmake-out_interface_libs"></a>out_interface_libs |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |
@@ -110,7 +107,7 @@ Rule for building external library with CMake.
 
 <a id="#cmake_tool"></a>
 
-## cmake_tool
+### cmake_tool
 
 <pre>
 cmake_tool(<a href="#cmake_tool-name">name</a>, <a href="#cmake_tool-srcs">srcs</a>)
@@ -129,7 +126,7 @@ Rule for building CMake. Invokes bootstrap script and make install.
 
 <a id="#configure_make"></a>
 
-## configure_make
+### configure_make
 
 <pre>
 configure_make(<a href="#configure_make-name">name</a>, <a href="#configure_make-additional_inputs">additional_inputs</a>, <a href="#configure_make-additional_tools">additional_tools</a>, <a href="#configure_make-alwayslink">alwayslink</a>, <a href="#configure_make-args">args</a>, <a href="#configure_make-autoconf">autoconf</a>,
@@ -137,8 +134,9 @@ configure_make(<a href="#configure_make-name">name</a>, <a href="#configure_make
                <a href="#configure_make-autogen_options">autogen_options</a>, <a href="#configure_make-autoreconf">autoreconf</a>, <a href="#configure_make-autoreconf_env_vars">autoreconf_env_vars</a>, <a href="#configure_make-autoreconf_options">autoreconf_options</a>,
                <a href="#configure_make-configure_command">configure_command</a>, <a href="#configure_make-configure_env_vars">configure_env_vars</a>, <a href="#configure_make-configure_in_place">configure_in_place</a>, <a href="#configure_make-configure_options">configure_options</a>, <a href="#configure_make-data">data</a>,
                <a href="#configure_make-defines">defines</a>, <a href="#configure_make-deps">deps</a>, <a href="#configure_make-env">env</a>, <a href="#configure_make-install_prefix">install_prefix</a>, <a href="#configure_make-lib_name">lib_name</a>, <a href="#configure_make-lib_source">lib_source</a>, <a href="#configure_make-linkopts">linkopts</a>, <a href="#configure_make-make_commands">make_commands</a>,
-               <a href="#configure_make-out_bin_dir">out_bin_dir</a>, <a href="#configure_make-out_binaries">out_binaries</a>, <a href="#configure_make-out_headers_only">out_headers_only</a>, <a href="#configure_make-out_include_dir">out_include_dir</a>, <a href="#configure_make-out_interface_libs">out_interface_libs</a>,
-               <a href="#configure_make-out_lib_dir">out_lib_dir</a>, <a href="#configure_make-out_shared_libs">out_shared_libs</a>, <a href="#configure_make-out_static_libs">out_static_libs</a>, <a href="#configure_make-postfix_script">postfix_script</a>, <a href="#configure_make-targets">targets</a>, <a href="#configure_make-tools_deps">tools_deps</a>)
+               <a href="#configure_make-out_bin_dir">out_bin_dir</a>, <a href="#configure_make-out_binaries">out_binaries</a>, <a href="#configure_make-out_data_dirs">out_data_dirs</a>, <a href="#configure_make-out_headers_only">out_headers_only</a>, <a href="#configure_make-out_include_dir">out_include_dir</a>,
+               <a href="#configure_make-out_interface_libs">out_interface_libs</a>, <a href="#configure_make-out_lib_dir">out_lib_dir</a>, <a href="#configure_make-out_shared_libs">out_shared_libs</a>, <a href="#configure_make-out_static_libs">out_static_libs</a>, <a href="#configure_make-postfix_script">postfix_script</a>,
+               <a href="#configure_make-targets">targets</a>, <a href="#configure_make-tools_deps">tools_deps</a>)
 </pre>
 
 Rule for building external libraries with configure-make pattern. Some 'configure' script is invoked with --prefix=install (by default), and other parameters for compilation and linking, taken from Bazel C/C++ toolchain and passed dependencies. After configuration, GNU Make is called.
@@ -153,14 +151,14 @@ Rule for building external libraries with configure-make pattern. Some 'configur
 | <a id="configure_make-additional_tools"></a>additional_tools |  Optional additional tools needed for the building. Not used by the shell script part in cc_external_rule_impl.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="configure_make-alwayslink"></a>alwayslink |  Optional. if true, link all the object files from the static library, even if they are not used.   | Boolean | optional | False |
 | <a id="configure_make-args"></a>args |  A list of arguments to pass to the call to <code>make</code>   | List of strings | optional | [] |
-| <a id="configure_make-autoconf"></a>autoconf |  Set to True if 'autoconf' should be invoked before 'configure', currently requires 'configure_in_place' to be True.   | Boolean | optional | False |
+| <a id="configure_make-autoconf"></a>autoconf |  Set to True if 'autoconf' should be invoked before 'configure', currently requires <code>configure_in_place</code> to be True.   | Boolean | optional | False |
 | <a id="configure_make-autoconf_env_vars"></a>autoconf_env_vars |  Environment variables to be set for 'autoconf' invocation.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 | <a id="configure_make-autoconf_options"></a>autoconf_options |  Any options to be put in the 'autoconf.sh' command line.   | List of strings | optional | [] |
-| <a id="configure_make-autogen"></a>autogen |  Set to True if 'autogen.sh' should be invoked before 'configure', currently requires 'configure_in_place' to be True.   | Boolean | optional | False |
+| <a id="configure_make-autogen"></a>autogen |  Set to True if 'autogen.sh' should be invoked before 'configure', currently requires <code>configure_in_place</code> to be True.   | Boolean | optional | False |
 | <a id="configure_make-autogen_command"></a>autogen_command |  The name of the autogen script file, default: autogen.sh. Many projects use autogen.sh however the Autotools FAQ recommends bootstrap so we provide this option to support that.   | String | optional | "autogen.sh" |
 | <a id="configure_make-autogen_env_vars"></a>autogen_env_vars |  Environment variables to be set for 'autogen' invocation.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 | <a id="configure_make-autogen_options"></a>autogen_options |  Any options to be put in the 'autogen.sh' command line.   | List of strings | optional | [] |
-| <a id="configure_make-autoreconf"></a>autoreconf |  Set to True if 'autoreconf' should be invoked before 'configure.', currently requires 'configure_in_place' to be True.   | Boolean | optional | False |
+| <a id="configure_make-autoreconf"></a>autoreconf |  Set to True if 'autoreconf' should be invoked before 'configure.', currently requires <code>configure_in_place</code> to be True.   | Boolean | optional | False |
 | <a id="configure_make-autoreconf_env_vars"></a>autoreconf_env_vars |  Environment variables to be set for 'autoreconf' invocation.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 | <a id="configure_make-autoreconf_options"></a>autoreconf_options |  Any options to be put in the 'autoreconf.sh' command line.   | List of strings | optional | [] |
 | <a id="configure_make-configure_command"></a>configure_command |  The name of the configuration script file, default: configure. The file must be in the root of the source directory.   | String | optional | "configure" |
@@ -178,6 +176,7 @@ Rule for building external libraries with configure-make pattern. Some 'configur
 | <a id="configure_make-make_commands"></a>make_commands |  Optional make commands.   | List of strings | optional | ["make", "make install"] |
 | <a id="configure_make-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
 | <a id="configure_make-out_binaries"></a>out_binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="configure_make-out_data_dirs"></a>out_data_dirs |  Optional names of additional directories created by the build that should be declared as bazel action outputs   | List of strings | optional | [] |
 | <a id="configure_make-out_headers_only"></a>out_headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
 | <a id="configure_make-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
 | <a id="configure_make-out_interface_libs"></a>out_interface_libs |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |
@@ -191,13 +190,13 @@ Rule for building external libraries with configure-make pattern. Some 'configur
 
 <a id="#make"></a>
 
-## make
+### make
 
 <pre>
 make(<a href="#make-name">name</a>, <a href="#make-additional_inputs">additional_inputs</a>, <a href="#make-additional_tools">additional_tools</a>, <a href="#make-alwayslink">alwayslink</a>, <a href="#make-args">args</a>, <a href="#make-data">data</a>, <a href="#make-defines">defines</a>, <a href="#make-deps">deps</a>, <a href="#make-env">env</a>,
-     <a href="#make-lib_name">lib_name</a>, <a href="#make-lib_source">lib_source</a>, <a href="#make-linkopts">linkopts</a>, <a href="#make-out_bin_dir">out_bin_dir</a>, <a href="#make-out_binaries">out_binaries</a>, <a href="#make-out_headers_only">out_headers_only</a>, <a href="#make-out_include_dir">out_include_dir</a>,
-     <a href="#make-out_interface_libs">out_interface_libs</a>, <a href="#make-out_lib_dir">out_lib_dir</a>, <a href="#make-out_shared_libs">out_shared_libs</a>, <a href="#make-out_static_libs">out_static_libs</a>, <a href="#make-postfix_script">postfix_script</a>, <a href="#make-targets">targets</a>,
-     <a href="#make-tools_deps">tools_deps</a>)
+     <a href="#make-lib_name">lib_name</a>, <a href="#make-lib_source">lib_source</a>, <a href="#make-linkopts">linkopts</a>, <a href="#make-out_bin_dir">out_bin_dir</a>, <a href="#make-out_binaries">out_binaries</a>, <a href="#make-out_data_dirs">out_data_dirs</a>, <a href="#make-out_headers_only">out_headers_only</a>,
+     <a href="#make-out_include_dir">out_include_dir</a>, <a href="#make-out_interface_libs">out_interface_libs</a>, <a href="#make-out_lib_dir">out_lib_dir</a>, <a href="#make-out_shared_libs">out_shared_libs</a>, <a href="#make-out_static_libs">out_static_libs</a>,
+     <a href="#make-postfix_script">postfix_script</a>, <a href="#make-targets">targets</a>, <a href="#make-tools_deps">tools_deps</a>)
 </pre>
 
 Rule for building external libraries with GNU Make. GNU Make commands (make and make install by default) are invoked with prefix="install" (by default), and other environment variables for compilation and linking, taken from Bazel C/C++ toolchain and passed dependencies.
@@ -221,6 +220,7 @@ Rule for building external libraries with GNU Make. GNU Make commands (make and 
 | <a id="make-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
 | <a id="make-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
 | <a id="make-out_binaries"></a>out_binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="make-out_data_dirs"></a>out_data_dirs |  Optional names of additional directories created by the build that should be declared as bazel action outputs   | List of strings | optional | [] |
 | <a id="make-out_headers_only"></a>out_headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
 | <a id="make-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
 | <a id="make-out_interface_libs"></a>out_interface_libs |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |
@@ -253,7 +253,7 @@ Rule for building Make. Invokes configure script and make install.
 
 <a id="#native_tool_toolchain"></a>
 
-## native_tool_toolchain
+### native_tool_toolchain
 
 <pre>
 native_tool_toolchain(<a href="#native_tool_toolchain-name">name</a>, <a href="#native_tool_toolchain-path">path</a>, <a href="#native_tool_toolchain-target">target</a>)
@@ -273,11 +273,11 @@ Rule for defining the toolchain data of the native tools (cmake, ninja), to be u
 
 <a id="#ninja"></a>
 
-## ninja
+### ninja
 
 <pre>
 ninja(<a href="#ninja-name">name</a>, <a href="#ninja-additional_inputs">additional_inputs</a>, <a href="#ninja-additional_tools">additional_tools</a>, <a href="#ninja-alwayslink">alwayslink</a>, <a href="#ninja-args">args</a>, <a href="#ninja-data">data</a>, <a href="#ninja-defines">defines</a>, <a href="#ninja-deps">deps</a>, <a href="#ninja-directory">directory</a>,
-      <a href="#ninja-env">env</a>, <a href="#ninja-lib_name">lib_name</a>, <a href="#ninja-lib_source">lib_source</a>, <a href="#ninja-linkopts">linkopts</a>, <a href="#ninja-out_bin_dir">out_bin_dir</a>, <a href="#ninja-out_binaries">out_binaries</a>, <a href="#ninja-out_headers_only">out_headers_only</a>,
+      <a href="#ninja-env">env</a>, <a href="#ninja-lib_name">lib_name</a>, <a href="#ninja-lib_source">lib_source</a>, <a href="#ninja-linkopts">linkopts</a>, <a href="#ninja-out_bin_dir">out_bin_dir</a>, <a href="#ninja-out_binaries">out_binaries</a>, <a href="#ninja-out_data_dirs">out_data_dirs</a>, <a href="#ninja-out_headers_only">out_headers_only</a>,
       <a href="#ninja-out_include_dir">out_include_dir</a>, <a href="#ninja-out_interface_libs">out_interface_libs</a>, <a href="#ninja-out_lib_dir">out_lib_dir</a>, <a href="#ninja-out_shared_libs">out_shared_libs</a>, <a href="#ninja-out_static_libs">out_static_libs</a>,
       <a href="#ninja-postfix_script">postfix_script</a>, <a href="#ninja-targets">targets</a>, <a href="#ninja-tools_deps">tools_deps</a>)
 </pre>
@@ -304,6 +304,7 @@ Rule for building external libraries with [Ninja](https://ninja-build.org/).
 | <a id="ninja-linkopts"></a>linkopts |  Optional link options to be passed up to the dependencies of this library   | List of strings | optional | [] |
 | <a id="ninja-out_bin_dir"></a>out_bin_dir |  Optional name of the output subdirectory with the binary files, defaults to 'bin'.   | String | optional | "bin" |
 | <a id="ninja-out_binaries"></a>out_binaries |  Optional names of the resulting binaries.   | List of strings | optional | [] |
+| <a id="ninja-out_data_dirs"></a>out_data_dirs |  Optional names of additional directories created by the build that should be declared as bazel action outputs   | List of strings | optional | [] |
 | <a id="ninja-out_headers_only"></a>out_headers_only |  Flag variable to indicate that the library produces only headers   | Boolean | optional | False |
 | <a id="ninja-out_include_dir"></a>out_include_dir |  Optional name of the output subdirectory with the header files, defaults to 'include'.   | String | optional | "include" |
 | <a id="ninja-out_interface_libs"></a>out_interface_libs |  Optional names of the resulting interface libraries.   | List of strings | optional | [] |
@@ -317,7 +318,7 @@ Rule for building external libraries with [Ninja](https://ninja-build.org/).
 
 <a id="#ninja_tool"></a>
 
-## ninja_tool
+### ninja_tool
 
 <pre>
 ninja_tool(<a href="#ninja_tool-name">name</a>, <a href="#ninja_tool-srcs">srcs</a>)
@@ -336,7 +337,7 @@ Rule for building Ninja. Invokes configure script.
 
 <a id="#ForeignCcArtifact"></a>
 
-## ForeignCcArtifact
+### ForeignCcArtifact
 
 <pre>
 ForeignCcArtifact(<a href="#ForeignCcArtifact-bin_dir_name">bin_dir_name</a>, <a href="#ForeignCcArtifact-gen_dir">gen_dir</a>, <a href="#ForeignCcArtifact-include_dir_name">include_dir_name</a>, <a href="#ForeignCcArtifact-lib_dir_name">lib_dir_name</a>)
@@ -363,7 +364,7 @@ Instances of ForeignCcArtifact are incapsulated in a depset ForeignCcDeps#artifa
 
 <a id="#ForeignCcDeps"></a>
 
-## ForeignCcDeps
+### ForeignCcDeps
 
 <pre>
 ForeignCcDeps(<a href="#ForeignCcDeps-artifacts">artifacts</a>)
@@ -381,7 +382,7 @@ Provider to pass transitive information about external libraries.
 
 <a id="#ToolInfo"></a>
 
-## ToolInfo
+### ToolInfo
 
 <pre>
 ToolInfo(<a href="#ToolInfo-path">path</a>, <a href="#ToolInfo-target">target</a>)
@@ -400,13 +401,12 @@ Information about the native tool
 
 <a id="#rules_foreign_cc_dependencies"></a>
 
-## rules_foreign_cc_dependencies
+### rules_foreign_cc_dependencies
 
 <pre>
 rules_foreign_cc_dependencies(<a href="#rules_foreign_cc_dependencies-native_tools_toolchains">native_tools_toolchains</a>, <a href="#rules_foreign_cc_dependencies-register_default_tools">register_default_tools</a>, <a href="#rules_foreign_cc_dependencies-cmake_version">cmake_version</a>,
                               <a href="#rules_foreign_cc_dependencies-make_version">make_version</a>, <a href="#rules_foreign_cc_dependencies-ninja_version">ninja_version</a>, <a href="#rules_foreign_cc_dependencies-register_preinstalled_tools">register_preinstalled_tools</a>,
-                              <a href="#rules_foreign_cc_dependencies-register_built_tools">register_built_tools</a>, <a href="#rules_foreign_cc_dependencies-additional_shell_toolchain_mappings">additional_shell_toolchain_mappings</a>,
-                              <a href="#rules_foreign_cc_dependencies-additional_shell_toolchain_package">additional_shell_toolchain_package</a>)
+                              <a href="#rules_foreign_cc_dependencies-register_built_tools">register_built_tools</a>)
 </pre>
 
 Call this function from the WORKSPACE file to initialize rules_foreign_cc     dependencies and let neccesary code generation happen     (Code generation is needed to support different variants of the C++ Starlark API.).
@@ -418,12 +418,8 @@ Call this function from the WORKSPACE file to initialize rules_foreign_cc     de
 | :------------- | :------------- | :------------- |
 | <a id="rules_foreign_cc_dependencies-native_tools_toolchains"></a>native_tools_toolchains |  pass the toolchains for toolchain types     '@rules_foreign_cc//toolchains:cmake_toolchain' and     '@rules_foreign_cc//toolchains:ninja_toolchain' with the needed platform constraints.     If you do not pass anything, registered default toolchains will be selected (see below).   |  <code>[]</code> |
 | <a id="rules_foreign_cc_dependencies-register_default_tools"></a>register_default_tools |  If True, the cmake and ninja toolchains, calling corresponding     preinstalled binaries by name (cmake, ninja) will be registered after     'native_tools_toolchains' without any platform constraints. The default is True.   |  <code>True</code> |
-| <a id="rules_foreign_cc_dependencies-cmake_version"></a>cmake_version |  The target version of the cmake toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.   |  <code>"3.20.1"</code> |
+| <a id="rules_foreign_cc_dependencies-cmake_version"></a>cmake_version |  The target version of the cmake toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.   |  <code>"3.20.4"</code> |
 | <a id="rules_foreign_cc_dependencies-make_version"></a>make_version |  The target version of the default make toolchain if <code>register_built_tools</code>     is set to <code>True</code>.   |  <code>"4.3"</code> |
 | <a id="rules_foreign_cc_dependencies-ninja_version"></a>ninja_version |  The target version of the ninja toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.   |  <code>"1.10.2"</code> |
 | <a id="rules_foreign_cc_dependencies-register_preinstalled_tools"></a>register_preinstalled_tools |  If true, toolchains will be registered for the native built tools     installed on the exec host   |  <code>True</code> |
 | <a id="rules_foreign_cc_dependencies-register_built_tools"></a>register_built_tools |  If true, toolchains that build the tools from source are registered   |  <code>True</code> |
-| <a id="rules_foreign_cc_dependencies-additional_shell_toolchain_mappings"></a>additional_shell_toolchain_mappings |  Mappings of the shell toolchain functions to     execution and target platforms constraints. Similar to what defined in     @rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:toolchain_mappings.bzl     in the TOOLCHAIN_MAPPINGS list. Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>[]</code> |
-| <a id="rules_foreign_cc_dependencies-additional_shell_toolchain_package"></a>additional_shell_toolchain_package |  A package under which additional toolchains, referencing     the generated data for the passed additonal_shell_toolchain_mappings, will be defined.     This value is needed since register_toolchains() is called for these toolchains.     Please refer to example in @rules_foreign_cc//toolchain_examples.   |  <code>None</code> |
-
-

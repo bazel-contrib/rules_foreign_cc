@@ -2,23 +2,18 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load(
-    "//foreign_cc/private/shell_toolchain/toolchains:ws_defs.bzl",
-    shell_toolchain_workspace_initalization = "workspace_part",
-)
+load("//foreign_cc/private/framework:toolchain.bzl", "register_framework_toolchains")
 load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "preinstalled_toolchains")
 
 # buildifier: disable=unnamed-macro
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        cmake_version = "3.20.1",
+        cmake_version = "3.20.5",
         make_version = "4.3",
         ninja_version = "1.10.2",
         register_preinstalled_tools = True,
-        register_built_tools = True,
-        additional_shell_toolchain_mappings = [],
-        additional_shell_toolchain_package = None):
+        register_built_tools = True):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
     dependencies and let neccesary code generation happen \
     (Code generation is needed to support different variants of the C++ Starlark API.).
@@ -46,22 +41,9 @@ def rules_foreign_cc_dependencies(
             installed on the exec host
 
         register_built_tools: If true, toolchains that build the tools from source are registered
-
-        additional_shell_toolchain_mappings: Mappings of the shell toolchain functions to
-            execution and target platforms constraints. Similar to what defined in
-            @rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:toolchain_mappings.bzl
-            in the TOOLCHAIN_MAPPINGS list. Please refer to example in @rules_foreign_cc//toolchain_examples.
-
-        additional_shell_toolchain_package: A package under which additional toolchains, referencing
-            the generated data for the passed additonal_shell_toolchain_mappings, will be defined.
-            This value is needed since register_toolchains() is called for these toolchains.
-            Please refer to example in @rules_foreign_cc//toolchain_examples.
     """
 
-    shell_toolchain_workspace_initalization(
-        additional_shell_toolchain_mappings,
-        additional_shell_toolchain_package,
-    )
+    register_framework_toolchains()
 
     native.register_toolchains(*native_tools_toolchains)
 

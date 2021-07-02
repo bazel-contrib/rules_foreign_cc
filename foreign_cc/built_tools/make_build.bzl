@@ -6,7 +6,7 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
     "built_tool_rule_impl",
 )
-load("//foreign_cc/private:shell_script_helper.bzl", "os_name")
+load("//foreign_cc/private/framework:platform.bzl", "os_name")
 
 def _make_tool_impl(ctx):
     script = [
@@ -37,7 +37,7 @@ make_tool = rule(
     output_to_genfiles = True,
     implementation = _make_tool_impl,
     toolchains = [
-        str(Label("//foreign_cc/private/shell_toolchain/toolchains:shell_commands")),
+        str(Label("//foreign_cc/private/framework:shell_toolchain")),
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

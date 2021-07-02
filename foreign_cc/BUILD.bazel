@@ -1,5 +1,10 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+exports_files(
+    glob(["*.bzl"]),
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "bzl_srcs",
     srcs = glob(["**/*.bzl"]),
@@ -8,6 +13,7 @@ bzl_library(
         "//foreign_cc/built_tools:bzl_srcs",
         "//foreign_cc/private:bzl_srcs",
         "@bazel_skylib//lib:collections",
+        "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:versions",
     ],
 )

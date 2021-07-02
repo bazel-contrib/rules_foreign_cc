@@ -1,4 +1,7 @@
-# buildifier: disable=module-docstring
+"""A rule for building projects using the [Configure+Make](https://www.gnu.org/prep/standards/html_node/Configuration.html)
+build tool
+"""
+
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
@@ -13,14 +16,30 @@ load(
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
+    "expand_locations",
 )
-load("//foreign_cc/private:shell_script_helper.bzl", "os_name")
+load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
 def _configure_make(ctx):
     make_data = get_make_data(ctx)
 
     tools_deps = ctx.attr.tools_deps + make_data.deps
+
+    if ctx.attr.autogen and not ctx.attr.configure_in_place:
+        fail("`autogen` requires `configure_in_place = True`. Please update {}".format(
+            ctx.label,
+        ))
+
+    if ctx.attr.autoconf and not ctx.attr.configure_in_place:
+        fail("`autoconf` requires `configure_in_place = True`. Please update {}".format(
+            ctx.label,
+        ))
+
+    if ctx.attr.autoreconf and not ctx.attr.configure_in_place:
+        fail("`autoreconf` requires `configure_in_place = True`. Please update {}".format(
+            ctx.label,
+        ))
 
     copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
 
@@ -39,7 +58,6 @@ def _create_configure_script(configureParameters):
     attrs = configureParameters.attrs
     inputs = configureParameters.inputs
 
-    root = detect_root(ctx.attr.lib_source)
     install_prefix = _get_install_prefix(ctx)
 
     tools = get_tools_info(ctx)
@@ -47,7 +65,7 @@ def _create_configure_script(configureParameters):
 
     define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
 
-    data = ctx.attr.data or list()
+    data = ctx.attr.data + ctx.attr.build_data
 
     # Generate a list of arguments for make
     args = " ".join([
@@ -55,16 +73,20 @@ def _create_configure_script(configureParameters):
         for arg in ctx.attr.args
     ])
 
-    make_commands = []
+    user_env = expand_locations(ctx, ctx.attr.env, data)
 
-    if not ctx.attr.make_commands:
-        for target in ctx.attr.targets:
-            make_commands.append("{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
-                make = attrs.make_path,
-                root = root,
-                args = args,
-                target = target,
-            ))
+    make_commands = []
+    prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
+    configure_prefix = "{} ".format(ctx.expand_location(ctx.attr.configure_prefix, data)) if ctx.attr.configure_prefix else ""
+
+    for target in ctx.attr.targets:
+        # Configure will have generated sources into `$BUILD_TMPDIR` so make sure we `cd` there
+        make_commands.append("{prefix}{make} -C $$BUILD_TMPDIR$$ {target} {args}".format(
+            prefix = prefix,
+            make = attrs.make_path,
+            args = args,
+            target = target,
+        ))
 
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
@@ -72,25 +94,24 @@ def _create_configure_script(configureParameters):
         target_os = os_name(ctx),
         tools = tools,
         flags = flags,
-        root = root,
+        root = detect_root(ctx.attr.lib_source),
         user_options = ctx.attr.configure_options,
-        user_vars = dict(ctx.attr.configure_env_vars),
         is_debug = is_debug_mode(ctx),
+        configure_prefix = configure_prefix,
         configure_command = ctx.attr.configure_command,
         deps = ctx.attr.deps,
         inputs = inputs,
+        env_vars = user_env,
         configure_in_place = ctx.attr.configure_in_place,
         autoconf = ctx.attr.autoconf,
         autoconf_options = ctx.attr.autoconf_options,
-        autoconf_env_vars = ctx.attr.autoconf_env_vars,
         autoreconf = ctx.attr.autoreconf,
         autoreconf_options = ctx.attr.autoreconf_options,
-        autoreconf_env_vars = ctx.attr.autoreconf_env_vars,
         autogen = ctx.attr.autogen,
         autogen_command = ctx.attr.autogen_command,
         autogen_options = ctx.attr.autogen_options,
-        autogen_env_vars = ctx.attr.autogen_env_vars,
         make_commands = make_commands,
+        make_path = attrs.make_path,
     )
     return define_install_prefix + configure
 
@@ -112,11 +133,8 @@ def _attrs():
             default = False,
             doc = (
                 "Set to True if 'autoconf' should be invoked before 'configure', " +
-                "currently requires 'configure_in_place' to be True."
+                "currently requires `configure_in_place` to be True."
             ),
-        ),
-        "autoconf_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for 'autoconf' invocation.",
         ),
         "autoconf_options": attr.string_list(
             doc = "Any options to be put in the 'autoconf.sh' command line.",
@@ -124,7 +142,7 @@ def _attrs():
         "autogen": attr.bool(
             doc = (
                 "Set to True if 'autogen.sh' should be invoked before 'configure', " +
-                "currently requires 'configure_in_place' to be True."
+                "currently requires `configure_in_place` to be True."
             ),
             mandatory = False,
             default = False,
@@ -137,22 +155,16 @@ def _attrs():
             ),
             default = "autogen.sh",
         ),
-        "autogen_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for 'autogen' invocation.",
-        ),
         "autogen_options": attr.string_list(
             doc = "Any options to be put in the 'autogen.sh' command line.",
         ),
         "autoreconf": attr.bool(
             doc = (
                 "Set to True if 'autoreconf' should be invoked before 'configure.', " +
-                "currently requires 'configure_in_place' to be True."
+                "currently requires `configure_in_place` to be True."
             ),
             mandatory = False,
             default = False,
-        ),
-        "autoreconf_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for 'autoreconf' invocation.",
         ),
         "autoreconf_options": attr.string_list(
             doc = "Any options to be put in the 'autoreconf.sh' command line.",
@@ -164,9 +176,6 @@ def _attrs():
             ),
             default = "configure",
         ),
-        "configure_env_vars": attr.string_dict(
-            doc = "Environment variables to be set for the 'configure' invocation.",
-        ),
         "configure_in_place": attr.bool(
             doc = (
                 "Set to True if 'configure' should be invoked in place, i.e. from its enclosing " +
@@ -177,6 +186,9 @@ def _attrs():
         ),
         "configure_options": attr.string_list(
             doc = "Any options to be put on the 'configure' command line.",
+        ),
+        "configure_prefix": attr.string(
+            doc = "A prefix for the call to the `configure_command`.",
         ),
         "install_prefix": attr.string(
             doc = (
@@ -211,7 +223,7 @@ configure_make = rule(
     implementation = _configure_make,
     toolchains = [
         "@rules_foreign_cc//toolchains:make_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/shell_toolchain/toolchains:shell_commands",
+        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
     # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported

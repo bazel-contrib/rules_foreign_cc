@@ -3,14 +3,18 @@
 """
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-load("//foreign_cc:providers.bzl", "ForeignCcArtifact", "ForeignCcDeps")
+load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
 load("//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
 load(
-    "//toolchains/native_tools:tool_access.bzl",
-    "get_make_data",
-    "get_ninja_data",
+    "//foreign_cc/private/framework:helpers.bzl",
+    "convert_shell_script",
+    "create_function",
+    "script_extension",
+    "shebang",
 )
+load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
@@ -21,13 +25,6 @@ load(
 load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
-    "fictive_file_in_genroot",
-)
-load(
-    ":shell_script_helper.bzl",
-    "convert_shell_script",
-    "create_function",
-    "os_name",
 )
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
@@ -39,8 +36,7 @@ load(
 CC_EXTERNAL_RULE_ATTRIBUTES = {
     "additional_inputs": attr.label_list(
         doc = (
-            "Optional additional inputs to be declared as needed for the shell script action." +
-            "Not used by the shell script part in cc_external_rule_impl."
+            "__deprecated__: Please use the `build_data` attribute."
         ),
         mandatory = False,
         allow_files = True,
@@ -48,8 +44,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     ),
     "additional_tools": attr.label_list(
         doc = (
-            "Optional additional tools needed for the building. " +
-            "Not used by the shell script part in cc_external_rule_impl."
+            "__deprecated__: Please use the `build_data` attribute."
         ),
         mandatory = False,
         allow_files = True,
@@ -64,10 +59,18 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = False,
     ),
+    "build_data": attr.label_list(
+        doc = "Files needed by this rule only during build/compile time. May list file or rule targets. Generally allows any target.",
+        mandatory = False,
+        allow_files = True,
+        cfg = "exec",
+        default = [],
+    ),
     "data": attr.label_list(
         doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
         mandatory = False,
         allow_files = True,
+        cfg = "target",
         default = [],
     ),
     "defines": attr.string_list(
@@ -92,7 +95,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "env": attr.string_dict(
         doc = (
             "Environment variables to set during the build. " +
-            "`$(execpath)` macros may be used to point at files which are listed as data deps, tools_deps, or additional_tools, " +
+            "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_data`, " +
             "but unlike with other rules, these will be replaced with absolute paths to those files, " +
             "because the build does not run in the exec root. " +
             "No other macros are supported."
@@ -120,11 +123,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = [],
     ),
-    "make_commands": attr.string_list(
-        doc = "Optional make commands.",
-        mandatory = False,
-        default = ["make", "make install"],
-    ),
     "out_bin_dir": attr.string(
         doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'.",
         mandatory = False,
@@ -132,6 +130,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     ),
     "out_binaries": attr.string_list(
         doc = "Optional names of the resulting binaries.",
+        mandatory = False,
+    ),
+    "out_data_dirs": attr.string_list(
+        doc = "Optional names of additional directories created by the build that should be declared as bazel action outputs",
         mandatory = False,
     ),
     "out_headers_only": attr.bool(
@@ -176,11 +178,12 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
         mandatory = False,
     ),
+    "tool_prefix": attr.string(
+        doc = "A prefix for build commands",
+        mandatory = False,
+    ),
     "tools_deps": attr.label_list(
-        doc = (
-            "Optional tools to be copied into the directory structure. " +
-            "Similar to deps, those directly required for the external building of the library/binaries."
-        ),
+        doc = "__deprecated__: Please use the `build_data` attribute.",
         mandatory = False,
         allow_files = True,
         cfg = "exec",
@@ -190,12 +193,28 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
     ),
+    "_foreign_cc_framework_platform": attr.label(
+        doc = "Information about the execution platform",
+        cfg = "exec",
+        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
+    ),
 }
 
 # A list of common fragments required by rules using this framework
 CC_EXTERNAL_RULE_FRAGMENTS = [
     "cpp",
 ]
+
+# buildifier: disable=print
+def _print_deprecation_warnings(ctx):
+    if ctx.attr.tools_deps:
+        print(ctx.label, "Attribute `tools_deps` is deprecated. Please use `build_data`.")
+
+    if ctx.attr.additional_inputs:
+        print(ctx.label, "Attribute `additional_inputs` is deprecated. Please use `build_data`.")
+
+    if ctx.attr.additional_tools:
+        print(ctx.label, "Attribute `additional_tools` is deprecated. Please use `build_data`.")
 
 # buildifier: disable=function-docstring-header
 # buildifier: disable=function-docstring-args
@@ -234,6 +253,52 @@ dependencies.""",
     ),
 )
 
+def _escape_dquote(text):
+    """Escape double quotes for use in bash variable definitions
+
+    Args:
+        text (str): The text to escape
+
+    Returns:
+        str: text with escaped `"` characters.
+    """
+    return text.replace('"', r'\"\\\\\\"')
+
+def _env_prelude(ctx, lib_name, data_dependencies, target_root):
+    """Generate a bash snippet containing environment variable definitions
+
+    Args:
+        ctx (ctx): The rule's context object
+        lib_name (str): The name of the target being built
+        data_dependencies (list): A list of targets representing dependencies
+        target_root (str): The path from the root target's directory in the build output
+
+    Returns:
+        tuple: A list of environment variables to define in the build script and a dict
+            of environment variables
+    """
+    env_snippet = [
+        "export EXT_BUILD_ROOT=##pwd##",
+        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + target_root + "/" + lib_name,
+        "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
+        "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
+    ]
+
+    if os_name(ctx) == "macos":
+        env_snippet.extend(["export DEVELOPER_DIR=\"$(xcode-select --print-path)\"", "export SDKROOT=\"$(xcrun --sdk macosx --show-sdk-path)\""])
+
+    env = dict()
+
+    # Add all environment variables from the cc_toolchain
+    cc_env = _correct_path_variable(get_env_vars(ctx))
+    env.update(cc_env)
+
+    # Add all user defined variables
+    env.update(expand_locations(ctx, ctx.attr.env, data_dependencies))
+    env_snippet.extend(["export {}=\"{}\"".format(key, _escape_dquote(val)) for key, val in env.items()])
+
+    return env_snippet
+
 def cc_external_rule_impl(ctx, attrs):
     """Framework function for performing external C/C++ building.
 
@@ -267,9 +332,8 @@ def cc_external_rule_impl(ctx, attrs):
 
         These variables should be used by the calling rule to refer to the created directory structure.
     4. calls 'attrs.create_configure_script'
-    5. calls 'attrs.make_commands'
-    6. calls 'attrs.postfix_script'
-    7. replaces absolute paths in possibly created scripts with a placeholder value
+    5. calls 'attrs.postfix_script'
+    6. replaces absolute paths in possibly created scripts with a placeholder value
 
     Please see cmake.bzl for example usage.
 
@@ -286,17 +350,12 @@ def cc_external_rule_impl(ctx, attrs):
     Returns:
         A list of providers
     """
+    _print_deprecation_warnings(ctx)
     lib_name = attrs.lib_name or ctx.attr.name
 
     inputs = _define_inputs(attrs)
     outputs = _define_outputs(ctx, attrs, lib_name)
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
-
-    cc_env = _correct_path_variable(get_env_vars(ctx))
-    set_cc_envs = []
-    execution_os_name = os_name(ctx)
-    if execution_os_name != "macos":
-        set_cc_envs = ["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env]
 
     lib_header = "Bazel external C/C++ Rules. Building library '{}'".format(lib_name)
 
@@ -308,29 +367,14 @@ def cc_external_rule_impl(ctx, attrs):
     # We want the install directory output of this rule to have the same name as the library,
     # so symlink it under the same name but in a subdirectory
     installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
+    target_root = paths.dirname(installdir_copy.file.dirname)
 
-    # we need this fictive file in the root to get the path of the root in the script
-    empty = fictive_file_in_genroot(ctx.actions, ctx.label.name)
+    data_dependencies = ctx.attr.data + ctx.attr.build_data
 
-    data_dependencies = ctx.attr.data + ctx.attr.tools_deps + ctx.attr.additional_tools
+    # Also add legacy dependencies while they're still available
+    data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
 
-    define_variables = set_cc_envs + [
-        "export EXT_BUILD_ROOT=##pwd##",
-        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + empty.file.dirname + "/" + lib_name,
-        "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
-        "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
-    ] + [
-        "export {key}={value}".format(
-            key = key,
-            # Prepend the exec root to each $(execpath ) lookup because the working directory will not be the exec root.
-            value = ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data_dependencies),
-        )
-        for key, value in dict(
-            getattr(ctx.attr, "env", {}).items() + getattr(attrs, "env", {}).items(),
-        ).items()
-    ]
-
-    make_commands, build_tools = _generate_make_commands(ctx)
+    env_prelude = _env_prelude(ctx, lib_name, data_dependencies, target_root)
 
     postfix_script = [attrs.postfix_script]
     if not attrs.postfix_script:
@@ -341,27 +385,35 @@ def cc_external_rule_impl(ctx, attrs):
         "##echo## \"{}\"".format(lib_header),
         "##echo## \"\"",
         "##script_prelude##",
-    ] + define_variables + [
+    ] + env_prelude + [
         "##path## $$EXT_BUILD_ROOT$$",
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
         "##mkdirs## $$EXT_BUILD_DEPS$$",
     ] + _print_env() + _copy_deps_and_tools(inputs) + [
         "cd $$BUILD_TMPDIR$$",
-    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + make_commands + postfix_script + [
+    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + postfix_script + [
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
         "##replace_absolute_paths## $$INSTALLDIR$$ $$BUILD_TMPDIR$$",
         "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
+        "##replace_sandbox_paths## $$INSTALLDIR$$ $$EXT_BUILD_ROOT$$",
         installdir_copy.script,
-        empty.script,
         "cd $$EXT_BUILD_ROOT$$",
+    ] + [
+        "##replace_symlink## {}".format(file.path)
+        for file in (
+            outputs.libraries.static_libraries +
+            outputs.libraries.shared_libraries +
+            outputs.libraries.interface_libraries
+        )
     ]
 
     script_text = "\n".join([
-        "#!/usr/bin/env bash",
+        shebang(ctx),
         convert_shell_script(ctx, script_lines),
+        "",
     ])
     wrapped_outputs = wrap_outputs(ctx, lib_name, attrs.configure_name, script_text)
 
@@ -372,36 +424,40 @@ def cc_external_rule_impl(ctx, attrs):
     if "requires-network" in ctx.attr.tags:
         execution_requirements = {"requires-network": ""}
 
+    # TODO: `additional_tools` is deprecated, remove.
+    legacy_tools = ctx.files.additional_tools + ctx.files.tools_deps
+
     # The use of `run_shell` here is intended to ensure bash is correctly setup on windows
     # environments. This should not be replaced with `run` until a cross platform implementation
     # is found that guarantees bash exists or appropriately errors out.
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
-        outputs = rule_outputs + [
-            empty.file,
-            wrapped_outputs.log_file,
-        ],
+        outputs = rule_outputs + [wrapped_outputs.log_file],
         tools = depset(
-            [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.tools_deps + ctx.files.additional_tools,
-            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies] + build_tools,
+            [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.build_data + legacy_tools,
+            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
         ),
-        # TODO: Default to never using the default shell environment to make builds more hermetic. For now, every platform
-        # but MacOS will take the default PATH passed by Bazel, not that from cc_toolchain.
-        use_default_shell_env = execution_os_name != "macos",
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
-        # this is ignored if use_default_shell_env = True
-        env = cc_env,
+        use_default_shell_env = True,
+        progress_message = "Foreign Cc - {configure_name}: Building {target_name}".format(
+            configure_name = attrs.configure_name,
+            target_name = ctx.attr.name,
+        ),
     )
 
     # Gather runfiles transitively as per the documentation in:
     # https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
     runfiles = ctx.runfiles(files = ctx.files.data)
-    for target in [ctx.attr.lib_source] + ctx.attr.additional_inputs + ctx.attr.deps + ctx.attr.data:
+    for target in [ctx.attr.lib_source] + ctx.attr.deps + ctx.attr.data:
         runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
 
-    externally_built = ForeignCcArtifact(
+    # TODO: `additional_inputs` is deprecated, remove.
+    for legacy in ctx.attr.additional_inputs:
+        runfiles = runfiles.merge(legacy[DefaultInfo].default_runfiles)
+
+    externally_built = ForeignCcArtifactInfo(
         gen_dir = installdir_copy.file,
         bin_dir_name = attrs.out_bin_dir,
         lib_dir_name = attrs.out_lib_dir,
@@ -420,7 +476,7 @@ def cc_external_rule_impl(ctx, attrs):
             runfiles = runfiles,
         ),
         OutputGroupInfo(**output_groups),
-        ForeignCcDeps(artifacts = depset(
+        ForeignCcDepsInfo(artifacts = depset(
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
         )),
@@ -443,9 +499,10 @@ WrappedOutputs = provider(
 
 # buildifier: disable=function-docstring
 def wrap_outputs(ctx, lib_name, configure_name, script_text, build_script_file = None):
+    extension = script_extension(ctx)
     build_log_file = ctx.actions.declare_file("{}_foreign_cc/{}.log".format(lib_name, configure_name))
-    build_script_file = ctx.actions.declare_file("{}_foreign_cc/build_script.sh".format(lib_name))
-    wrapper_script_file = ctx.actions.declare_file("{}_foreign_cc/wrapper_build_script.sh".format(lib_name))
+    build_script_file = ctx.actions.declare_file("{}_foreign_cc/build_script{}".format(lib_name, extension))
+    wrapper_script_file = ctx.actions.declare_file("{}_foreign_cc/wrapper_build_script{}".format(lib_name, extension))
 
     ctx.actions.write(
         output = build_script_file,
@@ -492,7 +549,7 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, build_script_file =
         "##redirect_out_err## $$BUILD_SCRIPT$$ $$BUILD_LOG$$",
     ]
     build_command = "\n".join([
-        "#!/usr/bin/env bash",
+        shebang(ctx),
         convert_shell_script(ctx, build_command_lines),
         "",
     ])
@@ -611,40 +668,12 @@ _Outputs = provider(
 )
 
 def _define_outputs(ctx, attrs, lib_name):
-    attr_binaries_libs = []
+    attr_binaries_libs = attrs.out_binaries
     attr_headers_only = attrs.out_headers_only
-    attr_interface_libs = []
-    attr_shared_libs = []
-    attr_static_libs = []
-
-    # TODO: Until the the deprecated attributes are removed, we must
-    # create a mutatable list so we can ensure they're being included
-    attr_binaries_libs.extend(getattr(attrs, "out_binaries", []))
-    attr_interface_libs.extend(getattr(attrs, "out_interface_libs", []))
-    attr_shared_libs.extend(getattr(attrs, "out_shared_libs", []))
-    attr_static_libs.extend(getattr(attrs, "out_static_libs", []))
-
-    # TODO: These names are deprecated, remove
-    if getattr(attrs, "binaries", []):
-        # buildifier: disable=print
-        print("The `binaries` attr is deprecated in favor of `out_binaries`. Please update the target `{}`".format(ctx.label))
-        attr_binaries_libs.extend(getattr(attrs, "binaries", []))
-    if getattr(attrs, "headers_only", False):
-        # buildifier: disable=print
-        print("The `headers_only` attr is deprecated in favor of `out_headers_only`. Please update the target `{}`".format(ctx.label))
-        attr_headers_only = attrs.headers_only
-    if getattr(attrs, "interface_libraries", []):
-        # buildifier: disable=print
-        print("The `interface_libraries` attr is deprecated in favor of `out_interface_libs`. Please update the target `{}`".format(ctx.label))
-        attr_interface_libs.extend(getattr(attrs, "interface_libraries", []))
-    if getattr(attrs, "shared_libraries", []):
-        # buildifier: disable=print
-        print("The `shared_libraries` attr is deprecated in favor of `out_shared_libs`. Please update the target `{}`".format(ctx.label))
-        attr_shared_libs.extend(getattr(attrs, "shared_libraries", []))
-    if getattr(attrs, "static_libraries", []):
-        # buildifier: disable=print
-        print("The `static_libraries` attr is deprecated in favor of `out_static_libs`. Please update the target `{}`".format(ctx.label))
-        attr_static_libs.extend(getattr(attrs, "static_libraries", []))
+    attr_interface_libs = attrs.out_interface_libs
+    attr_out_data_dirs = attrs.out_data_dirs
+    attr_shared_libs = attrs.out_shared_libs
+    attr_static_libs = attrs.out_static_libs
 
     static_libraries = []
     if not attr_headers_only:
@@ -657,6 +686,10 @@ def _define_outputs(ctx, attrs, lib_name):
 
     out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
 
+    out_data_dirs = []
+    for dir in attr_out_data_dirs:
+        out_data_dirs.append(ctx.actions.declare_directory(lib_name + "/" + dir.lstrip("/")))
+
     out_binary_files = _declare_out(ctx, lib_name, attrs.out_bin_dir, attr_binaries_libs)
 
     libraries = LibrariesToLinkInfo(
@@ -665,7 +698,7 @@ def _define_outputs(ctx, attrs, lib_name):
         interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attr_interface_libs),
     )
 
-    declared_outputs = [out_include_dir] + out_binary_files
+    declared_outputs = [out_include_dir] + out_data_dirs + out_binary_files
     declared_outputs += libraries.static_libraries
     declared_outputs += libraries.shared_libraries + libraries.interface_libraries
 
@@ -746,10 +779,12 @@ def _define_inputs(attrs):
         for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
+    # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:
         for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
+    # TODO: Remove, `additional_inputs` is deprecated.
     for input in attrs.additional_inputs:
         for file_list in input.files.to_list():
             input_files += _list(file_list)
@@ -785,7 +820,7 @@ def uniq_list_keep_order(list):
     return result
 
 def get_foreign_cc_dep(dep):
-    return dep[ForeignCcDeps] if ForeignCcDeps in dep else None
+    return dep[ForeignCcDepsInfo] if ForeignCcDepsInfo in dep else None
 
 # consider optimization here to do not iterate both collections
 def _get_headers(compilation_info):
@@ -847,29 +882,31 @@ def _collect_libs(cc_linking):
                     libs.append(library)
     return collections.uniq(libs)
 
-def _generate_make_commands(ctx):
-    make_commands = getattr(ctx.attr, "make_commands", [])
-    tools_deps = []
+def _expand_command_path(binary, path, command):
+    if command == binary or command.startswith(binary + " "):
+        return command.replace(binary, path, 1)
+    else:
+        return command
 
-    # Early out if there are no commands set
-    if not make_commands:
-        return make_commands, tools_deps
+def expand_locations(ctx, environ, data):
+    """Expand locations on a dictionary while ensuring `execpath` is always set to an absolute path
 
-    if _uses_tool(ctx.attr.make_commands, "make"):
-        make_data = get_make_data(ctx)
-        tools_deps += make_data.deps
-        make_commands = [command.replace("make", make_data.path) for command in make_commands]
+    This function is not expected to be passed to any action.env argument but instead rendered into
+    build scripts.
 
-    if _uses_tool(ctx.attr.make_commands, "ninja"):
-        ninja_data = get_ninja_data(ctx)
-        tools_deps += ninja_data.deps
-        make_commands = [command.replace("ninja", ninja_data.path) for command in make_commands]
+    Args:
+        ctx (ctx): The rule's context object
+        environ (dict): A dictionary of environment variables
+        data (list): A list of targets
 
-    return make_commands, [tool.files for tool in tools_deps]
-
-def _uses_tool(make_commands, tool):
-    for command in make_commands:
-        (before, separator, after) = command.partition(" ")
-        if before == tool:
-            return True
-    return False
+    Returns:
+        dict: An expanded dict of environment variables
+    """
+    expanded_env = dict()
+    for key, value in environ.items():
+        # If `EXT_BUILD_ROOT` exists in the string, we assume the user has added it themselves
+        if "EXT_BUILD_ROOT" in value:
+            expanded_env.update({key: ctx.expand_location(value, data)})
+        else:
+            expanded_env.update({key: ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data)})
+    return expanded_env

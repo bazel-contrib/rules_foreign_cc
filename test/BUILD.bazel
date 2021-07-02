@@ -29,20 +29,13 @@ config_setting(
     visibility = ["//visibility:private"],
 )
 
-result_file = select({
-    ":macos": "expected/inner_fun_text_osx.txt",
-    "//conditions:default": "expected/inner_fun_text.txt",
-})
-
-result_file_symlink_dirs = select({
-    ":macos": "expected/out_symlinked_dirs_osx.txt",
-    "//conditions:default": "expected/out_symlinked_dirs.txt",
-})
-
 diff_test(
     name = "shell_script_inner_fun_test",
     file1 = ":shell_script_inner_fun",
-    file2 = result_file,
+    file2 = select({
+        ":macos": "expected/inner_fun_text_macos.txt",
+        "//conditions:default": "expected/inner_fun_text.txt",
+    }),
 )
 
 filegroup(
@@ -64,6 +57,9 @@ symlink_contents_to_dir_test_rule(
 
 diff_test(
     name = "shell_method_symlink_contents_to_dir_test",
-    file1 = result_file_symlink_dirs,
+    file1 = select({
+        ":macos": "expected/out_symlinked_dirs_macos.txt",
+        "//conditions:default": "expected/out_symlinked_dirs.txt",
+    }),
     file2 = ":symlink_dirs",
 )

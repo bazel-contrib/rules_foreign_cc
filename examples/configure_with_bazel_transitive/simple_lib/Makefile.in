@@ -3,5 +3,5 @@ simple: ./src/simple.c
 install:
 	mkdir -p simple
 	mkdir -p simple/lib
-	cp simple.a ./simple/lib/simple.a
-	cp -r ./include ./simple
+	cp -p simple.a ./simple/lib/simple.a
+	cp -rp ./include ./simple

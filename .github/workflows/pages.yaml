@@ -1,0 +1,100 @@
+name: Generate docs
+on:
+  pull_request: 
+    branches:
+      - main
+    paths:
+      - '.github/**'
+      - 'docs/**'
+  push:
+    branches:
+      - main
+jobs:
+  pages:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Create a job for release
+        include:
+          - ref: main
+          - ref: "0.4.0"
+          - ref: "0.3.0"
+          - ref: "0.2.0"
+          - ref: "0.1.0"
+    steps:
+      - uses: actions/checkout@v2
+        if: ${{ matrix.ref == 'main' }}
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ matrix.ref }}
+        if: ${{ matrix.ref != 'main' }}
+      - name: Pin the release to main
+        run: echo "RELEASE=main" >> $GITHUB_ENV
+        if: ${{ matrix.ref == 'main' }}
+      - name: Patch older branches
+        run: |
+          mkdir -p ${{ github.workspace }}/.github
+          curl https://raw.githubusercontent.com/bazelbuild/rules_foreign_cc/main/.github/docs-${{ matrix.ref }}.patch > ${{ github.workspace }}/.github/docs-${{ matrix.ref }}.patch
+          git apply ${{ github.workspace }}/.github/docs-${{ matrix.ref }}.patch
+        if: ${{ matrix.ref == '0.4.0' || matrix.ref == '0.3.0' || matrix.ref == '0.2.0' || matrix.ref == '0.1.0' }}
+      - name: Install bazelisk
+        run: |
+          curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.9.0/bazelisk-linux-amd64"
+          mkdir -p "${{ github.workspace }}/bin/"
+          mv bazelisk-linux-amd64 "${{ github.workspace }}/bin/bazel"
+          chmod +x "${{ github.workspace }}/bin/bazel"
+      - name: Generate docs
+        run: |
+          "${{ github.workspace }}/bin/bazel" run //:generate_docs
+          "${{ github.workspace }}/bin/bazel" clean
+        working-directory: ${{ github.workspace }}/docs
+      - name: Install mdbook
+        run: |
+          curl -LO "https://github.com/rust-lang/mdBook/releases/download/v0.4.10/mdbook-v0.4.10-x86_64-unknown-linux-gnu.tar.gz"
+          mkdir -p "${{ github.workspace }}/bin/"
+          tar -xvf mdbook-v0.4.10-x86_64-unknown-linux-gnu.tar.gz
+          mv mdbook "${{ github.workspace }}/bin/mdbook"
+          chmod +x "${{ github.workspace }}/bin/mdbook"
+      - name: mdbook build
+        run: ${{ github.workspace }}/bin/mdbook build
+        working-directory: ${{ github.workspace }}/docs
+      - name: Save the newly built book
+        uses: actions/upload-artifact@v2
+        with:
+          name: "${{ matrix.ref }}"
+          path: ${{ github.workspace }}/docs/book
+          if-no-files-found: error
+        if: ${{ github.event_name != 'pull_request' }}
+      - name: Build root
+        run: ${{ github.workspace }}/bin/mdbook build
+        if: ${{ matrix.ref == 'main' }}
+        working-directory: ${{ github.workspace }}/docs/root
+      - name: Save the newly built book
+        uses: actions/upload-artifact@v2
+        with:
+          name: "${{ matrix.ref }}-root"
+          path: ${{ github.workspace }}/docs/root/book
+          if-no-files-found: error
+        if: ${{ matrix.ref == 'main' && github.event_name != 'pull_request' }}
+  publish:
+    needs: pages
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Fetch artifacts (first root then others so the ordering is correct)
+      uses: actions/download-artifact@v2
+      with:
+        name: main-root
+        path: ${{ github.workspace }}/docs/book
+    - name: Fetch artifacts (first root then others so the ordering is correct)
+      uses: actions/download-artifact@v2
+      with:
+        path: ${{ github.workspace }}/docs/pages
+    - name: Install pages
+      run: mv ${{ github.workspace }}/docs/pages/* ${{ github.workspace }}/docs/book/
+    - name: publish
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: docs
+        publish_dir: ./docs/book

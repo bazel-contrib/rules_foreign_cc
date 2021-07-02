@@ -3,7 +3,7 @@
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:framework.bzl", "wrap_outputs")
-load("//foreign_cc/private:shell_script_helper.bzl", "convert_shell_script")
+load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script", "shebang")
 
 # Common attributes for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_ATTRS = {
@@ -11,7 +11,14 @@ FOREIGN_CC_BUILT_TOOLS_ATTRS = {
         doc = "The target containing the build tool's sources",
         mandatory = True,
     ),
-    "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+    "_cc_toolchain": attr.label(
+        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+    ),
+    "_foreign_cc_framework_platform": attr.label(
+        doc = "Information about the execution platform",
+        cfg = "exec",
+        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
+    ),
 }
 
 # Common host fragments for all built_tool rules
@@ -48,12 +55,12 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic):
         "cd $$BUILD_TMPDIR$$",
     ]
 
-    script.append("set -x")
+    script.append("##enable_tracing##")
     script.extend(script_lines)
-    script.append("set +x")
+    script.append("##disable_tracing##")
 
     script_text = "\n".join([
-        "#!/usr/bin/env bash",
+        shebang(ctx),
         convert_shell_script(ctx, script),
         "",
     ])
