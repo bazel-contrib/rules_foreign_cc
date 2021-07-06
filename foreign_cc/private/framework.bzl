@@ -66,6 +66,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
+    "copts": attr.string_list(
+        doc = "Optional. Add these options to the compile flags passed to the foreign build system. The flags only take affect for compiling this target, not its dependencies.",
+        mandatory = False,
+        default = [],
+    ),
     "data": attr.label_list(
         doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
         mandatory = False,
