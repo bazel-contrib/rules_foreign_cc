@@ -259,7 +259,7 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
 export CXX="/usr/bin/gcc"
 export CXXFLAGS="foo=\\\"bar\\\" -Fbat"
 ##enable_tracing##
-emcmake cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=""  -G 'Unix Makefiles' $$EXT_BUILD_ROOT$$/external/test_rule
+emcmake cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=""  -G 'Unix Makefiles' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -309,7 +309,7 @@ export CFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 export CXXFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 export ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 ##enable_tracing##
-cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DNOFORTRAN="on" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$;/abc/def" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DNOFORTRAN="on" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$;/abc/def" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -362,7 +362,7 @@ export CFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 export CXXFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 export ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 ##enable_tracing##
-cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$;/abc/def" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$;/abc/def" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -425,7 +425,7 @@ set(CMAKE_SHARED_LINKER_FLAGS_INIT "$$__var_CMAKE_SHARED_LINKER_FLAGS_INIT$$")
 EOF
 
 ##enable_tracing##
-cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -489,7 +489,7 @@ export CXXFLAGS="--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain
 export ASMFLAGS="assemble assemble-user"
 export CUSTOM_ENV="YES"
 ##enable_tracing##
-cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -574,7 +574,7 @@ EOF
 
 export CUSTOM_ENV="YES"
 ##enable_tracing##
-cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)

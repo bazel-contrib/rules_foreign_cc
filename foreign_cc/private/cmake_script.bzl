@@ -72,8 +72,17 @@ def create_cmake_script(
         "CMAKE_BUILD_TYPE",
         "Debug" if is_debug_mode else "Release",
     )
+
+    # The default for this varies based upon the host OS so explicitly set it
+    # to be a known value unless the user overrides it
+    gnuinstall_libdir = params.cache.get(
+        "CMAKE_INSTALL_LIBDIR",
+        "lib",
+    )
+
     params.cache.update({
         "CMAKE_BUILD_TYPE": build_type,
+        "CMAKE_INSTALL_LIBDIR": gnuinstall_libdir,
         "CMAKE_INSTALL_PREFIX": install_prefix,
         "CMAKE_PREFIX_PATH": merged_prefix_path,
     })
