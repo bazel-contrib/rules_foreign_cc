@@ -167,8 +167,8 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "out_static_libs": attr.string_list(
         doc = (
             "Optional names of the resulting static libraries. Note that if `out_headers_only`, `out_static_libs`, " +
-            "`out_shared_libs`, and `out_binaries` are not set, default `lib_name.a`/`lib_name.lib` static " +
-            "library is assumed"
+            "`out_shared_libs`, `out_binaries` and `out_data_dirs`  are not set, default `lib_name.a`/`lib_name.lib` "
+            "static library is assumed"
         ),
         mandatory = False,
     ),
@@ -682,7 +682,7 @@ def _define_outputs(ctx, attrs, lib_name):
 
     static_libraries = []
     if not attr_headers_only:
-        if not attr_static_libs and not attr_shared_libs and not attr_binaries_libs and not attr_interface_libs:
+        if not attr_static_libs and not attr_shared_libs and not attr_binaries_libs and not attr_interface_libs and not attr_out_data_dirs:
             static_libraries = [lib_name + (".lib" if targets_windows(ctx, None) else ".a")]
         else:
             static_libraries = attr_static_libs
