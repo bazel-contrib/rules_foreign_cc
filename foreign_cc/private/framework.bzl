@@ -167,7 +167,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "out_static_libs": attr.string_list(
         doc = (
             "Optional names of the resulting static libraries. Note that if `out_headers_only`, `out_static_libs`, " +
-            "`out_shared_libs`, `out_binaries` and `out_data_dirs`  are not set, default `lib_name.a`/`lib_name.lib` " +
+            "`out_shared_libs`, `out_binaries` and `out_data_dirs` are not set, default `lib_name.a`/`lib_name.lib` " +
             "static library is assumed"
         ),
         mandatory = False,
