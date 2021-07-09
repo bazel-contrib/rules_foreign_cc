@@ -105,9 +105,7 @@ tasks:
       - "-//cmake_hello_world_lib/..."
       - "-//cmake_synthetic/..."
       - "-//cmake_with_bazel_transitive/..."
-      - "-//cmake_working_dir/..."
       - "-//configure_with_bazel_transitive/..."
-      - "-//make_simple/..."
       - "-//ninja_simple/..."
     build_targets: *windows_targets
     test_targets: *windows_targets
