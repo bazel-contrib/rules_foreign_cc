@@ -76,6 +76,7 @@ test_suite(
     name = "windows_tests",
     tags = ["manual"],
     tests = [
-        # TODO: Add windows tests
+        "//curl:curl_build_test",
+        # TODO: Add more windows tests
     ],
 )

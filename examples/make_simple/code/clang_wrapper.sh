@@ -1,3 +1,8 @@
 #!/bin/bash -eu
 
-exec clang "$@"
+if [[ $(uname) == *"NT"* ]]; then
+ # If Windows
+  exec clang-cl "$@"
+else
+  exec clang "$@"
+fi
