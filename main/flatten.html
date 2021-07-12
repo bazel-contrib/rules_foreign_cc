@@ -345,12 +345,13 @@ make(<a href="#make-name">name</a>, <a href="#make-additional_inputs">additional
 <p><a id="#make_tool"></a></p>
 <h2 id="make_tool"><a class="header" href="#make_tool">make_tool</a></h2>
 <pre>
-make_tool(<a href="#make_tool-name">name</a>, <a href="#make_tool-srcs">srcs</a>)
+make_tool(<a href="#make_tool-name">name</a>, <a href="#make_tool-env">env</a>, <a href="#make_tool-srcs">srcs</a>)
 </pre>
 <p>Rule for building Make. Invokes configure script and make install.</p>
 <p><strong>ATTRIBUTES</strong></p>
 <table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Type</th><th align="left">Mandatory</th><th align="left">Default</th></tr></thead><tbody>
 <tr><td align="left"><a id="make_tool-name"></a>name</td><td align="left">A unique name for this target.</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#name">Name</a></td><td align="left">required</td><td align="left"></td></tr>
+<tr><td align="left"><a id="make_tool-env"></a>env</td><td align="left">Environment variables to set during the build.</td><td align="left"><a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -&gt; String</a></td><td align="left">optional</td><td align="left">{}</td></tr>
 <tr><td align="left"><a id="make_tool-srcs"></a>srcs</td><td align="left">The target containing the build tool's sources</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#labels">Label</a></td><td align="left">required</td><td align="left"></td></tr>
 </tbody></table>
 <p><a id="#native_tool_toolchain"></a></p>
@@ -408,12 +409,13 @@ ninja(<a href="#ninja-name">name</a>, <a href="#ninja-additional_inputs">additio
 <p><a id="#ninja_tool"></a></p>
 <h2 id="ninja_tool"><a class="header" href="#ninja_tool">ninja_tool</a></h2>
 <pre>
-ninja_tool(<a href="#ninja_tool-name">name</a>, <a href="#ninja_tool-srcs">srcs</a>)
+ninja_tool(<a href="#ninja_tool-name">name</a>, <a href="#ninja_tool-env">env</a>, <a href="#ninja_tool-srcs">srcs</a>)
 </pre>
 <p>Rule for building Ninja. Invokes configure script.</p>
 <p><strong>ATTRIBUTES</strong></p>
 <table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Type</th><th align="left">Mandatory</th><th align="left">Default</th></tr></thead><tbody>
 <tr><td align="left"><a id="ninja_tool-name"></a>name</td><td align="left">A unique name for this target.</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#name">Name</a></td><td align="left">required</td><td align="left"></td></tr>
+<tr><td align="left"><a id="ninja_tool-env"></a>env</td><td align="left">Environment variables to set during the build.</td><td align="left"><a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -&gt; String</a></td><td align="left">optional</td><td align="left">{}</td></tr>
 <tr><td align="left"><a id="ninja_tool-srcs"></a>srcs</td><td align="left">The target containing the build tool's sources</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#labels">Label</a></td><td align="left">required</td><td align="left"></td></tr>
 </tbody></table>
 <p><a id="#ForeignCcArtifactInfo"></a></p>
