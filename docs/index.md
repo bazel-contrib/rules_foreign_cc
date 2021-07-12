@@ -4,7 +4,7 @@ Rules for building C/C++ projects using foreign build systems (non Bazel) inside
 
 | Release | Commit | Status |
 | --- | --------- | --- |
-| {release} | [{short_commit}](https://github.com/bazelbuild/rules_foreign_cc/commit/{commit}) | [![Build status](https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?commit=main)](https://buildkite.com/bazel/rules-foreign-cc?branch=main) |
+| {release} | [{short_commit}](https://github.com/bazelbuild/rules_foreign_cc/commit/{commit}) | [![Build status](https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=main)](https://buildkite.com/bazel/rules-foreign-cc/builds?branch=main) |
 
 ## Overview
 
