@@ -23,10 +23,6 @@ cmake(
     lib_source = ":srcs",
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
-    out_static_libs = select({
-        "//:windows": ["hello.lib"],
-        "//conditions:default": None,
-    }),
 )
 
 cc_binary(
@@ -54,7 +50,7 @@ cmake(
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
     out_static_libs = select({
-        "//:windows": ["hello.lib"],
+        "//:windows": ["libhello.lib"],
         "//conditions:default": ["libhello.a"],
     }),
 )
@@ -83,10 +79,7 @@ cmake(
     lib_source = ":srcs",
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
-    out_static_libs = select({
-        "//:windows": ["hello.lib"],
-        "//conditions:default": None,
-    }),
+    out_static_libs = ["libhello.lib"],
     # TODO: Update to `exec_compatible_with`
     tags = [
         "manual",
@@ -126,7 +119,7 @@ cmake(
     out_include_dir = "include",
     # the name of the static library != <name>.a, put it explicitly
     out_static_libs = select({
-        "//:windows": ["hello.lib"],
+        "//:windows": ["libhello.lib"],
         "//conditions:default": ["libhello.a"],
     }),
 )
