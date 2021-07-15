@@ -4,6 +4,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 def curl_repositories():
+    # Note the version of curl is used in tests and must be kept in sync
     maybe(
         http_archive,
         name = "curl",

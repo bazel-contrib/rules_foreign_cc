@@ -1,56 +1,178 @@
-"""An openssl build file based on a snippet found in the github issue:
-https://github.com/bazelbuild/rules_foreign_cc/issues/337
-"""
+# Read https://wiki.openssl.org/index.php/Compilation_and_Installation
 
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
 
-# Read https://wiki.openssl.org/index.php/Compilation_and_Installation
+# Note that this dependency name will obviously change if used outside of `rules_foreign_cc`
+load("@rules_foreign_cc_examples_third_party//openssl:openssl_repositories.bzl", "host_transitioned_foreign_cc_target")
 
 filegroup(
     name = "all_srcs",
     srcs = glob(["**"]),
 )
 
+# This wrapper is used to do some last minute configurations to the environment the ForeignCc
+# action runs under for windows. This target should not be used on any other platform.
+genrule(
+    name = "win_tool_prefix",
+    outs = ["win_tool_prefix.sh"],
+    cmd = """\
+cat << EOF > $@
+#!/bin/bash
+set -xeuo pipefail
+
+# The mingw64 target strugles with windows paths so to avoid this
+# the paths are normalized for unix if possible
+function normalize() {
+    type -t cygpath.exe > /dev/null && cygpath.exe "\\$$@" -w || echo "\\$$@"
+}
+
+# Normalize the paths to cerntain executables
+
+if [[ -n "\\$${MAKE:-}" ]]; then
+    export MAKE="\\$$(normalize "\\$${MAKE}")"
+fi
+
+if [[ -n "\\$${AR:-}" ]]; then
+    export AR="\\"\\$$(normalize "\\$${AR}")\\""
+fi
+
+if [[ -n "\\$${CC:-}" ]]; then
+    export CC="\\"\\$$(normalize "\\$${CC}")\\""
+fi
+
+if [[ -n "\\$${CXX:-}" ]]; then
+    export CXX="\\"\\$$(normalize "\\$${CXX}")\\""
+fi
+
+if [[ -n "\\$${NASM:-}" ]]; then
+    export PATH="\\$$(dirname "\\$$NASM");\\$$PATH"
+    export NASM="\\"\\$$(normalize "\\$${NASM}")\\""
+fi
+
+# Normalize the exec root for the action
+export EXT_BUILD_ROOT="\\$$(normalize "\\$${EXT_BUILD_ROOT}")"
+
+# The configure script needs to be executed with perl. If this is the first
+# argument, pass all commands to perl.
+if [[ \\$$1 == *"Configure" ]]; then
+    "\\$${EXT_BUILD_ROOT}/$(execpath @strawberry_perl//:perl)" \\$$@
+
+    # For some reason, the linker arg '/nologo' gets written out as a
+    # path to some file on disk. This corrects for that
+    sed -i "s@C:/tools/msys64/nologo@/nologo@g" \\$$BUILD_TMPDIR/makefile
+
+    # For some reason no '*.pdb' is created which (may be correct given the
+    # configuration) causes the install target to fail. To fix this the line
+    # is modified
+    # https://github.com/openssl/openssl/issues/947
+    sed -i 's/if "\\$$(SHLIBS)"==""/IF EXIST "ossl_static.pdb"/g' \\$$BUILD_TMPDIR/makefile
+else
+    exec \\$$@
+fi
+EOF
+""",
+    executable = True,
+    tags = ["manual"],
+    tools = [
+        "@strawberry_perl//:perl",
+    ],
+)
+
 CONFIGURE_OPTIONS = [
     "no-comp",
     "no-idea",
-    "no-weak-ssl-ciphers",
+    "no-shared",
 ]
 
 configure_make(
     name = "openssl",
-    configure_command = "config",
+    build_data = select({
+        "@platforms//os:windows": [
+            "win_tool_prefix.sh",
+            "@strawberry_perl//:perl",
+            "@nasm//:nasm",
+        ],
+        "//conditions:default": None,
+    }),
+    configure_command = select({
+        "@platforms//os:windows": "Configure",
+        "//conditions:default": "config",
+    }),
     configure_in_place = True,
     configure_options = select({
         "@platforms//os:macos": [
             "ARFLAGS=r",
             "no-afalgeng",
             "no-asm",
-            "no-shared",
+        ] + CONFIGURE_OPTIONS,
+        "@platforms//os:windows": [
+            "VC-WIN64A",
+            "ASFLAGS=-g",
         ] + CONFIGURE_OPTIONS,
         "//conditions:default": [
-            "no-shared",
         ] + CONFIGURE_OPTIONS,
     }),
+    configure_prefix = select({
+        "@platforms//os:windows": "$(execpath :win_tool_prefix.sh)",
+        "//conditions:default": None,
+    }),
     env = select({
-        "@platforms//os:macos": {"AR": ""},
+        "@platforms//os:macos": {
+            "AR": "",
+        },
+        "@platforms//os:windows": {
+            "NASM": "$(execpath @nasm//:nasm)",
+        },
         "//conditions:default": {},
     }),
     lib_source = ":all_srcs",
-    out_static_libs = [
-        "libcrypto.a",
-        "libssl.a",
-    ],
+    linkopts = select({
+        "@platforms//os:linux": [
+            "-ldl",
+        ],
+        "@platforms//os:windows": [
+            "-DEFAULTLIB:Advapi32",
+            "-DEFAULTLIB:User32",
+        ],
+        "//conditions:default": [],
+    }),
+    out_static_libs = select({
+        "@platforms//os:windows": [
+            "libcrypto.lib",
+            "libssl.lib",
+        ],
+        "//conditions:default": [
+            "libcrypto.a",
+            "libssl.a",
+        ],
+    }),
     targets = [
         "build_libs",
         "install_dev",
     ],
+    tool_prefix = select({
+        "@platforms//os:windows": "$(execpath :win_tool_prefix.sh)",
+        "//conditions:default": None,
+    }),
     visibility = ["//visibility:public"],
 )
 
-filegroup(
-    name = "gen_dir",
-    srcs = [":openssl"],
-    output_group = "gen_dir",
+# This platform is used to transition the windows variant of `:openssl` to a platform
+# which supports the `nmake` toolchain.
+platform(
+    name = "msvc_platform",
+    constraint_values = [
+        "@bazel_tools//tools/cpp:msvc",
+    ],
+    parents = ["@local_config_platform//:host"],
+    visibility = ["//visibility:public"],
+)
+
+# This target should be used in favor of the core `openssl` target for windows
+# since it guarantees the target is built with the correct toolchain.
+host_transitioned_foreign_cc_target(
+    name = "openssl_msvc",
+    platform = ":msvc_platform",
+    target = ":openssl",
     visibility = ["//visibility:public"],
 )
