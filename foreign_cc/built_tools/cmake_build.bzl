@@ -1,35 +1,30 @@
 """ Rule for building CMake from sources. """
 
-load(
-    "//foreign_cc/built_tools/private:built_tools_framework.bzl",
-    "FOREIGN_CC_BUILT_TOOLS_ATTRS",
-    "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
-    "built_tool_rule_impl",
-)
+load("//foreign_cc:defs.bzl", "configure_make")
 
-def _cmake_tool_impl(ctx):
-    script = [
-        "./bootstrap --prefix=$$INSTALLDIR$$",
-        # TODO: Use make from a toolchain
-        "make",
-        "make install",
-    ]
+def cmake_tool(name, srcs, **kwargs):
+    tags = ["manual"] + kwargs.pop("tags", [])
 
-    return built_tool_rule_impl(
-        ctx,
-        script,
-        ctx.actions.declare_directory("cmake"),
-        "BootstrapCMake",
+    configure_make(
+        name = "_build_{}".format(name),
+        configure_command = "bootstrap",
+        configure_options = ["--", "-DCMAKE_MAKE_PROGRAM=$$MAKE$$"],
+        # On macOS at least -DDEBUG gets set for a fastbuild
+        copts = ["-UDEBUG"],
+        lib_source = srcs,
+        out_binaries = select({
+            "@platforms//os:windows": ["cmake.exe"],
+            "//conditions:default": ["cmake"],
+        }),
+        out_static_libs = [],
+        out_shared_libs = [],
+        tags = tags,
+        **kwargs
     )
 
-cmake_tool = rule(
-    doc = "Rule for building CMake. Invokes bootstrap script and make install.",
-    attrs = FOREIGN_CC_BUILT_TOOLS_ATTRS,
-    host_fragments = FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS,
-    output_to_genfiles = True,
-    implementation = _cmake_tool_impl,
-    toolchains = [
-        str(Label("//foreign_cc/private/framework:shell_toolchain")),
-        "@bazel_tools//tools/cpp:toolchain_type",
-    ],
-)
+    native.filegroup(
+        name = name,
+        srcs = ["_build_{}".format(name)],
+        output_group = "gen_dir",
+        tags = tags,
+    )

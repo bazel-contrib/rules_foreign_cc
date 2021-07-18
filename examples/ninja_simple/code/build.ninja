@@ -4,16 +4,17 @@ ninja_required_version = 1.3
 
 # Variables
 
-builddir = rules_foreign_cc_build
-rm       = rm -fr
-cxx      = clang
-ar       = ar
-lib      = $builddir/liba.a
+builddir       = rules_foreign_cc_build
+rm             = rm -fr
+cxx            = $$CLANG_WRAPPER
+ar             = ar
+lib            = $builddir/liba.a
+cxx_flags      = $$CXX_FLAGS
 
 # Rules
 
 rule compile
-  command = $cxx -c $in -fPIC -o $out
+  command = $cxx -c $in $cxx_flags -o $out
   description = Building C file $in
 
 rule ar

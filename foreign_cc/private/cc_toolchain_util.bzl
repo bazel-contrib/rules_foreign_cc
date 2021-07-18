@@ -407,9 +407,13 @@ def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     if new_text == text:
         new_text = _prefix(text, workspace_name + "/", root_str)
 
+    # Check to see if the text is already absolute on a unix and windows system
+    is_already_absolute = text.startswith("/") or \
+                          (len(text) > 2 and text[0].isalpha() and text[1] == ":")
+
     # absolutize relative by adding our working directory
     # this works because we ru on windows under msys now
-    if force and new_text == text and not text.startswith("/"):
+    if force and new_text == text and not is_already_absolute:
         new_text = root_str + "/" + text
 
     return new_text

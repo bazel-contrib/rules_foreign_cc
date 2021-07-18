@@ -66,6 +66,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
+    "copts": attr.string_list(
+        doc = "Optional. Add these options to the compile flags passed to the foreign build system. The flags only take affect for compiling this target, not its dependencies.",
+        mandatory = False,
+        default = [],
+    ),
     "data": attr.label_list(
         doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
         mandatory = False,
@@ -264,7 +269,7 @@ def _escape_dquote(text):
     """
     return text.replace('"', r'\"\\\\\\"')
 
-def _env_prelude(ctx, lib_name, data_dependencies, target_root):
+def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     """Generate a bash snippet containing environment variable definitions
 
     Args:
@@ -374,7 +379,7 @@ def cc_external_rule_impl(ctx, attrs):
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
 
-    env_prelude = _env_prelude(ctx, lib_name, data_dependencies, target_root)
+    env_prelude = get_env_prelude(ctx, lib_name, data_dependencies, target_root)
 
     postfix_script = [attrs.postfix_script]
     if not attrs.postfix_script:
