@@ -893,7 +893,7 @@ def _expand_command_path(binary, path, command):
     else:
         return command
 
-def expand_locations(ctx, environ, data):
+def expand_locations(ctx, expandable, data):
     """Expand locations on a dictionary while ensuring `execpath` is always set to an absolute path
 
     This function is not expected to be passed to any action.env argument but instead rendered into
@@ -901,17 +901,35 @@ def expand_locations(ctx, environ, data):
 
     Args:
         ctx (ctx): The rule's context object
-        environ (dict): A dictionary of environment variables
+        expandable (dict, list, str): Variables to expand, can be a variety of different types
         data (list): A list of targets
 
     Returns:
         dict: An expanded dict of environment variables
     """
-    expanded_env = dict()
-    for key, value in environ.items():
+    if type(expandable) == type(dict()):
+        expanded_env = dict()
+        for key, value in expandable.items():
+            # If `EXT_BUILD_ROOT` exists in the string, we assume the user has added it themselves
+            if "EXT_BUILD_ROOT" in value:
+                expanded_env.update({key: ctx.expand_location(value, data)})
+            else:
+                expanded_env.update({key: ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data)})
+        return expanded_env
+    elif type(expandable) == type(list()):
+        expanded_vars = list()
+        for value in expandable:
+            # If `EXT_BUILD_ROOT` exists in the string, we assume the user has added it themselves
+            if "EXT_BUILD_ROOT" in value:
+                expanded_vars.append(ctx.expand_location(value, data))
+            else:
+                expanded_vars.append(ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data))
+        return expanded_vars
+    elif type(expandable) == type(""):
         # If `EXT_BUILD_ROOT` exists in the string, we assume the user has added it themselves
-        if "EXT_BUILD_ROOT" in value:
-            expanded_env.update({key: ctx.expand_location(value, data)})
+        if "EXT_BUILD_ROOT" in expandable:
+            return ctx.expand_location(expandable, data)
         else:
-            expanded_env.update({key: ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data)})
-    return expanded_env
+            return ctx.expand_location(expandable.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data)
+    else:
+        fail("Unsupported type: {}".format(type(expandable)))

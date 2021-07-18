@@ -76,8 +76,8 @@ def _create_configure_script(configureParameters):
     user_env = expand_locations(ctx, ctx.attr.env, data)
 
     make_commands = []
-    prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
-    configure_prefix = "{} ".format(ctx.expand_location(ctx.attr.configure_prefix, data)) if ctx.attr.configure_prefix else ""
+    prefix = "{} ".format(expand_locations(ctx, attrs.tool_prefix, data)) if attrs.tool_prefix else ""
+    configure_prefix = "{} ".format(expand_locations(ctx, ctx.attr.configure_prefix, data)) if ctx.attr.configure_prefix else ""
 
     for target in ctx.attr.targets:
         # Configure will have generated sources into `$BUILD_TMPDIR` so make sure we `cd` there
