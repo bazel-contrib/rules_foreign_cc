@@ -90,12 +90,12 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = (
             "Optional dependencies to be copied into the directory structure. " +
             "Typically those directly required for the external building of the library/binaries. " +
-            "(i.e. those that the external buidl system will be looking for and paths to which are " +
+            "(i.e. those that the external build system will be looking for and paths to which are " +
             "provided by the calling rule)"
         ),
         mandatory = False,
-        allow_files = True,
         default = [],
+        providers = [CcInfo],
     ),
     "env": attr.string_dict(
         doc = (
