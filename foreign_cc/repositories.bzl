@@ -9,7 +9,7 @@ load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        cmake_version = "3.20.5",
+        cmake_version = "3.21.0",
         make_version = "4.3",
         ninja_version = "1.10.2",
         register_preinstalled_tools = True,
@@ -49,6 +49,12 @@ def rules_foreign_cc_dependencies(
 
     if register_default_tools:
         prebuilt_toolchains(cmake_version, ninja_version)
+
+        # `nmake` is a unique toolchin in that it's non-hermetic since it relies on the
+        # host environment but there does not appear to be any way to get `nmake` outside
+        # of installing Visual Studio. It is considered a default toolchain to add better
+        # support for MSVC Windows platforms.
+        native.register_toolchains(str(Label("//toolchains:preinstalled_nmake_toolchain")))
 
     if register_built_tools:
         built_toolchains(

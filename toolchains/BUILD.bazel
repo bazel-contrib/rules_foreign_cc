@@ -68,6 +68,21 @@ native_tool_toolchain(
     }),
 )
 
+toolchain(
+    name = "preinstalled_nmake_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:windows",
+        "@bazel_tools//tools/cpp:msvc",
+    ],
+    toolchain = ":preinstalled_nmake",
+    toolchain_type = ":make_toolchain",
+)
+
+native_tool_toolchain(
+    name = "preinstalled_nmake",
+    path = "nmake.exe",
+)
+
 make_tool(
     name = "make_tool",
     srcs = "@gnumake_src//:all_srcs",
