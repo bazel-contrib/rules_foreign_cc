@@ -914,7 +914,7 @@ def expand_locations(ctx, expandable, data):
             if "EXT_BUILD_ROOT" in value:
                 expanded_env.update({key: ctx.expand_location(value, data)})
             else:
-                expanded_env.update({key: ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data)})
+                expanded_env.update({key: ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data)})
         return expanded_env
     elif type(expandable) == type(list()):
         expanded_vars = list()
@@ -923,13 +923,13 @@ def expand_locations(ctx, expandable, data):
             if "EXT_BUILD_ROOT" in value:
                 expanded_vars.append(ctx.expand_location(value, data))
             else:
-                expanded_vars.append(ctx.expand_location(value.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data))
+                expanded_vars.append(ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data))
         return expanded_vars
     elif type(expandable) == type(""):
         # If `EXT_BUILD_ROOT` exists in the string, we assume the user has added it themselves
         if "EXT_BUILD_ROOT" in expandable:
             return ctx.expand_location(expandable, data)
         else:
-            return ctx.expand_location(expandable.replace("$(execpath ", "$EXT_BUILD_ROOT/$(execpath "), data)
+            return ctx.expand_location(expandable.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data)
     else:
         fail("Unsupported type: {}".format(type(expandable)))
