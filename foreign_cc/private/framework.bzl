@@ -66,6 +66,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
+    "copts": attr.string_list(
+        doc = "Optional. Add these options to the compile flags passed to the foreign build system. The flags only take affect for compiling this target, not its dependencies.",
+        mandatory = False,
+        default = [],
+    ),
     "data": attr.label_list(
         doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
         mandatory = False,
@@ -85,12 +90,12 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = (
             "Optional dependencies to be copied into the directory structure. " +
             "Typically those directly required for the external building of the library/binaries. " +
-            "(i.e. those that the external buidl system will be looking for and paths to which are " +
+            "(i.e. those that the external build system will be looking for and paths to which are " +
             "provided by the calling rule)"
         ),
         mandatory = False,
-        allow_files = True,
         default = [],
+        providers = [CcInfo],
     ),
     "env": attr.string_dict(
         doc = (
@@ -264,7 +269,7 @@ def _escape_dquote(text):
     """
     return text.replace('"', r'\"\\\\\\"')
 
-def _env_prelude(ctx, lib_name, data_dependencies, target_root):
+def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     """Generate a bash snippet containing environment variable definitions
 
     Args:
@@ -284,26 +289,20 @@ def _env_prelude(ctx, lib_name, data_dependencies, target_root):
         "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
     ]
 
+    if os_name(ctx) == "macos":
+        env_snippet.extend(["export DEVELOPER_DIR=\"$(xcode-select --print-path)\"", "export SDKROOT=\"$(xcrun --sdk macosx --show-sdk-path)\""])
+
     env = dict()
 
     # Add all environment variables from the cc_toolchain
     cc_env = _correct_path_variable(get_env_vars(ctx))
     env.update(cc_env)
 
-    # Because windows will be using `use_default_shell_env`, any environment variables
-    # set on the build action will be ignored. To solve for this, we explicitly set
-    # environment variables to tools for the current cc_toolchain in use.
-    if "win" in os_name(ctx):
-        env_snippet.extend(["export {}=\"{}\"".format(key, cc_env[key]) for key in cc_env])
-
-    # Capture `action_env` and allow it to take precedence over cc env
-    env.update(ctx.configuration.default_shell_env)
-
     # Add all user defined variables
-    attr_env = expand_locations(ctx, ctx.attr.env, data_dependencies)
-    env_snippet.extend(["export {}=\"{}\"".format(key, _escape_dquote(val)) for key, val in attr_env.items()])
+    env.update(expand_locations(ctx, ctx.attr.env, data_dependencies))
+    env_snippet.extend(["export {}=\"{}\"".format(key, _escape_dquote(val)) for key, val in env.items()])
 
-    return env_snippet, env
+    return env_snippet
 
 def cc_external_rule_impl(ctx, attrs):
     """Framework function for performing external C/C++ building.
@@ -380,7 +379,7 @@ def cc_external_rule_impl(ctx, attrs):
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
 
-    env_prelude, env = _env_prelude(ctx, lib_name, data_dependencies, target_root)
+    env_prelude = get_env_prelude(ctx, lib_name, data_dependencies, target_root)
 
     postfix_script = [attrs.postfix_script]
     if not attrs.postfix_script:
@@ -446,12 +445,7 @@ def cc_external_rule_impl(ctx, attrs):
         ),
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
-        # TODO: Windows is the only platform which requires this as there's no
-        # consistent way to get the path to the bash tools that are expected
-        # to be available by the foreign_cc framework.
-        use_default_shell_env = "win" in os_name(ctx),
-        # this is ignored if use_default_shell_env = True
-        env = env,
+        use_default_shell_env = True,
         progress_message = "Foreign Cc - {configure_name}: Building {target_name}".format(
             configure_name = attrs.configure_name,
             target_name = ctx.attr.name,

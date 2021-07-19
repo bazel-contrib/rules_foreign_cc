@@ -3,6 +3,7 @@
 load(
     "//foreign_cc/built_tools/private:built_tools_framework.bzl",
     "FOREIGN_CC_BUILT_TOOLS_ATTRS",
+    "FOREIGN_CC_BUILT_TOOLS_FRAGMENTS",
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
     "built_tool_rule_impl",
 )
@@ -28,6 +29,7 @@ ninja_tool = rule(
     doc = "Rule for building Ninja. Invokes configure script.",
     attrs = FOREIGN_CC_BUILT_TOOLS_ATTRS,
     host_fragments = FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS,
+    fragments = FOREIGN_CC_BUILT_TOOLS_FRAGMENTS,
     output_to_genfiles = True,
     implementation = _ninja_tool_impl,
     toolchains = [

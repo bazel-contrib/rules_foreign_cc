@@ -101,13 +101,13 @@ tasks:
       - "//:third_party_examples_windows_tests"
       # TODO: Support all targets on windows
       - "-//cmake_android/..."
+      # TODO: Fix `error C2118: negative subscript`
       - "-//cmake_defines/..."
-      - "-//cmake_hello_world_lib/..."
+      # TODO: Fix linker error
       - "-//cmake_synthetic/..."
-      - "-//cmake_with_bazel_transitive/..."
-      - "-//cmake_working_dir/..."
-      - "-//configure_with_bazel_transitive/..."
-      - "-//make_simple/..."
+      # TODO: Fix `error LNK2019: unresolved external symbol hello_func`
+      - "-//cmake_hello_world_lib/shared/..."
+      # TODO: Fix `CreateProcess failed: The system cannot find the file specified.`
       - "-//ninja_simple/..."
     build_targets: *windows_targets
     test_targets: *windows_targets
@@ -170,7 +170,7 @@ tasks:
   min_supported_version:
     name: "Minimum Supported Version"
     bazel: "3.7.0"
-    platform: ubuntu1604
+    platform: ubuntu1804
     build_targets:
       - "//..."
     test_targets:
@@ -178,7 +178,7 @@ tasks:
   min_supported_version_examples:
     name: "Minimum Supported Version Examples"
     bazel: "3.7.0"
-    platform: ubuntu1604
+    platform: ubuntu1804
     working_directory: examples
     min_supported_targets: &min_supported_targets
       - "//..."
