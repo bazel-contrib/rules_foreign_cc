@@ -1,6 +1,7 @@
 #include "ares.h"
 
 #include <iostream>
+#include <stdexcept>
 #include <string.h>
 
 int main(int argc, char* argv[])
