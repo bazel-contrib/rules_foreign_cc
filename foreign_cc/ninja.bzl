@@ -10,6 +10,7 @@ load(
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
+    "expand_locations",
 )
 load("//toolchains/native_tools:tool_access.bzl", "get_ninja_data")
 
@@ -65,7 +66,7 @@ def _create_ninja_script(configureParameters):
     if ctx.attr.directory:
         directory = ctx.expand_location(ctx.attr.directory, data)
 
-    prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
+    prefix = "{} ".format(expand_locations(ctx, attrs.tool_prefix, data)) if attrs.tool_prefix else ""
 
     # Generate commands for all the targets, ensuring there's
     # always at least 1 call to the default target.

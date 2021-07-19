@@ -15,6 +15,7 @@ load(
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
+    "expand_locations",
 )
 load("//foreign_cc/private:make_script.bzl", "create_make_script")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
@@ -52,7 +53,7 @@ def _create_make_script(configureParameters):
     ])
 
     make_commands = []
-    prefix = "{} ".format(ctx.expand_location(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
+    prefix = "{} ".format(expand_locations(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
     for target in ctx.attr.targets:
         make_commands.append("{prefix}{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
             prefix = prefix,

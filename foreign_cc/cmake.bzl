@@ -214,7 +214,7 @@ def _create_configure_script(configureParameters):
 
     # Generate a list of arguments for cmake's build command
     build_args = " ".join([
-        ctx.expand_location(arg, data)
+        expand_locations(ctx, arg, data)
         for arg in ctx.attr.build_args
     ])
 
@@ -238,7 +238,7 @@ def _create_configure_script(configureParameters):
     if ctx.attr.install:
         # Generate a list of arguments for cmake's install command
         install_args = " ".join([
-            ctx.expand_location(arg, data)
+            expand_locations(ctx, arg, data)
             for arg in ctx.attr.install_args
         ])
 
