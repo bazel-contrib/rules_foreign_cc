@@ -15,7 +15,7 @@ test_suite(
         "//libjpeg_turbo:libjpeg_turbo_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
-        "//openssl:openssl_build_test",
+        "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
         "//sqlite:sqlite_build_test",
@@ -40,7 +40,7 @@ test_suite(
         "//libjpeg_turbo:libjpeg_turbo_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
-        "//openssl:openssl_build_test",
+        "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
         # Missing a new enough automake to build
@@ -64,7 +64,7 @@ test_suite(
         "//libjpeg_turbo:libjpeg_turbo_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
-        "//openssl:openssl_build_test",
+        "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
         "//sqlite:sqlite_build_test",
@@ -77,7 +77,7 @@ test_suite(
     tags = ["manual"],
     tests = [
         "//curl:curl_build_test",
-        "//openssl:openssl_build_test",
+        "//openssl:openssl_test_suite",
         # TODO: Add more windows tests
     ],
 )
