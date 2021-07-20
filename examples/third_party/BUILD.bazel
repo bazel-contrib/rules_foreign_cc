@@ -8,7 +8,7 @@ test_suite(
         "//apr_util:apr_util_build_test",
         "//bison:bison_build_test",
         "//cares:test_c_ares",
-        "//curl:curl_build_test",
+        "//curl:curl_test_suite",
         "//gn:gn_launch_test",
         "//gperftools:test",
         "//libgit2:libgit2_build_test",
@@ -32,7 +32,7 @@ test_suite(
         # Missing a new enough m4 to build
         # "//bison:bison_build_test",
         "//cares:test_c_ares",
-        "//curl:curl_build_test",
+        "//curl:curl_test_suite",
         # Attempts to access git sha during configure of build so fails
         # "//gn:gn_launch_test",
         "//gperftools:test",
@@ -56,7 +56,7 @@ test_suite(
         "//apr:apr_build_test",
         "//apr_util:apr_util_build_test",
         "//cares:test_c_ares",
-        "//curl:curl_build_test",
+        "//curl:curl_test_suite",
         "//gn:gn_launch_test",
         "//gperftools:test",
         "//iconv:iconv_build_test",
@@ -76,7 +76,7 @@ test_suite(
     name = "windows_tests",
     tags = ["manual"],
     tests = [
-        "//curl:curl_build_test",
+        "//curl:curl_test_suite",
         "//openssl:openssl_test_suite",
         # TODO: Add more windows tests
     ],
