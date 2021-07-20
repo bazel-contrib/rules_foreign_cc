@@ -11,6 +11,7 @@ load(
     "//foreign_cc/private/framework:helpers.bzl",
     "convert_shell_script",
     "create_function",
+    "escape_dquote_bash",
     "script_extension",
     "shebang",
 )
@@ -258,17 +259,6 @@ dependencies.""",
     ),
 )
 
-def _escape_dquote(text):
-    """Escape double quotes for use in bash variable definitions
-
-    Args:
-        text (str): The text to escape
-
-    Returns:
-        str: text with escaped `"` characters.
-    """
-    return text.replace('"', r'\"\\\\\\"')
-
 def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     """Generate a bash snippet containing environment variable definitions
 
@@ -300,7 +290,7 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
 
     # Add all user defined variables
     env.update(expand_locations(ctx, ctx.attr.env, data_dependencies))
-    env_snippet.extend(["export {}=\"{}\"".format(key, _escape_dquote(val)) for key, val in env.items()])
+    env_snippet.extend(["export {}=\"{}\"".format(key, escape_dquote_bash(val)) for key, val in env.items()])
 
     return env_snippet
 
