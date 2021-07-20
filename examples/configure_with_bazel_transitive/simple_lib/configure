@@ -1,11 +1,11 @@
 #!/bin/bash
 echo "# simple" > Makefile
 
-echo "CC = \"${CC}\"" > Makefile
+echo "CC = ${CC}" > Makefile
 
 
 if [[ "$(uname)" == *"NT"* ]]; then
-    echo "AR = \"${AR}\"" >>  Makefile
+    echo "AR = ${AR}" >>  Makefile
     echo "OBJECT = simple.obj" >> Makefile
     echo "OUTPUT = simple.lib" >> Makefile
     echo "BUILT_WITH_BAZEL = $EXT_BUILD_DEPS/lib/built_with_bazel.lib" >> Makefile

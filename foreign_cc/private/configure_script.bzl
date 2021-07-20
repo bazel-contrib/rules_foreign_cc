@@ -194,10 +194,15 @@ def _get_configure_variables(workspace_name, tools, flags, user_env_vars):
     for tool in _CONFIGURE_TOOLS:
         tool_value = getattr(tools, _CONFIGURE_TOOLS[tool])
         if tool_value:
-            # Force absolutize of tool paths, which may relative to the workspace
-            # dir (hermetic toolchains) be provided in project repositories
-            # (i.e hermetic toolchains).
-            tools_dict[tool] = [_absolutize(workspace_name, tool_value, True)]
+            # Force absolutize of tool paths, which may relative to the exec root (e.g. hermetic toolchains built from source)
+            tool_value_absolute = _absolutize(workspace_name, tool_value, True)
+
+            # If the tool path contains whitespaces (e.g. C:\Program Files\...),
+            # MSYS2 requires that the path is wrapped in double quotes
+            if " " in tool_value_absolute:
+                tool_value_absolute = "\\\"" + tool_value_absolute + "\\\""
+
+            tools_dict[tool] = [tool_value_absolute]
 
     # Replace tools paths if user passed other values
     for user_var in user_env_vars:
