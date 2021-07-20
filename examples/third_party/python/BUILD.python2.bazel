@@ -14,7 +14,6 @@ configure_make(
         "//conditions:default": [],
     }),
     configure_options = [
-        "CFLAGS='-Dredacted=\"redacted\"'",
         "--with-openssl=$EXT_BUILD_DEPS/openssl",
         "--with-zlib=$EXT_BUILD_DEPS/zlib",
         "--enable-optimizations",

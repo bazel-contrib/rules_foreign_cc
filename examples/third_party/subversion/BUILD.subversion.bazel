@@ -1,15 +1,9 @@
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
 
 filegroup(
     name = "all_srcs",
     srcs = glob(["**"]),
 )
-
-CONFIGURE_ENV_VARS = {
-    "CFLAGS": "-Dredacted='\\\"redacted\\\"'",
-    "CXXFLAGS": "-Dredacted='\\\"redacted\\\"'",
-}
 
 configure_make(
     name = "subversion",
@@ -25,11 +19,8 @@ configure_make(
         "--disable-nls",
     ],
     env = select({
-        "@platforms//os:macos": dicts.add(
-            {"AR": ""},
-            CONFIGURE_ENV_VARS,
-        ),
-        "//conditions:default": CONFIGURE_ENV_VARS,
+        "@platforms//os:macos": {"AR": ""},
+        "//conditions:default": None,
     }),
     lib_source = ":all_srcs",
     out_binaries = [

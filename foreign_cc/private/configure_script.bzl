@@ -1,4 +1,5 @@
 # buildifier: disable=module-docstring
+load("//foreign_cc/private/framework:helpers.bzl", "escape_dquote_bash")
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 load(":framework.bzl", "get_foreign_cc_dep")
 load(":make_script.bzl", "pkgconfig_script")
@@ -46,13 +47,13 @@ def create_configure_script(
         # We explicitly invoke configure later.
         autogen_env_vars = _get_autogen_env_vars(env_vars)
         script.append("{env_vars} \"{root_dir}/{autogen}\" {options}".format(
-            env_vars = " ".join(["{}=\"{}\"".format(key, value) for (key, value) in autogen_env_vars.items()]),
+            env_vars = " ".join(["{}=\"{}\"".format(key, escape_dquote_bash(value)) for (key, value) in autogen_env_vars.items()]),
             root_dir = root_path,
             autogen = autogen_command,
             options = " ".join(autogen_options),
         ).lstrip())
 
-    env_vars_string = " ".join(["{}=\"{}\"".format(key, value) for (key, value) in env_vars.items()])
+    env_vars_string = " ".join(["{}=\"{}\"".format(key, escape_dquote_bash(value)) for (key, value) in env_vars.items()])
 
     if autoconf:
         script.append("{env_vars} {autoconf} {options}".format(
@@ -218,4 +219,4 @@ def _absolutize(workspace_name, text, force = False):
     return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
 
 def _join_flags_list(workspace_name, flags):
-    return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+    return " ".join([escape_dquote_bash(_absolutize(workspace_name, flag)) for flag in flags])
