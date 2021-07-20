@@ -389,7 +389,6 @@ def _convert_flags(compiler, flags):
 
     Returns:
         list: The converted flags
-
     """
     if compiler == "msvc-cl":
         return [flag.replace("/", "-") if flag.startswith("/") else flag for flag in flags]
