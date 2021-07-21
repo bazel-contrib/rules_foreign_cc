@@ -16,5 +16,4 @@ def preinstalled_toolchains():
         str(Label("//toolchains:preinstalled_cmake_toolchain")),
         str(Label("//toolchains:preinstalled_make_toolchain")),
         str(Label("//toolchains:preinstalled_ninja_toolchain")),
-        str(Label("//toolchains:preinstalled_nmake_toolchain")),
     )

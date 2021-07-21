@@ -18,6 +18,7 @@ load(
     "expand_locations",
 )
 load("//foreign_cc/private:make_script.bzl", "create_make_script")
+load("//foreign_cc/private:transitions.bzl", _make_variant = "make_variant")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
 def _make(ctx):
@@ -106,3 +107,18 @@ make = rule(
     # version is updated to a release of Bazel containing the new default for this setting.
     incompatible_use_toolchain_transition = True,
 )
+
+def make_variant(name, toolchain, **kwargs):
+    """ Wrapper macro around the make() rule to force usage of the given make variant toolchain.
+
+    Args:
+        name: The target name
+        toolchain: The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain
+        **kwargs: Remaining keyword arguments
+    """
+    _make_variant(
+        name = name,
+        rule = make,
+        toolchain = toolchain,
+        **kwargs
+    )
