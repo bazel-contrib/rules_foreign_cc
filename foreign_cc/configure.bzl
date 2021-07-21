@@ -19,10 +19,10 @@ load(
     "expand_locations",
 )
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
-load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
+load("//toolchains/native_tools:tool_access.bzl", "get_make_data", "get_nmake_data")
 
-def _configure_make(ctx):
-    make_data = get_make_data(ctx)
+def _configure_make(ctx, tool_name):
+    make_data = get_make_data(ctx) if tool_name == "make" else get_nmake_data(ctx)
 
     tools_deps = ctx.attr.tools_deps + make_data.deps
 
@@ -52,6 +52,12 @@ def _configure_make(ctx):
         make_path = make_data.path,
     )
     return cc_external_rule_impl(ctx, attrs)
+
+def _configure_gnumake(ctx):
+    return _configure_make(ctx, "make")
+
+def _configure_nmake(ctx):
+    return _configure_make(ctx, "nmake")
 
 def _create_configure_script(configureParameters):
     ctx = configureParameters.ctx
@@ -220,9 +226,31 @@ configure_make = rule(
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
-    implementation = _configure_make,
+    implementation = _configure_gnumake,
     toolchains = [
         "@rules_foreign_cc//toolchains:make_toolchain",
+        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
+        "@bazel_tools//tools/cpp:toolchain_type",
+    ],
+    # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
+    # version is updated to a release of Bazel containing the new default for this setting.
+    incompatible_use_toolchain_transition = True,
+)
+
+configure_nmake = rule(
+    doc = (
+        "Rule for building external libraries with configure-make pattern. " +
+        "Some 'configure' script is invoked with --prefix=install (by default), " +
+        "and other parameters for compilation and linking, taken from Bazel C/C++ " +
+        "toolchain and passed dependencies. " +
+        "After configuration, MSVCs nmake is called."
+    ),
+    attrs = _attrs(),
+    fragments = CC_EXTERNAL_RULE_FRAGMENTS,
+    output_to_genfiles = True,
+    implementation = _configure_nmake,
+    toolchains = [
+        "@rules_foreign_cc//toolchains:nmake_toolchain",
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],

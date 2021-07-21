@@ -18,6 +18,10 @@ toolchain_type(
     name = "make_toolchain",
 )
 
+toolchain_type(
+    name = "nmake_toolchain",
+)
+
 toolchain(
     name = "built_cmake_toolchain",
     toolchain = ":built_cmake",
@@ -72,10 +76,9 @@ toolchain(
     name = "preinstalled_nmake_toolchain",
     exec_compatible_with = [
         "@platforms//os:windows",
-        "@bazel_tools//tools/cpp:msvc",
     ],
     toolchain = ":preinstalled_nmake",
-    toolchain_type = ":make_toolchain",
+    toolchain_type = ":nmake_toolchain",
 )
 
 native_tool_toolchain(
