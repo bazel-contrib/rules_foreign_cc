@@ -454,9 +454,9 @@ def cc_external_rule_impl(ctx, attrs):
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
         use_default_shell_env = True,
-        progress_message = "Foreign Cc - {configure_name}: Building {target_name}".format(
+        progress_message = "Foreign Cc - {configure_name}: Building {lib_name}".format(
             configure_name = attrs.configure_name,
-            target_name = ctx.attr.name,
+            lib_name = lib_name,
         ),
     )
 
