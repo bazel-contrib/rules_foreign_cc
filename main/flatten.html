@@ -152,11 +152,14 @@
 <li><a href="#boost_build">boost_build</a></li>
 <li><a href="#cmake">cmake</a></li>
 <li><a href="#cmake_tool">cmake_tool</a></li>
+<li><a href="#cmake_variant">cmake_variant</a></li>
 <li><a href="#configure_make">configure_make</a></li>
+<li><a href="#configure_make_variant">configure_make_variant</a></li>
 <li><a href="#foreignccartifactinfo">ForeignCcArtifactInfo</a></li>
 <li><a href="#foreignccdepsinfo">ForeignCcDepsInfo</a></li>
 <li><a href="#make">make</a></li>
 <li><a href="#make_tool">make_tool</a></li>
+<li><a href="#make_variant">make_variant</a></li>
 <li><a href="#native_tool_toolchain">native_tool_toolchain</a></li>
 <li><a href="#ninja">ninja</a></li>
 <li><a href="#ninja_tool">ninja_tool</a></li>
@@ -466,6 +469,42 @@ cmake_tool(<a href="#cmake_tool-name">name</a>, <a href="#cmake_tool-srcs">srcs<
 <tr><td align="left"><a id="cmake_tool-name"></a>name</td><td align="left"><p align="center"> - </p></td><td align="left">none</td></tr>
 <tr><td align="left"><a id="cmake_tool-srcs"></a>srcs</td><td align="left"><p align="center"> - </p></td><td align="left">none</td></tr>
 <tr><td align="left"><a id="cmake_tool-kwargs"></a>kwargs</td><td align="left"><p align="center"> - </p></td><td align="left">none</td></tr>
+</tbody></table>
+<p><a id="#cmake_variant"></a></p>
+<h2 id="cmake_variant"><a class="header" href="#cmake_variant">cmake_variant</a></h2>
+<pre>
+cmake_variant(<a href="#cmake_variant-name">name</a>, <a href="#cmake_variant-toolchain">toolchain</a>, <a href="#cmake_variant-kwargs">kwargs</a>)
+</pre>
+<p>Wrapper macro around the cmake() rule to force usage of the given make variant toolchain.</p>
+<p><strong>PARAMETERS</strong></p>
+<table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Default Value</th></tr></thead><tbody>
+<tr><td align="left"><a id="cmake_variant-name"></a>name</td><td align="left">The target name</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="cmake_variant-toolchain"></a>toolchain</td><td align="left">The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="cmake_variant-kwargs"></a>kwargs</td><td align="left">Remaining keyword arguments</td><td align="left">none</td></tr>
+</tbody></table>
+<p><a id="#configure_make_variant"></a></p>
+<h2 id="configure_make_variant"><a class="header" href="#configure_make_variant">configure_make_variant</a></h2>
+<pre>
+configure_make_variant(<a href="#configure_make_variant-name">name</a>, <a href="#configure_make_variant-toolchain">toolchain</a>, <a href="#configure_make_variant-kwargs">kwargs</a>)
+</pre>
+<p>Wrapper macro around the configure_make() rule to force usage of the given make variant toolchain.</p>
+<p><strong>PARAMETERS</strong></p>
+<table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Default Value</th></tr></thead><tbody>
+<tr><td align="left"><a id="configure_make_variant-name"></a>name</td><td align="left">The target name</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="configure_make_variant-toolchain"></a>toolchain</td><td align="left">The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="configure_make_variant-kwargs"></a>kwargs</td><td align="left">Remaining keyword arguments</td><td align="left">none</td></tr>
+</tbody></table>
+<p><a id="#make_variant"></a></p>
+<h2 id="make_variant"><a class="header" href="#make_variant">make_variant</a></h2>
+<pre>
+make_variant(<a href="#make_variant-name">name</a>, <a href="#make_variant-toolchain">toolchain</a>, <a href="#make_variant-kwargs">kwargs</a>)
+</pre>
+<p>Wrapper macro around the make() rule to force usage of the given make variant toolchain.</p>
+<p><strong>PARAMETERS</strong></p>
+<table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Default Value</th></tr></thead><tbody>
+<tr><td align="left"><a id="make_variant-name"></a>name</td><td align="left">The target name</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="make_variant-toolchain"></a>toolchain</td><td align="left">The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="make_variant-kwargs"></a>kwargs</td><td align="left">Remaining keyword arguments</td><td align="left">none</td></tr>
 </tbody></table>
 <p><a id="#rules_foreign_cc_dependencies"></a></p>
 <h2 id="rules_foreign_cc_dependencies"><a class="header" href="#rules_foreign_cc_dependencies">rules_foreign_cc_dependencies</a></h2>
