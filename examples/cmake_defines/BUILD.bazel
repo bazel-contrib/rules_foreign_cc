@@ -26,6 +26,7 @@ filegroup(
         "CMakeLists.txt",
         "lib_a.cpp",
     ]],
+    visibility = ["//cmake_defines:__subpackages__"],
 )
 
 filegroup(
@@ -34,4 +35,5 @@ filegroup(
         "CMakeLists.txt",
         "lib_b.cpp",
     ]],
+    visibility = ["//cmake_defines:__subpackages__"],
 )
