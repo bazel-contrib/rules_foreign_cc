@@ -18,6 +18,7 @@ load(
     "create_attrs",
     "expand_locations",
 )
+load("//foreign_cc/private:transitions.bzl", "make_variant")
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
@@ -230,3 +231,18 @@ configure_make = rule(
     # version is updated to a release of Bazel containing the new default for this setting.
     incompatible_use_toolchain_transition = True,
 )
+
+def configure_make_variant(name, toolchain, **kwargs):
+    """ Wrapper macro around the configure_make() rule to force usage of the given make variant toolchain.
+
+    Args:
+        name: The target name
+        toolchain: The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain
+        **kwargs: Remaining keyword arguments
+    """
+    make_variant(
+        name = name,
+        rule = configure_make,
+        toolchain = toolchain,
+        **kwargs
+    )
