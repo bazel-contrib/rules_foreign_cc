@@ -187,6 +187,18 @@ make(<a href="#make-name">name</a>, <a href="#make-additional_inputs">additional
 <tr><td align="left"><a id="make-tool_prefix"></a>tool_prefix</td><td align="left">A prefix for build commands</td><td align="left">String</td><td align="left">optional</td><td align="left">&quot;&quot;</td></tr>
 <tr><td align="left"><a id="make-tools_deps"></a>tools_deps</td><td align="left"><strong>deprecated</strong>: Please use the <code>build_data</code> attribute.</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a></td><td align="left">optional</td><td align="left">[]</td></tr>
 </tbody></table>
+<p><a id="#make_variant"></a></p>
+<h2 id="make_variant"><a class="header" href="#make_variant">make_variant</a></h2>
+<pre>
+make_variant(<a href="#make_variant-name">name</a>, <a href="#make_variant-toolchain">toolchain</a>, <a href="#make_variant-kwargs">kwargs</a>)
+</pre>
+<p>Wrapper macro around the make() rule to force usage of the given make variant toolchain.</p>
+<p><strong>PARAMETERS</strong></p>
+<table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Default Value</th></tr></thead><tbody>
+<tr><td align="left"><a id="make_variant-name"></a>name</td><td align="left">The target name</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="make_variant-toolchain"></a>toolchain</td><td align="left">The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="make_variant-kwargs"></a>kwargs</td><td align="left">Remaining keyword arguments</td><td align="left">none</td></tr>
+</tbody></table>
 
                     </main>
 

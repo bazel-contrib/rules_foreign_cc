@@ -150,7 +150,7 @@
                         <h1 id="rules-foreigncc"><a class="header" href="#rules-foreigncc">Rules ForeignCc</a></h1>
 <p>Rules for building C/C++ projects using foreign build systems (non Bazel) inside Bazel projects.</p>
 <table><thead><tr><th>Release</th><th>Commit</th><th>Status</th></tr></thead><tbody>
-<tr><td>main</td><td><a href="https://github.com/bazelbuild/rules_foreign_cc/commit/b51f25ee6289f72031ae203c5c6ad917fbb3d5d1">b51f25e</a></td><td><a href="https://buildkite.com/bazel/rules-foreign-cc/builds?branch=main"><img src="https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=main" alt="Build status" /></a></td></tr>
+<tr><td>main</td><td><a href="https://github.com/bazelbuild/rules_foreign_cc/commit/2e61d9588a36c1184eafde79f8307cdf95e6a469">2e61d95</a></td><td><a href="https://buildkite.com/bazel/rules-foreign-cc/builds?branch=main"><img src="https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=main" alt="Build status" /></a></td></tr>
 </tbody></table>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
 <p>Rules ForeignCc is designed to help users build projects that are not built by Bazel and also
@@ -168,8 +168,8 @@ http_archive(
     #       release on the releases page: https://github.com/bazelbuild/rules_foreign_cc/releases
     #
     # sha256 = &quot;...&quot;,
-    strip_prefix = &quot;rules_foreign_cc-b51f25ee6289f72031ae203c5c6ad917fbb3d5d1&quot;,
-    url = &quot;https://github.com/bazelbuild/rules_foreign_cc/archive/b51f25ee6289f72031ae203c5c6ad917fbb3d5d1.tar.gz&quot;,
+    strip_prefix = &quot;rules_foreign_cc-2e61d9588a36c1184eafde79f8307cdf95e6a469&quot;,
+    url = &quot;https://github.com/bazelbuild/rules_foreign_cc/archive/2e61d9588a36c1184eafde79f8307cdf95e6a469.tar.gz&quot;,
 )
 
 load(&quot;@rules_foreign_cc//foreign_cc:repositories.bzl&quot;, &quot;rules_foreign_cc_dependencies&quot;)
@@ -342,6 +342,18 @@ cmake(<a href="cmake.html#cmake-name">name</a>, <a href="cmake.html#cmake-additi
 <tr><td align="left"><a id="cmake-tools_deps"></a>tools_deps</td><td align="left"><strong>deprecated</strong>: Please use the <code>build_data</code> attribute.</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a></td><td align="left">optional</td><td align="left">[]</td></tr>
 <tr><td align="left"><a id="cmake-working_directory"></a>working_directory</td><td align="left">Working directory, with the main CMakeLists.txt (otherwise, the top directory of the lib_source label files is used.)</td><td align="left">String</td><td align="left">optional</td><td align="left">&quot;&quot;</td></tr>
 </tbody></table>
+<p><a id="#cmake_variant"></a></p>
+<h2 id="cmake_variant"><a class="header" href="#cmake_variant">cmake_variant</a></h2>
+<pre>
+cmake_variant(<a href="cmake.html#cmake_variant-name">name</a>, <a href="cmake.html#cmake_variant-toolchain">toolchain</a>, <a href="cmake.html#cmake_variant-kwargs">kwargs</a>)
+</pre>
+<p>Wrapper macro around the cmake() rule to force usage of the given make variant toolchain.</p>
+<p><strong>PARAMETERS</strong></p>
+<table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Default Value</th></tr></thead><tbody>
+<tr><td align="left"><a id="cmake_variant-name"></a>name</td><td align="left">The target name</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="cmake_variant-toolchain"></a>toolchain</td><td align="left">The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="cmake_variant-kwargs"></a>kwargs</td><td align="left">Remaining keyword arguments</td><td align="left">none</td></tr>
+</tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><!-- Generated with Stardoc: http://skydoc.bazel.build -->
 <p>A rule for building projects using the <a href="https://www.gnu.org/prep/standards/html_node/Configuration.html">Configure+Make</a>
 build tool</p>
@@ -399,6 +411,18 @@ configure_make(<a href="configure_make.html#configure_make-name">name</a>, <a hr
 <tr><td align="left"><a id="configure_make-tool_prefix"></a>tool_prefix</td><td align="left">A prefix for build commands</td><td align="left">String</td><td align="left">optional</td><td align="left">&quot;&quot;</td></tr>
 <tr><td align="left"><a id="configure_make-tools_deps"></a>tools_deps</td><td align="left"><strong>deprecated</strong>: Please use the <code>build_data</code> attribute.</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a></td><td align="left">optional</td><td align="left">[]</td></tr>
 </tbody></table>
+<p><a id="#configure_make_variant"></a></p>
+<h2 id="configure_make_variant"><a class="header" href="#configure_make_variant">configure_make_variant</a></h2>
+<pre>
+configure_make_variant(<a href="configure_make.html#configure_make_variant-name">name</a>, <a href="configure_make.html#configure_make_variant-toolchain">toolchain</a>, <a href="configure_make.html#configure_make_variant-kwargs">kwargs</a>)
+</pre>
+<p>Wrapper macro around the configure_make() rule to force usage of the given make variant toolchain.</p>
+<p><strong>PARAMETERS</strong></p>
+<table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Default Value</th></tr></thead><tbody>
+<tr><td align="left"><a id="configure_make_variant-name"></a>name</td><td align="left">The target name</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="configure_make_variant-toolchain"></a>toolchain</td><td align="left">The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="configure_make_variant-kwargs"></a>kwargs</td><td align="left">Remaining keyword arguments</td><td align="left">none</td></tr>
+</tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><!-- Generated with Stardoc: http://skydoc.bazel.build -->
 <p>A rule for building projects using the <a href="https://www.gnu.org/software/make/">GNU Make</a> build tool</p>
 <p><a id="#make"></a></p>
@@ -439,6 +463,18 @@ make(<a href="make.html#make-name">name</a>, <a href="make.html#make-additional_
 <tr><td align="left"><a id="make-targets"></a>targets</td><td align="left">A list of targets within the foreign build system to produce. An empty string (<code>&quot;&quot;</code>) will result in a call to the underlying build system with no explicit target set</td><td align="left">List of strings</td><td align="left">optional</td><td align="left">[&quot;&quot;, &quot;install&quot;]</td></tr>
 <tr><td align="left"><a id="make-tool_prefix"></a>tool_prefix</td><td align="left">A prefix for build commands</td><td align="left">String</td><td align="left">optional</td><td align="left">&quot;&quot;</td></tr>
 <tr><td align="left"><a id="make-tools_deps"></a>tools_deps</td><td align="left"><strong>deprecated</strong>: Please use the <code>build_data</code> attribute.</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a></td><td align="left">optional</td><td align="left">[]</td></tr>
+</tbody></table>
+<p><a id="#make_variant"></a></p>
+<h2 id="make_variant"><a class="header" href="#make_variant">make_variant</a></h2>
+<pre>
+make_variant(<a href="make.html#make_variant-name">name</a>, <a href="make.html#make_variant-toolchain">toolchain</a>, <a href="make.html#make_variant-kwargs">kwargs</a>)
+</pre>
+<p>Wrapper macro around the make() rule to force usage of the given make variant toolchain.</p>
+<p><strong>PARAMETERS</strong></p>
+<table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Default Value</th></tr></thead><tbody>
+<tr><td align="left"><a id="make_variant-name"></a>name</td><td align="left">The target name</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="make_variant-toolchain"></a>toolchain</td><td align="left">The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="make_variant-kwargs"></a>kwargs</td><td align="left">Remaining keyword arguments</td><td align="left">none</td></tr>
 </tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><!-- Generated with Stardoc: http://skydoc.bazel.build -->
 <p>A rule for building projects using the <a href="https://ninja-build.org/">Ninja</a> build tool</p>

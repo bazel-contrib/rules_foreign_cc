@@ -300,6 +300,18 @@ cmake(<a href="#cmake-name">name</a>, <a href="#cmake-additional_inputs">additio
 <tr><td align="left"><a id="cmake-tools_deps"></a>tools_deps</td><td align="left"><strong>deprecated</strong>: Please use the <code>build_data</code> attribute.</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a></td><td align="left">optional</td><td align="left">[]</td></tr>
 <tr><td align="left"><a id="cmake-working_directory"></a>working_directory</td><td align="left">Working directory, with the main CMakeLists.txt (otherwise, the top directory of the lib_source label files is used.)</td><td align="left">String</td><td align="left">optional</td><td align="left">&quot;&quot;</td></tr>
 </tbody></table>
+<p><a id="#cmake_variant"></a></p>
+<h2 id="cmake_variant"><a class="header" href="#cmake_variant">cmake_variant</a></h2>
+<pre>
+cmake_variant(<a href="#cmake_variant-name">name</a>, <a href="#cmake_variant-toolchain">toolchain</a>, <a href="#cmake_variant-kwargs">kwargs</a>)
+</pre>
+<p>Wrapper macro around the cmake() rule to force usage of the given make variant toolchain.</p>
+<p><strong>PARAMETERS</strong></p>
+<table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Default Value</th></tr></thead><tbody>
+<tr><td align="left"><a id="cmake_variant-name"></a>name</td><td align="left">The target name</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="cmake_variant-toolchain"></a>toolchain</td><td align="left">The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</td><td align="left">none</td></tr>
+<tr><td align="left"><a id="cmake_variant-kwargs"></a>kwargs</td><td align="left">Remaining keyword arguments</td><td align="left">none</td></tr>
+</tbody></table>
 
                     </main>
 
