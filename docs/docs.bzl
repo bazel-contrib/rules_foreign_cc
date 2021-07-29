@@ -4,8 +4,11 @@ load(
     "@rules_foreign_cc//foreign_cc:defs.bzl",
     _boost_build = "boost_build",
     _cmake = "cmake",
+    _cmake_variant = "cmake_variant",
     _configure_make = "configure_make",
+    _configure_make_variant = "configure_make_variant",
     _make = "make",
+    _make_variant = "make_variant",
     _ninja = "ninja",
 )
 load(
@@ -27,9 +30,12 @@ load(
 boost_build = _boost_build
 cmake = _cmake
 cmake_tool = _cmake_tool
+cmake_variant = _cmake_variant
 configure_make = _configure_make
+configure_make_variant = _configure_make_variant
 make = _make
 make_tool = _make_tool
+make_variant = _make_variant
 native_tool_toolchain = _native_tool_toolchain
 ninja = _ninja
 ninja_tool = _ninja_tool
