@@ -76,6 +76,7 @@ test_suite(
     name = "windows_tests",
     tags = ["manual"],
     tests = [
+        "//apr:apr_build_test",
         "//curl:curl_test_suite",
         "//openssl:openssl_test_suite",
         # TODO: Add more windows tests
