@@ -592,13 +592,18 @@ def _print_env():
         "##echo## \"__________________________\"",
     ]
 
+def _normalize_path(path):
+    # Change Windows style paths to Unix style. E.g. change "C:" to "/c"
+    if path[0].isalpha() and path[1] == ":":
+        path = path.replace(path[0:2], "/" + path[0].lower())
+
+    return path.replace("\\", "/").replace(";", ":")
+
 def _correct_path_variable(env):
     value = env.get("PATH", "")
     if not value:
         return env
-    value = env.get("PATH", "").replace("C:\\", "/c/")
-    value = value.replace("\\", "/")
-    value = value.replace(";", ":")
+    value = _normalize_path(env.get("PATH", ""))
     env["PATH"] = "$PATH:" + value
     return env
 
