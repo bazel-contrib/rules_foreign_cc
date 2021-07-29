@@ -135,6 +135,12 @@ def replace_var_ref(text, shell_context):
 
     return "".join(parts)
 
+def escape_dquote_bash(text):
+    """ Escape double quotes in flag lists for use in bash strings. """
+
+    # We use a starlark raw string to prevent the need to escape backslashes for starlark as well.
+    return text.replace('"', r'\\\\\"')
+
 # buildifier: disable=function-docstring
 def replace_exports(text, shell_context):
     text = text.strip(" ")
