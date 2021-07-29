@@ -289,6 +289,12 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     cc_env = _correct_path_variable(get_env_vars(ctx))
     env.update(cc_env)
 
+    cc_toolchain = find_cpp_toolchain(ctx)
+    if cc_toolchain.compiler == "msvc-cl":
+        # Prepend PATH environment variable with the path to the toolchain linker, which prevents MSYS using its linker (/usr/bin/link.exe) rather than the MSVC linker (both are named "link.exe")
+        linker_path = paths.dirname(cc_toolchain.ld_executable)
+        env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
+
     # Add all user defined variables
     user_vars = expand_locations(ctx, ctx.attr.env, data_dependencies)
     env.update(user_vars)
