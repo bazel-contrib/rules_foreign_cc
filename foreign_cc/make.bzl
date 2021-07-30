@@ -28,7 +28,7 @@ def _make(ctx):
 
     attrs = create_attrs(
         ctx.attr,
-        configure_name = "GNUMake",
+        configure_name = "Make",
         create_configure_script = _create_make_script,
         tools_deps = tools_deps,
         make_path = make_data.path,

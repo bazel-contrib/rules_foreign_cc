@@ -405,15 +405,23 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
         ["--debug-output", "-Wdev"],
         cmake_commands = [],
     )
-    expected = r"""cat > crosstool_bazel.cmake << EOF
-set(CMAKE_AR "/usr/bin/ar" CACHE FILEPATH "Archiver")
-set(CMAKE_ASM_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
-set(CMAKE_CXX_COMPILER "/usr/bin/gcc")
-set(CMAKE_CXX_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
-set(CMAKE_C_COMPILER "/usr/bin/gcc")
-set(CMAKE_C_FLAGS_INIT "-U_FORTIFY_SOURCE -fstack-protector -Wall")
-set(CMAKE_EXE_LINKER_FLAGS_INIT "-fuse-ld=gold -Wl -no-as-needed")
-set(CMAKE_SHARED_LINKER_FLAGS_INIT "-shared -fuse-ld=gold")
+    expected = r"""__var_CMAKE_AR="/usr/bin/ar"
+__var_CMAKE_ASM_FLAGS_INIT="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+__var_CMAKE_CXX_COMPILER="/usr/bin/gcc"
+__var_CMAKE_CXX_FLAGS_INIT="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+__var_CMAKE_C_COMPILER="/usr/bin/gcc"
+__var_CMAKE_C_FLAGS_INIT="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+__var_CMAKE_EXE_LINKER_FLAGS_INIT="-fuse-ld=gold -Wl -no-as-needed"
+__var_CMAKE_SHARED_LINKER_FLAGS_INIT="-shared -fuse-ld=gold"
+cat > crosstool_bazel.cmake << EOF
+set(CMAKE_AR "$$__var_CMAKE_AR$$" CACHE FILEPATH "Archiver")
+set(CMAKE_ASM_FLAGS_INIT "$$__var_CMAKE_ASM_FLAGS_INIT$$")
+set(CMAKE_CXX_COMPILER "$$__var_CMAKE_CXX_COMPILER$$")
+set(CMAKE_CXX_FLAGS_INIT "$$__var_CMAKE_CXX_FLAGS_INIT$$")
+set(CMAKE_C_COMPILER "$$__var_CMAKE_C_COMPILER$$")
+set(CMAKE_C_FLAGS_INIT "$$__var_CMAKE_C_FLAGS_INIT$$")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "$$__var_CMAKE_EXE_LINKER_FLAGS_INIT$$")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "$$__var_CMAKE_SHARED_LINKER_FLAGS_INIT$$")
 EOF
 
 ##enable_tracing##
@@ -537,19 +545,31 @@ def _create_cmake_script_toolchain_file_test(ctx):
         ["--debug-output", "-Wdev"],
         cmake_commands = [],
     )
-    expected = r"""cat > crosstool_bazel.cmake << EOF
-set(CMAKE_AR "/cxx_linker_static" CACHE FILEPATH "Archiver")
-set(CMAKE_ASM_FLAGS_INIT "assemble assemble-user")
-set(CMAKE_CXX_COMPILER "sink-cxx-value")
-set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "cxx-toolchain")
-set(CMAKE_CXX_FLAGS_INIT "--quoted=\"\\\\\\"abc def\"\\\\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain")
-set(CMAKE_CXX_LINK_EXECUTABLE "became")
-set(CMAKE_C_COMPILER "sink-cc-value")
-set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "cc-toolchain")
-set(CMAKE_C_FLAGS_INIT "-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag")
-set(CMAKE_EXE_LINKER_FLAGS_INIT "executable")
-set(CMAKE_SHARED_LINKER_FLAGS_INIT "shared1 shared2")
-set(CMAKE_SYSROOT "/abc/sysroot")
+    expected = r"""__var_CMAKE_AR="/cxx_linker_static"
+__var_CMAKE_ASM_FLAGS_INIT="assemble assemble-user"
+__var_CMAKE_CXX_COMPILER="sink-cxx-value"
+__var_CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN="cxx-toolchain"
+__var_CMAKE_CXX_FLAGS_INIT="--quoted=\\\\\\\"abc def\\\\\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain"
+__var_CMAKE_CXX_LINK_EXECUTABLE="became"
+__var_CMAKE_C_COMPILER="sink-cc-value"
+__var_CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN="cc-toolchain"
+__var_CMAKE_C_FLAGS_INIT="-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag"
+__var_CMAKE_EXE_LINKER_FLAGS_INIT="executable"
+__var_CMAKE_SHARED_LINKER_FLAGS_INIT="shared1 shared2"
+__var_CMAKE_SYSROOT="/abc/sysroot"
+cat > crosstool_bazel.cmake << EOF
+set(CMAKE_AR "$$__var_CMAKE_AR$$" CACHE FILEPATH "Archiver")
+set(CMAKE_ASM_FLAGS_INIT "$$__var_CMAKE_ASM_FLAGS_INIT$$")
+set(CMAKE_CXX_COMPILER "$$__var_CMAKE_CXX_COMPILER$$")
+set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "$$__var_CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN$$")
+set(CMAKE_CXX_FLAGS_INIT "$$__var_CMAKE_CXX_FLAGS_INIT$$")
+set(CMAKE_CXX_LINK_EXECUTABLE "$$__var_CMAKE_CXX_LINK_EXECUTABLE$$")
+set(CMAKE_C_COMPILER "$$__var_CMAKE_C_COMPILER$$")
+set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "$$__var_CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN$$")
+set(CMAKE_C_FLAGS_INIT "$$__var_CMAKE_C_FLAGS_INIT$$")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "$$__var_CMAKE_EXE_LINKER_FLAGS_INIT$$")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "$$__var_CMAKE_SHARED_LINKER_FLAGS_INIT$$")
+set(CMAKE_SYSROOT "$$__var_CMAKE_SYSROOT$$")
 EOF
 
 export CUSTOM_ENV="YES"
