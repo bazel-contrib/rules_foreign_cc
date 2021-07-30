@@ -54,7 +54,7 @@ def _create_make_script(configureParameters):
     ])
 
     make_commands = []
-    prefix = "{} ".format(expand_locations(attrs.tool_prefix, data)) if attrs.tool_prefix else ""
+    prefix = "{} ".format(expand_locations(ctx, attrs.tool_prefix, data)) if attrs.tool_prefix else ""
     for target in ctx.attr.targets:
         make_commands.append("{prefix}{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
             prefix = prefix,
