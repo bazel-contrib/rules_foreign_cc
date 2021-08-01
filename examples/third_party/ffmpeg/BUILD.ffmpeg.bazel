@@ -1,0 +1,44 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+
+filegroup(
+    name = "allsrcs",
+    srcs = glob(
+        ["**"],
+    ),
+)
+
+configure_make(
+    name = "ffmpeg",
+    out_binaries = [
+        "ffmpeg",
+    ],
+    configure_options = [
+        "--disable-avdevice",
+        "--disable-bzlib",
+        "--disable-decoders",
+        "--disable-doc",
+        "--disable-ffplay",
+        "--disable-ffprobe",
+        "--disable-network",
+        "--disable-yasm",
+        "--enable-pic",
+        "--enable-shared",
+        "--disable-static",
+        "--cc=$CC",
+        "--cxx=$CXX",
+        "--dep-cc=$CC",
+        "--host-cc=$CC",
+    ],
+    lib_source = ":allsrcs",
+    out_shared_libs = [
+        "libavfilter.so",
+        "libavformat.so",
+        "libavcodec.so",
+        "libavutil.so",
+    ],
+    targets = ["-j4", "install"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@zlib",
+    ],
+)
