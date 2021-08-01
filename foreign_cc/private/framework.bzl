@@ -18,8 +18,11 @@ load(
 load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
+    "absolutize_path_in_str",
     "create_linking_info",
     "get_env_vars",
+    "get_flags_info",
+    "get_tools_info",
     "targets_windows",
 )
 load(
@@ -211,6 +214,23 @@ CC_EXTERNAL_RULE_FRAGMENTS = [
     "cpp",
 ]
 
+_CC_TOOLS = {
+    "AR": "cxx_linker_static",
+    "CC": "cc",
+    "CXX": "cxx",
+    "LD": "cxx_linker_executable",
+}
+
+# See https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
+_CC_FLAGS = {
+    "ARFLAGS": "cxx_linker_static",
+    "ASFLAGS": "assemble",
+    "CFLAGS": "cc",
+    "CXXFLAGS": "cxx",
+    "LDFLAGS": "cxx_linker_executable",
+    # missing: cxx_linker_shared
+}
+
 # buildifier: disable=print
 def _print_deprecation_warnings(ctx):
     if ctx.attr.tools_deps:
@@ -259,7 +279,10 @@ dependencies.""",
     ),
 )
 
-def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
+def _absolutize(workspace_name, text, force = False):
+    return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
+
+def get_env_prelude(ctx, lib_name, data_dependencies, target_root, tools, flags):
     """Generate a bash snippet containing environment variable definitions
 
     Args:
@@ -267,10 +290,11 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
         lib_name (str): The name of the target being built
         data_dependencies (list): A list of targets representing dependencies
         target_root (str): The path from the root target's directory in the build output
+        tools (dict): The tools from the toolchain
+        flags (dict): The flags from the toolchain
 
     Returns:
-        tuple: A list of environment variables to define in the build script and a dict
-            of environment variables
+        tuple: A list of commands to export variables for the build script
     """
     env_snippet = [
         "export EXT_BUILD_ROOT=##pwd##",
@@ -305,6 +329,29 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     # Add all user defined variables
     user_vars = expand_locations(ctx, ctx.attr.env, data_dependencies)
     env.update(user_vars)
+
+    # Add commonly used toolchain variables e.g. CC, AR
+    tools_dict = {}
+    for tool in _CC_TOOLS:
+        tool_value = getattr(tools, _CC_TOOLS[tool])
+        if tool_value:
+            # Force absolutize of tool paths, which may relative to the exec root (e.g. hermetic toolchains built from source)
+            tool_value_absolute = _absolutize(ctx.workspace_name, tool_value, True)
+
+            # If the tool path contains whitespaces (e.g. C:\Program Files\...),
+            # MSYS2 requires that the path is wrapped in double quotes
+            if " " in tool_value_absolute:
+                tool_value_absolute = "\\\"" + tool_value_absolute + "\\\""
+
+            tools_dict[tool] = tool_value_absolute
+
+    # Add toolchain flags e.g. CPPFLAGS, CXXFLAGS etc.
+    for flag in _CC_FLAGS:
+        flag_value = getattr(flags, _CC_FLAGS[flag])
+        if flag_value:
+            tools_dict[flag] = " ".join(flag_value)
+
+    env.update(tools_dict)
 
     # If user has defined a PATH variable (e.g. PATH, LD_LIBRARY_PATH, CPATH) prepend it to the existing variable
     for user_var in user_vars:
@@ -390,7 +437,9 @@ def cc_external_rule_impl(ctx, attrs):
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
 
-    env_prelude = get_env_prelude(ctx, lib_name, data_dependencies, target_root)
+    tools = get_tools_info(ctx)
+    flags = get_flags_info(ctx)
+    env_prelude = get_env_prelude(ctx, lib_name, data_dependencies, target_root, tools, flags)
 
     postfix_script = [attrs.postfix_script]
     if not attrs.postfix_script:

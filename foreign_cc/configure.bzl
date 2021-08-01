@@ -5,7 +5,6 @@ build tool
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
-    "get_tools_info",
     "is_debug_mode",
 )
 load("//foreign_cc/private:configure_script.bzl", "create_configure_script")
@@ -61,7 +60,6 @@ def _create_configure_script(configureParameters):
 
     install_prefix = _get_install_prefix(ctx)
 
-    tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
 
     define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
@@ -93,7 +91,6 @@ def _create_configure_script(configureParameters):
         workspace_name = ctx.workspace_name,
         # as default, pass execution OS as target OS
         target_os = os_name(ctx),
-        tools = tools,
         flags = flags,
         root = detect_root(ctx.attr.lib_source),
         user_options = ctx.attr.configure_options,

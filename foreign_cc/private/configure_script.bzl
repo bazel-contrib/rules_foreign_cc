@@ -7,7 +7,6 @@ load(":make_script.bzl", "pkgconfig_script")
 def create_configure_script(
         workspace_name,
         target_os,
-        tools,
         flags,
         root,
         user_options,
@@ -71,7 +70,7 @@ def create_configure_script(
         ).lstrip())
 
     script.append("{env_vars} {prefix}\"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
-        env_vars = _get_env_vars(workspace_name, tools, flags, env_vars, deps, inputs),
+        env_vars = _get_env_vars(workspace_name, flags, env_vars, deps, inputs),
         prefix = configure_prefix,
         configure = configure_path,
         user_options = " ".join(user_options),
@@ -95,12 +94,11 @@ def _get_autogen_env_vars(autogen_env_vars):
 # buildifier: disable=function-docstring
 def _get_env_vars(
         workspace_name,
-        tools,
         flags,
         user_vars,
         deps,
         inputs):
-    vars = _get_configure_variables(workspace_name, tools, flags, user_vars)
+    vars = _get_configure_variables(workspace_name, flags, user_vars)
     deps_flags = _define_deps_flags(deps, inputs)
 
     if "LDFLAGS" in vars.keys():
@@ -169,48 +167,15 @@ _CONFIGURE_FLAGS = {
     # missing: cxx_linker_shared
 }
 
-_CONFIGURE_TOOLS = {
-    "AR": "cxx_linker_static",
-    "CC": "cc",
-    "CXX": "cxx",
-    # missing: cxx_linker_executable
-}
-
-def _get_configure_variables(workspace_name, tools, flags, user_env_vars):
+def _get_configure_variables(workspace_name, flags, user_env_vars):
     vars = {}
-
-    for flag in _CONFIGURE_FLAGS:
-        flag_value = getattr(flags, _CONFIGURE_FLAGS[flag])
-        if flag_value:
-            vars[flag] = flag_value
 
     # Merge flags lists
     for user_var in user_env_vars:
-        toolchain_val = vars.get(user_var)
-        if toolchain_val:
-            vars[user_var] = toolchain_val + [user_env_vars[user_var]]
-
-    tools_dict = {}
-    for tool in _CONFIGURE_TOOLS:
-        tool_value = getattr(tools, _CONFIGURE_TOOLS[tool])
-        if tool_value:
-            # Force absolutize of tool paths, which may relative to the exec root (e.g. hermetic toolchains built from source)
-            tool_value_absolute = _absolutize(workspace_name, tool_value, True)
-
-            # If the tool path contains whitespaces (e.g. C:\Program Files\...),
-            # MSYS2 requires that the path is wrapped in double quotes
-            if " " in tool_value_absolute:
-                tool_value_absolute = "\\\"" + tool_value_absolute + "\\\""
-
-            tools_dict[tool] = [tool_value_absolute]
-
-    # Replace tools paths if user passed other values
-    for user_var in user_env_vars:
-        toolchain_val = tools_dict.get(user_var)
-        if toolchain_val:
-            tools_dict[user_var] = [user_env_vars[user_var]]
-
-    vars.update(tools_dict)
+        if _CONFIGURE_FLAGS.get(user_var):
+            toolchain_val = getattr(flags, _CONFIGURE_FLAGS[user_var])
+            if toolchain_val:
+                vars[user_var] = toolchain_val + [user_env_vars[user_var]]
 
     # Put all other environment variables, passed by the user
     for user_var in user_env_vars:

@@ -9,9 +9,6 @@ filegroup(
 
 configure_make(
     name = "ffmpeg",
-    out_binaries = [
-        "ffmpeg",
-    ],
     configure_options = [
         "--disable-avdevice",
         "--disable-bzlib",
@@ -30,13 +27,19 @@ configure_make(
         "--host-cc=$CC",
     ],
     lib_source = ":allsrcs",
+    out_binaries = [
+        "ffmpeg",
+    ],
     out_shared_libs = [
         "libavfilter.so",
         "libavformat.so",
         "libavcodec.so",
         "libavutil.so",
     ],
-    targets = ["-j4", "install"],
+    targets = [
+        "-j4",
+        "install",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "@zlib",

@@ -4,6 +4,11 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:framework.bzl", "get_env_prelude", "wrap_outputs")
 load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script", "shebang")
+load(
+    "//foreign_cc/private:cc_toolchain_util.bzl",
+    "get_flags_info",
+    "get_tools_info",
+)
 
 # Common attributes for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_ATTRS = {
@@ -14,6 +19,17 @@ FOREIGN_CC_BUILT_TOOLS_ATTRS = {
     "srcs": attr.label(
         doc = "The target containing the build tool's sources",
         mandatory = True,
+    ),
+    "deps": attr.label_list(
+        doc = (
+            "Optional dependencies to be copied into the directory structure. " +
+            "Typically those directly required for the external building of the library/binaries. " +
+            "(i.e. those that the external build system will be looking for and paths to which are " +
+            "provided by the calling rule)"
+        ),
+        mandatory = False,
+        default = [],
+        providers = [CcInfo],
     ),
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
@@ -54,7 +70,9 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic):
 
     root = detect_root(ctx.attr.srcs)
     lib_name = ctx.attr.name
-    env_prelude = get_env_prelude(ctx, lib_name, [], "")
+    tools = get_tools_info(ctx)
+    flags = get_flags_info(ctx)
+    env_prelude = get_env_prelude(ctx, lib_name, ctx.attr.deps, "", tools, flags)
 
     cc_toolchain = find_cpp_toolchain(ctx)
 
