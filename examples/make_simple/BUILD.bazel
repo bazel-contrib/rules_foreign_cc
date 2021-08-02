@@ -6,7 +6,6 @@ make(
     build_data = ["//make_simple/code:clang_wrapper.sh"],
     env = {
         "CLANG_WRAPPER": "$(execpath //make_simple/code:clang_wrapper.sh)",
-        "PREFIX": "$$INSTALLDIR$$",
     },
     lib_source = "//make_simple/code:srcs",
     out_static_libs = ["liba.a"],
