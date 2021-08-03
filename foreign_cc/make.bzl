@@ -56,12 +56,13 @@ def _create_make_script(configureParameters):
     make_commands = []
     prefix = "{} ".format(expand_locations(ctx, attrs.tool_prefix, data)) if attrs.tool_prefix else ""
     for target in ctx.attr.targets:
-        make_commands.append("{prefix}{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args}".format(
+        make_commands.append("{prefix}{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args} PREFIX={install_prefix}".format(
             prefix = prefix,
             make = attrs.make_path,
             root = root,
             args = args,
             target = target,
+            install_prefix = ctx.attr.install_prefix,
         ))
 
     return create_make_script(
@@ -75,6 +76,14 @@ def _attrs():
     attrs.update({
         "args": attr.string_list(
             doc = "A list of arguments to pass to the call to `make`",
+        ),
+        "install_prefix": attr.string(
+            doc = (
+                "Install prefix, i.e. relative path to where to install the result of the build. " +
+                "Passed as an arg to \"make\" as PREFIX=<install_prefix>."
+            ),
+            mandatory = False,
+            default = "$$INSTALLDIR$$",
         ),
         "targets": attr.string_list(
             doc = (
@@ -90,7 +99,7 @@ def _attrs():
 make = rule(
     doc = (
         "Rule for building external libraries with GNU Make. " +
-        "GNU Make commands (make and make install by default) are invoked with prefix=\"install\" " +
+        "GNU Make commands (make and make install by default) are invoked with PREFIX=\"install\" " +
         "(by default), and other environment variables for compilation and linking, taken from Bazel C/C++ " +
         "toolchain and passed dependencies."
     ),
