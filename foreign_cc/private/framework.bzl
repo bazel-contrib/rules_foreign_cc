@@ -289,6 +289,12 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     cc_env = _correct_path_variable(get_env_vars(ctx))
     env.update(cc_env)
 
+    cc_toolchain = find_cpp_toolchain(ctx)
+    if cc_toolchain.compiler == "msvc-cl":
+        # Prepend PATH environment variable with the path to the toolchain linker, which prevents MSYS using its linker (/usr/bin/link.exe) rather than the MSVC linker (both are named "link.exe")
+        linker_path = paths.dirname(cc_toolchain.ld_executable)
+        env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
+
     # Add all user defined variables
     user_vars = expand_locations(ctx, ctx.attr.env, data_dependencies)
     env.update(user_vars)
@@ -592,13 +598,18 @@ def _print_env():
         "##echo## \"__________________________\"",
     ]
 
+def _normalize_path(path):
+    # Change Windows style paths to Unix style. E.g. change "C:" to "/c"
+    if path[0].isalpha() and path[1] == ":":
+        path = path.replace(path[0:2], "/" + path[0].lower())
+
+    return path.replace("\\", "/").replace(";", ":")
+
 def _correct_path_variable(env):
     value = env.get("PATH", "")
     if not value:
         return env
-    value = env.get("PATH", "").replace("C:\\", "/c/")
-    value = value.replace("\\", "/")
-    value = value.replace(";", ":")
+    value = _normalize_path(env.get("PATH", ""))
     env["PATH"] = "$PATH:" + value
     return env
 
