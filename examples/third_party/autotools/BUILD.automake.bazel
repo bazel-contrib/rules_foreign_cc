@@ -1,0 +1,27 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+configure_make(
+    name = "automake",
+    env = {
+        "AUTOM4TE": "$EXT_BUILD_DEPS/bin/autoconf/bin/autom4te",
+        "autom4te_perllibdir": "$EXT_BUILD_DEPS/bin/autoconf/share/autoconf",
+        "M4": "$EXT_BUILD_DEPS/bin/m4/bin/m4",
+        "AC_MACRODIR": "$EXT_BUILD_DEPS/bin/autoconf/share/autoconf",
+    },
+    lib_source = ":all_srcs",
+    out_binaries = [
+        "automake",
+    ],
+    tools_deps = [
+        "@autoconf",
+        "@m4",
+        #"@perl",
+    ],
+)
