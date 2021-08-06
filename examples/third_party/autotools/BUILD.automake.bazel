@@ -12,8 +12,8 @@ configure_make(
     env = {
         "AC_MACRODIR": "$EXT_BUILD_DEPS/bin/autoconf/share/autoconf",
         "AUTOM4TE": "$EXT_BUILD_DEPS/bin/autoconf/bin/autom4te",
-        "autom4te_perllibdir": "$EXT_BUILD_DEPS/bin/autoconf/share/autoconf",
         "M4": "$EXT_BUILD_DEPS/bin/m4/bin/m4",
+        "autom4te_perllibdir": "$EXT_BUILD_DEPS/bin/autoconf/share/autoconf",
     },
     lib_source = ":all_srcs",
     out_binaries = [
