@@ -71,7 +71,7 @@ test_suite(
         #"//autotools:automake_build_test",
         "//autotools:libtool_build_test",
         "//autotools:m4_build_test",
-        "//bison:bison_build_test",
+        #"//bison:bison_build_test",
         "//cares:test_c_ares",
         "//curl:curl_test_suite",
         "//gn:gn_launch_test",
