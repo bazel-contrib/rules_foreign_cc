@@ -168,7 +168,7 @@ def _attrs():
             default = False,
         ),
         "autoreconf_options": attr.string_list(
-            doc = "Any options to be put in the 'autoreconf.sh' command line.",
+            doc = "Any options to be put in the 'autoreconf' command line.",
         ),
         "configure_command": attr.string(
             doc = (
