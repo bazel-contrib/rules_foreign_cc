@@ -16,13 +16,6 @@ config_setting(
     visibility = ["//visibility:public"],
 )
 
-config_setting(
-    name = "msvc_compiler",
-    flag_values = {
-        "@bazel_tools//tools/cpp:compiler": "msvc-cl",
-    },
-)
-
 test_suite(
     name = "third_party_examples_linux_tests",
     tags = ["manual"],

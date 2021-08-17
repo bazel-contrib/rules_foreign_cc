@@ -25,10 +25,18 @@ MAKE_TARGETS = [
     "install_dev",
 ]
 
+config_setting(
+    name = "msvc_compiler",
+    flag_values = {
+        "@bazel_tools//tools/cpp:compiler": "msvc-cl",
+    },
+    visibility = ["//visibility:public"],
+)
+
 alias(
     name = "openssl",
     actual = select({
-        "@rules_foreign_cc_examples//:msvc_compiler": "openssl_msvc",
+        ":msvc_compiler": "openssl_msvc",
         "//conditions:default": "openssl_default",
     }),
     visibility = ["//visibility:public"],
