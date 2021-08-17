@@ -7,10 +7,17 @@ filegroup(
     srcs = glob(["**"]),
 )
 
+config_setting(
+    name = "msvc_compiler",
+    flag_values = {
+        "@bazel_tools//tools/cpp:compiler": "msvc-cl",
+    },
+)
+
 alias(
     name = "apr",
     actual = select({
-        "@rules_foreign_cc_examples//:msvc_compiler": "apr_msvc",
+        ":msvc_compiler": "apr_msvc",
         "//conditions:default": "apr_default",
     }),
     visibility = ["//visibility:public"],

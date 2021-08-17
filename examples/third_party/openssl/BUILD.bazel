@@ -12,7 +12,7 @@ cc_test(
     name = "openssl_test",
     srcs = ["openssl_test.cc"],
     linkopts = select({
-        "@rules_foreign_cc_examples//:msvc_compiler": [
+        "@openssl//:msvc_compiler": [
             "advapi32.lib",
             "user32.lib",
         ],
