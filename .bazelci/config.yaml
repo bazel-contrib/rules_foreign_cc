@@ -109,6 +109,13 @@ tasks:
       - "-//cmake_hello_world_lib/shared/..."
       # TODO: Fix `CreateProcess failed: The system cannot find the file specified.`
       - "-//ninja_simple/..."
+      # TODO: The use of Visual Studio generator targets are broken. These should
+      # be re-enabled pending a resolution to
+      # https://github.com/bazelbuild/continuous-integration/issues/1204
+      - "-//cmake_hello_world_lib/static:libhello"
+      - "-//cmake_hello_world_lib/static:libhello_example"
+      - "-//cmake_hello_world_lib/static:test_hello"
+      - "-//cmake_with_data/..."
     build_targets: *windows_targets
     test_targets: *windows_targets
     test_flags:
