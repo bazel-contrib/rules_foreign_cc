@@ -10,6 +10,7 @@ configure_make(
     configure_in_place = True,
     configure_options = [
         "--with-apr=$EXT_BUILD_DEPS/apr",
+        "--with-expat=$EXT_BUILD_DEPS/expat",
     ],
     env = select({
         "@platforms//os:macos": {"AR": ""},
@@ -18,5 +19,8 @@ configure_make(
     lib_source = ":all_srcs",
     out_static_libs = ["libaprutil-1.a"],
     visibility = ["//visibility:public"],
-    deps = ["@apr"],
+    deps = [
+        "@apr",
+        "@expat",
+    ],
 )

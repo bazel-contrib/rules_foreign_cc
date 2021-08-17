@@ -28,7 +28,8 @@ test_suite(
     tags = ["manual"],
     tests = [
         "//apr:apr_build_test",
-        "//apr_util:apr_util_build_test",
+        # Copying files to RBE does not preserve timestamps, invoking autotools which is not new enough to build apr_util
+        # "//apr_util:apr_util_build_test",
         # Missing a new enough m4 to build
         # "//bison:bison_build_test",
         "//cares:test_c_ares",
