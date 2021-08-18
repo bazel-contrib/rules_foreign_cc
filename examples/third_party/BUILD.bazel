@@ -15,6 +15,7 @@ test_suite(
         "//libjpeg_turbo:libjpeg_turbo_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
+        "//log4cxx:log4cxx_build_test",
         "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
@@ -28,7 +29,7 @@ test_suite(
     tags = ["manual"],
     tests = [
         "//apr:apr_build_test",
-        # Copying files to RBE does not preserve timestamps, invoking autotools which is not new enough to build apr_util
+        # Copying files to RBE does not preserve timestamps, invoking autotools which is not new enough to build apr_util and its dependants
         # "//apr_util:apr_util_build_test",
         # Missing a new enough m4 to build
         # "//bison:bison_build_test",
@@ -65,6 +66,7 @@ test_suite(
         "//libjpeg_turbo:libjpeg_turbo_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
+        "//log4cxx:log4cxx_build_test",
         "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
