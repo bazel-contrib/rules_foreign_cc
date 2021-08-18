@@ -429,9 +429,9 @@ def cc_external_rule_impl(ctx, attrs):
     rule_outputs = outputs.declared_outputs + [installdir_copy.file]
     cc_toolchain = find_cpp_toolchain(ctx)
 
-    execution_requirements = {"block-network": ""}
-    if "requires-network" in ctx.attr.tags:
-        execution_requirements = {"requires-network": ""}
+    execution_requirements = {tag: "" for tag in ctx.attr.tags}
+    if "requires-network" not in execution_requirements:
+        execution_requirements["block-network"] = ""
 
     # TODO: `additional_tools` is deprecated, remove.
     legacy_tools = ctx.files.additional_tools + ctx.files.tools_deps
