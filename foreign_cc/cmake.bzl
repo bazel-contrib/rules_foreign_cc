@@ -98,7 +98,7 @@ cmake(
     name = "hello",
     # This option can be omitted
     generate_args = [
-        "-G \\"Visual Studio 15 2017\\"",
+        "-G \\"Visual Studio 16 2019\\"",
         "-A Win64",
     ],
     lib_source = ":srcs",
@@ -287,8 +287,8 @@ def _get_generator_target(ctx):
         "Green Hills MULTI",
         "MinGW Makefiles",
         "MSYS Makefiles",
-        "Ninja",
         "Ninja Multi-Config",
+        "Ninja",
         "NMake Makefiles JOM",
         "NMake Makefiles",
         "Unix Makefiles",
@@ -298,6 +298,7 @@ def _get_generator_target(ctx):
         "Visual Studio 14 2015",
         "Visual Studio 15 2017",
         "Visual Studio 16 2019",
+        "Visual Studio 17 2022",
         "Visual Studio 9 2008",
         "Watcom WMake",
         "Xcode",
