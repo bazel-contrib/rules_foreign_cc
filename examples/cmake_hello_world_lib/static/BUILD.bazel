@@ -15,7 +15,7 @@ cmake(
     name = "libhello",
     generate_args = select({
         "//:windows": [
-            "-G \"Visual Studio 15 2017\"",
+            "-G \"Visual Studio 16 2019\"",
             "-A x64",
         ],
         "//conditions:default": None,

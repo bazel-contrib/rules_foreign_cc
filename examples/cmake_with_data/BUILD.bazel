@@ -17,7 +17,7 @@ cmake(
     ],
     generate_args = select({
         "@bazel_tools//src/conditions:windows": [
-            "-G \"Visual Studio 15 2017\"",
+            "-G \"Visual Studio 16 2019\"",
             "-A x64",
         ],
         "//conditions:default": [],
