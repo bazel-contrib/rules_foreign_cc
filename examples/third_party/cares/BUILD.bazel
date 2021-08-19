@@ -1,8 +1,24 @@
-load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_build_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_test(
     name = "test_c_ares",
     srcs = ["c-ares-test.cpp"],
     visibility = ["//:__pkg__"],
     deps = ["@cares"],
+)
+
+cc_library(
+    name = "ios_lib",
+    srcs = ["c-ares-test.cpp"],
+    tags = ["manual"],
+    deps = ["@cares"],
+)
+
+ios_build_test(
+    name = "test_c_ares_ios",
+    minimum_os_version = "12.0",
+    tags = ["manual"],
+    targets = ["ios_lib"],
+    visibility = ["//:__pkg__"],
 )

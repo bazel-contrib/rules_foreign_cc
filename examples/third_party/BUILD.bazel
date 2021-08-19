@@ -58,6 +58,7 @@ test_suite(
         "//apr:apr_build_test",
         "//apr_util:apr_util_build_test",
         "//cares:test_c_ares",
+        "//cares:test_c_ares_ios",
         "//curl:curl_test_suite",
         "//gn:gn_launch_test",
         "//gperftools:test",
