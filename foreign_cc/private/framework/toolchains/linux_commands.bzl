@@ -41,6 +41,9 @@ def disable_tracing():
 def mkdirs(path):
     return "mkdir -p " + path
 
+def rm_rf(path):
+    return "rm -rf " + path
+
 def if_else(condition, if_text, else_text):
     return """
 if [ {condition} ]; then

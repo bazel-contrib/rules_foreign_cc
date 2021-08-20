@@ -203,6 +203,10 @@ PLATFORM_COMMANDS = {
             "Replace the target symlink with resolved file it points to if `file` is a symlink"
         ),
     ),
+    "rm_rf": _command_info(
+        arguments = [_argument_info(name = "path", data_type = type(""), doc = "Path to directory")],
+        doc = "Recursively removes the given path",
+    ),
     "script_extension": _command_info(
         arguments = [],
         doc = "Return the extension for the current set of commands (`.sh` for bash, `.ps1` for powershell)",
