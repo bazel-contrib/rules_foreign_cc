@@ -10,7 +10,7 @@ filegroup(
 configure_make(
     name = "python3",
     configure_options = [
-        "CFLAGS='-Dredacted=\"redacted\"'",
+        "CFLAGS='-Dredacted=\"redacted2\"'",
         "--with-openssl=$EXT_BUILD_DEPS/openssl",
         "--with-zlib=$EXT_BUILD_DEPS/zlib",
         "--enable-optimizations",
