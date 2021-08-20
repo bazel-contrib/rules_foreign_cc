@@ -64,6 +64,8 @@ tasks:
       # Gives error: zipalign: error while loading shared libraries: /usr/local/lib/libc++.so: file too short
       - "-//cmake_android/..."
     build_targets: *rbe_targets
+    build_flags:
+      - "--copt=-DCACHE_BUSTER"
     test_targets: *rbe_targets
   macos_examples_standalone:
     name: Examples (spawn_strategy=standalone)
