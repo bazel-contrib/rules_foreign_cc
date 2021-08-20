@@ -15,7 +15,6 @@ load(
     "script_extension",
     "shebang",
 )
-load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
@@ -280,14 +279,22 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
         "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
     ]
 
-    if os_name(ctx) == "macos":
-        env_snippet.extend(["export DEVELOPER_DIR=\"$(xcode-select --print-path)\"", "export SDKROOT=\"$(xcrun --sdk macosx --show-sdk-path)\""])
-
     env = dict()
 
     # Add all environment variables from the cc_toolchain
     cc_env = _correct_path_variable(get_env_vars(ctx))
     env.update(cc_env)
+
+    # This logic mirrors XcodeLocalEnvProvider#querySdkRoot in bazel itself
+    if "APPLE_SDK_PLATFORM" in cc_env:
+        platform = cc_env["APPLE_SDK_PLATFORM"]
+        version = cc_env["APPLE_SDK_VERSION_OVERRIDE"]
+        sdk = "{}{}".format(platform.lower(), version)
+        env_snippet.extend([
+            # TODO: This path needs to take cc_env["XCODE_VERSION_OVERRIDE"] into account
+            "export DEVELOPER_DIR=\"$(xcode-select --print-path)\"",
+            "export SDKROOT=\"$(xcrun --sdk {} --show-sdk-path)\"".format(sdk),
+        ])
 
     cc_toolchain = find_cpp_toolchain(ctx)
     if cc_toolchain.compiler == "msvc-cl":
