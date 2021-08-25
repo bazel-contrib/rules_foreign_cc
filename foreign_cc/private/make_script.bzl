@@ -1,19 +1,17 @@
 """A module for creating the build script for `make` builds"""
 
+load(":configure_vars.bzl", "get_configure_vars")
+
+# buildifier: disable=function-docstring
 def create_make_script(
+        workspace_name,
+        tools,
+        flags,
         root,
+        env_vars,
+        deps,
         inputs,
         make_commands):
-    """Constructs Make script to be passed to cc_external_rule_impl.
-
-    Args:
-        root (str): sources root relative to the $EXT_BUILD_ROOT
-        inputs (struct): An InputFiles provider
-        make_commands (list): Lines of bash which invoke make
-
-    Returns:
-        list: Lines of bash which make up the build script
-    """
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -21,7 +19,11 @@ def create_make_script(
     script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
 
     script.append("##enable_tracing##")
-    script.extend(make_commands)
+    configure_vars = get_configure_vars(workspace_name, tools, flags, env_vars, deps, inputs)
+    script.extend(["{env_vars} {command}".format(
+        env_vars = configure_vars,
+        command = command,
+    ) for command in make_commands])
     script.append("##disable_tracing##")
     return script
 
