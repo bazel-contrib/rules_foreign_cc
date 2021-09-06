@@ -422,6 +422,7 @@ def cc_external_rule_impl(ctx, attrs):
     ] + [
         "##replace_symlink## {}".format(file.path)
         for file in (
+            outputs.out_binary_files +
             outputs.libraries.static_libraries +
             outputs.libraries.shared_libraries +
             outputs.libraries.interface_libraries
