@@ -292,8 +292,11 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
         sdk = "{}{}".format(platform.lower(), version)
         env_snippet.extend([
             # TODO: This path needs to take cc_env["XCODE_VERSION_OVERRIDE"] into account
-            "export DEVELOPER_DIR=\"$(xcode-select --print-path)\"",
-            "export SDKROOT=\"$(xcrun --sdk {} --show-sdk-path)\"".format(sdk),
+            # Declare and export separately so bash doesn't ignore failures from the commands https://github.com/koalaman/shellcheck/wiki/SC2155
+            "developer_dir_tmp=\"$(xcode-select --print-path)\"",
+            "export DEVELOPER_DIR=\"$developer_dir_tmp\"",
+            "sdkroot_tmp=\"$(xcrun --sdk {} --show-sdk-path)\"".format(sdk),
+            "export SDKROOT=\"$sdkroot_tmp\"",
         ])
 
     cc_toolchain = find_cpp_toolchain(ctx)
