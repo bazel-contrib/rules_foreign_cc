@@ -29,11 +29,18 @@ config_setting(
     visibility = ["//visibility:private"],
 )
 
+config_setting(
+    name = "freebsd",
+    constraint_values = ["@platforms//os:freebsd"],
+    visibility = ["//visibility:private"],
+)
+
 diff_test(
     name = "shell_script_inner_fun_test",
     file1 = ":shell_script_inner_fun",
     file2 = select({
         ":macos": "expected/inner_fun_text_macos.txt",
+        ":freebsd": "expected/inner_fun_text_freebsd.txt",
         "//conditions:default": "expected/inner_fun_text.txt",
     }),
 )
@@ -59,6 +66,7 @@ diff_test(
     name = "shell_method_symlink_contents_to_dir_test",
     file1 = select({
         ":macos": "expected/out_symlinked_dirs_macos.txt",
+        ":freebsd": "expected/out_symlinked_dirs_freebsd.txt",
         "//conditions:default": "expected/out_symlinked_dirs.txt",
     }),
     file2 = ":symlink_dirs",
