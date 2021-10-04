@@ -10,12 +10,26 @@ def _impl(ctx):
 
     assert_contains_once(flags.cc, "-fblah0")
     assert_contains_once(flags.cc, "-fblah2")
+    assert_contains_once(flags.cc, "-fblah4")
+    if "-fblah5" in flags.cc:
+        fail("C flags should not contain '-fblah5'")
 
     assert_contains_once(flags.cxx, "-fblah0")
     assert_contains_once(flags.cxx, "-fblah1")
+    assert_contains_once(flags.cxx, "-fblah4")
+    if "-fblah5" in flags.cxx:
+        fail("C++ flags should not contain '-fblah5'")
 
     assert_contains_once(flags.cxx_linker_executable, "-fblah3")
+    assert_contains_once(flags.cxx_linker_executable, "-fblah5")
+    if "-fblah4" in flags.cxx_linker_executable:
+        fail("Executable linker flags should not contain '-fblah4'")
+
     assert_contains_once(flags.cxx_linker_shared, "-fblah3")
+    assert_contains_once(flags.cxx_linker_shared, "-fblah5")
+    if "-fblah4" in flags.cxx_linker_shared:
+        fail("Shared linker flags should not contain '-fblah4'")
+
     if "-fblah3" in flags.cxx_linker_static:
         fail("Static linker flags should not contain '-fblah3'")
 
@@ -44,7 +58,9 @@ def assert_contains_once(arr, value):
 _flags_test = rule(
     implementation = _impl,
     attrs = {
+        "copts": attr.string_list(),
         "deps": attr.label_list(),
+        "linkopts": attr.string_list(),
         "out": attr.output(),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },

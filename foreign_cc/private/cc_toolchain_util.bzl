@@ -301,9 +301,9 @@ def get_flags_info(ctx, link_output_file = None):
         cc_toolchain = cc_toolchain_,
     )
 
-    copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts) or []
-    cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts) or []
-    linkopts = ctx.fragments.cpp.linkopts or []
+    copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + ctx.attr.copts) or []
+    cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + ctx.attr.copts) or []
+    linkopts = (ctx.fragments.cpp.linkopts + ctx.attr.linkopts) or []
     defines = _defines_from_deps(ctx)
 
     flags = CxxFlagsInfo(
