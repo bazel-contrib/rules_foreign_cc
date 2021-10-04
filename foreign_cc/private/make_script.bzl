@@ -1,6 +1,6 @@
 """A module for creating the build script for `make` builds"""
 
-load(":configure_vars.bzl", "get_configure_vars")
+load(":make_env_vars.bzl", "get_make_env_vars")
 
 # buildifier: disable=function-docstring
 def create_make_script(
@@ -19,7 +19,7 @@ def create_make_script(
     script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
 
     script.append("##enable_tracing##")
-    configure_vars = get_configure_vars(workspace_name, tools, flags, env_vars, deps, inputs)
+    configure_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs)
     script.extend(["{env_vars} {command}".format(
         env_vars = configure_vars,
         command = command,

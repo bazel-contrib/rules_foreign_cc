@@ -1,17 +1,17 @@
-"""Helper methods to assembler configure env variables from Bazel information."""
+"""Helper methods to assemble make env variables from Bazel information."""
 
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 load(":framework.bzl", "get_foreign_cc_dep")
 
 # buildifier: disable=function-docstring
-def get_configure_vars(
+def get_make_env_vars(
         workspace_name,
         tools,
         flags,
         user_vars,
         deps,
         inputs):
-    vars = _get_configure_variables(workspace_name, tools, flags, user_vars)
+    vars = _get_make_variables(workspace_name, tools, flags, user_vars)
     deps_flags = _define_deps_flags(deps, inputs)
 
     if "LDFLAGS" in vars.keys():
@@ -71,7 +71,7 @@ def _define_deps_flags(deps, inputs):
     )
 
 # See https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
-_CONFIGURE_FLAGS = {
+_MAKE_FLAGS = {
     "ARFLAGS": "cxx_linker_static",
     "ASFLAGS": "assemble",
     "CFLAGS": "cc",
@@ -80,18 +80,18 @@ _CONFIGURE_FLAGS = {
     # missing: cxx_linker_shared
 }
 
-_CONFIGURE_TOOLS = {
+_MAKE_TOOLS = {
     "AR": "cxx_linker_static",
     "CC": "cc",
     "CXX": "cxx",
     # missing: cxx_linker_executable
 }
 
-def _get_configure_variables(workspace_name, tools, flags, user_env_vars):
+def _get_make_variables(workspace_name, tools, flags, user_env_vars):
     vars = {}
 
-    for flag in _CONFIGURE_FLAGS:
-        flag_value = getattr(flags, _CONFIGURE_FLAGS[flag])
+    for flag in _MAKE_FLAGS:
+        flag_value = getattr(flags, _MAKE_FLAGS[flag])
         if flag_value:
             vars[flag] = flag_value
 
@@ -102,8 +102,8 @@ def _get_configure_variables(workspace_name, tools, flags, user_env_vars):
             vars[user_var] = toolchain_val + [user_env_vars[user_var]]
 
     tools_dict = {}
-    for tool in _CONFIGURE_TOOLS:
-        tool_value = getattr(tools, _CONFIGURE_TOOLS[tool])
+    for tool in _MAKE_TOOLS:
+        tool_value = getattr(tools, _MAKE_TOOLS[tool])
         if tool_value:
             # Force absolutize of tool paths, which may relative to the exec root (e.g. hermetic toolchains built from source)
             tool_value_absolute = _absolutize(workspace_name, tool_value, True)

@@ -1,5 +1,5 @@
 # buildifier: disable=module-docstring
-load(":configure_vars.bzl", "get_configure_vars")
+load(":make_env_vars.bzl", "get_make_env_vars")
 load(":make_script.bzl", "pkgconfig_script")
 
 # buildifier: disable=function-docstring
@@ -71,7 +71,7 @@ def create_configure_script(
 
     script.append("##mkdirs## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$")
     script.append("{env_vars} {prefix}\"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
-        env_vars = get_configure_vars(workspace_name, tools, flags, env_vars, deps, inputs),
+        env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs),
         prefix = configure_prefix,
         configure = configure_path,
         user_options = " ".join(user_options),
