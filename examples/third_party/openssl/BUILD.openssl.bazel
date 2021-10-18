@@ -79,8 +79,13 @@ configure_make(
     configure_in_place = True,
     configure_options = CONFIGURE_OPTIONS,
     env = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
+        "@platforms//os:macos": {
+            "AR": "",
+            "PERL": "$$EXT_BUILD_ROOT$$/$(PERL)",
+        },
+        "//conditions:default": {
+            "PERL": "$$EXT_BUILD_ROOT$$/$(PERL)",
+        },
     }),
     lib_name = LIB_NAME,
     lib_source = ":all_srcs",
@@ -91,6 +96,7 @@ configure_make(
         "libcrypto.a",
     ],
     targets = MAKE_TARGETS,
+    toolchains = ["@rules_perl//:current_toolchain"],
 )
 
 filegroup(

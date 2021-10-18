@@ -28,7 +28,18 @@ def openssl_repositories():
             "https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-win64.zip",
         ],
     )
+    maybe(
+        http_archive,
+        name = "rules_perl",
+        sha256 = "55fbe071971772758ad669615fc9aac9b126db6ae45909f0f36de499f6201dd3",
+        strip_prefix = "rules_perl-2f4f36f454375e678e81e5ca465d4d497c5c02da",
+        urls = [
+            "https://github.com/bazelbuild/rules_perl/archive/2f4f36f454375e678e81e5ca465d4d497c5c02da.tar.gz",
+        ],
+    )
 
+    # rules_perl doesn't currently support Windows, so we need to bring along our own Perl.
+    # https://github.com/bazelbuild/rules_perl/issues/30
     maybe(
         http_archive,
         name = "perl",
