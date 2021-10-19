@@ -176,7 +176,7 @@ tasks:
       - //...
   min_supported_version:
     name: "Minimum Supported Version"
-    bazel: "3.7.0"
+    bazel: "4.0.0"
     platform: ubuntu1804
     build_targets:
       - "//..."
@@ -184,7 +184,7 @@ tasks:
       - "//..."
   min_supported_version_examples:
     name: "Minimum Supported Version Examples"
-    bazel: "3.7.0"
+    bazel: "4.0.0"
     platform: ubuntu1804
     working_directory: examples
     min_supported_targets: &min_supported_targets
