@@ -13,7 +13,7 @@ Documentation for all rules and providers are available at: https://bazelbuild.g
 
 ## Bazel versions compatibility
 
-Works with Bazel after 3.7.0 without any flags.
+Works with Bazel after 4.0.0 without any flags.
 
 Note that the rules may be compatible with older versions of Bazel but support may break
 in future changes as these older versions are not tested.
