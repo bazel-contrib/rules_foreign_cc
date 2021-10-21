@@ -51,7 +51,13 @@ def _create_ninja_script(configureParameters):
     script = []
 
     root = detect_root(ctx.attr.lib_source)
-    script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
+
+    # On windows, we may get a mix of `\` and `/` path separators.
+    # Not all bash friendly tools know how to handle them.
+    script.append("TMP_EXT=${EXT_BUILD_ROOT//\\\\/\\/}")
+    script.append("TMP_TMP=${BUILD_TMPDIR//\\\\/\\/}")
+    script.append("rm -rf $TMP_TMP/*")
+    script.append("ln -sf $$TMP_EXT$$/{}/* $$TMP_TMP$$".format(root))
 
     data = ctx.attr.data + ctx.attr.build_data
 
