@@ -7,11 +7,11 @@ def libgit2_repositories():
     maybe(
         http_archive,
         name = "libgit2",
-        urls = [
-            "https://github.com/libgit2/libgit2/releases/download/v1.1.0/libgit2-1.1.0.tar.gz",
-        ],
-        type = "tar.gz",
-        sha256 = "ad73f845965cfd528e70f654e428073121a3fa0dc23caac81a1b1300277d4dba",
-        strip_prefix = "libgit2-1.1.0",
         build_file = Label("//libgit2:BUILD.libgit2.bazel"),
+        sha256 = "192eeff84596ff09efb6b01835a066f2df7cd7985e0991c79595688e6b36444e",
+        strip_prefix = "libgit2-1.3.0",
+        urls = [
+            "https://mirror.bazel.build/github.com/libgit2/libgit2/archive/refs/tags/v1.3.0.tar.gz",
+            "https://github.com/libgit2/libgit2/archive/refs/tags/v1.3.0.tar.gz",
+        ],
     )

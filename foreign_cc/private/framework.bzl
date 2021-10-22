@@ -103,6 +103,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
             "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_data`, " +
             "but unlike with other rules, these will be replaced with absolute paths to those files, " +
             "because the build does not run in the exec root. " +
+            "This attribute is subject to make variable substitution. " +
             "No other macros are supported." +
             "Variables containing `PATH` (e.g. `PATH`, `LD_LIBRARY_PATH`, `CPATH`) entries will be prepended to the existing variable."
         ),
@@ -306,7 +307,7 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
         env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
 
     # Add all user defined variables
-    user_vars = expand_locations(ctx, ctx.attr.env, data_dependencies)
+    user_vars = expand_locations_and_make_variables(ctx, "env", data_dependencies)
     env.update(user_vars)
 
     # If user has defined a PATH variable (e.g. PATH, LD_LIBRARY_PATH, CPATH) prepend it to the existing variable
@@ -388,7 +389,7 @@ def cc_external_rule_impl(ctx, attrs):
     installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
     target_root = paths.dirname(installdir_copy.file.dirname)
 
-    data_dependencies = ctx.attr.data + ctx.attr.build_data
+    data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
 
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
@@ -914,6 +915,15 @@ def _expand_command_path(binary, path, command):
         return command.replace(binary, path, 1)
     else:
         return command
+
+def expand_locations_and_make_variables(ctx, attr_name, data):
+    unexpanded = getattr(ctx.attr, attr_name)
+    location_expanded = expand_locations(ctx, unexpanded, data)
+
+    # Make variable expansion will treat $$ as escaped values for $ and strip the second one.
+    # Double-escape $s which we insert in expand_locations.
+    make_variable_expanded = {k: ctx.expand_make_variables(attr_name, v.replace("$$EXT_BUILD_ROOT$$", "$$$$EXT_BUILD_ROOT$$$$"), {}) for k, v in location_expanded.items()}
+    return make_variable_expanded
 
 def expand_locations(ctx, expandable, data):
     """Expand locations on a dictionary while ensuring `execpath` is always set to an absolute path
