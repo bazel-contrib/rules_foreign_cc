@@ -1,4 +1,4 @@
-#!/bin/bash --norc
+#!/usr/bin/env bash --norc
 
 if [[ -z "${EXT_BUILD_ROOT}" ]]; then
   MY_PREFIX=""
