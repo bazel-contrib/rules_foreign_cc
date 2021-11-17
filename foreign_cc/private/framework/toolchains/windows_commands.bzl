@@ -96,33 +96,8 @@ def copy_dir_contents_to_dir(source, target):
     )
 
 def symlink_contents_to_dir(source, target):
-    text = """\
-if [[ -z "$1" ]]; then
-  echo "arg 1 to symlink_contents_to_dir is unexpectedly empty"
-  exit 1
-fi
-if [[ -z "$2" ]]; then
-  echo "arg 2 to symlink_contents_to_dir is unexpectedly empty"
-  exit 1
-fi
-local target="$2"
-mkdir -p "$target"
-if [[ -f "$1" ]]; then
-  ##symlink_to_dir## "$1" "$target"
-elif [[ -L "$1" ]]; then
-  local actual=$(readlink "$1")
-  ##symlink_contents_to_dir## "$actual" "$target"
-elif [[ -d "$1" ]]; then
-  SAVEIFS=$IFS
-  IFS=$'\n'
-  local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
-  IFS=$SAVEIFS
-  for child in "${children[@]}"; do
-    ##symlink_to_dir## "$child" "$target"
-  done
-fi
-"""
-    return FunctionAndCallInfo(text = text)
+    # Symlinking on windows is expensive so lets just copy the files instead
+    return copy_dir_contents_to_dir(source, target)
 
 def symlink_to_dir(source, target):
     text = """\
