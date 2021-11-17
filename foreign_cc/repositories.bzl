@@ -3,6 +3,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//foreign_cc/private/framework:toolchain.bzl", "register_framework_toolchains")
+load("//third_party/pkg-config:pkg-config_repositories.bzl", "pkgconfig_repositories")
 load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "preinstalled_toolchains")
 
 # buildifier: disable=unnamed-macro
@@ -62,6 +63,7 @@ def rules_foreign_cc_dependencies(
         prebuilt_toolchains(cmake_version, ninja_version, register_toolchains)
 
     if register_built_tools:
+        pkgconfig_repositories()
         built_toolchains(
             cmake_version = cmake_version,
             make_version = make_version,
