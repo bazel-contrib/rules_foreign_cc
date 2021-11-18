@@ -9,11 +9,11 @@ def autotools_repositories():
         http_archive,
         name = "m4",
         build_file = Label("//autotools:BUILD.m4.bazel"),
-        strip_prefix = "m4-1.4.18b",
+        strip_prefix = "m4-1.4.19",
         urls = [
-            "https://alpha.gnu.org/gnu/m4/m4-1.4.18b.tar.xz",
+            "https://ftp.gnu.org/gnu/m4/m4-1.4.19.tar.xz",
         ],
-        sha256 = "0aaf6b798e08a1b76966ec0adf678253f86e40b09baa534e1e63655882632db0",
+        sha256 = "63aede5c6d33b6d9b13511cd0be2cac046f2e70fd0a07aa9573a04a82783af96",
     )
 
     maybe(
