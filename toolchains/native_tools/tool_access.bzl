@@ -23,14 +23,26 @@ def access_tool(toolchain_type_, ctx, tool_name):
         target = None,
     )
 
-def get_cmake_data(ctx):
-    return _access_and_expect_label_copied("@rules_foreign_cc//toolchains:cmake_toolchain", ctx, "cmake")
+def get_autoconf_data(ctx):
+    return _access_and_expect_label_copied(str(Label("//toolchains:autoconf_toolchain")), ctx, "autoconf")
 
-def get_ninja_data(ctx):
-    return _access_and_expect_label_copied("@rules_foreign_cc//toolchains:ninja_toolchain", ctx, "ninja")
+def get_automake_data(ctx):
+    return _access_and_expect_label_copied(str(Label("//toolchains:automake_toolchain")), ctx, "automake")
+
+def get_cmake_data(ctx):
+    return _access_and_expect_label_copied(str(Label("//toolchains:cmake_toolchain")), ctx, "cmake")
+
+def get_m4_data(ctx):
+    return _access_and_expect_label_copied(str(Label("//toolchains:m4_toolchain")), ctx, "m4")
 
 def get_make_data(ctx):
-    return _access_and_expect_label_copied("@rules_foreign_cc//toolchains:make_toolchain", ctx, "make")
+    return _access_and_expect_label_copied(str(Label("//toolchains:make_toolchain")), ctx, "make")
+
+def get_ninja_data(ctx):
+    return _access_and_expect_label_copied(str(Label("//toolchains:ninja_toolchain")), ctx, "ninja")
+
+def get_pkgconfig_data(ctx):
+    return _access_and_expect_label_copied(str(Label("//toolchains:pkgconfig_toolchain")), ctx, "pkg-config")
 
 def _access_and_expect_label_copied(toolchain_type_, ctx, tool_name):
     tool_data = access_tool(toolchain_type_, ctx, tool_name)

@@ -18,6 +18,22 @@ toolchain_type(
     name = "make_toolchain",
 )
 
+toolchain_type(
+    name = "pkgconfig_toolchain",
+)
+
+toolchain_type(
+    name = "m4_toolchain",
+)
+
+toolchain_type(
+    name = "autoconf_toolchain",
+)
+
+toolchain_type(
+    name = "automake_toolchain",
+)
+
 toolchain(
     name = "built_cmake_toolchain",
     toolchain = ":built_cmake",
@@ -141,6 +157,62 @@ native_tool_toolchain(
         "//conditions:default": "$(execpath :ninja_tool)/bin/ninja",
     }),
     target = ":ninja_tool",
+)
+
+toolchain(
+    name = "preinstalled_autoconf_toolchain",
+    toolchain = ":preinstalled_autoconf",
+    toolchain_type = ":autoconf_toolchain",
+)
+
+native_tool_toolchain(
+    name = "preinstalled_autoconf",
+    path = select({
+        "@platforms//os:windows": "autoconf.exe",
+        "//conditions:default": "autoconf",
+    }),
+)
+
+toolchain(
+    name = "preinstalled_automake_toolchain",
+    toolchain = ":preinstalled_automake",
+    toolchain_type = ":automake_toolchain",
+)
+
+native_tool_toolchain(
+    name = "preinstalled_automake",
+    path = select({
+        "@platforms//os:windows": "automake.exe",
+        "//conditions:default": "automake",
+    }),
+)
+
+toolchain(
+    name = "preinstalled_m4_toolchain",
+    toolchain = ":preinstalled_m4",
+    toolchain_type = ":m4_toolchain",
+)
+
+native_tool_toolchain(
+    name = "preinstalled_m4",
+    path = select({
+        "@platforms//os:windows": "m4.exe",
+        "//conditions:default": "m4",
+    }),
+)
+
+toolchain(
+    name = "preinstalled_pkgconfig_toolchain",
+    toolchain = ":preinstalled_pkgconfig",
+    toolchain_type = ":pkgconfig_toolchain",
+)
+
+native_tool_toolchain(
+    name = "preinstalled_pkgconfig",
+    path = select({
+        "@platforms//os:windows": "pkg-config.exe",
+        "//conditions:default": "pkg-config",
+    }),
 )
 
 bzl_library(
