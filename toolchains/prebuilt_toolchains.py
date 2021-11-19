@@ -127,6 +127,7 @@ maybe(
     strip_prefix = "{prefix}",
     build_file_content = {template}.format(
         bin = "{bin}",
+        env = "{env}",
     ),
 )
 """
@@ -198,6 +199,7 @@ filegroup(
 
 native_tool_toolchain(
     name = "ninja_tool",
+    env = {{env}},
     path = "$(execpath :ninja_bin)",
     target = ":ninja_bin",
 )
@@ -281,6 +283,7 @@ def get_cmake_definitions() -> str:
                     build="cmake",
                     template="_CMAKE_BUILD_FILE",
                     bin=bin,
+                    env="{}",
                 )
             )
             version_toolchains.update({plat_target: name})
@@ -366,6 +369,7 @@ def get_ninja_definitions() -> str:
                     build="ninja",
                     template="_NINJA_BUILD_FILE",
                     bin="ninja.exe" if "win" in target else "ninja",
+                    env="{\\\"NINJA\\\": \\\"$(execpath :ninja_bin)\\\"}",
                 )
             )
             version_toolchains.update({target: name})

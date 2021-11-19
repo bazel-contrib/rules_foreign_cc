@@ -21,12 +21,18 @@ def preinstalled_toolchains():
 def _current_toolchain_impl(ctx):
     toolchain = ctx.toolchains[ctx.attr._toolchain]
 
+    if toolchain.data.target:
+        return [
+            toolchain,
+            platform_common.TemplateVariableInfo(toolchain.data.env),
+            DefaultInfo(
+                runfiles = toolchain.data.target.default_runfiles,
+            ),
+        ]
     return [
         toolchain,
-        platform_common.TemplateVariableInfo({}),
-        DefaultInfo(
-            runfiles = toolchain.data.target.default_runfiles,
-        ),
+        platform_common.TemplateVariableInfo(toolchain.data.env),
+        DefaultInfo(),
     ]
 
 # These rules exist so that the current toolchain can be used in the `toolchains` attribute of

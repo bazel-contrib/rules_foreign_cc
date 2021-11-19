@@ -135,6 +135,10 @@ make_tool(
 
 native_tool_toolchain(
     name = "built_make",
+    env = select({
+        "@platforms//os:windows": {"MAKE": "$(execpath :make_tool)/bin/make.exe"},
+        "//conditions:default": {"MAKE": "$(execpath :make_tool)/bin/make"},
+    }),
     path = select({
         "@platforms//os:windows": "$(execpath :make_tool)/bin/make.exe",
         "//conditions:default": "$(execpath :make_tool)/bin/make",
@@ -167,6 +171,10 @@ native_tool_toolchain(
 
 native_tool_toolchain(
     name = "preinstalled_ninja",
+    env = select({
+        "@platforms//os:windows": {"NINJA": "ninja.exe"},
+        "//conditions:default": {"NINJA": "ninja"},
+    }),
     path = select({
         "@platforms//os:windows": "ninja.exe",
         "//conditions:default": "ninja",
@@ -181,6 +189,10 @@ ninja_tool(
 
 native_tool_toolchain(
     name = "built_ninja",
+    env = select({
+        "@platforms//os:windows": {"NINJA": "$(execpath :ninja_tool)/bin/ninja.exe"},
+        "//conditions:default": {"NINJA": "$(execpath :ninja_tool)/bin/ninja"},
+    }),
     path = select({
         "@platforms//os:windows": "$(execpath :ninja_tool)/bin/ninja.exe",
         "//conditions:default": "$(execpath :ninja_tool)/bin/ninja",
