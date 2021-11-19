@@ -150,7 +150,7 @@
                         <h1 id="rules-foreigncc"><a class="header" href="#rules-foreigncc">Rules ForeignCc</a></h1>
 <p>Rules for building C/C++ projects using foreign build systems (non Bazel) inside Bazel projects.</p>
 <table><thead><tr><th>Release</th><th>Commit</th><th>Status</th></tr></thead><tbody>
-<tr><td>main</td><td><a href="https://github.com/bazelbuild/rules_foreign_cc/commit/eaf10923680bc2fb8d023527c2c8c7bf443ba0d5">eaf1092</a></td><td><a href="https://buildkite.com/bazel/rules-foreign-cc/builds?branch=main"><img src="https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=main" alt="Build status" /></a></td></tr>
+<tr><td>main</td><td><a href="https://github.com/bazelbuild/rules_foreign_cc/commit/1327fa3d4cafddc69c3f4ac983a01c96ad0f818f">1327fa3</a></td><td><a href="https://buildkite.com/bazel/rules-foreign-cc/builds?branch=main"><img src="https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=main" alt="Build status" /></a></td></tr>
 </tbody></table>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
 <p>Rules ForeignCc is designed to help users build projects that are not built by Bazel and also
@@ -168,8 +168,8 @@ http_archive(
     #       release on the releases page: https://github.com/bazelbuild/rules_foreign_cc/releases
     #
     # sha256 = &quot;...&quot;,
-    strip_prefix = &quot;rules_foreign_cc-eaf10923680bc2fb8d023527c2c8c7bf443ba0d5&quot;,
-    url = &quot;https://github.com/bazelbuild/rules_foreign_cc/archive/eaf10923680bc2fb8d023527c2c8c7bf443ba0d5.tar.gz&quot;,
+    strip_prefix = &quot;rules_foreign_cc-1327fa3d4cafddc69c3f4ac983a01c96ad0f818f&quot;,
+    url = &quot;https://github.com/bazelbuild/rules_foreign_cc/archive/1327fa3d4cafddc69c3f4ac983a01c96ad0f818f.tar.gz&quot;,
 )
 
 load(&quot;@rules_foreign_cc//foreign_cc:repositories.bzl&quot;, &quot;rules_foreign_cc_dependencies&quot;)
@@ -892,7 +892,7 @@ rules_foreign_cc_dependencies(<a href="flatten.html#rules_foreign_cc_dependencie
 <table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Default Value</th></tr></thead><tbody>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-native_tools_toolchains"></a>native_tools_toolchains</td><td align="left">pass the toolchains for toolchain types     '@rules_foreign_cc//toolchains:cmake_toolchain' and     '@rules_foreign_cc//toolchains:ninja_toolchain' with the needed platform constraints.     If you do not pass anything, registered default toolchains will be selected (see below).</td><td align="left"><code>[]</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-register_default_tools"></a>register_default_tools</td><td align="left">If True, the cmake and ninja toolchains, calling corresponding     preinstalled binaries by name (cmake, ninja) will be registered after     'native_tools_toolchains' without any platform constraints. The default is True.</td><td align="left"><code>True</code></td></tr>
-<tr><td align="left"><a id="rules_foreign_cc_dependencies-cmake_version"></a>cmake_version</td><td align="left">The target version of the cmake toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.</td><td align="left"><code>&quot;3.21.2&quot;</code></td></tr>
+<tr><td align="left"><a id="rules_foreign_cc_dependencies-cmake_version"></a>cmake_version</td><td align="left">The target version of the cmake toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.</td><td align="left"><code>&quot;3.22.0&quot;</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-make_version"></a>make_version</td><td align="left">The target version of the default make toolchain if <code>register_built_tools</code>     is set to <code>True</code>.</td><td align="left"><code>&quot;4.3&quot;</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-ninja_version"></a>ninja_version</td><td align="left">The target version of the ninja toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.</td><td align="left"><code>&quot;1.10.2&quot;</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-register_preinstalled_tools"></a>register_preinstalled_tools</td><td align="left">If true, toolchains will be registered for the native built tools     installed on the exec host</td><td align="left"><code>True</code></td></tr>
