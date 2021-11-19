@@ -110,6 +110,8 @@ tasks:
       # TODO: Fix `CreateProcess failed: The system cannot find the file specified.`
       - "-//ninja_simple/..."
     build_targets: *windows_targets
+    build_flags:
+      - "--action_env=PROGRAMDATA"
     test_targets: *windows_targets
     test_flags:
       - "--enable_runfiles"
