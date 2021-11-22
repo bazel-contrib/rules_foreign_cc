@@ -42,7 +42,7 @@ cmake(
         "@openssl",
     ] + select({
         "@platforms//os:linux": ["@pcre"],
-        "@platforms//os:macos": ["@iconv"],
+        "@platforms//os:macos": ["@iconv_macos//:iconv"],
         "//conditions:default": [],
     }),
 )
