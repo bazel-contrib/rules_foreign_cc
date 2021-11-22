@@ -9,10 +9,6 @@ filegroup(
 
 configure_make(
     name = "m4",
-    env = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     lib_source = ":all_srcs",
     out_binaries = [
         "m4",

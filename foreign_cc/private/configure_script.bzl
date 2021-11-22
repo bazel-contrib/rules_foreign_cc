@@ -211,6 +211,11 @@ def _get_configure_variables(workspace_name, tools, flags, user_env_vars):
         if toolchain_val:
             tools_dict[user_var] = [user_env_vars[user_var]]
 
+    if tools_dict["AR"][0].endswith("/libtool"):
+        arflags = vars.get("ARFLAGS")
+        if arflags and arflags[-1] != "-o":
+            vars["ARFLAGS"] = vars["ARFLAGS"] + ["-o"]
+
     vars.update(tools_dict)
 
     # Put all other environment variables, passed by the user

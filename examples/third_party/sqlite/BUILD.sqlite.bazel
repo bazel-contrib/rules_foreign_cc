@@ -7,10 +7,6 @@ filegroup(
 
 configure_make(
     name = "sqlite",
-    env = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     lib_source = ":all_srcs",
     out_static_libs = ["libsqlite3.a"],
     visibility = ["//visibility:public"],

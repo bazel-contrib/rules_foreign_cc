@@ -15,7 +15,6 @@ configure_make(
         "--enable-shared=no",
         "--enable-static=yes",
     ],
-    env = {"AR": ""},
     lib_source = "@iconv_macos//:all",
     out_static_libs = [
         "libiconv.a",

@@ -37,10 +37,6 @@ configure_make(
         "--without-examples",
         "--without-tests",
     ],
-    env = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     lib_name = LIB_NAME,
     lib_source = ":all_srcs",
     out_static_libs = ["libexpat.a"],

@@ -14,7 +14,6 @@ configure_make(
     ],
     env = select({
         "@platforms//os:macos": {
-            "AR": "",
             "CXXFLAGS": "-Wno-c++11-narrowing",
         },
         "//conditions:default": {

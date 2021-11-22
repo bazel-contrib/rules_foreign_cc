@@ -46,10 +46,6 @@ configure_make(
     configure_options = [
         "--disable-shared",
     ],
-    env = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     lib_name = LIB_NAME,
     lib_source = ":all_srcs",
     out_static_libs = ["libapr-1.a"],

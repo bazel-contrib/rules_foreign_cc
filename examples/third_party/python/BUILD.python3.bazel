@@ -15,10 +15,6 @@ configure_make(
         "--with-zlib=$EXT_BUILD_DEPS/zlib",
         "--enable-optimizations",
     ],
-    env = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     features = select({
         "@platforms//os:macos": ["-headerpad"],
         "//conditions:default": {},
