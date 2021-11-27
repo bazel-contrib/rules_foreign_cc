@@ -30,7 +30,7 @@ def _make_tool_impl(ctx):
         ]
     else:
         script = [
-            "./configure --disable-dependency-tracking --prefix=$$INSTALLDIR$$",
+            "./configure --without-guile --with-guile=no --disable-dependency-tracking --prefix=$$INSTALLDIR$$",
             "./build.sh",
             "./make install",
         ]
