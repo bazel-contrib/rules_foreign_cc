@@ -1,4 +1,4 @@
-exports_files(["clang_wrapper.sh"])
+exports_files(["cxx_wrapper.sh"])
 
 filegroup(
     name = "srcs",
