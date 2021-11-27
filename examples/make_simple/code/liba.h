@@ -5,5 +5,6 @@
 #include <string>
 
 std::string hello_liba(void);
+double hello_math(double);
 
 #endif

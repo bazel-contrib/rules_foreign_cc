@@ -3,9 +3,12 @@ load("@rules_foreign_cc//foreign_cc:defs.bzl", "make")
 
 make(
     name = "make_lib",
-    build_data = ["//make_simple/code:clang_wrapper.sh"],
+    build_data = ["//make_simple/code:cxx_wrapper.sh"],
+    copts = [
+        "-DREQUIRED_DEFINE",
+    ],
     env = {
-        "CLANG_WRAPPER": "$(execpath //make_simple/code:clang_wrapper.sh)",
+        "CXX_WRAPPER": "$(execpath //make_simple/code:cxx_wrapper.sh)",
     },
     lib_source = "//make_simple/code:srcs",
     out_static_libs = ["liba.a"],
@@ -15,6 +18,9 @@ cc_test(
     name = "test_lib",
     srcs = [
         "test_libb.cpp",
+    ],
+    copts = [
+        "-std=c++11",
     ],
     tags = ["windows"],
     deps = [
