@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ "$OSTYPE" == "win32" ]]; then
     python.exe build/gen.py --no-last-commit-position

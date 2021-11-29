@@ -10,7 +10,7 @@ index 461df15..efa4c26 100644
 +    srcs = DOCS_TARGETS + ["index.md"],
      outs = ["generate_docs.sh"],
      cmd = """cat << EOF > $@
- #!/bin/bash
+ #!/usr/bin/env bash
  set -euo pipefail
 -cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:flatten_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/flatten.md
 -cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:cmake_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/cmake.md
