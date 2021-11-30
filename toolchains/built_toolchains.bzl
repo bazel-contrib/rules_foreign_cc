@@ -412,6 +412,7 @@ def _make_toolchain(version):
             http_archive,
             name = "gnumake_src",
             build_file_content = _ALL_CONTENT,
+            patches = ["@rules_foreign_cc//toolchains:make-reproducible-bootstrap.patch"],
             sha256 = "e05fdde47c5f7ca45cb697e973894ff4f5d79e13b750ed57d7b66d8defc78e19",
             strip_prefix = "make-4.3",
             urls = [
