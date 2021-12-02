@@ -108,6 +108,14 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
             "Variables containing `PATH` (e.g. `PATH`, `LD_LIBRARY_PATH`, `CPATH`) entries will be prepended to the existing variable."
         ),
     ),
+    "includes": attr.string_list(
+        doc = (
+            "Optional list of include dirs to be passed to the dependencies of this library. " +
+            "They are NOT passed to the compiler, you should duplicate them in the configuration options."
+        ),
+        mandatory = False,
+        default = [],
+    ),
     "lib_name": attr.string(
         doc = (
             "Library name. Defines the name of the install directory and the name of the static library, " +
@@ -876,7 +884,10 @@ def _get_headers(compilation_info):
 def _define_out_cc_info(ctx, attrs, inputs, outputs):
     compilation_info = cc_common.create_compilation_context(
         headers = depset([outputs.out_include_dir]),
-        system_includes = depset([outputs.out_include_dir.path]),
+        system_includes = depset([outputs.out_include_dir.path] + [
+            outputs.out_include_dir.path + "/" + include
+            for include in attrs.includes
+        ]),
         includes = depset([]),
         quote_includes = depset([]),
         defines = depset(attrs.defines),
