@@ -4,7 +4,7 @@ index a5a37ac..091e679 100644
 +++ b/docs/BUILD.bazel
 @@ -35,7 +35,7 @@ genrule(
      cmd = """cat << EOF > $@
- #!/usr/bin/env bash
+ #!/bin/bash
  set -e
 -cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/README.md
 +cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/index.md
