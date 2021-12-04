@@ -16,6 +16,7 @@ configure_make(
         "simple",
         "install",
     ],
+    two_part_install = False,
     deps = [":built_with_bazel"],
 )
 

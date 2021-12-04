@@ -18,5 +18,6 @@ configure_make(
         "libiconv.a",
     ],
     targets = ["install-lib"],
+    two_part_install = False,
     visibility = ["//visibility:public"],
 )

@@ -19,10 +19,10 @@ configure_make(
         },
         "//conditions:default": {"M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4"},
     }),
-    install_prefix = "install",
     lib_source = ":all_srcs",
     out_binaries = [
         "libtool",
     ],
     out_data_dirs = ["share"],
+    two_part_install = True,
 )

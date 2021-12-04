@@ -9,19 +9,20 @@ filegroup(
 
 configure_make(
     name = "autoconf",
-    build_data = [
-        "@m4",
-    ],
     env = select({
         "@platforms//os:macos": {
             "AR": "",
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+            "M4": "$$EXT_BUILD_DEPS/bin/m4/bin/m4",
+            "PERL": "$$EXT_BUILD_ROOT$$/$(PERL)",
         },
         "//conditions:default": {
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+            "M4": "$$EXT_BUILD_DEPS/bin/m4/bin/m4",
+            "PERL": "$$EXT_BUILD_ROOT$$/$(PERL)",
         },
     }),
+    install_prefix = "/usr",
     lib_source = ":all_srcs",
+    out_bin_dir = "usr/bin",
     out_binaries = [
         "autoconf",
         "autoheader",
@@ -32,4 +33,9 @@ configure_make(
         "ifnames",
     ],
     out_data_dirs = ["share"],
+    toolchains = ["@rules_perl//:current_toolchain"],
+    tools_deps = [
+        "@m4",
+    ],
+    two_part_install = True,
 )

@@ -53,5 +53,6 @@ configure_make(
     lib_name = LIB_NAME,
     lib_source = ":all_srcs",
     out_static_libs = ["libapr-1.a"],
+    two_part_install = False,
     visibility = ["//visibility:public"],
 )
