@@ -4,7 +4,10 @@ LIB_NAME = "apr"
 
 filegroup(
     name = "all_srcs",
-    srcs = glob(["**"]),
+    srcs = glob(
+        include = ["**"],
+        exclude = ["*.bazel"],
+    ),
 )
 
 config_setting(

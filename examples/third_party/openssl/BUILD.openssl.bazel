@@ -8,7 +8,10 @@ load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make", "configure_make
 
 filegroup(
     name = "all_srcs",
-    srcs = glob(["**"]),
+    srcs = glob(
+        include = ["**"],
+        exclude = ["*.bazel"],
+    ),
 )
 
 CONFIGURE_OPTIONS = [
