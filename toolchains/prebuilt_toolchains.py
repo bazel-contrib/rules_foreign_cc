@@ -141,9 +141,10 @@ maybe(
 """
 
 REGISTER_TOOLCHAINS = """\
-native.register_toolchains(
+if register_toolchains:
+    native.register_toolchains(
 {toolchains}
-)
+    )
 """
 
 BZL_FILE_TEMPLATE = """\
@@ -202,24 +203,25 @@ native_tool_toolchain(
 \"\"\"
 
 # buildifier: disable=unnamed-macro
-def prebuilt_toolchains(cmake_version, ninja_version):
+def prebuilt_toolchains(cmake_version, ninja_version, register_toolchains):
     \"\"\"Register toolchains for pre-built cmake and ninja binaries
 
     Args:
         cmake_version (string): The target cmake version
         ninja_version (string): The target ninja-build version
+        register_toolchains (boolean): Whether to call native.register_toolchains or not
     \"\"\"
-    _cmake_toolchains(cmake_version)
-    _ninja_toolchains(ninja_version)
-    _make_toolchains()
+    _cmake_toolchains(cmake_version, register_toolchains)
+    _ninja_toolchains(ninja_version, register_toolchains)
+    _make_toolchains(register_toolchains)
 
-def _cmake_toolchains(version):
+def _cmake_toolchains(version, register_toolchains):
 {cmake_definitions}
 
-def _ninja_toolchains(version):
+def _ninja_toolchains(version, register_toolchains):
 {ninja_definitions}
 
-def _make_toolchains():
+def _make_toolchains(register_toolchains):
 {make_definitions}
 """
 
@@ -303,7 +305,7 @@ def get_cmake_definitions() -> str:
                 [indent("\"@cmake_{}_toolchains//:{}_toolchain\",".format(
                     version,
                     repo
-                ), " " * 4) for repo in toolchains_repos])
+                ), " " * 8) for repo in toolchains_repos])
         ), " " * 8))
 
         archives.extend([
@@ -388,7 +390,7 @@ def get_ninja_definitions() -> str:
                 [indent("\"@ninja_{}_toolchains//:{}_toolchain\",".format(
                     version,
                     repo
-                ), " " * 4) for repo in toolchains_repos])
+                ), " " * 8) for repo in toolchains_repos])
         ), " " * 8))
 
         archives.extend([

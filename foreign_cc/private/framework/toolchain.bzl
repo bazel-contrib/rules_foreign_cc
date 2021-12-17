@@ -86,8 +86,12 @@ framework_toolchain_repository = repository_rule(
 )
 
 # buildifier: disable=unnamed-macro
-def register_framework_toolchains():
-    """Define and register the foreign_cc framework toolchains"""
+def register_framework_toolchains(register_toolchains = True):
+    """Define and register the foreign_cc framework toolchains
+
+    Args:
+        register_toolchains: Whether to call native.register_toolchains or not
+    """
     toolchains = []
 
     for item in TOOLCHAIN_MAPPINGS:
@@ -103,4 +107,5 @@ def register_framework_toolchains():
 
         toolchains.append("@{}//:toolchain".format(toolchain_name))
 
-    native.register_toolchains(*toolchains)
+    if (register_toolchains):
+        native.register_toolchains(*toolchains)

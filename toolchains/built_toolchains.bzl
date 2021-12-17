@@ -24,16 +24,17 @@ _CMAKE_SRCS = {
 }
 
 # buildifier: disable=unnamed-macro
-def built_toolchains(cmake_version, make_version, ninja_version):
+def built_toolchains(cmake_version, make_version, ninja_version, register_toolchains):
     """Register toolchains for built tools that will be built from source"""
-    _cmake_toolchain(cmake_version)
-    _make_toolchain(make_version)
-    _ninja_toolchain(ninja_version)
+    _cmake_toolchain(cmake_version, register_toolchains)
+    _make_toolchain(make_version, register_toolchains)
+    _ninja_toolchain(ninja_version, register_toolchains)
 
-def _cmake_toolchain(version):
-    native.register_toolchains(
-        "@rules_foreign_cc//toolchains:built_cmake_toolchain",
-    )
+def _cmake_toolchain(version, register_toolchains):
+    if register_toolchains:
+        native.register_toolchains(
+            "@rules_foreign_cc//toolchains:built_cmake_toolchain",
+        )
 
     if _CMAKE_SRCS.get(version):
         cmake_meta = _CMAKE_SRCS[version]
@@ -403,16 +404,17 @@ def _cmake_toolchain(version):
 
     fail("Unsupported cmake version: " + str(version))
 
-def _make_toolchain(version):
-    native.register_toolchains(
-        "@rules_foreign_cc//toolchains:built_make_toolchain",
-    )
+def _make_toolchain(version, register_toolchains):
+    if register_toolchains:
+        native.register_toolchains(
+            "@rules_foreign_cc//toolchains:built_make_toolchain",
+        )
     if version == "4.3":
         maybe(
             http_archive,
             name = "gnumake_src",
             build_file_content = _ALL_CONTENT,
-            patches = ["@rules_foreign_cc//toolchains:make-reproducible-bootstrap.patch"],
+            patches = [str(Label("//toolchains:make-reproducible-bootstrap.patch"))],
             sha256 = "e05fdde47c5f7ca45cb697e973894ff4f5d79e13b750ed57d7b66d8defc78e19",
             strip_prefix = "make-4.3",
             urls = [
@@ -424,10 +426,11 @@ def _make_toolchain(version):
 
     fail("Unsupported make version: " + str(version))
 
-def _ninja_toolchain(version):
-    native.register_toolchains(
-        "@rules_foreign_cc//toolchains:built_ninja_toolchain",
-    )
+def _ninja_toolchain(version, register_toolchains):
+    if register_toolchains:
+        native.register_toolchains(
+            "@rules_foreign_cc//toolchains:built_ninja_toolchain",
+        )
     if version == "1.10.2":
         maybe(
             http_archive,
