@@ -23,8 +23,6 @@ configure_make(
         "@platforms//os:macos": ["-headerpad"],
         "//conditions:default": {},
     }),
-    # rules_foreign_cc defaults the install_prefix to "python". This conflicts with the "python" executable that is generated.
-    install_prefix = "py_install",
     lib_source = ":all_srcs",
     out_binaries = [
         "python3.9",

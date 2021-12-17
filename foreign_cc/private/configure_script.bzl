@@ -24,6 +24,7 @@ def create_configure_script(
         autogen,
         autogen_command,
         autogen_options,
+        two_part_install,
         make_path,
         make_commands):
     ext_build_dirs = inputs.ext_build_dirs
@@ -69,8 +70,10 @@ def create_configure_script(
             options = " ".join(autoreconf_options),
         ).lstrip())
 
-    script.append("##mkdirs## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$")
-    script.append("{env_vars} {prefix}\"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+    if not two_part_install:
+        script.append("##mkdirs## $$INSTALL_PREFIX$$")
+
+    script.append("{env_vars} {prefix}\"{configure}\" --prefix=$$INSTALL_PREFIX$$ {user_options}".format(
         env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs),
         prefix = configure_prefix,
         configure = configure_path,

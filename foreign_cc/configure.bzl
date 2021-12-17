@@ -43,13 +43,16 @@ def _configure_make(ctx):
             ctx.label,
         ))
 
-    copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
+    if not ctx.attr.two_part_install:
+        postfix_script = "##copy_dir_contents_to_dir## $$INSTALL_PREFIX$$ $$INSTALLDIR$$\n" + ctx.attr.postfix_script
+    else:
+        postfix_script = ctx.attr.postfix_script
 
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Configure",
         create_configure_script = _create_configure_script,
-        postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
+        postfix_script = postfix_script,
         tools_deps = tools_deps,
         make_path = make_data.path,
     )
@@ -60,12 +63,31 @@ def _create_configure_script(configureParameters):
     attrs = configureParameters.attrs
     inputs = configureParameters.inputs
 
-    install_prefix = _get_install_prefix(ctx)
+    if ctx.attr.install_prefix:
+        if ctx.attr.install_prefix[0] == "/":
+            install_prefix = ctx.attr.install_prefix
+            if ctx.attr.two_part_install:
+                destdir = "DESTDIR=$$INSTALLDIR$$"
+            else:
+                # This is unlikely to work portably as in general an arbritary
+                # absolute path is not writable during a sandboxed or remote build
+                # but try anyway incase the user has specified a writable path in
+                # install_prefix
+                destdir = ""
+        else:
+            install_prefix = "$$BUILD_TMPDIR$$/{}".format(ctx.attr.install_prefix)
+            destdir = ""
+    elif ctx.attr.two_part_install:
+        install_prefix = "/"
+        destdir = "DESTDIR=$$INSTALLDIR$$"
+    else:
+        install_prefix = "$$BUILD_TMPDIR$$/{}".format(ctx.attr.lib_name or ctx.attr.name)
+        destdir = ""
 
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
 
-    define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
+    define_install_prefix = ["##export_var## INSTALL_PREFIX \"{}\"".format(install_prefix)]
 
     data = ctx.attr.data + ctx.attr.build_data
 
@@ -83,9 +105,9 @@ def _create_configure_script(configureParameters):
 
     for target in ctx.attr.targets:
         # Configure will have generated sources into `$BUILD_TMPDIR` so make sure we `cd` there
-        make_commands.append("{prefix}{make} -C $$BUILD_TMPDIR$$ {target} {args}".format(
+        make_commands.append("{prefix}$$MAKE$$ -C $$BUILD_TMPDIR$$ {destdir} {target} {args}".format(
             prefix = prefix,
-            make = attrs.make_path,
+            destdir = destdir,
             args = args,
             target = target,
         ))
@@ -112,17 +134,11 @@ def _create_configure_script(configureParameters):
         autogen = ctx.attr.autogen,
         autogen_command = ctx.attr.autogen_command,
         autogen_options = ctx.attr.autogen_options,
+        two_part_install = ctx.attr.two_part_install,
         make_commands = make_commands,
         make_path = attrs.make_path,
     )
     return define_install_prefix + configure
-
-def _get_install_prefix(ctx):
-    if ctx.attr.install_prefix:
-        return ctx.attr.install_prefix
-    if ctx.attr.lib_name:
-        return ctx.attr.lib_name
-    return ctx.attr.name
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
@@ -206,6 +222,13 @@ def _attrs():
             ),
             mandatory = False,
             default = ["", "install"],
+        ),
+        "two_part_install": attr.bool(
+            doc = (
+                "Set to True if the configure make script supports two phase install via DESTDIR. (See https://www.gnu.org/software/automake/manual/automake.html#Two_002dPart-Install). Using this option will result in more reproducible builds as --prefix will be set to a consistent value at configure time."
+            ),
+            mandatory = False,
+            default = False,
         ),
     })
 
