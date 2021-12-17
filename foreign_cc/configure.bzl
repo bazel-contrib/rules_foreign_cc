@@ -224,7 +224,11 @@ configure_make = rule(
     output_to_genfiles = True,
     implementation = _configure_make,
     toolchains = [
+        "@rules_foreign_cc//toolchains:autoconf_toolchain",
+        "@rules_foreign_cc//toolchains:automake_toolchain",
         "@rules_foreign_cc//toolchains:make_toolchain",
+        "@rules_foreign_cc//toolchains:m4_toolchain",
+        "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],

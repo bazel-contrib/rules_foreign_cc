@@ -412,6 +412,8 @@ cmake = rule(
         "@rules_foreign_cc//toolchains:cmake_toolchain",
         "@rules_foreign_cc//toolchains:ninja_toolchain",
         "@rules_foreign_cc//toolchains:make_toolchain",
+        "@rules_foreign_cc//toolchains:m4_toolchain",
+        "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
