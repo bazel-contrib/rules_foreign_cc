@@ -21,6 +21,7 @@ _CMAKE_SRCS = {
     "3.21.3": [["https://github.com/Kitware/CMake/releases/download/v3.21.3/cmake-3.21.3.tar.gz"], "cmake-3.21.3", "d14d06df4265134ee42c4d50f5a60cb8b471b7b6a47da8e5d914d49dd783794f"],
     "3.21.4": [["https://github.com/Kitware/CMake/releases/download/v3.21.4/cmake-3.21.4.tar.gz"], "cmake-3.21.4", "d9570a95c215f4c9886dd0f0564ca4ef8d18c30750f157238ea12669c2985978"],
     "3.22.0": [["https://github.com/Kitware/CMake/releases/download/v3.22.0/cmake-3.22.0.tar.gz"], "cmake-3.22.0", "998c7ba34778d2dfdb3df8a695469e24b11e2bfa21fbe41b361a3f45e1c9345e"],
+    "3.22.1": [["https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1.tar.gz"], "cmake-3.22.1", "0e998229549d7b3f368703d20e248e7ee1f853910d42704aa87918c213ea82c0"],
 }
 
 # buildifier: disable=unnamed-macro
