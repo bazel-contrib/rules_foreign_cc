@@ -53,21 +53,27 @@ def _create_make_script(configureParameters):
         for arg in ctx.attr.args
     ])
 
+    user_env = expand_locations(ctx, ctx.attr.env, data)
+
     make_commands = []
     prefix = "{} ".format(expand_locations(ctx, attrs.tool_prefix, data)) if attrs.tool_prefix else ""
     for target in ctx.attr.targets:
-        make_commands.append("{prefix}{make} -C $$EXT_BUILD_ROOT$$/{root} {target} {args} PREFIX={install_prefix}".format(
+        make_commands.append("{prefix}{make} -C $$BUILD_TMPDIR$$ {target} {args} PREFIX={install_prefix}".format(
             prefix = prefix,
             make = attrs.make_path,
-            root = root,
             args = args,
             target = target,
             install_prefix = ctx.attr.install_prefix,
         ))
 
     return create_make_script(
+        workspace_name = ctx.workspace_name,
+        tools = tools,
+        flags = flags,
         root = root,
+        deps = ctx.attr.deps,
         inputs = inputs,
+        env_vars = user_env,
         make_commands = make_commands,
     )
 

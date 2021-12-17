@@ -92,7 +92,7 @@ export COMMIT="$$(cat bazel-out/stable-status.txt | grep STABLE_SCM_VERSION | cu
 export SHORT_COMMIT="$$(cat bazel-out/stable-status.txt | grep STABLE_SCM_SHORT_VERSION | cut -d' ' -f2)"
 export RELEASE="$$(cat bazel-out/stable-status.txt | grep STABLE_RELEASE | cut -d' ' -f2)"
 cat << EOF > $@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 short_commit="$${SHORT_COMMIT}"

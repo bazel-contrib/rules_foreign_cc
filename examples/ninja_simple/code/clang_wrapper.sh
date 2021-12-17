@@ -1,4 +1,7 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
 
 if [[ $(uname) == *"NT"* ]]; then
  # If Windows

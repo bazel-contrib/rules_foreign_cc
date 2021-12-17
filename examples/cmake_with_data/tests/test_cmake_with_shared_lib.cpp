@@ -20,7 +20,13 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
     test_opening_file(".\\cmake_with_data\\lib_b\\lib_b.dll");
 #else
-    test_opening_file("./cmake_with_data/lib_b/liblib_b.so");
+    // Shared libraries used to have the .so file extension on macOS.
+    // See https://github.com/bazelbuild/bazel/pull/14369.
+    try {
+        test_opening_file("./cmake_with_data/lib_b/liblib_b.so");
+    } catch (std::runtime_error& e) {
+        test_opening_file("./cmake_with_data/lib_b/liblib_b.dylib");
+    }
 #endif
     std::cout << "Everything's fine!";
 }
