@@ -102,7 +102,7 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic):
     )
 
     return [
-        DefaultInfo(files = depset([out_dir])),
+        DefaultInfo(files = depset([out_dir]), runfiles = ctx.runfiles(files = [out_dir])),
         OutputGroupInfo(
             log_file = depset([wrapped_outputs.log_file]),
             script_file = depset([wrapped_outputs.script_file]),
