@@ -136,7 +136,7 @@ if [[ -f "$1" ]]; then
   # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
   # files so updating them is possible.
   if [[ "$1" == *.pc || "$1" == *.la || "$1" == *-config || "$1" == *.mk || "$1" == *.cmake ]]; then
-    dest="$target/$(basename $1)"
+    dest="$target/$(basename \"$1\")"
     cp "$1" "$dest" && chmod +w "$dest" && touch -r "$1" "$dest"
   else
     ln -s -f -t "$target" "$1"
