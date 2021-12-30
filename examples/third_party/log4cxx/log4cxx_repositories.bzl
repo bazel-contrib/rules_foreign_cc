@@ -20,6 +20,7 @@ def log4cxx_repositories():
             Label("//log4cxx:simpledateformat.h.patch"),
         ],
         urls = [
+            "https://mirror.bazel.build/archive.apache.org/dist/logging/log4cxx/0.10.0/apache-log4cxx-0.10.0.tar.gz",
             "https://archive.apache.org/dist/logging/log4cxx/0.10.0/apache-log4cxx-0.10.0.tar.gz",
         ],
     )

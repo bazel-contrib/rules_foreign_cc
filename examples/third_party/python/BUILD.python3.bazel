@@ -4,7 +4,10 @@ package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "all_srcs",
-    srcs = glob(["**"]),
+    srcs = glob(
+        include = ["**"],
+        exclude = ["*.bazel"],
+    ),
 )
 
 configure_make(
@@ -27,7 +30,7 @@ configure_make(
     install_prefix = "py_install",
     lib_source = ":all_srcs",
     out_binaries = [
-        "python3.9",
+        "python3.10",
     ],
     out_data_dirs = ["lib"],
     deps = [
@@ -39,5 +42,5 @@ configure_make(
 filegroup(
     name = "python3_bin",
     srcs = [":python3"],
-    output_group = "python3.9",
+    output_group = "python3.10",
 )

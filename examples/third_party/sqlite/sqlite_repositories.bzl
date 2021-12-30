@@ -10,5 +10,8 @@ def sqlite_repositories():
         build_file = Label("//sqlite:BUILD.sqlite.bazel"),
         sha256 = "f52b72a5c319c3e516ed7a92e123139a6e87af08a2dc43d7757724f6132e6db0",
         strip_prefix = "sqlite-autoconf-3350500",
-        urls = ["https://www.sqlite.org/2021/sqlite-autoconf-3350500.tar.gz"],
+        urls = [
+            "https://mirror.bazel.build/www.sqlite.org/2021/sqlite-autoconf-3350500.tar.gz",
+            "https://www.sqlite.org/2021/sqlite-autoconf-3350500.tar.gz",
+        ],
     )
