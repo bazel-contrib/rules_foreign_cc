@@ -9,6 +9,9 @@ def libjpeg_turbo_repositories():
         name = "libjpeg_turbo",
         sha256 = "6a965adb02ad898b2ae48214244618fe342baea79db97157fdc70d8844ac6f09",
         strip_prefix = "libjpeg-turbo-2.0.90",
-        url = "https://github.com/libjpeg-turbo/libjpeg-turbo/archive/2.0.90.tar.gz",
+        urls = [
+            "https://mirror.bazel.build/github.com/libjpeg-turbo/libjpeg-turbo/archive/2.0.90.tar.gz",
+            "https://github.com/libjpeg-turbo/libjpeg-turbo/archive/2.0.90.tar.gz",
+        ],
         build_file = Label("//libjpeg_turbo:BUILD.libjpeg_turbo.bazel"),
     )
