@@ -28,7 +28,7 @@ def openssl_repositories():
             "https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-win64.zip",
         ],
     )
-    
+
     maybe(
         http_archive,
         name = "rules_perl",
