@@ -11,6 +11,7 @@ def subversion_repositories():
         sha256 = "dee2796abaa1f5351e6cc2a60b1917beb8238af548b20d3e1ec22760ab2f0cad",
         strip_prefix = "subversion-1.14.1",
         urls = [
+            "https://mirror.bazel.build/downloads.apache.org/subversion/subversion-1.14.1.tar.gz",
             "https://downloads.apache.org/subversion/subversion-1.14.1.tar.gz",
         ],
     )

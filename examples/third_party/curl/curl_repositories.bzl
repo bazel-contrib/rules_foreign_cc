@@ -8,6 +8,7 @@ def curl_repositories():
         http_archive,
         name = "curl",
         urls = [
+            "https://mirror.bazel.build/curl.se/download/curl-7.74.0.tar.gz",
             "https://curl.se/download/curl-7.74.0.tar.gz",
             "https://github.com/curl/curl/releases/download/curl-7_74_0/curl-7.74.0.tar.gz",
         ],

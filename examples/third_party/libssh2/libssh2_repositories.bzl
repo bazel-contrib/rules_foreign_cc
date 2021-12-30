@@ -8,6 +8,7 @@ def libssh2_repositories():
         http_archive,
         name = "libssh2",
         urls = [
+            "https://mirror.bazel.build/github.com/libssh2/libssh2/releases/download/libssh2-1.9.0/libssh2-1.9.0.tar.gz",
             "https://github.com/libssh2/libssh2/releases/download/libssh2-1.9.0/libssh2-1.9.0.tar.gz",
         ],
         type = "tar.gz",
