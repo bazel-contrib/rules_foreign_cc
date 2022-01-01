@@ -78,7 +78,7 @@ if [ -d "$1" ]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
-  local files=$(find -P -f $1 \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  local files=$(find -P -f "$1" \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
   IFS=$SAVEIFS
   for file in ${files[@]}; do
     local backup=$(mktemp)
@@ -103,7 +103,7 @@ if [[ -d "{source}" ]]; then
 else
   cp -L -R "{source}" "{target}"
 fi
-find {target} -type f -exec touch -r "{source}" "{{}}" \\;
+find "{target}" -type f -exec touch -r "{source}" "{{}}" \\;
 """.format(
         source = source,
         target = target,
@@ -216,7 +216,7 @@ def cleanup_function(on_success, on_failure):
 def children_to_path(dir_):
     text = """\
 if [ -d {dir_} ]; then
-  local tools=$(find $EXT_BUILD_DEPS/bin/ -maxdepth 1 -mindepth 1)
+  local tools=$(find "$EXT_BUILD_DEPS/bin/" -maxdepth 1 -mindepth 1)
   for tool in $tools;
   do
     if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then

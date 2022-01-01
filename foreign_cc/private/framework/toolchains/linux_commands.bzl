@@ -69,7 +69,7 @@ if [ -d "$1" ]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
-  local files=$(find -P $1 \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  local files=$(find -P "$1" \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
   IFS=$SAVEIFS
   for file in ${files[@]}; do
     local backup=$(mktemp)
@@ -86,7 +86,7 @@ fi
     )
 
 def copy_dir_contents_to_dir(source, target):
-    return """cp -L -r --no-target-directory "{source}" "{target}" && find {target} -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+    return """cp -L -r --no-target-directory "{source}" "{target}" && find "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
         source = source,
         target = target,
     )
@@ -166,7 +166,7 @@ def script_prelude():
 
 def increment_pkg_config_path(source):
     text = """\
-local children=$(find $1 -mindepth 1 -name '*.pc')
+local children=$(find "$1" -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
   export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$(dirname $child)"
@@ -198,7 +198,7 @@ def cleanup_function(on_success, on_failure):
 def children_to_path(dir_):
     text = """\
 if [ -d {dir_} ]; then
-  local tools=$(find $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)
+  local tools=$(find "$EXT_BUILD_DEPS/bin" -maxdepth 1 -mindepth 1)
   for tool in $tools;
   do
     if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then
