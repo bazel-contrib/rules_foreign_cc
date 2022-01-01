@@ -66,6 +66,111 @@ def prebuilt_toolchains(cmake_version, ninja_version, register_toolchains):
     _make_toolchains(register_toolchains)
 
 def _cmake_toolchains(version, register_toolchains):
+    if "3.22.1" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.22.1-linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-linux-aarch64.tar.gz",
+            ],
+            sha256 = "601443375aa1a48a1a076bda7e3cca73af88400463e166fffc3e1da3ce03540b",
+            strip_prefix = "cmake-3.22.1-linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.22.1-linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-linux-x86_64.tar.gz",
+            ],
+            sha256 = "73565c72355c6652e9db149249af36bcab44d9d478c5546fd926e69ad6b43640",
+            strip_prefix = "cmake-3.22.1-linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.22.1-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-macos-universal.tar.gz",
+            ],
+            sha256 = "9ba46ce69d524f5bcdf98076a6b01f727604fb31cf9005ec03dea1cf16da9514",
+            strip_prefix = "cmake-3.22.1-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.22.1-windows-i386",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-windows-i386.zip",
+            ],
+            sha256 = "f53494e3b35e5a1177ad55c28763eb5bb45772c1d80778c0f96c45ce4376b6e8",
+            strip_prefix = "cmake-3.22.1-windows-i386",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.22.1-windows-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-windows-x86_64.zip",
+            ],
+            sha256 = "35fbbb7d9ffa491834bbc79cdfefc6c360088a3c9bf55c29d111a5afa04cdca3",
+            strip_prefix = "cmake-3.22.1-windows-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.22.1_toolchains",
+            repos = {
+                "cmake-3.22.1-linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.22.1-linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.22.1-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.22.1-windows-i386": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.22.1-windows-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        if (register_toolchains):
+            native.register_toolchains(
+                "@cmake_3.22.1_toolchains//:cmake-3.22.1-linux-aarch64_toolchain",
+                "@cmake_3.22.1_toolchains//:cmake-3.22.1-linux-x86_64_toolchain",
+                "@cmake_3.22.1_toolchains//:cmake-3.22.1-macos-universal_toolchain",
+                "@cmake_3.22.1_toolchains//:cmake-3.22.1-windows-i386_toolchain",
+                "@cmake_3.22.1_toolchains//:cmake-3.22.1-windows-x86_64_toolchain",
+            )
+
+        return
+
     if "3.22.0" == version:
         maybe(
             http_archive,
