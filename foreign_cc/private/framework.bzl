@@ -483,6 +483,7 @@ def cc_external_rule_impl(ctx, attrs):
             ctx.files.build_data +
             legacy_tools +
             cc_toolchain.all_files.to_list() +
+	    inputs.tool_runfiles +
             tool_runfiles +
             [data[DefaultInfo].files_to_run for data in data_dependencies],
         command = wrapped_outputs.wrapper_script_file.path,
@@ -784,6 +785,7 @@ InputFiles = provider(
             "Files and directories with tools needed for configuration/building " +
             "to be copied into the bin folder, which is added to the PATH"
         ),
+        tool_runfiles = "All files and directories that must be declared as runfiles for tools",
         ext_build_dirs = (
             "Directories with libraries, built by framework function. " +
             "This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents."
@@ -825,8 +827,10 @@ def _define_inputs(attrs):
 
     tools_roots = []
     tools_files = []
+    tool_runfiles = []
     input_files = []
     for tool in attrs.tools_deps:
+        tool_runfiles += tool[DefaultInfo].default_runfiles.files.to_list()
         tool_root = detect_root(tool)
         tools_roots.append(tool_root)
         for file_list in tool.files.to_list():
@@ -834,6 +838,7 @@ def _define_inputs(attrs):
 
     # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:
+        tool_runfiles += tool[DefaultInfo].default_runfiles.files.to_list()
         for file_list in tool.files.to_list():
             tools_files += _list(file_list)
 
@@ -853,6 +858,7 @@ def _define_inputs(attrs):
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
+	tool_runfiles = tool_runfiles,
         declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
                           bazel_libs +
                           tools_files +

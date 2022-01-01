@@ -81,6 +81,12 @@ toolchain(
     toolchain_type = ":make_toolchain",
 )
 
+toolchain(
+    name = "built_make_parallel_toolchain",
+    toolchain = ":built_parallel_make",
+    toolchain_type = ":make_toolchain",
+)
+
 # Preinstalled cmake will always be the default, if toolchain with more exact constraints
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(
@@ -144,6 +150,19 @@ native_tool_toolchain(
         "//conditions:default": "$(execpath :make_tool)/bin/make",
     }),
     target = ":make_tool",
+)
+
+sh_binary(
+    name = "parallel_make",
+    srcs = ["parallel_make.sh"],
+    data = [":make_tool"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)
+
+native_tool_toolchain(
+    name = "built_parallel_make",
+    path = "parallel_make",
+    target = ":parallel_make",
 )
 
 native_tool_toolchain(
