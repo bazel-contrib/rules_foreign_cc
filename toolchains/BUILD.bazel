@@ -202,6 +202,21 @@ native_tool_toolchain(
 )
 
 toolchain(
+    name = "built_pkgconfig_toolchain",
+    toolchain = ":built_pkgconfig",
+    toolchain_type = ":pkgconfig_toolchain",
+)
+
+native_tool_toolchain(
+    name = "built_pkgconfig",
+    path = select({
+        "@platforms//os:windows": "$(execpath @pkg-config//:pkgconfig)/bin/pkg-config.exe",
+        "//conditions:default": "$(execpath @pkg-config//:pkgconfig)/bin/pkg-config",
+    }),
+    target = "@pkg-config//:pkgconfig",
+)
+
+toolchain(
     name = "preinstalled_pkgconfig_toolchain",
     toolchain = ":preinstalled_pkgconfig",
     toolchain_type = ":pkgconfig_toolchain",

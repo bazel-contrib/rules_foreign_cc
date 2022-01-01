@@ -49,27 +49,33 @@ def rules_foreign_cc_dependencies(
 
     register_framework_toolchains(register_toolchains = register_toolchains)
 
-    if (register_toolchains):
-        native.register_toolchains(*native_tools_toolchains)
+    pkgconfig_repositories()
 
-    native.register_toolchains(
-        str(Label("//toolchains:preinstalled_autoconf_toolchain")),
-        str(Label("//toolchains:preinstalled_automake_toolchain")),
-        str(Label("//toolchains:preinstalled_m4_toolchain")),
-        str(Label("//toolchains:preinstalled_pkgconfig_toolchain")),
-    )
+    if (register_toolchains):
+        native.register_toolchains(
+	    *native_tools_toolchains,
+	)
+        native.register_toolchains(
+            str(Label("//toolchains:preinstalled_autoconf_toolchain")),
+            str(Label("//toolchains:preinstalled_automake_toolchain")),
+            str(Label("//toolchains:preinstalled_m4_toolchain")),
+        )
 
     if register_default_tools:
         prebuilt_toolchains(cmake_version, ninja_version, register_toolchains)
+        native.register_toolchains(
+            str(Label("//toolchains:preinstalled_pkgconfig_toolchain")),
+        )
 
     if register_built_tools:
-        pkgconfig_repositories()
         built_toolchains(
             cmake_version = cmake_version,
             make_version = make_version,
             ninja_version = ninja_version,
             register_toolchains = register_toolchains,
         )
+        if register_toolchains:
+            native.register_toolchains(str(Label("//toolchains:built_pkgconfig_toolchain")))
 
     if register_preinstalled_tools:
         preinstalled_toolchains()
