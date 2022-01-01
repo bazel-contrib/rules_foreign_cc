@@ -517,7 +517,7 @@ make_variant(<a href="#make_variant-name">name</a>, <a href="#make_variant-toolc
 <pre>
 rules_foreign_cc_dependencies(<a href="#rules_foreign_cc_dependencies-native_tools_toolchains">native_tools_toolchains</a>, <a href="#rules_foreign_cc_dependencies-register_default_tools">register_default_tools</a>, <a href="#rules_foreign_cc_dependencies-cmake_version">cmake_version</a>,
                               <a href="#rules_foreign_cc_dependencies-make_version">make_version</a>, <a href="#rules_foreign_cc_dependencies-ninja_version">ninja_version</a>, <a href="#rules_foreign_cc_dependencies-register_preinstalled_tools">register_preinstalled_tools</a>,
-                              <a href="#rules_foreign_cc_dependencies-register_built_tools">register_built_tools</a>)
+                              <a href="#rules_foreign_cc_dependencies-register_built_tools">register_built_tools</a>, <a href="#rules_foreign_cc_dependencies-register_toolchains">register_toolchains</a>)
 </pre>
 <p>Call this function from the WORKSPACE file to initialize rules_foreign_cc     dependencies and let neccesary code generation happen     (Code generation is needed to support different variants of the C++ Starlark API.).</p>
 <p><strong>PARAMETERS</strong></p>
@@ -529,6 +529,7 @@ rules_foreign_cc_dependencies(<a href="#rules_foreign_cc_dependencies-native_too
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-ninja_version"></a>ninja_version</td><td align="left">The target version of the ninja toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.</td><td align="left"><code>&quot;1.10.2&quot;</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-register_preinstalled_tools"></a>register_preinstalled_tools</td><td align="left">If true, toolchains will be registered for the native built tools     installed on the exec host</td><td align="left"><code>True</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-register_built_tools"></a>register_built_tools</td><td align="left">If true, toolchains that build the tools from source are registered</td><td align="left"><code>True</code></td></tr>
+<tr><td align="left"><a id="rules_foreign_cc_dependencies-register_toolchains"></a>register_toolchains</td><td align="left">If true, registers the toolchains via native.register_toolchains. Used by bzlmod</td><td align="left"><code>True</code></td></tr>
 </tbody></table>
 
                     </main>
