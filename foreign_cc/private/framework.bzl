@@ -381,7 +381,7 @@ def cc_external_rule_impl(ctx, attrs):
     _print_deprecation_warnings(ctx)
     lib_name = attrs.lib_name or ctx.attr.name
 
-    inputs = _define_inputs(attrs)
+    inputs = _define_inputs(ctx, attrs)
     outputs = _define_outputs(ctx, attrs, lib_name)
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
@@ -458,6 +458,8 @@ def cc_external_rule_impl(ctx, attrs):
     # TODO: `additional_tools` is deprecated, remove.
     legacy_tools = ctx.files.additional_tools + ctx.files.tools_deps
 
+    inputs_from_tools, manifests_from_tools = ctx.resolve_tools(tools = attrs.tools_deps)
+
     # The use of `run_shell` here is intended to ensure bash is correctly setup on windows
     # environments. This should not be replaced with `run` until a cross platform implementation
     # is found that guarantees bash exists or appropriately errors out.
@@ -465,9 +467,10 @@ def cc_external_rule_impl(ctx, attrs):
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
         outputs = rule_outputs + [wrapped_outputs.log_file],
+        input_manifests = manifests_from_tools,
         tools = depset(
             [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.build_data + legacy_tools,
-            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
+            transitive = [cc_toolchain.all_files, inputs_from_tools] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
         ),
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
@@ -650,9 +653,9 @@ def _copy_deps_and_tools(files):
     lines += _symlink_contents_to_dir("lib", files.libs)
     lines += _symlink_contents_to_dir("include", files.headers + files.include_dirs)
 
-    if files.tools_files:
+    if files.tools_roots:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
-    for tool in files.tools_files:
+    for tool in files.tools_roots:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/".format(tool))
 
     for ext_dir in files.ext_build_dirs:
@@ -763,7 +766,8 @@ InputFiles = provider(
             "into $EXT_BUILD_DEPS/include."
         ),
         libs = "Library files built by Bazel. Will be copied into $EXT_BUILD_DEPS/lib.",
-        tools_files = (
+        tools_files = "All files (including runfiles needed for the tools",
+        tools_roots = (
             "Files and directories with tools needed for configuration/building " +
             "to be copied into the bin folder, which is added to the PATH"
         ),
@@ -777,7 +781,7 @@ InputFiles = provider(
     ),
 )
 
-def _define_inputs(attrs):
+def _define_inputs(ctx, attrs):
     cc_infos = []
 
     bazel_headers = []
@@ -832,13 +836,13 @@ def _define_inputs(attrs):
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
-        tools_files = tools_roots,
+        tools_roots = tools_roots,
+        tools_files = tools_files,
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
         declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
                           bazel_libs +
-                          tools_files +
                           input_files +
                           cc_info_merged.compilation_context.headers.to_list() +
                           ext_build_dirs,
