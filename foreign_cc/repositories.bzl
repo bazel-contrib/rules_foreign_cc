@@ -13,7 +13,8 @@ def rules_foreign_cc_dependencies(
         make_version = "4.3",
         ninja_version = "1.10.2",
         register_preinstalled_tools = True,
-        register_built_tools = True):
+        register_built_tools = True,
+        register_toolchains = True):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
     dependencies and let neccesary code generation happen \
     (Code generation is needed to support different variants of the C++ Starlark API.).
@@ -41,11 +42,14 @@ def rules_foreign_cc_dependencies(
             installed on the exec host
 
         register_built_tools: If true, toolchains that build the tools from source are registered
+
+        register_toolchains: If true, registers the toolchains via native.register_toolchains. Used by bzlmod
     """
 
-    register_framework_toolchains()
+    register_framework_toolchains(register_toolchains = register_toolchains)
 
-    native.register_toolchains(*native_tools_toolchains)
+    if (register_toolchains):
+        native.register_toolchains(*native_tools_toolchains)
 
     native.register_toolchains(
         str(Label("//toolchains:preinstalled_autoconf_toolchain")),
@@ -55,13 +59,14 @@ def rules_foreign_cc_dependencies(
     )
 
     if register_default_tools:
-        prebuilt_toolchains(cmake_version, ninja_version)
+        prebuilt_toolchains(cmake_version, ninja_version, register_toolchains)
 
     if register_built_tools:
         built_toolchains(
             cmake_version = cmake_version,
             make_version = make_version,
             ninja_version = ninja_version,
+            register_toolchains = register_toolchains,
         )
 
     if register_preinstalled_tools:
