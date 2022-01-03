@@ -5,6 +5,7 @@ Rules for building C/C++ projects using foreign build systems (non Bazel) inside
 ## Versions
 
 - [main](main/index.md)
+- [0.7.1](0.7.1/index.md)
 - [0.7.0](0.7.0/index.md)
 - [0.6.0](0.6.0/index.md)
 - [0.5.1](0.5.1/index.md)
