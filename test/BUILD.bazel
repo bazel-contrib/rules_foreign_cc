@@ -64,10 +64,6 @@ symlink_contents_to_dir_test_rule(
 
 diff_test(
     name = "shell_method_symlink_contents_to_dir_test",
-    file1 = select({
-        ":freebsd": "expected/out_symlinked_dirs_freebsd.txt",
-        ":macos": "expected/out_symlinked_dirs_macos.txt",
-        "//conditions:default": "expected/out_symlinked_dirs.txt",
-    }),
+    file1 = "expected/out_symlinked_dirs.txt",
     file2 = ":symlink_dirs",
 )
