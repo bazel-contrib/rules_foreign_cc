@@ -942,7 +942,7 @@ def expand_locations_and_make_variables(ctx, unexpanded, attr_name, data):
     Returns:
         (dict, list, str): expandable with locations and make variables expanded (does not apply to the keys of a dict)
     """
-    location_expanded = expand_locations(ctx, unexpanded, data)
+    location_expanded = _expand_locations(ctx, unexpanded, data)
 
     if type(location_expanded) == type(dict()):
         return {key: _expand_make_variables_in_string(ctx, value, attr_name) for key, value in location_expanded.items()}
@@ -958,7 +958,7 @@ def _expand_make_variables_in_string(ctx, expandable, attr_name):
     # Double-escape $s which we insert in expand_locations.
     return ctx.expand_make_variables(attr_name, expandable.replace("$$EXT_BUILD_ROOT$$", "$$$$EXT_BUILD_ROOT$$$$"), {})
 
-def expand_locations(ctx, expandable, data):
+def _expand_locations(ctx, expandable, data):
     """Expand locations on a dictionary while ensuring `execpath` is always set to an absolute path
 
     This function is not expected to be passed to any action.env argument but instead rendered into
