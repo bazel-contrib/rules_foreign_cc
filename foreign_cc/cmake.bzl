@@ -263,7 +263,7 @@ def _create_configure_script(configureParameters):
         root = root,
         no_toolchain_file = no_toolchain_file,
         user_cache = dict(ctx.attr.cache_entries),
-        user_env = expand_locations_and_make_variables(ctx, "env", data),
+        user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data),
         options = attrs.generate_args,
         cmake_commands = cmake_commands,
         cmake_prefix = prefix,

@@ -75,7 +75,7 @@ def _create_configure_script(configureParameters):
         for arg in ctx.attr.args
     ])
 
-    user_env = expand_locations_and_make_variables(ctx, "env", data)
+    user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data)
 
     make_commands = []
     prefix = "{} ".format(expand_locations(ctx, attrs.tool_prefix, data)) if attrs.tool_prefix else ""
