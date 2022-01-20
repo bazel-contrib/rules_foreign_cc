@@ -19,3 +19,4 @@ install: $(BUILD_DIR)/lib/liba.a
 	mkdir -p $(PREFIX)/lib $(PREFIX)/include
 	cp -rpv $(BUILD_DIR)/lib $(PREFIX)
 	cp -p liba.h $(PREFIX)/include
+	cp $(README_DIR)/README.md $(PREFIX)/share
