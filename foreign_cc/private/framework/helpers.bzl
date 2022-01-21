@@ -123,8 +123,7 @@ def replace_var_ref(text, shell_context):
     parts = []
     current = text
 
-    # long enough
-    for i in range(1, 100):
+    for i in range(2147483647):
         (before, varname, after) = extract_wrapped(current, "$$")
         if not varname:
             parts.append(current)
@@ -199,8 +198,7 @@ def split_arguments(text):
     parts = []
     current = text.strip(" ")
 
-    # long enough
-    for i in range(1, 100):
+    for i in range(1, 2147483647):
         if not current:
             break
 
