@@ -16,6 +16,7 @@ default all $(BUILD_DIR)/lib/liba.a: liba.cpp liba.h
 	ar rcs $(BUILD_DIR)/lib/liba.a $(BUILD_DIR)/lib/liba.o
 
 install: $(BUILD_DIR)/lib/liba.a
-	mkdir -p $(PREFIX)/lib $(PREFIX)/include
+	mkdir -p $(PREFIX)/lib $(PREFIX)/include $(PREFIX)/share
 	cp -rpv $(BUILD_DIR)/lib $(PREFIX)
 	cp -p liba.h $(PREFIX)/include
+	cp $(README_DIR)/README.md $(PREFIX)/share/
