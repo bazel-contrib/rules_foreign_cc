@@ -26,11 +26,7 @@ toolchain(
 _DEFS_BZL_CONTENT = """\
 load(
     "{commands_src}",
-    {symbols}
-)
-
-commands = struct(
-    {commands}
+    "commands"
 )
 
 def _foreign_cc_framework_toolchain_impl(ctx):
@@ -53,8 +49,6 @@ def _framework_toolchain_repository_impl(repository_ctx):
 
     repository_ctx.file("defs.bzl", _DEFS_BZL_CONTENT.format(
         commands_src = repository_ctx.attr.commands_src,
-        symbols = "\n    ".join(["\"{}\",".format(symbol) for symbol in PLATFORM_COMMANDS.keys()]),
-        commands = "\n    ".join(["{cmd} = {cmd},".format(cmd = symbol) for symbol in PLATFORM_COMMANDS.keys()]),
     ))
 
     repository_ctx.file("BUILD.bazel", _BUILD_FILE_CONTENT.format(
