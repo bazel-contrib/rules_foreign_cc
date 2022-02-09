@@ -8,7 +8,7 @@ def access_tool(toolchain_type_, ctx, tool_name):
     """A helper macro for getting the path to a build tool's executable
 
     Args:
-        toolchain_type_ (str): The name of the toolchain type
+        toolchain_type_ (Label): The name of the toolchain type
         ctx (ctx): The rule's context object
         tool_name (str): The name of the tool to query
 
@@ -24,25 +24,25 @@ def access_tool(toolchain_type_, ctx, tool_name):
     )
 
 def get_autoconf_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:autoconf_toolchain")), ctx, "autoconf")
+    return _access_and_expect_label_copied(Label("//toolchains:autoconf_toolchain"), ctx, "autoconf")
 
 def get_automake_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:automake_toolchain")), ctx, "automake")
+    return _access_and_expect_label_copied(Label("//toolchains:automake_toolchain"), ctx, "automake")
 
 def get_cmake_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:cmake_toolchain")), ctx, "cmake")
+    return _access_and_expect_label_copied(Label("//toolchains:cmake_toolchain"), ctx, "cmake")
 
 def get_m4_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:m4_toolchain")), ctx, "m4")
+    return _access_and_expect_label_copied(Label("//toolchains:m4_toolchain"), ctx, "m4")
 
 def get_make_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:make_toolchain")), ctx, "make")
+    return _access_and_expect_label_copied(Label("//toolchains:make_toolchain"), ctx, "make")
 
 def get_ninja_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:ninja_toolchain")), ctx, "ninja")
+    return _access_and_expect_label_copied(Label("//toolchains:ninja_toolchain"), ctx, "ninja")
 
 def get_pkgconfig_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:pkgconfig_toolchain")), ctx, "pkg-config")
+    return _access_and_expect_label_copied(Label("//toolchains:pkgconfig_toolchain"), ctx, "pkg-config")
 
 def _access_and_expect_label_copied(toolchain_type_, ctx, tool_name):
     tool_data = access_tool(toolchain_type_, ctx, tool_name)

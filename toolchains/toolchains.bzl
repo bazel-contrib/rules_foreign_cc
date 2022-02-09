@@ -13,7 +13,7 @@ prebuilt_toolchains = _prebuilt_toolchains
 def preinstalled_toolchains():
     """Register toolchains for various build tools expected to be installed on the exec host"""
     native.register_toolchains(
-        str(Label("//toolchains:preinstalled_cmake_toolchain")),
-        str(Label("//toolchains:preinstalled_make_toolchain")),
-        str(Label("//toolchains:preinstalled_ninja_toolchain")),
+        "@rules_foreign_cc//toolchains:preinstalled_cmake_toolchain",
+        "@rules_foreign_cc//toolchains:preinstalled_make_toolchain",
+        "@rules_foreign_cc//toolchains:preinstalled_ninja_toolchain",
     )
