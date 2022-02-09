@@ -1,6 +1,6 @@
 """A module defining default toolchain info for the foreign_cc framework"""
 
-def _toolchain_mapping(*, file, repo_name, exec_compatible_with = [], target_compatible_with = []):
+def _toolchain_mapping(file, repo_name, exec_compatible_with = [], target_compatible_with = []):
     """Mapping of toolchain definition files to platform constraints
 
     Args:

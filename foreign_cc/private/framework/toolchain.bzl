@@ -1,6 +1,5 @@
 """A module containing the implementation of the foreign_cc framework's toolchains"""
 
-load("//foreign_cc/private/framework/toolchains:commands.bzl", "PLATFORM_COMMANDS")
 load("//foreign_cc/private/framework/toolchains:mappings.bzl", "TOOLCHAIN_MAPPINGS")
 
 _BUILD_FILE_CONTENT = """\
