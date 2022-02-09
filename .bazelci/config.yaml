@@ -193,6 +193,6 @@ tasks:
     test_targets: *min_supported_targets
 
 buildifier:
-  version: latest
+  version: "4.2.5" 
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "all"

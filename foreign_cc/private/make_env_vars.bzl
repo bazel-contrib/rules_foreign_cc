@@ -123,10 +123,8 @@ def _get_make_variables(workspace_name, tools, flags, user_env_vars):
 
     vars.update(tools_dict)
 
-    # Put all other environment variables, passed by the user
-    for user_var in user_env_vars:
-        if not vars.get(user_var):
-            vars[user_var] = [user_env_vars[user_var]]
+    # Do not put in the other user-defined env variables at this point as they
+    # have already been exported globally by the prelude.
 
     return vars
 
