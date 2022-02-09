@@ -15,7 +15,7 @@ load(
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
-    "expand_locations",
+    "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:make_script.bzl", "create_make_script")
 load("//foreign_cc/private:transitions.bzl", _make_variant = "make_variant")
@@ -53,10 +53,10 @@ def _create_make_script(configureParameters):
         for arg in ctx.attr.args
     ])
 
-    user_env = expand_locations(ctx, ctx.attr.env, data)
+    user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data)
 
     make_commands = []
-    prefix = "{} ".format(expand_locations(ctx, attrs.tool_prefix, data)) if attrs.tool_prefix else ""
+    prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
     for target in ctx.attr.targets:
         make_commands.append("{prefix}{make} -C $$BUILD_TMPDIR$$ {target} {args} PREFIX={install_prefix}".format(
             prefix = prefix,

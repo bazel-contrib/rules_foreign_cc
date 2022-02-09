@@ -315,7 +315,7 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
         env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
 
     # Add all user defined variables
-    user_vars = expand_locations_and_make_variables(ctx, "env", data_dependencies)
+    user_vars = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data_dependencies)
     env.update(user_vars)
 
     # If user has defined a PATH variable (e.g. PATH, LD_LIBRARY_PATH, CPATH) prepend it to the existing variable
@@ -927,16 +927,38 @@ def _expand_command_path(binary, path, command):
     else:
         return command
 
-def expand_locations_and_make_variables(ctx, attr_name, data):
-    unexpanded = getattr(ctx.attr, attr_name)
-    location_expanded = expand_locations(ctx, unexpanded, data)
+def expand_locations_and_make_variables(ctx, unexpanded, attr_name, data):
+    """Expand locations and make variables while ensuring that `execpath` is always set to an absolute path
 
+    This function is not expected to be passed to any action.env argument but instead rendered into
+    build scripts.
+
+    Args:
+        ctx (ctx): The rule's context object
+        unexpanded (dict, list, str): Variables to expand, can be a variety of different types
+        attr_name: The attribute from which `unexpanded` has been obtained (only used when reporting errors)
+        data (list): A list of targets to use for locations expansion
+
+    Returns:
+        (dict, list, str): expandable with locations and make variables expanded (does not apply to the keys of a dict)
+    """
+    location_expanded = _expand_locations(ctx, unexpanded, data)
+
+    if type(location_expanded) == type(dict()):
+        return {key: _expand_make_variables_in_string(ctx, value, attr_name) for key, value in location_expanded.items()}
+    elif type(location_expanded) == type(list()):
+        return [_expand_make_variables_in_string(ctx, value, attr_name) for value in location_expanded]
+    elif type(location_expanded) == type(""):
+        return _expand_make_variables_in_string(ctx, location_expanded, attr_name)
+    else:
+        fail("Unsupported type: {}".format(type(location_expanded)))
+
+def _expand_make_variables_in_string(ctx, expandable, attr_name):
     # Make variable expansion will treat $$ as escaped values for $ and strip the second one.
     # Double-escape $s which we insert in expand_locations.
-    make_variable_expanded = {k: ctx.expand_make_variables(attr_name, v.replace("$$EXT_BUILD_ROOT$$", "$$$$EXT_BUILD_ROOT$$$$"), {}) for k, v in location_expanded.items()}
-    return make_variable_expanded
+    return ctx.expand_make_variables(attr_name, expandable.replace("$$EXT_BUILD_ROOT$$", "$$$$EXT_BUILD_ROOT$$$$"), {})
 
-def expand_locations(ctx, expandable, data):
+def _expand_locations(ctx, expandable, data):
     """Expand locations on a dictionary while ensuring `execpath` is always set to an absolute path
 
     This function is not expected to be passed to any action.env argument but instead rendered into
@@ -948,31 +970,20 @@ def expand_locations(ctx, expandable, data):
         data (list): A list of targets
 
     Returns:
-        dict: An expanded dict of environment variables
+        (dict, list, str): expandable with locations expanded (does not apply to the keys of a dict)
     """
     if type(expandable) == type(dict()):
-        expanded_env = dict()
-        for key, value in expandable.items():
-            # If `EXT_BUILD_ROOT` exists in the string, we assume the user has added it themselves
-            if "EXT_BUILD_ROOT" in value:
-                expanded_env.update({key: ctx.expand_location(value, data)})
-            else:
-                expanded_env.update({key: ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data)})
-        return expanded_env
+        return {key: _expand_locations_in_string(ctx, value, data) for key, value in expandable.items()}
     elif type(expandable) == type(list()):
-        expanded_vars = list()
-        for value in expandable:
-            # If `EXT_BUILD_ROOT` exists in the string, we assume the user has added it themselves
-            if "EXT_BUILD_ROOT" in value:
-                expanded_vars.append(ctx.expand_location(value, data))
-            else:
-                expanded_vars.append(ctx.expand_location(value.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data))
-        return expanded_vars
+        return [_expand_locations_in_string(ctx, value, data) for value in expandable]
     elif type(expandable) == type(""):
-        # If `EXT_BUILD_ROOT` exists in the string, we assume the user has added it themselves
-        if "EXT_BUILD_ROOT" in expandable:
-            return ctx.expand_location(expandable, data)
-        else:
-            return ctx.expand_location(expandable.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data)
+        return _expand_locations_in_string(ctx, expandable, data)
     else:
         fail("Unsupported type: {}".format(type(expandable)))
+
+def _expand_locations_in_string(ctx, expandable, data):
+    # If `EXT_BUILD_ROOT` exists in the string, we assume the user has added it themselves
+    if "EXT_BUILD_ROOT" in expandable:
+        return ctx.expand_location(expandable, data)
+    else:
+        return ctx.expand_location(expandable.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data)
