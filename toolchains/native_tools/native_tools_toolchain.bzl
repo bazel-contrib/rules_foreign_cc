@@ -1,4 +1,4 @@
-load("//foreign_cc/private:framework.bzl", "expand_locations")
+load("//foreign_cc/private:framework.bzl", "expand_locations_and_make_variables")
 
 # buildifier: disable=module-docstring
 ToolInfo = provider(
@@ -25,10 +25,10 @@ def _native_tool_toolchain_impl(ctx):
     path = None
     if ctx.attr.target:
         path = ctx.expand_location(ctx.attr.path, targets = [ctx.attr.target])
-        env = expand_locations(ctx, ctx.attr.env, [ctx.attr.target])
+        env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", [ctx.attr.target])
     else:
         path = ctx.expand_location(ctx.attr.path)
-        env = expand_locations(ctx, ctx.attr.env, [])
+        env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", [])
     return platform_common.ToolchainInfo(data = ToolInfo(
         env = env,
         path = path,
