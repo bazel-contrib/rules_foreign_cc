@@ -1,3 +1,6 @@
+"""Rules for building native build tools such as ninja, make or cmake"""
+
+# buildifier: disable=bzl-visibility
 load("//foreign_cc/private:framework.bzl", "expand_locations_and_make_variables")
 
 # buildifier: disable=module-docstring
