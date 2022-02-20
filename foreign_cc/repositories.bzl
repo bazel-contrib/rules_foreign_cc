@@ -9,7 +9,7 @@ load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        cmake_version = "3.22.1",
+        cmake_version = "3.22.2",
         make_version = "4.3",
         ninja_version = "1.10.2",
         register_preinstalled_tools = True,
@@ -48,7 +48,7 @@ def rules_foreign_cc_dependencies(
 
     register_framework_toolchains(register_toolchains = register_toolchains)
 
-    if (register_toolchains):
+    if register_toolchains:
         native.register_toolchains(*native_tools_toolchains)
 
         native.register_toolchains(
