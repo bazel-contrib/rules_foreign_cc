@@ -67,6 +67,111 @@ def prebuilt_toolchains(cmake_version, ninja_version, register_toolchains):
     _make_toolchains(register_toolchains)
 
 def _cmake_toolchains(version, register_toolchains):
+    if "3.22.2" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.22.2-linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.22.2/cmake-3.22.2-linux-aarch64.tar.gz",
+            ],
+            sha256 = "02b2b36afc932ede2d77ba53456785bae85538d5d4600f87220072b95d926c5b",
+            strip_prefix = "cmake-3.22.2-linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.22.2-linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.22.2/cmake-3.22.2-linux-x86_64.tar.gz",
+            ],
+            sha256 = "38b3befdee8fd2bac06954e2a77cb3072e6833c69d8cc013c0a3b26f1cfdfe37",
+            strip_prefix = "cmake-3.22.2-linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.22.2-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.22.2/cmake-3.22.2-macos-universal.tar.gz",
+            ],
+            sha256 = "cc763f6110b4d49daf51d05689fe54526f84056c9418b0735d9058c803931e54",
+            strip_prefix = "cmake-3.22.2-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.22.2-windows-i386",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.22.2/cmake-3.22.2-windows-i386.zip",
+            ],
+            sha256 = "c2b32d2b150ea70e353b658fefe5018c486e17a11e95d2e4e4b46dd6f87cea35",
+            strip_prefix = "cmake-3.22.2-windows-i386",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.22.2-windows-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.22.2/cmake-3.22.2-windows-x86_64.zip",
+            ],
+            sha256 = "192d62eaecb0600e743f01058dfbd5b6bed91504fe8f56416febf54c38ce096e",
+            strip_prefix = "cmake-3.22.2-windows-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.22.2_toolchains",
+            repos = {
+                "cmake-3.22.2-linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.22.2-linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.22.2-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.22.2-windows-i386": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.22.2-windows-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        if register_toolchains:
+            native.register_toolchains(
+                "@cmake_3.22.2_toolchains//:cmake-3.22.2-linux-aarch64_toolchain",
+                "@cmake_3.22.2_toolchains//:cmake-3.22.2-linux-x86_64_toolchain",
+                "@cmake_3.22.2_toolchains//:cmake-3.22.2-macos-universal_toolchain",
+                "@cmake_3.22.2_toolchains//:cmake-3.22.2-windows-i386_toolchain",
+                "@cmake_3.22.2_toolchains//:cmake-3.22.2-windows-x86_64_toolchain",
+            )
+
+        return
+
     if "3.22.1" == version:
         maybe(
             http_archive,
@@ -161,7 +266,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.22.1_toolchains//:cmake-3.22.1-linux-aarch64_toolchain",
                 "@cmake_3.22.1_toolchains//:cmake-3.22.1-linux-x86_64_toolchain",
@@ -271,13 +376,118 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.22.0_toolchains//:cmake-3.22.0-linux-aarch64_toolchain",
                 "@cmake_3.22.0_toolchains//:cmake-3.22.0-linux-x86_64_toolchain",
                 "@cmake_3.22.0_toolchains//:cmake-3.22.0-macos-universal_toolchain",
                 "@cmake_3.22.0_toolchains//:cmake-3.22.0-windows-i386_toolchain",
                 "@cmake_3.22.0_toolchains//:cmake-3.22.0-windows-x86_64_toolchain",
+            )
+
+        return
+
+    if "3.21.5" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.21.5-linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.21.5/cmake-3.21.5-linux-aarch64.tar.gz",
+            ],
+            sha256 = "f9809b87d42ff0b0e1a44f9a417d40cd2aced14a7dbadc7ffe5d89b0c5748b24",
+            strip_prefix = "cmake-3.21.5-linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.21.5-linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.21.5/cmake-3.21.5-linux-x86_64.tar.gz",
+            ],
+            sha256 = "cdee65fe61fdc10db9cc695022924faaa35fb6334a3620cb1b563a9335367756",
+            strip_prefix = "cmake-3.21.5-linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.21.5-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.21.5/cmake-3.21.5-macos-universal.tar.gz",
+            ],
+            sha256 = "1eeaaeb59f1bb032f9572a1673d44ccee1091691de82aadb9a94af0ba6975547",
+            strip_prefix = "cmake-3.21.5-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.21.5-windows-i386",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.21.5/cmake-3.21.5-windows-i386.zip",
+            ],
+            sha256 = "c6e47f3847e201ef181ed4482802f408aad7fadc12e7e5c77a90ca9230c1cb84",
+            strip_prefix = "cmake-3.21.5-windows-i386",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.21.5-windows-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.21.5/cmake-3.21.5-windows-x86_64.zip",
+            ],
+            sha256 = "346ac5a71012e58a2d76151df3de74074e7199e08091d228a250219419c457bd",
+            strip_prefix = "cmake-3.21.5-windows-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.21.5_toolchains",
+            repos = {
+                "cmake-3.21.5-linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.21.5-linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.21.5-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.21.5-windows-i386": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.21.5-windows-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        if register_toolchains:
+            native.register_toolchains(
+                "@cmake_3.21.5_toolchains//:cmake-3.21.5-linux-aarch64_toolchain",
+                "@cmake_3.21.5_toolchains//:cmake-3.21.5-linux-x86_64_toolchain",
+                "@cmake_3.21.5_toolchains//:cmake-3.21.5-macos-universal_toolchain",
+                "@cmake_3.21.5_toolchains//:cmake-3.21.5-windows-i386_toolchain",
+                "@cmake_3.21.5_toolchains//:cmake-3.21.5-windows-x86_64_toolchain",
             )
 
         return
@@ -381,7 +591,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.21.4_toolchains//:cmake-3.21.4-linux-aarch64_toolchain",
                 "@cmake_3.21.4_toolchains//:cmake-3.21.4-linux-x86_64_toolchain",
@@ -491,7 +701,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.21.3_toolchains//:cmake-3.21.3-linux-aarch64_toolchain",
                 "@cmake_3.21.3_toolchains//:cmake-3.21.3-linux-x86_64_toolchain",
@@ -601,7 +811,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.21.2_toolchains//:cmake-3.21.2-linux-aarch64_toolchain",
                 "@cmake_3.21.2_toolchains//:cmake-3.21.2-linux-x86_64_toolchain",
@@ -711,7 +921,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.21.1_toolchains//:cmake-3.21.1-linux-aarch64_toolchain",
                 "@cmake_3.21.1_toolchains//:cmake-3.21.1-linux-x86_64_toolchain",
@@ -821,7 +1031,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.21.0_toolchains//:cmake-3.21.0-linux-aarch64_toolchain",
                 "@cmake_3.21.0_toolchains//:cmake-3.21.0-linux-x86_64_toolchain",
@@ -931,7 +1141,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.20.5_toolchains//:cmake-3.20.5-linux-aarch64_toolchain",
                 "@cmake_3.20.5_toolchains//:cmake-3.20.5-linux-x86_64_toolchain",
@@ -1041,7 +1251,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.20.4_toolchains//:cmake-3.20.4-linux-aarch64_toolchain",
                 "@cmake_3.20.4_toolchains//:cmake-3.20.4-linux-x86_64_toolchain",
@@ -1151,7 +1361,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.20.3_toolchains//:cmake-3.20.3-linux-aarch64_toolchain",
                 "@cmake_3.20.3_toolchains//:cmake-3.20.3-linux-x86_64_toolchain",
@@ -1261,7 +1471,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.20.2_toolchains//:cmake-3.20.2-linux-aarch64_toolchain",
                 "@cmake_3.20.2_toolchains//:cmake-3.20.2-linux-x86_64_toolchain",
@@ -1371,7 +1581,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.20.1_toolchains//:cmake-3.20.1-linux-aarch64_toolchain",
                 "@cmake_3.20.1_toolchains//:cmake-3.20.1-linux-x86_64_toolchain",
@@ -1481,7 +1691,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.20.0_toolchains//:cmake-3.20.0-linux-aarch64_toolchain",
                 "@cmake_3.20.0_toolchains//:cmake-3.20.0-linux-x86_64_toolchain",
@@ -1591,7 +1801,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.19.8_toolchains//:cmake-3.19.8-Linux-aarch64_toolchain",
                 "@cmake_3.19.8_toolchains//:cmake-3.19.8-Linux-x86_64_toolchain",
@@ -1701,7 +1911,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.19.7_toolchains//:cmake-3.19.7-Linux-aarch64_toolchain",
                 "@cmake_3.19.7_toolchains//:cmake-3.19.7-Linux-x86_64_toolchain",
@@ -1811,7 +2021,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.19.6_toolchains//:cmake-3.19.6-Linux-aarch64_toolchain",
                 "@cmake_3.19.6_toolchains//:cmake-3.19.6-Linux-x86_64_toolchain",
@@ -1921,7 +2131,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.19.5_toolchains//:cmake-3.19.5-Linux-aarch64_toolchain",
                 "@cmake_3.19.5_toolchains//:cmake-3.19.5-Linux-x86_64_toolchain",
@@ -2014,7 +2224,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.18.6_toolchains//:cmake-3.18.6-Darwin-x86_64_toolchain",
                 "@cmake_3.18.6_toolchains//:cmake-3.18.6-Linux-x86_64_toolchain",
@@ -2106,7 +2316,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.17.5_toolchains//:cmake-3.17.5-Darwin-x86_64_toolchain",
                 "@cmake_3.17.5_toolchains//:cmake-3.17.5-Linux-x86_64_toolchain",
@@ -2198,7 +2408,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.16.9_toolchains//:cmake-3.16.9-Darwin-x86_64_toolchain",
                 "@cmake_3.16.9_toolchains//:cmake-3.16.9-Linux-x86_64_toolchain",
@@ -2290,7 +2500,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.15.7_toolchains//:cmake-3.15.7-Darwin-x86_64_toolchain",
                 "@cmake_3.15.7_toolchains//:cmake-3.15.7-Linux-x86_64_toolchain",
@@ -2382,7 +2592,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.14.7_toolchains//:cmake-3.14.7-Darwin-x86_64_toolchain",
                 "@cmake_3.14.7_toolchains//:cmake-3.14.7-Linux-x86_64_toolchain",
@@ -2474,7 +2684,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.13.5_toolchains//:cmake-3.13.5-Darwin-x86_64_toolchain",
                 "@cmake_3.13.5_toolchains//:cmake-3.13.5-Linux-x86_64_toolchain",
@@ -2566,7 +2776,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.12.4_toolchains//:cmake-3.12.4-Darwin-x86_64_toolchain",
                 "@cmake_3.12.4_toolchains//:cmake-3.12.4-Linux-x86_64_toolchain",
@@ -2658,7 +2868,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.11.4_toolchains//:cmake-3.11.4-Darwin-x86_64_toolchain",
                 "@cmake_3.11.4_toolchains//:cmake-3.11.4-Linux-x86_64_toolchain",
@@ -2750,7 +2960,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.10.3_toolchains//:cmake-3.10.3-Darwin-x86_64_toolchain",
                 "@cmake_3.10.3_toolchains//:cmake-3.10.3-Linux-x86_64_toolchain",
@@ -2842,7 +3052,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.9.6_toolchains//:cmake-3.9.6-Darwin-x86_64_toolchain",
                 "@cmake_3.9.6_toolchains//:cmake-3.9.6-Linux-x86_64_toolchain",
@@ -2934,7 +3144,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.8.2_toolchains//:cmake-3.8.2-Darwin-x86_64_toolchain",
                 "@cmake_3.8.2_toolchains//:cmake-3.8.2-Linux-x86_64_toolchain",
@@ -3026,7 +3236,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.7.2_toolchains//:cmake-3.7.2-Darwin-x86_64_toolchain",
                 "@cmake_3.7.2_toolchains//:cmake-3.7.2-Linux-x86_64_toolchain",
@@ -3118,7 +3328,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.6.3_toolchains//:cmake-3.6.3-Darwin-x86_64_toolchain",
                 "@cmake_3.6.3_toolchains//:cmake-3.6.3-Linux-x86_64_toolchain",
@@ -3192,7 +3402,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.5.2_toolchains//:cmake-3.5.2-Darwin-x86_64_toolchain",
                 "@cmake_3.5.2_toolchains//:cmake-3.5.2-Linux-x86_64_toolchain",
@@ -3265,7 +3475,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.4.3_toolchains//:cmake-3.4.3-Darwin-x86_64_toolchain",
                 "@cmake_3.4.3_toolchains//:cmake-3.4.3-Linux-x86_64_toolchain",
@@ -3338,7 +3548,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.3.2_toolchains//:cmake-3.3.2-Darwin-x86_64_toolchain",
                 "@cmake_3.3.2_toolchains//:cmake-3.3.2-Linux-x86_64_toolchain",
@@ -3411,7 +3621,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.2.3_toolchains//:cmake-3.2.3-Darwin-x86_64_toolchain",
                 "@cmake_3.2.3_toolchains//:cmake-3.2.3-Linux-x86_64_toolchain",
@@ -3484,7 +3694,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.1.3_toolchains//:cmake-3.1.3-Darwin-x86_64_toolchain",
                 "@cmake_3.1.3_toolchains//:cmake-3.1.3-Linux-x86_64_toolchain",
@@ -3521,7 +3731,7 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@cmake_3.0.2_toolchains//:cmake-3.0.2-win32-x86_toolchain",
             )
@@ -3595,7 +3805,7 @@ def _ninja_toolchains(version, register_toolchains):
             tool = "ninja",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@ninja_1.10.2_toolchains//:ninja_1.10.2_linux_toolchain",
                 "@ninja_1.10.2_toolchains//:ninja_1.10.2_mac_toolchain",
@@ -3668,7 +3878,7 @@ def _ninja_toolchains(version, register_toolchains):
             tool = "ninja",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@ninja_1.10.1_toolchains//:ninja_1.10.1_linux_toolchain",
                 "@ninja_1.10.1_toolchains//:ninja_1.10.1_mac_toolchain",
@@ -3741,7 +3951,7 @@ def _ninja_toolchains(version, register_toolchains):
             tool = "ninja",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@ninja_1.10.0_toolchains//:ninja_1.10.0_linux_toolchain",
                 "@ninja_1.10.0_toolchains//:ninja_1.10.0_mac_toolchain",
@@ -3814,7 +4024,7 @@ def _ninja_toolchains(version, register_toolchains):
             tool = "ninja",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@ninja_1.9.0_toolchains//:ninja_1.9.0_linux_toolchain",
                 "@ninja_1.9.0_toolchains//:ninja_1.9.0_mac_toolchain",
@@ -3887,7 +4097,7 @@ def _ninja_toolchains(version, register_toolchains):
             tool = "ninja",
         )
 
-        if (register_toolchains):
+        if register_toolchains:
             native.register_toolchains(
                 "@ninja_1.8.2_toolchains//:ninja_1.8.2_linux_toolchain",
                 "@ninja_1.8.2_toolchains//:ninja_1.8.2_mac_toolchain",
