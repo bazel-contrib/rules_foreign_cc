@@ -365,12 +365,13 @@ make_tool(<a href="#make_tool-name">name</a>, <a href="#make_tool-env">env</a>, 
 <p><a id="#native_tool_toolchain"></a></p>
 <h2 id="native_tool_toolchain"><a class="header" href="#native_tool_toolchain">native_tool_toolchain</a></h2>
 <pre>
-native_tool_toolchain(<a href="#native_tool_toolchain-name">name</a>, <a href="#native_tool_toolchain-path">path</a>, <a href="#native_tool_toolchain-target">target</a>)
+native_tool_toolchain(<a href="#native_tool_toolchain-name">name</a>, <a href="#native_tool_toolchain-env">env</a>, <a href="#native_tool_toolchain-path">path</a>, <a href="#native_tool_toolchain-target">target</a>)
 </pre>
 <p>Rule for defining the toolchain data of the native tools (cmake, ninja), to be used by rules_foreign_cc with toolchain types <code>@rules_foreign_cc//toolchains:cmake_toolchain</code> and <code>@rules_foreign_cc//toolchains:ninja_toolchain</code>.</p>
 <p><strong>ATTRIBUTES</strong></p>
 <table><thead><tr><th align="left">Name</th><th align="left">Description</th><th align="left">Type</th><th align="left">Mandatory</th><th align="left">Default</th></tr></thead><tbody>
 <tr><td align="left"><a id="native_tool_toolchain-name"></a>name</td><td align="left">A unique name for this target.</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#name">Name</a></td><td align="left">required</td><td align="left"></td></tr>
+<tr><td align="left"><a id="native_tool_toolchain-env"></a>env</td><td align="left">Environment variables to be set when using this tool e.g. M4</td><td align="left"><a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -&gt; String</a></td><td align="left">optional</td><td align="left">{}</td></tr>
 <tr><td align="left"><a id="native_tool_toolchain-path"></a>path</td><td align="left">Absolute path to the tool in case the tool is preinstalled on the machine. Relative path to the tool in case the tool is built as part of a build; the path should be relative to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree artifact. (Please see the example <code>//examples:built_cmake_toolchain</code>)</td><td align="left">String</td><td align="left">optional</td><td align="left">&quot;&quot;</td></tr>
 <tr><td align="left"><a id="native_tool_toolchain-target"></a>target</td><td align="left">If the tool is preinstalled, must be None. If the tool is built as part of the build, the corresponding build target, which should produce the tree artifact with the binary to call.</td><td align="left"><a href="https://bazel.build/docs/build-ref.html#labels">Label</a></td><td align="left">optional</td><td align="left">None</td></tr>
 </tbody></table>
@@ -457,11 +458,12 @@ ForeignCcDepsInfo(<a href="#ForeignCcDepsInfo-artifacts">artifacts</a>)
 <p><a id="#ToolInfo"></a></p>
 <h2 id="toolinfo"><a class="header" href="#toolinfo">ToolInfo</a></h2>
 <pre>
-ToolInfo(<a href="#ToolInfo-path">path</a>, <a href="#ToolInfo-target">target</a>)
+ToolInfo(<a href="#ToolInfo-env">env</a>, <a href="#ToolInfo-path">path</a>, <a href="#ToolInfo-target">target</a>)
 </pre>
 <p>Information about the native tool</p>
 <p><strong>FIELDS</strong></p>
 <table><thead><tr><th align="left">Name</th><th align="left">Description</th></tr></thead><tbody>
+<tr><td align="left"><a id="ToolInfo-env"></a>env</td><td align="left">Environment variables to set when using this tool e.g. M4</td></tr>
 <tr><td align="left"><a id="ToolInfo-path"></a>path</td><td align="left">Absolute path to the tool in case the tool is preinstalled on the machine. Relative path to the tool in case the tool is built as part of a build; the path should be relative to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree artifact. (Please see the example <code>//examples:built_cmake_toolchain</code>)</td></tr>
 <tr><td align="left"><a id="ToolInfo-target"></a>target</td><td align="left">If the tool is preinstalled, must be None. If the tool is built as part of the build, the corresponding build target, which should produce the tree artifact with the binary to call.</td></tr>
 </tbody></table>
