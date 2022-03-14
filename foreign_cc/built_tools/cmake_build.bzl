@@ -6,7 +6,7 @@ def cmake_tool(name, srcs, **kwargs):
     tags = ["manual"] + kwargs.pop("tags", [])
 
     configure_make(
-        name = "_build_{}".format(name),
+        name = "{}.build".format(name),
         configure_command = "bootstrap",
         configure_options = ["--", "-DCMAKE_MAKE_PROGRAM=$$MAKE$$"],
         # On macOS at least -DDEBUG gets set for a fastbuild
@@ -24,7 +24,7 @@ def cmake_tool(name, srcs, **kwargs):
 
     native.filegroup(
         name = name,
-        srcs = ["_build_{}".format(name)],
+        srcs = ["{}.build".format(name)],
         output_group = "gen_dir",
         tags = tags,
     )

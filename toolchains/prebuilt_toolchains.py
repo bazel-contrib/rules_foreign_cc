@@ -11,8 +11,10 @@ CMAKE_SHA256_URL_TEMPLATE = "https://cmake.org/files/v{minor}/cmake-{full}-SHA-2
 CMAKE_URL_TEMPLATE = "https://github.com/Kitware/CMake/releases/download/v{full}/{file}"
 
 CMAKE_VERSIONS = [
+    "3.22.2",
     "3.22.1",
     "3.22.0",
+    "3.21.5",
     "3.21.4",
     "3.21.3",
     "3.21.2",
@@ -127,6 +129,7 @@ maybe(
     strip_prefix = "{prefix}",
     build_file_content = {template}.format(
         bin = "{bin}",
+        env = "{env}",
     ),
 )
 """
@@ -198,6 +201,7 @@ filegroup(
 
 native_tool_toolchain(
     name = "ninja_tool",
+    env = {{env}},
     path = "$(execpath :ninja_bin)",
     target = ":ninja_bin",
 )
@@ -281,6 +285,7 @@ def get_cmake_definitions() -> str:
                     build="cmake",
                     template="_CMAKE_BUILD_FILE",
                     bin=bin,
+                    env="{}",
                 )
             )
             version_toolchains.update({plat_target: name})
@@ -366,6 +371,7 @@ def get_ninja_definitions() -> str:
                     build="ninja",
                     template="_NINJA_BUILD_FILE",
                     bin="ninja.exe" if "win" in target else "ninja",
+                    env="{\\\"NINJA\\\": \\\"$(execpath :ninja_bin)\\\"}",
                 )
             )
             version_toolchains.update({target: name})

@@ -90,5 +90,5 @@ def register_framework_toolchains(register_toolchains = True):
 
         toolchains.append("@{}//:toolchain".format(item.repo_name))
 
-    if (register_toolchains):
+    if register_toolchains:
         native.register_toolchains(*toolchains)
