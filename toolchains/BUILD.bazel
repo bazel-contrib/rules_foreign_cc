@@ -2,6 +2,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//foreign_cc/built_tools:cmake_build.bzl", "cmake_tool")
 load("//foreign_cc/built_tools:make_build.bzl", "make_tool")
 load("//foreign_cc/built_tools:ninja_build.bzl", "ninja_tool")
+load("//toolchains:toolchains.bzl", "current_autoconf_toolchain", "current_automake_toolchain", "current_cmake_toolchain", "current_m4_toolchain", "current_make_toolchain", "current_ninja_toolchain", "current_pkgconfig_toolchain")
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 
 package(default_visibility = ["//visibility:public"])
@@ -32,6 +33,34 @@ toolchain_type(
 
 toolchain_type(
     name = "automake_toolchain",
+)
+
+current_cmake_toolchain(
+    name = "current_cmake_toolchain",
+)
+
+current_ninja_toolchain(
+    name = "current_ninja_toolchain",
+)
+
+current_m4_toolchain(
+    name = "current_m4_toolchain",
+)
+
+current_pkgconfig_toolchain(
+    name = "current_pkgconfig_toolchain",
+)
+
+current_make_toolchain(
+    name = "current_make_toolchain",
+)
+
+current_automake_toolchain(
+    name = "current_automake_toolchain",
+)
+
+current_autoconf_toolchain(
+    name = "current_autoconf_toolchain",
 )
 
 toolchain(
@@ -106,6 +135,10 @@ make_tool(
 
 native_tool_toolchain(
     name = "built_make",
+    env = select({
+        "@platforms//os:windows": {"MAKE": "$(execpath :make_tool)/bin/make.exe"},
+        "//conditions:default": {"MAKE": "$(execpath :make_tool)/bin/make"},
+    }),
     path = select({
         "@platforms//os:windows": "$(execpath :make_tool)/bin/make.exe",
         "//conditions:default": "$(execpath :make_tool)/bin/make",
@@ -138,6 +171,10 @@ native_tool_toolchain(
 
 native_tool_toolchain(
     name = "preinstalled_ninja",
+    env = select({
+        "@platforms//os:windows": {"NINJA": "ninja.exe"},
+        "//conditions:default": {"NINJA": "ninja"},
+    }),
     path = select({
         "@platforms//os:windows": "ninja.exe",
         "//conditions:default": "ninja",
@@ -152,6 +189,10 @@ ninja_tool(
 
 native_tool_toolchain(
     name = "built_ninja",
+    env = select({
+        "@platforms//os:windows": {"NINJA": "$(execpath :ninja_tool)/bin/ninja.exe"},
+        "//conditions:default": {"NINJA": "$(execpath :ninja_tool)/bin/ninja"},
+    }),
     path = select({
         "@platforms//os:windows": "$(execpath :ninja_tool)/bin/ninja.exe",
         "//conditions:default": "$(execpath :ninja_tool)/bin/ninja",
