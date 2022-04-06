@@ -5,7 +5,7 @@ def _toolchain_mapping(file, repo_name, exec_compatible_with = [], target_compat
 
     Args:
         file (str): Toolchain definition file
-	repo_name (str): name of repository to create for this toolchain
+        repo_name (str): name of repository to create for this toolchain
         exec_compatible_with (list): A list of compatible execution platform constraints.
         target_compatible_with (list): Compatible target platform constraints
 
