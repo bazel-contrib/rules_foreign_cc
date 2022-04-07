@@ -103,7 +103,7 @@ make_tool = rule(
     output_to_genfiles = True,
     implementation = _make_tool_impl,
     toolchains = [
-        str(Label("//foreign_cc/private/framework:shell_toolchain")),
+        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

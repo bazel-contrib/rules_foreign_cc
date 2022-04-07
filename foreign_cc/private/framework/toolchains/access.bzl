@@ -16,7 +16,7 @@ def create_context(ctx):
             - prelude (dict): A cache for rendered functions
     """
     return struct(
-        shell = ctx.toolchains[str(Label("//foreign_cc/private/framework:shell_toolchain"))].commands,
+        shell = ctx.toolchains[Label("//foreign_cc/private/framework:shell_toolchain")].commands,
         prelude = {},
     )
 

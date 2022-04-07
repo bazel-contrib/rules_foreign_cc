@@ -6,7 +6,7 @@ def access_tool(toolchain_type_, ctx):
     """A helper macro for getting the path to a build tool's executable
 
     Args:
-        toolchain_type_ (str): The name of the toolchain type
+        toolchain_type_ (Label): The name of the toolchain type
         ctx (ctx): The rule's context object
 
     Returns:
@@ -18,25 +18,25 @@ def access_tool(toolchain_type_, ctx):
     fail("No toolchain found for " + toolchain_type_)
 
 def get_autoconf_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:autoconf_toolchain")), ctx)
+    return _access_and_expect_label_copied(Label("//toolchains:autoconf_toolchain"), ctx)
 
 def get_automake_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:automake_toolchain")), ctx)
+    return _access_and_expect_label_copied(Label("//toolchains:automake_toolchain"), ctx)
 
 def get_cmake_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:cmake_toolchain")), ctx)
+    return _access_and_expect_label_copied(Label("//toolchains:cmake_toolchain"), ctx)
 
 def get_m4_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:m4_toolchain")), ctx)
+    return _access_and_expect_label_copied(Label("//toolchains:m4_toolchain"), ctx)
 
 def get_make_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:make_toolchain")), ctx)
+    return _access_and_expect_label_copied(Label("//toolchains:make_toolchain"), ctx)
 
 def get_ninja_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:ninja_toolchain")), ctx)
+    return _access_and_expect_label_copied(Label("//toolchains:ninja_toolchain"), ctx)
 
 def get_pkgconfig_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:pkgconfig_toolchain")), ctx)
+    return _access_and_expect_label_copied(Label("//toolchains:pkgconfig_toolchain"), ctx)
 
 def _access_and_expect_label_copied(toolchain_type_, ctx):
     tool_data = access_tool(toolchain_type_, ctx)
