@@ -217,6 +217,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
 
 # A list of common fragments required by rules using this framework
 CC_EXTERNAL_RULE_FRAGMENTS = [
+    "apple",
     "cpp",
 ]
 
@@ -306,6 +307,7 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
             "export DEVELOPER_DIR=\"$developer_dir_tmp\"",
             "sdkroot_tmp=\"$(xcrun --sdk {} --show-sdk-path)\"".format(sdk),
             "export SDKROOT=\"$sdkroot_tmp\"",
+            "export CMAKE_OSX_ARCHITECTURES={}".format(ctx.fragments.apple.single_arch_cpu),
         ])
 
     cc_toolchain = find_cpp_toolchain(ctx)

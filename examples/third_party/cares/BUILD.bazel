@@ -1,4 +1,4 @@
-load("@build_bazel_rules_apple//apple:ios.bzl", "ios_build_test")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_test(
@@ -15,10 +15,17 @@ cc_library(
     deps = ["@cares"],
 )
 
-ios_build_test(
-    name = "test_c_ares_ios",
+apple_binary(
+    name = "ios_binary",
     minimum_os_version = "12.0",
+    platform_type = "ios",
+    deps = [":ios_lib"],
+)
+
+build_test(
+    name = "test_c_ares_ios",
     tags = ["manual"],
-    targets = ["ios_lib"],
+    target_compatible_with = ["@platforms//os:macos"],
+    targets = ["ios_binary"],
     visibility = ["//:__pkg__"],
 )
