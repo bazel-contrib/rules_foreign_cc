@@ -27,6 +27,7 @@ FOREIGN_CC_BUILT_TOOLS_ATTRS = {
 
 # Common fragments for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_FRAGMENTS = [
+    "apple",
     "cpp",
 ]
 
