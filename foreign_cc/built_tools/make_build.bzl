@@ -71,6 +71,9 @@ def _make_tool_impl(ctx):
         if absolute_ar == "libtool" or absolute_ar.endswith("/libtool"):
             arflags.append("-o")
 
+        if os_name(ctx) == "macos":
+            non_sysroot_ldflags += ["-undefined", "error"]
+
         env.update({
             "AR": absolute_ar,
             "ARFLAGS": _join_flags_list(ctx.workspace_name, arflags),
