@@ -1,3 +1,4 @@
+load("@build_bazel_rules_apple//apple:apple_binary.bzl", "apple_binary")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
