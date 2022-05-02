@@ -58,12 +58,10 @@ load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
 # otherwise refer to RBE docs.
 rbe_autoconfig(name = "buildkite_config")
 
-# TODO: Use a rules_apple release once there is one that contains the commit below.
 http_archive(
     name = "build_bazel_rules_apple",
-    sha256 = "7cef4355e3cd2857b246ea52ba6b3092831a91c98945cb355e0f02f6a2f29274",
-    strip_prefix = "rules_apple-df98f37ea725005ec8682c9cd582bac74445b689",
-    url = "https://github.com/bazelbuild/rules_apple/archive/df98f37ea725005ec8682c9cd582bac74445b689.tar.gz",
+    sha256 = "12865e5944f09d16364aa78050366aca9dc35a32a018fa35f5950238b08bf744",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/0.34.2/rules_apple.0.34.2.tar.gz",
 )
 
 load(
