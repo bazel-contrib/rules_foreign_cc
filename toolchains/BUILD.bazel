@@ -148,6 +148,10 @@ native_tool_toolchain(
 
 native_tool_toolchain(
     name = "preinstalled_cmake",
+    env = select({
+        "@platforms//os:windows": {"CMAKE": "cmake.exe"},
+        "//conditions:default": {"CMAKE": "cmake"},
+    }),
     path = select({
         "@platforms//os:windows": "cmake.exe",
         "//conditions:default": "cmake",
@@ -162,6 +166,10 @@ cmake_tool(
 
 native_tool_toolchain(
     name = "built_cmake",
+    env = select({
+        "@platforms//os:windows": {"CMAKE": "$(execpath :cmake_tool)/bin/cmake.exe"},
+        "//conditions:default": {"CMAKE": "$(execpath :cmake_tool)/bin/cmake"},
+    }),
     path = select({
         "@platforms//os:windows": "$(execpath :cmake_tool)/bin/cmake.exe",
         "//conditions:default": "$(execpath :cmake_tool)/bin/cmake",
