@@ -216,9 +216,9 @@ def _symlink_to_dir(source, target):
 mkdir -p ${target}
 
 if [[ -d $1 ]]; then
-  ln -s -t ${target} $1
+  ln -s "$1" "$target/${1##*/}"
 elif [[ -f $1 ]]; then
-  ln -s -t ${target} $1
+  ln -s "$1" "$target/${1##*/}"
 elif [[ -L $1 ]]; then
   cp --no-target-directory $1 ${target}
 else
@@ -249,9 +249,9 @@ local target="$2"
 mkdir -p ${target}
 
 if [[ -d $1 ]]; then
-ln -s -t ${target} $1
+ln -s "$1" "$target/${1##*/}"
 elif [[ -f $1 ]]; then
-ln -s -t ${target} $1
+ln -s "$1" "$target/${1##*/}"
 elif [[ -L $1 ]]; then
 cp --no-target-directory $1 ${target}
 else
