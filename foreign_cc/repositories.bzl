@@ -75,11 +75,9 @@ def rules_foreign_cc_dependencies(
     maybe(
         http_archive,
         name = "bazel_skylib",
-        # `main` as of 2021-10-27
-        # Release request: https://github.com/bazelbuild/bazel-skylib/issues/336
         urls = [
-            "https://github.com/bazelbuild/bazel-skylib/archive/6e30a77347071ab22ce346b6d20cf8912919f644.zip",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.2.1/bazel-skylib-1.2.1.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.2.1/bazel-skylib-1.2.1.tar.gz",
         ],
-        strip_prefix = "bazel-skylib-6e30a77347071ab22ce346b6d20cf8912919f644",
-        sha256 = "247361e64b2a85b40cb45b9c071e42433467c6c87546270cbe2672eb9f317b5a",
+        sha256 = "f7be3474d42aae265405a592bb7da8e171919d74c16f082a5457840f06054728",
     )
