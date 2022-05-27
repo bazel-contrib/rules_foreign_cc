@@ -24,6 +24,10 @@ _CMAKE_SRCS = {
     "3.22.0": [["https://github.com/Kitware/CMake/releases/download/v3.22.0/cmake-3.22.0.tar.gz"], "cmake-3.22.0", "998c7ba34778d2dfdb3df8a695469e24b11e2bfa21fbe41b361a3f45e1c9345e"],
     "3.22.1": [["https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1.tar.gz"], "cmake-3.22.1", "0e998229549d7b3f368703d20e248e7ee1f853910d42704aa87918c213ea82c0"],
     "3.22.2": [["https://github.com/Kitware/CMake/releases/download/v3.22.2/cmake-3.22.2.tar.gz"], "cmake-3.22.2", "3c1c478b9650b107d452c5bd545c72e2fad4e37c09b89a1984b9a2f46df6aced"],
+    "3.22.3": [["https://github.com/Kitware/CMake/releases/download/v3.22.3/cmake-3.22.3.tar.gz"], "cmake-3.22.3", "9f8469166f94553b6978a16ee29227ec49a2eb5ceb608275dec40d8ae0d1b5a0"],
+    "3.22.4": [["https://github.com/Kitware/CMake/releases/download/v3.22.4/cmake-3.22.4.tar.gz"], "cmake-3.22.4", "5c55d0b0bc4c191549e3502b8f99a4fe892077611df22b4178cc020626e22a47"],
+    "3.23.1": [["https://github.com/Kitware/CMake/releases/download/v3.23.1/cmake-3.23.1.tar.gz"], "cmake-3.23.1", "33fd10a8ec687a4d0d5b42473f10459bb92b3ae7def2b745dc10b192760869f3"],
+    "3.23.2": [["https://github.com/Kitware/CMake/releases/download/v3.23.2/cmake-3.23.2.tar.gz"], "cmake-3.23.2", "f316b40053466f9a416adf981efda41b160ca859e97f6a484b447ea299ff26aa"],
 }
 
 # buildifier: disable=unnamed-macro
@@ -434,6 +438,18 @@ def _ninja_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_ninja_toolchain",
         )
+    if version == "1.11.0":
+        maybe(
+            http_archive,
+            name = "ninja_build_src",
+            build_file_content = _ALL_CONTENT,
+            sha256 = "3c6ba2e66400fe3f1ae83deb4b235faf3137ec20bd5b08c29bfc368db143e4c6",
+            strip_prefix = "ninja-1.11.0",
+            urls = [
+                "https://github.com/ninja-build/ninja/archive/v1.11.0.tar.gz",
+            ],
+        )
+        return
     if version == "1.10.2":
         maybe(
             http_archive,
