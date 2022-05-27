@@ -11,7 +11,7 @@ def rules_foreign_cc_dependencies(
         register_default_tools = True,
         cmake_version = "3.22.2",
         make_version = "4.3",
-        ninja_version = "1.10.2",
+        ninja_version = "1.11.0",
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True):

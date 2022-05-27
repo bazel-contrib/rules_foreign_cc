@@ -434,6 +434,18 @@ def _ninja_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_ninja_toolchain",
         )
+    if version == "1.11.0":
+        maybe(
+            http_archive,
+            name = "ninja_build_src",
+            build_file_content = _ALL_CONTENT,
+            sha256 = "3c6ba2e66400fe3f1ae83deb4b235faf3137ec20bd5b08c29bfc368db143e4c6",
+            strip_prefix = "ninja-1.11.0",
+            urls = [
+                "https://github.com/ninja-build/ninja/archive/v1.11.0.tar.gz",
+            ],
+        )
+        return
     if version == "1.10.2":
         maybe(
             http_archive,
