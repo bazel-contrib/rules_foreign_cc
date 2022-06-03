@@ -70,12 +70,12 @@ if [ -d "$1" ]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
-  local files=$($REAL_FIND -P "$1" -type f  \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  local files=($($REAL_FIND -P "$1" -type f  \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\)))
   IFS=$SAVEIFS
   # Escape any backslashes so sed can understand what it's supposed to replace
   local argv2=$(echo "$2" | sed 's/\\\\/\\\\\\\\/g')
   local argv3=$(echo "$3" | sed 's/\\\\/\\\\\\\\/g')
-  for file in ${files[@]}; do
+  for file in ${files[@]+"${files[@]}"}; do
     local backup=$(mktemp)
     touch -r "${file}" "${backup}"
     sed -i 's@'"${argv2}"'@'"${argv3}"'@g' "${file}"

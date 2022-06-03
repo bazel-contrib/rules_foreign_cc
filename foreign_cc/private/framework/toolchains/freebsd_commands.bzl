@@ -78,9 +78,9 @@ if [ -d "$1" ]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
-  local files=$(find -P -f "$1" \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  local files=($(find -P -f "$1" \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\)))
   IFS=$SAVEIFS
-  for file in ${files[@]}; do
+  for file in ${files[@]+"${files[@]}"}; do
     local backup=$(mktemp)
     touch -r "${file}" "${backup}"
     sed -i '' -e 's@'"$2"'@'"$3"'@g' "${file}"
