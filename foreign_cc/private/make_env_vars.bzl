@@ -14,6 +14,9 @@ def get_make_env_vars(
     vars = _get_make_variables(workspace_name, tools, flags, user_vars)
     deps_flags = _define_deps_flags(deps, inputs)
 
+    # For cross-compilation. See https://github.com/envoyproxy/envoy/pull/6991.
+    if "RANLIB" not in vars.keys():
+        vars["RANLIB"] = ":"
     if "LDFLAGS" in vars.keys():
         vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
     else:
