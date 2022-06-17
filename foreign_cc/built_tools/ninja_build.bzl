@@ -11,7 +11,8 @@ load("//foreign_cc/private/framework:platform.bzl", "os_name")
 
 def _ninja_tool_impl(ctx):
     script = [
-        "./configure.py --bootstrap",
+        # TODO: Drop custom python3 usage https://github.com/ninja-build/ninja/pull/2118
+        "python3 ./configure.py --bootstrap",
         "mkdir $$INSTALLDIR$$/bin",
         "cp -p ./ninja{} $$INSTALLDIR$$/bin/".format(
             ".exe" if "win" in os_name(ctx) else "",
@@ -33,7 +34,7 @@ ninja_tool = rule(
     output_to_genfiles = True,
     implementation = _ninja_tool_impl,
     toolchains = [
-        str(Label("//foreign_cc/private/framework:shell_toolchain")),
+        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )

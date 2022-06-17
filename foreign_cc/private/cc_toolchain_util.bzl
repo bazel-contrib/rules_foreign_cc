@@ -118,7 +118,7 @@ def _files_map(files_list):
     return by_names_map
 
 def _defines_from_deps(ctx):
-    return depset(transitive = [dep[CcInfo].compilation_context.defines for dep in ctx.attr.deps])
+    return depset(transitive = [dep[CcInfo].compilation_context.defines for dep in getattr(ctx.attr, "deps", [])])
 
 def _build_cc_link_params(
         ctx,
@@ -301,9 +301,9 @@ def get_flags_info(ctx, link_output_file = None):
         cc_toolchain = cc_toolchain_,
     )
 
-    copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + ctx.attr.copts) or []
-    cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + ctx.attr.copts) or []
-    linkopts = (ctx.fragments.cpp.linkopts + ctx.attr.linkopts) or []
+    copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + getattr(ctx.attr, "copts", [])) or []
+    cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []
+    linkopts = (ctx.fragments.cpp.linkopts + getattr(ctx.attr, "linkopts", [])) or []
     defines = _defines_from_deps(ctx)
 
     flags = CxxFlagsInfo(

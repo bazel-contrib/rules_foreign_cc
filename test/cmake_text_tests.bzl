@@ -12,12 +12,12 @@ def _absolutize_test(ctx):
     env = unittest.begin(ctx)
 
     cases = {
-        "-Lexternal/cmake/aaa": "-L$$EXT_BUILD_ROOT$$/external/cmake/aaa",
+        "-Lexternal/cmake/aaa": "-L$${EXT_BUILD_ROOT//\\\\//}$$/external/cmake/aaa",
         "/abs/a12": "/abs/a12",
         "abs/a12": "abs/a12",
-        "external/cmake/aaa": "$$EXT_BUILD_ROOT$$/external/cmake/aaa",
-        "name=ws/cmake/aaa": "name=$$EXT_BUILD_ROOT$$/ws/cmake/aaa",
-        "ws/cmake/aaa": "$$EXT_BUILD_ROOT$$/ws/cmake/aaa",
+        "external/cmake/aaa": "$${EXT_BUILD_ROOT//\\\\//}$$/external/cmake/aaa",
+        "name=ws/cmake/aaa": "name=$${EXT_BUILD_ROOT//\\\\//}$$/ws/cmake/aaa",
+        "ws/cmake/aaa": "$${EXT_BUILD_ROOT//\\\\//}$$/ws/cmake/aaa",
     }
 
     for case in cases:
@@ -94,11 +94,11 @@ def _fill_crossfile_from_toolchain_test(ctx):
     expected = {
         "CMAKE_AR": "/cxx_linker_static",
         "CMAKE_ASM_FLAGS_INIT": "assemble",
-        "CMAKE_CXX_COMPILER": "$$EXT_BUILD_ROOT$$/external/cxx-value",
+        "CMAKE_CXX_COMPILER": "$${EXT_BUILD_ROOT//\\\\//}$$/external/cxx-value",
         "CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN": "cxx-toolchain",
         # Quoted args are escaped when crossfile is written to a script in create_cmake_script
         "CMAKE_CXX_FLAGS_INIT": "--quoted=\"abc def\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain",
-        "CMAKE_CXX_LINK_EXECUTABLE": "$$EXT_BUILD_ROOT$$/ws/cxx_linker_executable <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>",
+        "CMAKE_CXX_LINK_EXECUTABLE": "$${EXT_BUILD_ROOT//\\\\//}$$/ws/cxx_linker_executable <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>",
         "CMAKE_C_COMPILER": "/some-cc-value",
         "CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN": "cc-toolchain",
         "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
@@ -425,7 +425,7 @@ set(CMAKE_SHARED_LINKER_FLAGS_INIT "$$__var_CMAKE_SHARED_LINKER_FLAGS_INIT$$")
 EOF
 
 ##enable_tracing##
-cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="$$BUILD_TMPDIR$$/crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -574,7 +574,7 @@ EOF
 
 export CUSTOM_ENV="YES"
 ##enable_tracing##
-cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="$$BUILD_TMPDIR$$/crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)

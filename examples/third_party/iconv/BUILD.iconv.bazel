@@ -1,5 +1,3 @@
-"""libiconv is only expected to be used on MacOS systems"""
-
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
 
 filegroup(
@@ -15,10 +13,6 @@ configure_make(
         "--enable-shared=no",
         "--enable-static=yes",
     ],
-    env = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
     lib_source = "@iconv//:all",
     out_static_libs = [
         "libiconv.a",

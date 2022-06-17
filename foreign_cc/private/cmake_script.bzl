@@ -188,7 +188,7 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
             lines.append('set({} "$$__var_{}$$")'.format(key, key))
 
     cache_entries.update({
-        "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "$$BUILD_TMPDIR$$/crosstool_bazel.cmake",
     })
     return struct(
         commands = sorted(crosstool_vars) + ["cat > crosstool_bazel.cmake << EOF"] + sorted(lines) + ["EOF", ""],
@@ -349,7 +349,9 @@ def _tail_if_starts_with(str, start):
 def _absolutize(workspace_name, text, force = False):
     if text.strip(" ").startswith("C:") or text.strip(" ").startswith("c:"):
         return text
-    return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
+
+    # Use bash parameter substitution to replace backslashes with forward slashes as CMake fails if provided paths containing backslashes
+    return absolutize_path_in_str(workspace_name, "$${EXT_BUILD_ROOT//\\\\//}$$/", text, force)
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])

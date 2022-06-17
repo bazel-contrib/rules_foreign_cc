@@ -9,31 +9,30 @@ def python_repositories():
         http_archive,
         name = "python2",
         build_file = Label("//python:BUILD.python2.bazel"),
-        strip_prefix = "Python-2.7.9",
+        strip_prefix = "Python-2.7.18",
         urls = [
-            "https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz",
+            "https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz",
         ],
-        sha256 = "c8bba33e66ac3201dabdc556f0ea7cfe6ac11946ec32d357c4c6f9b018c12c5b",
+        sha256 = "da3080e3b488f648a3d7a4560ddee895284c3380b11d6de75edb986526b9a814",
     )
     maybe(
         http_archive,
         name = "python3",
         build_file = Label("//python:BUILD.python3.bazel"),
-        strip_prefix = "Python-3.9.3",
+        strip_prefix = "Python-3.10.1",
         urls = [
-            "https://www.python.org/ftp/python/3.9.3/Python-3.9.3.tgz",
+            "https://www.python.org/ftp/python/3.10.1/Python-3.10.1.tgz",
         ],
-        sha256 = "3afeb61a45b5a2e6f1c0f621bd8cf925a4ff406099fdb3d8c97b993a5f43d048",
+        sha256 = "b76117670e7c5064344b9c138e141a377e686b9063f3a8a620ff674fa8ec90d3",
     )
 
     maybe(
         http_archive,
         name = "rules_python",
-        sha256 = "954aa89b491be4a083304a2cb838019c8b8c3720a7abb9c4cb81ac7a24230cea",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_python/releases/download/0.4.0/rules_python-0.4.0.tar.gz",
-            "https://github.com/bazelbuild/rules_python/releases/download/0.4.0/rules_python-0.4.0.tar.gz",
+            "https://github.com/bazelbuild/rules_python/releases/download/0.5.0/rules_python-0.5.0.tar.gz",
         ],
+        sha256 = "cd6730ed53a002c56ce4e2f396ba3b3be262fd7cb68339f0377a45e8227fe332",
     )
 
     native.register_toolchains("@rules_foreign_cc_examples_third_party//python:python_toolchain")
