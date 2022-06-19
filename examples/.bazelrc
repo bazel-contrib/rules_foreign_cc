@@ -1,0 +1,1 @@
+build --java_language_version=17 --java_runtime_version=17 --tool_java_language_version=17 --tool_java_runtime_version=17
