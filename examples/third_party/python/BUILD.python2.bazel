@@ -37,6 +37,11 @@ configure_make(
         "python2.7",
     ],
     out_data_dirs = ["lib"],
+    # Building these targets rather than the default prevents tests from being run, which take a while
+    targets = [
+        "build_all",
+        "altinstall",
+    ],
     deps = [
         "@openssl",
         "@zlib",
