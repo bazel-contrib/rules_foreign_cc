@@ -82,7 +82,7 @@ def _create_configure_script(configureParameters):
 
     for target in ctx.attr.targets:
         # Configure will have generated sources into `$BUILD_TMPDIR` so make sure we `cd` there
-        make_commands.append("{prefix}{make} -C $$BUILD_TMPDIR$$ {target} {args}".format(
+        make_commands.append("{prefix}{make} {target} {args}".format(
             prefix = prefix,
             make = attrs.make_path,
             args = args,
