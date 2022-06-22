@@ -40,7 +40,7 @@ FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS = [
 def absolutize(workspace_name, text, force = False):
     return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
 
-def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic):
+def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools = None):
     """Framework function for bootstrapping C/C++ build tools.
 
     This macro should be shared by all "built-tool" rules defined in rules_foreign_cc.
@@ -52,6 +52,7 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic):
         script_lines (list): A list of lines of a bash script for building the build tool
         out_dir (File): The output directory of the build tool
         mnemonic (str): The mnemonic of the build action
+        additional_tools (depset): A list of additional tools to include in the build action
 
     Returns:
         list: A list of providers
@@ -92,6 +93,9 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic):
         [wrapped_outputs.wrapper_script_file, wrapped_outputs.script_file],
         transitive = [cc_toolchain.all_files],
     )
+
+    if additional_tools:
+        tools = depset(transitive = [tools, additional_tools])
 
     # The use of `run_shell` here is intended to ensure bash is correctly setup on windows
     # environments. This should not be replaced with `run` until a cross platform implementation
