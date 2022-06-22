@@ -1,6 +1,7 @@
 """A module defining a common framework for "built_tools" rules"""
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:framework.bzl", "get_env_prelude", "wrap_outputs")
 load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script", "shebang")
@@ -35,6 +36,9 @@ FOREIGN_CC_BUILT_TOOLS_FRAGMENTS = [
 FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS = [
     "cpp",
 ]
+
+def absolutize(workspace_name, text, force = False):
+    return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
 
 def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic):
     """Framework function for bootstrapping C/C++ build tools.
