@@ -14,6 +14,10 @@ def get_make_env_vars(
     vars = _get_make_variables(workspace_name, tools, flags, user_vars)
     deps_flags = _define_deps_flags(deps, inputs)
 
+    # For cross-compilation.
+    if "RANLIB" not in vars.keys():
+        vars["RANLIB"] = [":"]
+
     if "LDFLAGS" in vars.keys():
         vars["LDFLAGS"] = vars["LDFLAGS"] + deps_flags.libs
     else:
@@ -73,6 +77,8 @@ def _define_deps_flags(deps, inputs):
 # See https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
 _MAKE_FLAGS = {
     "ARFLAGS": "cxx_linker_static",
+    # AR_FLAGS is sometimes used
+    "AR_FLAGS": "cxx_linker_static",
     "ASFLAGS": "assemble",
     "CFLAGS": "cc",
     "CXXFLAGS": "cxx",
