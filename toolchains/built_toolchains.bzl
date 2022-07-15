@@ -5,6 +5,7 @@ from source
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("//third_party/openssl:openssl_repositories.bzl", "openssl_repositories")
 
 _ALL_CONTENT = """\
 filegroup(
@@ -38,6 +39,7 @@ def built_toolchains(cmake_version, make_version, ninja_version, register_toolch
     _ninja_toolchain(ninja_version, register_toolchains)
 
 def _cmake_toolchain(version, register_toolchains):
+    openssl_repositories()
     if register_toolchains:
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_cmake_toolchain",

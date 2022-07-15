@@ -101,21 +101,30 @@ if [[ -z "$2" ]]; then
   echo "arg 2 to symlink_contents_to_dir is unexpectedly empty"
   exit 1
 fi
+if [ ! -r "$1" ]; then
+   # source path does not exist
+   return
+fi
 local target="$2"
-mkdir -p "$target"
-if [[ -f "$1" ]]; then
-  ##symlink_to_dir## "$1" "$target"
-elif [[ -L "$1" ]]; then
-  local actual=$(readlink "$1")
-  ##symlink_contents_to_dir## "$actual" "$target"
-elif [[ -d "$1" ]]; then
-  SAVEIFS=$IFS
-  IFS=$'\n'
-  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
-  IFS=$SAVEIFS
-  for child in "${children[@]:-}"; do
-    ##symlink_to_dir## "$child" "$target"
-  done
+if [ -d "$1" ]; then
+    GLOBIGNORE="$1/*.ext_build_deps"
+    cp -Rafs "$1"/* $target
+    unset GLOBIGNORE
+else
+    cp -Rafs "$1" $target
+fi
+
+SAVEIFS=$IFS
+IFS=$'\n'
+declare -a files
+files=$(find -P "$target/" \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+IFS=$SAVEIFS
+
+if [[ ${#files[@]} == 0 ]]; then
+   echo "No files found"
+   echo $files
+else
+   echo $files
 fi
 """
     return FunctionAndCallInfo(text = text)
@@ -129,6 +138,10 @@ fi
 if [[ -z "$2" ]]; then
   echo "arg 2 to symlink_to_dir is unexpectedly empty"
   exit 1
+fi
+if [ ! -r "$1" ]; then
+   # source path does not exist
+   return
 fi
 local target="$2"
 mkdir -p "$target"
@@ -144,19 +157,13 @@ if [[ -f "$1" ]]; then
 elif [[ -L "$1" && ! -d "$1" ]]; then
   cp -pR "$1" "$2"
 elif [[ -d "$1" ]]; then
-  SAVEIFS=$IFS
-  IFS=$'\n'
-  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
-  IFS=$SAVEIFS
   local dirname=$(basename "$1")
-  mkdir -p "$target/$dirname"
-  for child in "${children[@]:-}"; do
-    if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
-      ##symlink_to_dir## "$child" "$target/$dirname"
-    fi
-  done
+  mkdir -p "$target/$dirname/"
+  GLOBIGNORE="$1/*.ext_build_deps"
+  cp -Rafs "$1"/* "$target/$dirname/"
+  unset GLOBIGNORE
 else
-  echo "Can not copy $1"
+  echo "Can not copy $1 to $2"
 fi
 """
     return FunctionAndCallInfo(text = text)

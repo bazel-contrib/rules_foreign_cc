@@ -5,6 +5,14 @@ load("//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies()
 
+load("//third_party/openssl:openssl_repositories.bzl", "openssl_repositories")
+
+openssl_repositories()
+
+load("//third_party/openssl:openssl_setup.bzl", "openssl_setup")
+
+openssl_setup()
+
 local_repository(
     name = "rules_foreign_cc_examples",
     path = "examples",

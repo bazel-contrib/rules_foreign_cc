@@ -23,11 +23,11 @@ test_suite(
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
         "//log4cxx:log4cxx_build_test",
-        "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
         "//sqlite:sqlite_build_test",
         "//subversion:subversion_build_test",
+        "@rules_foreign_cc//third_party/openssl:openssl_test_suite",
     ],
 )
 
@@ -55,7 +55,7 @@ test_suite(
         "//libjpeg_turbo:libjpeg_turbo_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
-        "//openssl:openssl_test_suite",
+        "@rules_foreign_cc//third_party/openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
         # Missing a new enough automake to build
@@ -88,11 +88,11 @@ test_suite(
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
         "//log4cxx:log4cxx_build_test",
-        "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
         "//sqlite:sqlite_build_test",
         "//subversion:subversion_build_test",
+        "@rules_foreign_cc//third_party/openssl:openssl_test_suite",
     ],
 )
 
@@ -102,7 +102,7 @@ test_suite(
     tests = [
         "//apr:apr_build_test",
         "//curl:curl_test_suite",
-        "//openssl:openssl_test_suite",
+        "@rules_foreign_cc//third_party/openssl:openssl_test_suite",
         # TODO: Add more windows tests
     ],
 )
