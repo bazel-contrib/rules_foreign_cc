@@ -478,7 +478,8 @@ def cc_external_rule_impl(ctx, attrs):
             ctx.files.build_data +
             legacy_tools +
             cc_toolchain.all_files.to_list() +
-            tool_runfiles,
+            tool_runfiles +
+            [data[DefaultInfo].files_to_run for data in data_dependencies],
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
         use_default_shell_env = True,
