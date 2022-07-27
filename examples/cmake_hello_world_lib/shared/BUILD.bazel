@@ -18,16 +18,14 @@ cmake(
         "CMAKE_MACOSX_RPATH": "True",
     },
     lib_source = ":srcs",
+    out_interface_libs = select({
+        "//:windows": ["libhello.lib"],
+        "//conditions:default": [],
+    }),
     out_shared_libs = select({
         "//:macos": ["libhello.dylib"],
         "//:windows": ["libhello.dll"],
         "//conditions:default": ["libhello.so"],
-    }),
-    # TODO: The `.dll` is installed in the `bin` directory. To account for this, windows
-    # moves it to the `lib` directory. The rules should account for this case.
-    postfix_script = select({
-        "//:windows": "cp -p $$INSTALLDIR$$/bin/libhello.dll $$INSTALLDIR$$/lib",
-        "//conditions:default": None,
     }),
 )
 
