@@ -468,14 +468,23 @@ def cc_external_rule_impl(ctx, attrs):
     # The use of `run_shell` here is intended to ensure bash is correctly setup on windows
     # environments. This should not be replaced with `run` until a cross platform implementation
     # is found that guarantees bash exists or appropriately errors out.
+
+    tool_runfiles = []
+    for data in data_dependencies:
+        tool_runfiles += data[DefaultInfo].default_runfiles.files.to_list()
+
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
         outputs = rule_outputs + [wrapped_outputs.log_file],
-        tools = depset(
-            [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.build_data + legacy_tools,
-            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
-        ),
+        tools =
+            [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] +
+            ctx.files.data +
+            ctx.files.build_data +
+            legacy_tools +
+            cc_toolchain.all_files.to_list() +
+            tool_runfiles +
+            [data[DefaultInfo].files_to_run for data in data_dependencies],
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
         use_default_shell_env = True,
