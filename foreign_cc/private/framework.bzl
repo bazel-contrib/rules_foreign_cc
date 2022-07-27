@@ -151,6 +151,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Optional names of additional directories created by the build that should be declared as bazel action outputs",
         mandatory = False,
     ),
+    "out_dll_dir": attr.string(
+        doc = "Optional name of the output subdirectory with the dll files, defaults to 'bin'.",
+        mandatory = False,
+        default = "bin",
+    ),
     "out_headers_only": attr.bool(
         doc = "Flag variable to indicate that the library produces only headers",
         mandatory = False,
@@ -463,14 +468,23 @@ def cc_external_rule_impl(ctx, attrs):
     # The use of `run_shell` here is intended to ensure bash is correctly setup on windows
     # environments. This should not be replaced with `run` until a cross platform implementation
     # is found that guarantees bash exists or appropriately errors out.
+
+    tool_runfiles = []
+    for data in data_dependencies:
+        tool_runfiles += data[DefaultInfo].default_runfiles.files.to_list()
+
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
         outputs = rule_outputs + [wrapped_outputs.log_file],
-        tools = depset(
-            [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] + ctx.files.data + ctx.files.build_data + legacy_tools,
-            transitive = [cc_toolchain.all_files] + [data[DefaultInfo].default_runfiles.files for data in data_dependencies],
-        ),
+        tools =
+            [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] +
+            ctx.files.data +
+            ctx.files.build_data +
+            legacy_tools +
+            cc_toolchain.all_files.to_list() +
+            tool_runfiles +
+            [data[DefaultInfo].files_to_run for data in data_dependencies],
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
         use_default_shell_env = True,
@@ -493,6 +507,7 @@ def cc_external_rule_impl(ctx, attrs):
     externally_built = ForeignCcArtifactInfo(
         gen_dir = installdir_copy.file,
         bin_dir_name = attrs.out_bin_dir,
+        dll_dir_name = attrs.out_dll_dir,
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
     )
@@ -732,7 +747,7 @@ def _define_outputs(ctx, attrs, lib_name):
 
     libraries = LibrariesToLinkInfo(
         static_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, static_libraries),
-        shared_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attr_shared_libs),
+        shared_libraries = _declare_out(ctx, lib_name, attrs.out_dll_dir if targets_windows(ctx, None) else attrs.out_lib_dir, attr_shared_libs),
         interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attr_interface_libs),
     )
 
