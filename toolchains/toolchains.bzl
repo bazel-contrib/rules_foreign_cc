@@ -13,7 +13,107 @@ prebuilt_toolchains = _prebuilt_toolchains
 def preinstalled_toolchains():
     """Register toolchains for various build tools expected to be installed on the exec host"""
     native.register_toolchains(
-        str(Label("//toolchains:preinstalled_cmake_toolchain")),
-        str(Label("//toolchains:preinstalled_make_toolchain")),
-        str(Label("//toolchains:preinstalled_ninja_toolchain")),
+        "@rules_foreign_cc//toolchains:preinstalled_cmake_toolchain",
+        "@rules_foreign_cc//toolchains:preinstalled_make_toolchain",
+        "@rules_foreign_cc//toolchains:preinstalled_ninja_toolchain",
     )
+
+def _current_toolchain_impl(ctx):
+    toolchain = ctx.toolchains[ctx.attr._toolchain]
+
+    if toolchain.data.target:
+        return [
+            toolchain,
+            platform_common.TemplateVariableInfo(toolchain.data.env),
+            DefaultInfo(
+                runfiles = toolchain.data.target.default_runfiles,
+            ),
+        ]
+    return [
+        toolchain,
+        platform_common.TemplateVariableInfo(toolchain.data.env),
+        DefaultInfo(),
+    ]
+
+# These rules exist so that the current toolchain can be used in the `toolchains` attribute of
+# other rules, such as genrule. It allows exposing a <tool>_toolchain after toolchain resolution has
+# happened, to a rule which expects a concrete implementation of a toolchain, rather than a
+# toochain_type which could be resolved to that toolchain.
+#
+# See https://github.com/bazelbuild/bazel/issues/14009#issuecomment-921960766
+current_cmake_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:cmake_toolchain"))),
+    },
+    incompatible_use_toolchain_transition = True,
+    toolchains = [
+        str(Label("//toolchains:cmake_toolchain")),
+    ],
+)
+
+current_make_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:make_toolchain"))),
+    },
+    incompatible_use_toolchain_transition = True,
+    toolchains = [
+        str(Label("//toolchains:make_toolchain")),
+    ],
+)
+
+current_ninja_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:ninja_toolchain"))),
+    },
+    incompatible_use_toolchain_transition = True,
+    toolchains = [
+        str(Label("//toolchains:ninja_toolchain")),
+    ],
+)
+
+current_autoconf_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:autoconf_toolchain"))),
+    },
+    incompatible_use_toolchain_transition = True,
+    toolchains = [
+        str(Label("//toolchains:autoconf_toolchain")),
+    ],
+)
+
+current_automake_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:automake_toolchain"))),
+    },
+    incompatible_use_toolchain_transition = True,
+    toolchains = [
+        str(Label("//toolchains:automake_toolchain")),
+    ],
+)
+
+current_m4_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:m4_toolchain"))),
+    },
+    incompatible_use_toolchain_transition = True,
+    toolchains = [
+        str(Label("//toolchains:m4_toolchain")),
+    ],
+)
+
+current_pkgconfig_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:pkgconfig_toolchain"))),
+    },
+    incompatible_use_toolchain_transition = True,
+    toolchains = [
+        str(Label("//toolchains:pkgconfig_toolchain")),
+    ],
+)

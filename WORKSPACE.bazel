@@ -10,18 +10,6 @@ local_repository(
     path = "examples",
 )
 
-load("@rules_foreign_cc_examples//deps:repositories.bzl", examples_repositories = "repositories")
-
-examples_repositories()
-
-load("@rules_foreign_cc_examples//deps:deps_android.bzl", examples_deps_android = "deps_android")
-
-examples_deps_android()
-
-load("@rules_foreign_cc_examples//deps:deps_jvm_external.bzl", examples_deps_jvm_external = "deps_jvm_external")
-
-examples_deps_jvm_external()
-
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
@@ -34,6 +22,13 @@ http_archive(
         "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/releases/download/4.1.0/bazel-toolchains-4.1.0.tar.gz",
         "https://github.com/bazelbuild/bazel-toolchains/releases/download/4.1.0/bazel-toolchains-4.1.0.tar.gz",
     ],
+)
+
+load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+
+python_register_toolchains(
+    name = "python3_9",
+    python_version = "3.9",
 )
 
 load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")

@@ -6,11 +6,11 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_ATTRS",
     "FOREIGN_CC_BUILT_TOOLS_FRAGMENTS",
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
+    "absolutize",
     "built_tool_rule_impl",
 )
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
-    "absolutize_path_in_str",
     "get_env_vars",
     "get_flags_info",
     "get_tools_info",
@@ -55,10 +55,10 @@ def _make_tool_impl(ctx):
 
         # Make's build script does not forward CFLAGS to all compiler and linker
         # invocations, so we append --sysroot flags directly to CC and LD.
-        absolute_cc = _absolutize(ctx.workspace_name, cc_path, True)
+        absolute_cc = absolutize(ctx.workspace_name, cc_path, True)
         if sysroot_cflags:
             absolute_cc += " " + _join_flags_list(ctx.workspace_name, sysroot_cflags)
-        absolute_ld = _absolutize(ctx.workspace_name, ld_path, True)
+        absolute_ld = absolutize(ctx.workspace_name, ld_path, True)
         if sysroot_ldflags:
             absolute_ld += " " + _join_flags_list(ctx.workspace_name, sysroot_ldflags)
 
@@ -66,10 +66,13 @@ def _make_tool_impl(ctx):
         # "-o". Since the make Makefile only uses ar-style invocations, the
         # output file always comes first and we can append this argument to the
         # flags list.
-        absolute_ar = _absolutize(ctx.workspace_name, ar_path, True)
+        absolute_ar = absolutize(ctx.workspace_name, ar_path, True)
         arflags = [e for e in frozen_arflags]
         if absolute_ar == "libtool" or absolute_ar.endswith("/libtool"):
             arflags.append("-o")
+
+        if os_name(ctx) == "macos":
+            non_sysroot_ldflags += ["-undefined", "error"]
 
         env.update({
             "AR": absolute_ar,
@@ -103,13 +106,10 @@ make_tool = rule(
     output_to_genfiles = True,
     implementation = _make_tool_impl,
     toolchains = [
-        str(Label("//foreign_cc/private/framework:shell_toolchain")),
+        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
 )
 
-def _absolutize(workspace_name, text, force = False):
-    return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
-
 def _join_flags_list(workspace_name, flags):
-    return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+    return " ".join([absolutize(workspace_name, flag) for flag in flags])

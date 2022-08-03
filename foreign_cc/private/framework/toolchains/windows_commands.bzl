@@ -70,12 +70,12 @@ if [ -d "$1" ]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
-  local files=$($REAL_FIND -P $1 -type f  \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  local files=($($REAL_FIND -P "$1" -type f  \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\)))
   IFS=$SAVEIFS
   # Escape any backslashes so sed can understand what it's supposed to replace
   local argv2=$(echo "$2" | sed 's/\\\\/\\\\\\\\/g')
   local argv3=$(echo "$3" | sed 's/\\\\/\\\\\\\\/g')
-  for file in ${files[@]}; do
+  for file in ${files[@]+"${files[@]}"}; do
     local backup=$(mktemp)
     touch -r "${file}" "${backup}"
     sed -i 's@'"${argv2}"'@'"${argv3}"'@g' "${file}"
@@ -90,7 +90,7 @@ fi
     )
 
 def copy_dir_contents_to_dir(source, target):
-    return """cp -L -r --no-target-directory "{source}" "{target}" && find {target} -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+    return """cp -L -r --no-target-directory "{source}" "{target}" && $REAL_FIND "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
         source = source,
         target = target,
     )
@@ -180,7 +180,7 @@ export SYSTEMDRIVE="C:"
 
 def increment_pkg_config_path(source):
     text = """\
-local children=$($REAL_FIND $1 -mindepth 1 -name '*.pc')
+local children=$($REAL_FIND "$1" -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
   export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$(dirname $child)"
@@ -212,7 +212,7 @@ def cleanup_function(on_success, on_failure):
 def children_to_path(dir_):
     text = """\
 if [ -d {dir_} ]; then
-  local tools=$($REAL_FIND $EXT_BUILD_DEPS/bin -maxdepth 1 -mindepth 1)
+  local tools=$($REAL_FIND "$EXT_BUILD_DEPS/bin" -maxdepth 1 -mindepth 1)
   for tool in $tools;
   do
     if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then
@@ -257,3 +257,38 @@ if [[ -L "{file}" ]]; then
   rm "{file}" && cp -a "${{target}}" "{file}"
 fi
 """.format(file = file)
+
+commands = struct(
+    assert_script_errors = assert_script_errors,
+    cat = cat,
+    children_to_path = children_to_path,
+    cleanup_function = cleanup_function,
+    copy_dir_contents_to_dir = copy_dir_contents_to_dir,
+    define_absolute_paths = define_absolute_paths,
+    define_function = define_function,
+    define_sandbox_paths = define_sandbox_paths,
+    disable_tracing = disable_tracing,
+    echo = echo,
+    enable_tracing = enable_tracing,
+    env = env,
+    export_var = export_var,
+    if_else = if_else,
+    increment_pkg_config_path = increment_pkg_config_path,
+    local_var = local_var,
+    mkdirs = mkdirs,
+    path = path,
+    pwd = pwd,
+    redirect_out_err = redirect_out_err,
+    replace_absolute_paths = replace_absolute_paths,
+    replace_in_files = replace_in_files,
+    replace_sandbox_paths = replace_sandbox_paths,
+    replace_symlink = replace_symlink,
+    rm_rf = rm_rf,
+    script_extension = script_extension,
+    script_prelude = script_prelude,
+    shebang = shebang,
+    symlink_contents_to_dir = symlink_contents_to_dir,
+    symlink_to_dir = symlink_to_dir,
+    touch = touch,
+    use_var = use_var,
+)

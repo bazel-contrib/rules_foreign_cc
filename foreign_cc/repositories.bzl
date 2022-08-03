@@ -10,9 +10,9 @@ load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        cmake_version = "3.22.1",
+        cmake_version = "3.23.2",
         make_version = "4.3",
-        ninja_version = "1.10.2",
+        ninja_version = "1.11.0",
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True):
@@ -49,16 +49,14 @@ def rules_foreign_cc_dependencies(
 
     register_framework_toolchains(register_toolchains = register_toolchains)
 
-    pkgconfig_repositories()
+    if register_toolchains:
+        native.register_toolchains(*native_tools_toolchains)
 
-    if (register_toolchains):
         native.register_toolchains(
-	    *native_tools_toolchains,
-	)
-        native.register_toolchains(
-            str(Label("//toolchains:preinstalled_autoconf_toolchain")),
-            str(Label("//toolchains:preinstalled_automake_toolchain")),
-            str(Label("//toolchains:preinstalled_m4_toolchain")),
+            "@rules_foreign_cc//toolchains:preinstalled_autoconf_toolchain",
+            "@rules_foreign_cc//toolchains:preinstalled_automake_toolchain",
+            "@rules_foreign_cc//toolchains:preinstalled_m4_toolchain",
+            "@rules_foreign_cc//toolchains:preinstalled_pkgconfig_toolchain",
         )
 
     if register_default_tools:
@@ -68,6 +66,8 @@ def rules_foreign_cc_dependencies(
         )
 
     if register_built_tools:
+        pkgconfig_repositories()
+
         built_toolchains(
             cmake_version = cmake_version,
             make_version = make_version,
@@ -83,11 +83,17 @@ def rules_foreign_cc_dependencies(
     maybe(
         http_archive,
         name = "bazel_skylib",
-        # `main` as of 2021-10-27
-        # Release request: https://github.com/bazelbuild/bazel-skylib/issues/336
         urls = [
-            "https://github.com/bazelbuild/bazel-skylib/archive/6e30a77347071ab22ce346b6d20cf8912919f644.zip",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.2.1/bazel-skylib-1.2.1.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.2.1/bazel-skylib-1.2.1.tar.gz",
         ],
-        strip_prefix = "bazel-skylib-6e30a77347071ab22ce346b6d20cf8912919f644",
-        sha256 = "247361e64b2a85b40cb45b9c071e42433467c6c87546270cbe2672eb9f317b5a",
+        sha256 = "f7be3474d42aae265405a592bb7da8e171919d74c16f082a5457840f06054728",
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_python",
+        sha256 = "5fa3c738d33acca3b97622a13a741129f67ef43f5fdfcec63b29374cc0574c29",
+        strip_prefix = "rules_python-0.9.0",
+        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.9.0.tar.gz",
     )
