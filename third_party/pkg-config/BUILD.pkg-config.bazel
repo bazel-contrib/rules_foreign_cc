@@ -20,4 +20,12 @@ configure_make(
     out_binaries = [
         "pkg-config",
     ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "pkg-config",
+    srcs = [":pkgconfig"],
+    output_group = "pkg-config",
+    visibility = ["//visibility:public"],
 )

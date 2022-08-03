@@ -259,10 +259,10 @@ toolchain(
 native_tool_toolchain(
     name = "built_pkgconfig",
     path = select({
-        "@platforms//os:windows": "$(execpath @pkg-config//:pkgconfig)/bin/pkg-config.exe",
-        "//conditions:default": "$(execpath @pkg-config//:pkgconfig)/bin/pkg-config",
+        "@platforms//os:windows": "$(execpath @pkgconfig//:pkg-config)",
+        "//conditions:default": "$(execpath @pkgconfig//:pkg-config)",
     }),
-    target = "@pkg-config//:pkgconfig",
+    target = "@pkgconfig//:pkg-config",
 )
 
 toolchain(

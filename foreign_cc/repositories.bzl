@@ -62,7 +62,7 @@ def rules_foreign_cc_dependencies(
     if register_default_tools:
         prebuilt_toolchains(cmake_version, ninja_version, register_toolchains)
         native.register_toolchains(
-            str(Label("//toolchains:preinstalled_pkgconfig_toolchain")),
+            "@rules_foreign_cc//toolchains:preinstalled_pkgconfig_toolchain",
         )
 
     if register_built_tools:
@@ -75,7 +75,7 @@ def rules_foreign_cc_dependencies(
             register_toolchains = register_toolchains,
         )
         if register_toolchains:
-            native.register_toolchains(str(Label("//toolchains:built_pkgconfig_toolchain")))
+            native.register_toolchains("@rules_foreign_cc//toolchains:built_pkgconfig_toolchain")
 
     if register_preinstalled_tools:
         preinstalled_toolchains()
