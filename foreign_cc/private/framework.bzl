@@ -179,6 +179,15 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Optional names of the resulting shared libraries.",
         mandatory = False,
     ),
+    "out_startfiles": attr.string_list(
+        doc = "Optional names of the resulting startfiles.",
+        mandatory = False,
+    ),
+    "out_startfiles_dir": attr.string(
+        doc = "Optional name of the output subdirectory with the startfiles, defaults to 'startfiles'.",
+        mandatory = False,
+        default = "startfiles",
+    ),
     "out_static_libs": attr.string_list(
         doc = (
             "Optional names of the resulting static libraries. Note that if `out_headers_only`, `out_static_libs`, " +
@@ -444,7 +453,8 @@ def cc_external_rule_impl(ctx, attrs):
             outputs.out_binary_files +
             outputs.libraries.static_libraries +
             outputs.libraries.shared_libraries +
-            outputs.libraries.interface_libraries
+            outputs.libraries.interface_libraries +
+            outputs.libraries.startfiles
         )
     ]
 
@@ -507,6 +517,7 @@ def cc_external_rule_impl(ctx, attrs):
     externally_built = ForeignCcArtifactInfo(
         gen_dir = installdir_copy.file,
         bin_dir_name = attrs.out_bin_dir,
+        startfiles_dir_name = attrs.out_startfiles_dir,
         dll_dir_name = attrs.out_dll_dir,
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
@@ -722,6 +733,7 @@ _Outputs = provider(
 
 def _define_outputs(ctx, attrs, lib_name):
     attr_binaries_libs = attrs.out_binaries
+    attr_startfiles = attrs.out_startfiles
     attr_headers_only = attrs.out_headers_only
     attr_interface_libs = attrs.out_interface_libs
     attr_out_data_dirs = attrs.out_data_dirs
@@ -744,16 +756,18 @@ def _define_outputs(ctx, attrs, lib_name):
         out_data_dirs.append(ctx.actions.declare_directory(lib_name + "/" + dir.lstrip("/")))
 
     out_binary_files = _declare_out(ctx, lib_name, attrs.out_bin_dir, attr_binaries_libs)
+    out_startfiles = _declare_out(ctx, lib_name, attrs.out_startfiles_dir, attr_startfiles)
 
     libraries = LibrariesToLinkInfo(
         static_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, static_libraries),
         shared_libraries = _declare_out(ctx, lib_name, attrs.out_dll_dir if targets_windows(ctx, None) else attrs.out_lib_dir, attr_shared_libs),
+        startfiles = out_startfiles,
         interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attr_interface_libs),
     )
 
     declared_outputs = [out_include_dir] + out_data_dirs + out_binary_files
     declared_outputs += libraries.static_libraries
-    declared_outputs += libraries.shared_libraries + libraries.interface_libraries
+    declared_outputs += libraries.shared_libraries + libraries.interface_libraries + libraries.startfiles
 
     return _Outputs(
         out_include_dir = out_include_dir,
