@@ -132,32 +132,30 @@ if [[ -z "$2" ]]; then
 fi
 local target="$2"
 mkdir -p "$target"
-if [[ -f "$1" ]]; then
-  # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
-  # files so updating them is possible.
-  if [[ "$1" == *.pc || "$1" == *.la || "$1" == *-config || "$1" == *.mk || "$1" == *.cmake ]]; then
-    dest="$target/$(basename \"$1\")"
-    cp "$1" "$dest" && chmod +w "$dest" && touch -r "$1" "$dest"
-  else
-    ln -sf "$1" "$target/${1##*/}"
-  fi
-elif [[ -L "$1" && ! -d "$1" ]]; then
-  cp -pR "$1" "$2"
-elif [[ -d "$1" ]]; then
-  SAVEIFS=$IFS
-  IFS=$'\n'
-  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
-  IFS=$SAVEIFS
-  local dirname=$(basename "$1")
-  mkdir -p "$target/$dirname"
-  for child in "${children[@]:-}"; do
-    if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
-      ##symlink_to_dir## "$child" "$target/$dirname"
-    fi
-  done
-else
-  echo "Can not copy $1"
-fi
+# we symlink the ext_build_deps as well but we delete it after :)
+# this is a huge performance improvement than the original recursive version
+# so these extra copies are an okay performance loss
+cp -prsL "$1" "$target/"
+SAVEIFS=$IFS
+IFS=$'\n'
+local bad_directories=($(find -L "$target" -type d -name "*.ext_build_deps" -prune))
+IFS=$SAVEIFS
+for b in "${bad_directories[@]}"; do
+    rm -r "$b"
+done
+
+# In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
+# files so updating them is possible.
+SAVEIFS=$IFS
+IFS=$'\n'
+local files_to_copy=($(find -L "$target" -type f \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) -printf "%P\\n"))
+IFS=$SAVEIFS
+for f in "${files_to_copy[@]}"; do
+    dest="$target/$f"
+    src="$1/$f"
+    cp -p "$src" "$dest" && chmod +w "$dest" && touch -r "$src" "$dest"
+done
+
 """
     return FunctionAndCallInfo(text = text)
 
