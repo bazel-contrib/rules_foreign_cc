@@ -131,16 +131,10 @@ local target="$2"
 cp -prsL "$1" --no-target-dir "$target"
 SAVEIFS=$IFS
 IFS=$'\n'
-local bad_directories=($(find -L "$target" -type d -name "*.ext_build_deps" -prune))
-IFS=$SAVEIFS
-for b in "${bad_directories[@]}"; do
-    rm -r "$b"
-done
+find -L "$target" -type d -name "*.ext_build_deps" -prune -exec rm -r \\{\\} \\;
 
 # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
 # files so updating them is possible.
-SAVEIFS=$IFS
-IFS=$'\n'
 local files_to_copy=($(find -L "$target" -type f \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) -printf "%P\\n"))
 IFS=$SAVEIFS
 for f in "${files_to_copy[@]}"; do
