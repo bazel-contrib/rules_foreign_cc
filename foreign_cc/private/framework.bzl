@@ -180,7 +180,12 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
     ),
     "out_startfiles": attr.string_list(
-        doc = "Optional names of the resulting startfiles.",
+        doc = "Optional names of the resulting startfiles. " +
+              "Startfiles refer to additional executables, libraries, include files, and data files of the compiler itself that it needs to run. " +
+              "For example the C Runtime objects are an example of such files: crt0.o crt1.o crti.o crtn.o ...\n" +
+              "The compiler looks for these files when creating a binary that links with the c standard library. " +
+              "For example crt1.o is supposed to contain the _start symbol and it is responsible for initializing the libc. " +
+              "crtn.o is responsible for the function epilogs for the .init/.fini sections.",
         mandatory = False,
     ),
     "out_startfiles_dir": attr.string(
