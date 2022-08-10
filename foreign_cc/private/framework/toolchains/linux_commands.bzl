@@ -108,17 +108,12 @@ if [[ -f "$1" ]]; then
 elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
   ##symlink_contents_to_dir## "$actual" "$target"
-elif [[ -d "$1" ]]; then
-  SAVEIFS=$IFS
-  IFS=$'\n'
-  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
-  IFS=$SAVEIFS
-  for child in "${children[@]:-}"; do
-    ##symlink_to_dir## "$child" "$target"
-  done
+else
+  ##symlink_to_dir## "$(readlink -f $1)" "$target"
 fi
 """
     return FunctionAndCallInfo(text = text)
+
 
 def symlink_to_dir(source, target):
     text = """\
@@ -131,11 +126,10 @@ if [[ -z "$2" ]]; then
   exit 1
 fi
 local target="$2"
-mkdir -p "$target"
 # we symlink the ext_build_deps as well but we delete it after :)
 # this is a huge performance improvement than the original recursive version
 # so these extra copies are an okay performance loss
-cp -prsL "$1" "$target/"
+cp -prsL "$1" --no-target-dir "$target"
 SAVEIFS=$IFS
 IFS=$'\n'
 local bad_directories=($(find -L "$target" -type d -name "*.ext_build_deps" -prune))

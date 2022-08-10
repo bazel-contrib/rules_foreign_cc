@@ -112,14 +112,8 @@ if [[ -f "$1" ]]; then
 elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
   ##symlink_contents_to_dir## "$actual" "$target"
-elif [[ -d "$1" ]]; then
-  SAVEIFS=$IFS
-  IFS=$'\n'
-  local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
-  IFS=$SAVEIFS
-  for child in "${children[@]}"; do
-    ##symlink_to_dir## "$child" "$target"
-  done
+else
+  ##symlink_to_dir## "$(readlink -f $1)" "$target"
 fi
 """
     return FunctionAndCallInfo(text = text)
@@ -135,33 +129,30 @@ if [[ -z "$2" ]]; then
   exit 1
 fi
 local target="$2"
-mkdir -p "$target"
-if [[ -f "$1" ]]; then
-  # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
-  # files so updating them is possible.
-  if [[ "$1" == *.pc || "$1" == *.la || "$1" == *-config || "$1" == *.mk || "$1" == *.cmake ]]; then
-    dest="$target/$(basename \"$1\")"
-    cp "$1" "$dest" && chmod +w "$dest" && touch -r "$1" "$dest"
-  else
-    ln -s -f -t "$target" "$1"
-  fi
-elif [[ -L "$1" ]]; then
-  local actual=$(readlink "$1")
-  ##symlink_to_dir## "$actual" "$target"
-elif [[ -d "$1" ]]; then
-  SAVEIFS=$IFS
-  IFS=$'\n'
-  local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
-  IFS=$SAVEIFS
-  local dirname=$(basename "$1")
-  for child in "${children[@]}"; do
-    if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
-      ##symlink_to_dir## "$child" "$target/$dirname"
-    fi
-  done
-else
-  echo "Can not copy $1"
-fi
+# we symlink the ext_build_deps as well but we delete it after :)
+# this is a huge performance improvement than the original recursive version
+# so these extra copies are an okay performance loss
+cp -prsL "$1" --no-target-dir "$target"
+SAVEIFS=$IFS
+IFS=$'\n'
+local bad_directories=($(find -L "$target" -type d -name "*.ext_build_deps" -prune))
+IFS=$SAVEIFS
+for b in "${bad_directories[@]}"; do
+    rm -r "$b"
+done
+
+# In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
+# files so updating them is possible.
+SAVEIFS=$IFS
+IFS=$'\n'
+local files_to_copy=($(find -L "$target" -type f \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) -printf "%P\\n"))
+IFS=$SAVEIFS
+for f in "${files_to_copy[@]}"; do
+    dest="$target/$f"
+    src="$1/$f"
+    cp -p "$src" "$dest" && chmod +w "$dest" && touch -r "$src" "$dest"
+done
+
 """
     return FunctionAndCallInfo(text = text)
 
