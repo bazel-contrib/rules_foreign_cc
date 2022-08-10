@@ -114,7 +114,6 @@ fi
 """
     return FunctionAndCallInfo(text = text)
 
-
 def symlink_to_dir(source, target):
     text = """\
 if [[ -z "$1" ]]; then
