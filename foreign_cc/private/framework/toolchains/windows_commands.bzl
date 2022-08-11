@@ -115,9 +115,9 @@ elif [[ -L "$1" ]]; then
 elif [[ -d "$1" ]]; then
   SAVEIFS=$IFS
   IFS=$'\n'
-  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
+  local children=($(REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
-  for child in "${children[@]:-}"; do
+  for child in "${children[@]}"; do
     ##symlink_to_dir## "$child" "$target"
   done
 fi
@@ -150,9 +150,9 @@ if [[ -d \"$source\" ]] || [[ -f \"$source\" ]]; then
         IFS=$'\n'
         # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
         # files so updating them is possible.
-        local files_to_copy=($(find -L "$source" -type f \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) -printf "%P\\n"))
+        local files_to_copy=($(REAL_FIND -L "$source" -type f \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) -printf "%P\\n"))
         IFS=$SAVEIFS
-        for f in "${files_to_copy[@]}"; do
+        for f in "${files_to_copy[@]:-}"; do
             dest="$target/$basename/$f"
             src=$(readlink -f "$source/$f")
             # we have to delete the file because it is a symlink to the original file and we can't overwrite the copy to it
