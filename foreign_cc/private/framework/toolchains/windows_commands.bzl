@@ -153,11 +153,13 @@ if [[ -d \"$source\" ]] || [[ -f \"$source\" ]]; then
         local files_to_copy=($($REAL_FIND -L "$source" -type f \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) -printf "%P\\n"))
         IFS=$SAVEIFS
         for f in "${files_to_copy[@]:-}"; do
-            dest="$target/$basename/$f"
-            src=$(readlink -f "$source/$f")
-            # we have to delete the file because it is a symlink to the original file and we can't overwrite the copy to it
-            rm "$dest" || true
-            cp -pf "$src" "$dest" && chmod +w "$dest" && touch -r "$src" "$dest"
+            if [[ "$f" != "" ]]; then
+              dest="$target/$basename/$f"
+              src=$(readlink -f "$source/$f")
+              # we have to delete the file because it is a symlink to the original file and we can't overwrite the copy to it
+              rm "$dest" || true
+              cp -pf "$src" "$dest" && chmod +w "$dest" && touch -r "$src" "$dest"
+            fi
         done
     else
         mkdir -p $target
