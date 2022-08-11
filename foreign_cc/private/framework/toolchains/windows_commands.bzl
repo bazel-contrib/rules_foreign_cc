@@ -145,6 +145,7 @@ source="$(readlink -f $1)"
 # so these extra copies are an okay performance loss
 if [[ -d \"$source\" ]] || [[ -f \"$source\" ]]; then
     if [[ -d \"$source\" ]]; then
+        echo cp -prsL "$source" "$target"
         cp -prsL "$source" "$target"
         SAVEIFS=$IFS
         IFS=$'\n'
