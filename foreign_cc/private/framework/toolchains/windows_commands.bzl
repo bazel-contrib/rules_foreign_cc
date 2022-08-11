@@ -112,8 +112,14 @@ if [[ -f "$1" ]]; then
 elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
   ##symlink_contents_to_dir## "$actual" "$target"
-else
-  ##symlink_to_dir## "$(readlink -f $1)" "$target"
+elif [[ -d "$1" ]]; then
+  SAVEIFS=$IFS
+  IFS=$'\n'
+  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
+  IFS=$SAVEIFS
+  for child in "${children[@]:-}"; do
+    ##symlink_to_dir## "$child" "$target"
+  done
 fi
 """
     return FunctionAndCallInfo(text = text)
@@ -129,34 +135,39 @@ if [[ -z "$2" ]]; then
   exit 1
 fi
 local target="$2"
-mkdir -p $target
+mkdir -p "$target"
+local basename=$(basename "$1")
+if [[ "$basename" != *.ext_build_deps ]]; then
 source="$(readlink -f $1)"
+
 # we symlink the ext_build_deps as well but we delete it after :)
 # this is a huge performance improvement than the original recursive version
 # so these extra copies are an okay performance loss
-if [ -e "$source" ]; then
-    if [ -d "$source" ]; then
-        # we cant copy *.ext_build_deps to target because this may be a recursive symlink
-        # so we have to not copy these here
-        # this is a hack because it doesn't remove ALL of the .ext_build_deps files
-        # but they should only exist in the top level anyways
-        find -H "$source" -not -name "*.ext_build_deps" -prune -maxdepth 1 -mindepth 1 -exec cp -prsL \\{\\} "$target" \\;
-    else
+if [[ -d \"$source\" ]] || [[ -f \"$source\" ]]; then
+    if [[ -d \"$source\" ]]; then
         cp -prsL "$source" "$target"
+        SAVEIFS=$IFS
+        IFS=$'\n'
+        # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
+        # files so updating them is possible.
+        local files_to_copy=($(find -L "$source" -type f \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) -printf "%P\\n"))
+        IFS=$SAVEIFS
+        for f in "${files_to_copy[@]}"; do
+            dest="$target/$basename/$f"
+            src=$(readlink -f "$source/$f")
+            # we have to delete the file because it is a symlink to the original file and we can't overwrite the copy to it
+            rm "$dest" || true
+            cp -pf "$src" "$dest" && chmod +w "$dest" && touch -r "$src" "$dest"
+        done
+    else
+        mkdir -p $target
+        if [[ "$source" == *.pc || "$source" == *.la || "$source" == *-config || "$source" == *.mk || "$source" == *.cmake ]]; then
+            cp -pf "$source" "$target" && chmod +w "$target" && touch -r "$source" "$target"
+        else
+            ln -sf "$source" "$target"/$basename
+        fi
     fi
-    SAVEIFS=$IFS
-    IFS=$'\n'
-    # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
-    # files so updating them is possible.
-    local files_to_copy=($(find -L "$target" -type f \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) -printf "%P\\n"))
-    IFS=$SAVEIFS
-    for f in "${files_to_copy[@]}"; do
-        dest="$target/$f"
-        src="$source/$f"
-        # we have to delete the file because it is a symlink to the original file and we can't overwrite the copy to it
-        rm "$dest"
-        cp -pf "$src" "$dest" && chmod +w "$dest" && touch -r "$src" "$dest"
-    done
+fi
 fi
 
 """
