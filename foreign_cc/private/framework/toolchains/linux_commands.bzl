@@ -126,18 +126,19 @@ if [[ -z "$2" ]]; then
 fi
 local target="$2"
 mkdir -p $target
+source="$(readlink -f $1)"
 # we symlink the ext_build_deps as well but we delete it after :)
 # this is a huge performance improvement than the original recursive version
 # so these extra copies are an okay performance loss
-if [ -e "$1" ]; then
-    if [ -d "$1" ]; then
+if [ -e "$source" ]; then
+    if [ -d "$source" ]; then
         # we cant copy *.ext_build_deps to target because this may be a recursive symlink
         # so we have to not copy these here
         # this is a hack because it doesn't remove ALL of the .ext_build_deps files
         # but they should only exist in the top level anyways
-        find -H "$1" -not -name "*.ext_build_deps" -prune -maxdepth 1 -mindepth 1 -exec cp -prsL \\{\\} "$target" \\;
+        find -H "$source" -not -name "*.ext_build_deps" -prune -maxdepth 1 -mindepth 1 -exec cp -prsL \\{\\} "$target" \\;
     else
-        cp -prsL "$1" "$target"
+        cp -prsL "$source" "$target"
     fi
     SAVEIFS=$IFS
     IFS=$'\n'
@@ -147,7 +148,7 @@ if [ -e "$1" ]; then
     IFS=$SAVEIFS
     for f in "${files_to_copy[@]}"; do
         dest="$target/$f"
-        src="$1/$f"
+        src="$source/$f"
         # we have to delete the file because it is a symlink to the original file and we can't overwrite the copy to it
         rm "$dest"
         cp -pf "$src" "$dest" && chmod +w "$dest" && touch -r "$src" "$dest"
