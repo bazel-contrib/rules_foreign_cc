@@ -28,6 +28,7 @@ test_suite(
         "//python:python_tests",
         "//sqlite:sqlite_build_test",
         "//subversion:subversion_build_test",
+        "//kernel_headers:test_kernel_headers",
     ],
 )
 
@@ -61,6 +62,7 @@ test_suite(
         # Missing a new enough automake to build
         #"//sqlite:sqlite_build_test",
         #"//subversion:subversion_build_test",
+        "//kernel_headers:test_kernel_headers",
     ],
 )
 
@@ -93,6 +95,7 @@ test_suite(
         "//python:python_tests",
         "//sqlite:sqlite_build_test",
         "//subversion:subversion_build_test",
+        "//kernel_headers:test_kernel_headers",
     ],
 )
 
@@ -104,5 +107,6 @@ test_suite(
         "//curl:curl_test_suite",
         "//openssl:openssl_test_suite",
         # TODO: Add more windows tests
+        "//kernel_headers:test_kernel_headers",
     ],
 )

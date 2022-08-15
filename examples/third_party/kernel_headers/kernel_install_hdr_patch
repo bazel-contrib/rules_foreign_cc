@@ -1,0 +1,12 @@
+diff '--color=auto' -ruN kernel_headers.build_tmpdir/Makefile /tmp/kernel_headers.build_tmpdir/Makefile
+--- Makefile	2022-05-07 14:06:41.733756372 +0300
++++ Makefile	2022-05-07 14:07:27.413557483 +0300
+@@ -1172,7 +1172,7 @@
+ # Kernel headers
+ 
+ #Default location for installed headers
+-export INSTALL_HDR_PATH = $(objtree)/usr
++export INSTALL_HDR_PATH ?= $(objtree)/usr
+ 
+ # If we do an all arch process set dst to include/arch-$(hdr-arch)
+ hdr-dst = $(if $(KBUILD_HEADERS), dst=include/arch-$(hdr-arch), dst=include)

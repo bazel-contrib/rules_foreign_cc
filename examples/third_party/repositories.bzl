@@ -22,6 +22,7 @@ load("//python:python_repositories.bzl", "python_repositories")
 load("//sqlite:sqlite_repositories.bzl", "sqlite_repositories")
 load("//subversion:subversion_repositories.bzl", "subversion_repositories")
 load("//zlib:zlib_repositories.bzl", "zlib_repositories")
+load("//kernel_headers:kernel_headers_repositories.bzl", "kernel_headers_repositories")
 
 # buildifier: disable=unnamed-macro
 def repositories():
@@ -46,6 +47,7 @@ def repositories():
     sqlite_repositories()
     subversion_repositories()
     zlib_repositories()
+    kernel_headers_repositories()
 
     maybe(
         http_archive,
