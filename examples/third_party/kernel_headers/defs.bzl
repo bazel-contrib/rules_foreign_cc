@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "make")
 
 def linux_kernel_headers(name, config, kernel_version, environment = None):
