@@ -107,6 +107,5 @@ test_suite(
         "//curl:curl_test_suite",
         "//openssl:openssl_test_suite",
         # TODO: Add more windows tests
-        "//kernel_headers:test_kernel_headers",
     ],
 )
