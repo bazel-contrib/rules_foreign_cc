@@ -25,5 +25,6 @@ def kernel_headers_repositories(
 
     Args:
         kernel_version: The kernel version
+        kernel_sha256: The kernel sha256 hash
     """
     download_kernel_sources(version = kernel_version, sha256 = kernel_sha256)

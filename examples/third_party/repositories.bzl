@@ -11,6 +11,7 @@ load("//curl:curl_repositories.bzl", "curl_repositories")
 load("//gn:gn_repositories.bzl", "gn_repositories")
 load("//gperftools:gperftools_repositories.bzl", "gperftools_repositories")
 load("//iconv:iconv_repositories.bzl", "iconv_repositories")
+load("//kernel_headers:kernel_headers_repositories.bzl", "kernel_headers_repositories")
 load("//libgit2:libgit2_repositories.bzl", "libgit2_repositories")
 load("//libjpeg_turbo:libjpeg_turbo_repositories.bzl", "libjpeg_turbo_repositories")
 load("//libpng:libpng_repositories.bzl", "libpng_repositories")
@@ -22,7 +23,6 @@ load("//python:python_repositories.bzl", "python_repositories")
 load("//sqlite:sqlite_repositories.bzl", "sqlite_repositories")
 load("//subversion:subversion_repositories.bzl", "subversion_repositories")
 load("//zlib:zlib_repositories.bzl", "zlib_repositories")
-load("//kernel_headers:kernel_headers_repositories.bzl", "kernel_headers_repositories")
 
 # buildifier: disable=unnamed-macro
 def repositories():
