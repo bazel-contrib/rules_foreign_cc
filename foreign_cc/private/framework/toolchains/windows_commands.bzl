@@ -134,11 +134,11 @@ if [[ -z "$2" ]]; then
   echo "arg 2 to symlink_to_dir is unexpectedly empty"
   exit 1
 fi
-local target="$(readlink -f $2)"
+local target="$2"
 mkdir -p "$target"
 local basename=$(basename "$1")
 if [[ "$basename" != *.ext_build_deps ]]; then
-source="$(readlink -f $1)"
+source="$1"
 
 # we symlink the ext_build_deps as well but we delete it after :)
 # this is a huge performance improvement than the original recursive version
