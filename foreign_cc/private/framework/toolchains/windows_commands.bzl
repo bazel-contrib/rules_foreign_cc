@@ -134,7 +134,7 @@ if [[ -z "$2" ]]; then
   echo "arg 2 to symlink_to_dir is unexpectedly empty"
   exit 1
 fi
-local target="$2"
+local target="$(readlink -f $2)"
 mkdir -p "$target"
 local basename=$(basename "$1")
 if [[ "$basename" != *.ext_build_deps ]]; then
