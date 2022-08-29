@@ -96,7 +96,7 @@ def _create_configure_script(configureParameters):
         tools = tools,
         flags = flags,
         root = detect_root(ctx.attr.lib_source),
-        user_options = ctx.attr.configure_options,
+        user_options = expand_locations_and_make_variables(ctx, ctx.attr.configure_options, "configure_options", data),
         is_debug = is_debug_mode(ctx),
         configure_prefix = configure_prefix,
         configure_command = ctx.attr.configure_command,
