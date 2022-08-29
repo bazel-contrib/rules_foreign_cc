@@ -7,6 +7,7 @@ load(
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
+    "expand_locations_and_make_variables",
 )
 
 def _boost_build_impl(ctx):
@@ -20,6 +21,8 @@ def _boost_build_impl(ctx):
 def _create_configure_script(configureParameters):
     ctx = configureParameters.ctx
     root = detect_root(ctx.attr.lib_source)
+    data = ctx.attr.data + ctx.attr.build_data
+    user_options = expand_locations_and_make_variables(ctx, ctx.attr.user_options, "user_options", data)
 
     return [
         "cd $INSTALLDIR",
@@ -27,7 +30,7 @@ def _create_configure_script(configureParameters):
         "chmod -R +w .",
         "##enable_tracing##",
         "./bootstrap.sh {}".format(" ".join(ctx.attr.bootstrap_options)),
-        "./b2 install {} --prefix=.".format(" ".join(ctx.attr.user_options)),
+        "./b2 install {} --prefix=.".format(" ".join(user_options)),
         "##disable_tracing##",
     ]
 
