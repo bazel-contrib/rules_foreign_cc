@@ -95,6 +95,10 @@ tasks:
   windows_examples:
     name: Examples
     platform: windows
+    # Ping MSVC version to 2017, since LLVM 11.0.0 is not yet available on Bazel CI.
+    # TODO: remove after https://github.com/bazelbuild/continuous-integration/pull/1433 is deployed.
+    environment:
+      BAZEL_VC: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC"
     working_directory: examples
     windows_targets: &windows_targets
       - "//..."
