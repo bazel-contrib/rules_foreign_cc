@@ -496,7 +496,7 @@ def cc_external_rule_impl(ctx, attrs):
 
     # Gather runfiles transitively as per the documentation in:
     # https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
-    runfiles = ctx.runfiles(files = ctx.files.data)
+    runfiles = ctx.runfiles(files = ctx.files.data + outputs.libraries.shared_libraries)
     for target in [ctx.attr.lib_source] + ctx.attr.deps + ctx.attr.data:
         runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
 
