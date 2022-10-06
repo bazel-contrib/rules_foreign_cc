@@ -315,12 +315,6 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
             "export CMAKE_OSX_ARCHITECTURES={}".format(ctx.fragments.apple.single_arch_cpu),
         ])
 
-    cc_toolchain = find_cpp_toolchain(ctx)
-    if cc_toolchain.compiler == "msvc-cl":
-        # Prepend PATH environment variable with the path to the toolchain linker, which prevents MSYS using its linker (/usr/bin/link.exe) rather than the MSVC linker (both are named "link.exe")
-        linker_path = paths.dirname(cc_toolchain.ld_executable)
-        env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
-
     # Add all user defined variables
     user_vars = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data_dependencies)
     env.update(user_vars)
@@ -329,6 +323,12 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     for user_var in user_vars:
         if "PATH" in user_var and cc_env.get(user_var):
             env.update({user_var: user_vars.get(user_var) + ":" + cc_env.get(user_var)})
+
+    cc_toolchain = find_cpp_toolchain(ctx)
+    if cc_toolchain.compiler == "msvc-cl":
+        # Prepend PATH environment variable with the path to the toolchain linker, which prevents MSYS using its linker (/usr/bin/link.exe) rather than the MSVC linker (both are named "link.exe")
+        linker_path = paths.dirname(cc_toolchain.ld_executable)
+        env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
 
     env_snippet.extend(["export {}=\"{}\"".format(key, escape_dquote_bash(val)) for key, val in env.items()])
 
