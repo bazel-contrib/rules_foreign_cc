@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
-from textwrap import indent
 import hashlib
 import json
 import urllib.request
-
+from pathlib import Path
+from textwrap import indent
 
 CMAKE_SHA256_URL_TEMPLATE = "https://cmake.org/files/v{minor}/cmake-{full}-SHA-256.txt"
 CMAKE_URL_TEMPLATE = "https://github.com/Kitware/CMake/releases/download/v{full}/{file}"
 
 CMAKE_VERSIONS = [
+    "3.23.2",
+    "3.23.1",
+    "3.22.4",
+    "3.22.3",
+    "3.22.2",
+    "3.22.1",
     "3.22.0",
+    "3.21.5",
     "3.21.4",
     "3.21.3",
     "3.21.2",
@@ -90,7 +96,9 @@ CMAKE_TARGETS = {
     ],
 }
 
-NINJA_URL_TEMPLATE = "https://github.com/ninja-build/ninja/releases/download/v{full}/ninja-{target}.zip"
+NINJA_URL_TEMPLATE = (
+    "https://github.com/ninja-build/ninja/releases/download/v{full}/ninja-{target}.zip"
+)
 
 NINJA_TARGETS = {
     "linux": [
@@ -108,6 +116,7 @@ NINJA_TARGETS = {
 }
 
 NINJA_VERSIONS = (
+    "1.11.0",
     "1.10.2",
     "1.10.1",
     "1.10.0",
@@ -126,6 +135,7 @@ maybe(
     strip_prefix = "{prefix}",
     build_file_content = {template}.format(
         bin = "{bin}",
+        env = "{env}",
     ),
 )
 """
@@ -141,9 +151,10 @@ maybe(
 """
 
 REGISTER_TOOLCHAINS = """\
-native.register_toolchains(
+if register_toolchains:
+    native.register_toolchains(
 {toolchains}
-)
+    )
 """
 
 BZL_FILE_TEMPLATE = """\
@@ -196,30 +207,32 @@ filegroup(
 
 native_tool_toolchain(
     name = "ninja_tool",
+    env = {{env}},
     path = "$(execpath :ninja_bin)",
     target = ":ninja_bin",
 )
 \"\"\"
 
 # buildifier: disable=unnamed-macro
-def prebuilt_toolchains(cmake_version, ninja_version):
+def prebuilt_toolchains(cmake_version, ninja_version, register_toolchains):
     \"\"\"Register toolchains for pre-built cmake and ninja binaries
 
     Args:
         cmake_version (string): The target cmake version
         ninja_version (string): The target ninja-build version
+        register_toolchains (boolean): Whether to call native.register_toolchains or not
     \"\"\"
-    _cmake_toolchains(cmake_version)
-    _ninja_toolchains(ninja_version)
-    _make_toolchains()
+    _cmake_toolchains(cmake_version, register_toolchains)
+    _ninja_toolchains(ninja_version, register_toolchains)
+    _make_toolchains(register_toolchains)
 
-def _cmake_toolchains(version):
+def _cmake_toolchains(version, register_toolchains):
 {cmake_definitions}
 
-def _ninja_toolchains(version):
+def _ninja_toolchains(version, register_toolchains):
 {ninja_definitions}
 
-def _make_toolchains():
+def _make_toolchains(register_toolchains):
 {make_definitions}
 """
 
@@ -240,7 +253,9 @@ def get_cmake_definitions() -> str:
         version_toolchains = {}
 
         minor_version = "{}.{}".format(major, minor)
-        for line in urllib.request.urlopen(CMAKE_SHA256_URL_TEMPLATE.format(minor=minor_version, full=version)).readlines():
+        for line in urllib.request.urlopen(
+            CMAKE_SHA256_URL_TEMPLATE.format(minor=minor_version, full=version)
+        ).readlines():
             line = line.decode("utf-8").strip("\n ")
 
             # Only take tar and zip files. The rest can't be easily decompressed.
@@ -271,48 +286,68 @@ def get_cmake_definitions() -> str:
                     name=name,
                     sha256=sha256,
                     prefix=prefix,
-                    url=CMAKE_URL_TEMPLATE.format(
-                        full=version,
-                        file=file
-                    ),
+                    url=CMAKE_URL_TEMPLATE.format(full=version, file=file),
                     build="cmake",
                     template="_CMAKE_BUILD_FILE",
                     bin=bin,
+                    env="{}",
                 )
             )
             version_toolchains.update({plat_target: name})
 
-        archives.append("\n".join(
-            [
-                "    if \"{}\" == version:".format(version),
-            ] + [indent(archive, " " * 8) for archive in version_archives])
+        archives.append(
+            "\n".join(
+                [
+                    '    if "{}" == version:'.format(version),
+                ]
+                + [indent(archive, " " * 8) for archive in version_archives]
+            )
         )
 
         toolchains_repos = {}
         for target, name in version_toolchains.items():
             toolchains_repos.update({name: CMAKE_TARGETS[target]})
 
-        archives.append(indent(TOOLCHAIN_REPO_DEFINITION.format(
-            name="cmake_{}_toolchains".format(version),
-            repos=indent(json.dumps(toolchains_repos, indent=4), " " * 4).lstrip(),
-            tool="cmake",
-        ), " " * 8))
+        archives.append(
+            indent(
+                TOOLCHAIN_REPO_DEFINITION.format(
+                    name="cmake_{}_toolchains".format(version),
+                    repos=indent(
+                        json.dumps(toolchains_repos, indent=4), " " * 4
+                    ).lstrip(),
+                    tool="cmake",
+                ),
+                " " * 8,
+            )
+        )
 
-        archives.append(indent(REGISTER_TOOLCHAINS.format(
-            toolchains="\n".join(
-                [indent("\"@cmake_{}_toolchains//:{}_toolchain\",".format(
-                    version,
-                    repo
-                ), " " * 4) for repo in toolchains_repos])
-        ), " " * 8))
+        archives.append(
+            indent(
+                REGISTER_TOOLCHAINS.format(
+                    toolchains="\n".join(
+                        [
+                            indent(
+                                '"@cmake_{}_toolchains//:{}_toolchain",'.format(
+                                    version, repo
+                                ),
+                                " " * 8,
+                            )
+                            for repo in toolchains_repos
+                        ]
+                    )
+                ),
+                " " * 8,
+            )
+        )
 
-        archives.extend([
-            indent("return", " " * 8),
-            "",
-        ])
+        archives.extend(
+            [
+                indent("return", " " * 8),
+                "",
+            ]
+        )
 
-    archives.append(
-        indent("fail(\"Unsupported version: \" + str(version))", " " * 4))
+    archives.append(indent('fail("Unsupported version: " + str(version))', " " * 4))
 
     return "\n".join([archive.rstrip(" ") for archive in archives])
 
@@ -340,7 +375,7 @@ def get_ninja_definitions() -> str:
             # Get sha256 (can be slow)
             remote = urllib.request.urlopen(url)
             total_read = 0
-            max_file_size = 100*1024*1024
+            max_file_size = 100 * 1024 * 1024
             hash = hashlib.sha256()
             while True:
                 data = remote.read(4096)
@@ -363,41 +398,64 @@ def get_ninja_definitions() -> str:
                     build="ninja",
                     template="_NINJA_BUILD_FILE",
                     bin="ninja.exe" if "win" in target else "ninja",
+                    env='{\\"NINJA\\": \\"$(execpath :ninja_bin)\\"}',
                 )
             )
             version_toolchains.update({target: name})
 
-        archives.append("\n".join(
-            [
-                "    if \"{}\" == version:".format(version),
-            ] + [indent(archive, " " * 8) for archive in version_archives])
+        archives.append(
+            "\n".join(
+                [
+                    '    if "{}" == version:'.format(version),
+                ]
+                + [indent(archive, " " * 8) for archive in version_archives]
+            )
         )
 
         toolchains_repos = {}
         for target, name in version_toolchains.items():
             toolchains_repos.update({name: NINJA_TARGETS[target]})
 
-        archives.append(indent(TOOLCHAIN_REPO_DEFINITION.format(
-            name="ninja_{}_toolchains".format(version),
-            repos=indent(json.dumps(toolchains_repos, indent=4), " " * 4).lstrip(),
-            tool="ninja",
-        ), " " * 8))
+        archives.append(
+            indent(
+                TOOLCHAIN_REPO_DEFINITION.format(
+                    name="ninja_{}_toolchains".format(version),
+                    repos=indent(
+                        json.dumps(toolchains_repos, indent=4), " " * 4
+                    ).lstrip(),
+                    tool="ninja",
+                ),
+                " " * 8,
+            )
+        )
 
-        archives.append(indent(REGISTER_TOOLCHAINS.format(
-            toolchains="\n".join(
-                [indent("\"@ninja_{}_toolchains//:{}_toolchain\",".format(
-                    version,
-                    repo
-                ), " " * 4) for repo in toolchains_repos])
-        ), " " * 8))
+        archives.append(
+            indent(
+                REGISTER_TOOLCHAINS.format(
+                    toolchains="\n".join(
+                        [
+                            indent(
+                                '"@ninja_{}_toolchains//:{}_toolchain",'.format(
+                                    version, repo
+                                ),
+                                " " * 8,
+                            )
+                            for repo in toolchains_repos
+                        ]
+                    )
+                ),
+                " " * 8,
+            )
+        )
 
-        archives.extend([
-            indent("return", " " * 8),
-            "",
-        ])
+        archives.extend(
+            [
+                indent("return", " " * 8),
+                "",
+            ]
+        )
 
-    archives.append(
-        indent("fail(\"Unsupported version: \" + str(version))", " " * 4))
+    archives.append(indent('fail("Unsupported version: " + str(version))', " " * 4))
 
     return "\n".join(archives)
 
@@ -409,21 +467,20 @@ def get_make_definitions() -> str:
         str: The Implementation of `_make_toolchains`
     """
 
-    return indent(
-        "# There are currently no prebuilt make binaries\npass",
-        " " * 4)
+    return indent("# There are currently no prebuilt make binaries\npass", " " * 4)
 
 
 def main():
     """The main entrypoint of the toolchains generator"""
-    repos_bzl_file = Path(__file__).parent.absolute() / \
-        "prebuilt_toolchains.bzl"
+    repos_bzl_file = Path(__file__).parent.absolute() / "prebuilt_toolchains.bzl"
 
-    repos_bzl_file.write_text(BZL_FILE_TEMPLATE.format(
-        cmake_definitions=get_cmake_definitions(),
-        ninja_definitions=get_ninja_definitions(),
-        make_definitions=get_make_definitions(),
-    ))
+    repos_bzl_file.write_text(
+        BZL_FILE_TEMPLATE.format(
+            cmake_definitions=get_cmake_definitions(),
+            ninja_definitions=get_ninja_definitions(),
+            make_definitions=get_make_definitions(),
+        )
+    )
 
 
 if __name__ == "__main__":

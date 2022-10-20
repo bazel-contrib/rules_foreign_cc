@@ -78,9 +78,9 @@ if [ -d "$1" ]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   # Find all real files. Symlinks are assumed to be relative to something within the directory we're seaching and thus ignored
-  local files=$(find -P -f $1 \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\))
+  local files=($(find -P -f "$1" \\( -type f -and \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) \\)))
   IFS=$SAVEIFS
-  for file in ${files[@]}; do
+  for file in ${files[@]+"${files[@]}"}; do
     local backup=$(mktemp)
     touch -r "${file}" "${backup}"
     sed -i '' -e 's@'"$2"'@'"$3"'@g' "${file}"
@@ -103,7 +103,7 @@ if [[ -d "{source}" ]]; then
 else
   cp -L -R "{source}" "{target}"
 fi
-find {target} -type f -exec touch -r "{source}" "{{}}" \\;
+find "{target}" -type f -exec touch -r "{source}" "{{}}" \\;
 """.format(
         source = source,
         target = target,
@@ -154,7 +154,7 @@ if [[ -f "$1" ]]; then
   # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
   # files so updating them is possible.
   if [[ "$1" == *.pc || "$1" == *.la || "$1" == *-config || "$1" == *.mk || "$1" == *.cmake ]]; then
-    dest="$target/$(basename $1)"
+    dest="$target/$(basename \"$1\")"
     cp "$1" "$dest" && chmod +w "$dest" && touch -r "$1" "$dest"
   else
     ln -s -f "$1" "$target"
@@ -216,7 +216,7 @@ def cleanup_function(on_success, on_failure):
 def children_to_path(dir_):
     text = """\
 if [ -d {dir_} ]; then
-  local tools=$(find $EXT_BUILD_DEPS/bin/ -maxdepth 1 -mindepth 1)
+  local tools=$(find "$EXT_BUILD_DEPS/bin/" -maxdepth 1 -mindepth 1)
   for tool in $tools;
   do
     if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then
@@ -261,3 +261,38 @@ if [[ -L "{file}" ]]; then
   rm "{file}" && cp -a "${{target}}" "{file}"
 fi
 """.format(file = file)
+
+commands = struct(
+    assert_script_errors = assert_script_errors,
+    cat = cat,
+    children_to_path = children_to_path,
+    cleanup_function = cleanup_function,
+    copy_dir_contents_to_dir = copy_dir_contents_to_dir,
+    define_absolute_paths = define_absolute_paths,
+    define_function = define_function,
+    define_sandbox_paths = define_sandbox_paths,
+    disable_tracing = disable_tracing,
+    echo = echo,
+    enable_tracing = enable_tracing,
+    env = env,
+    export_var = export_var,
+    if_else = if_else,
+    increment_pkg_config_path = increment_pkg_config_path,
+    local_var = local_var,
+    mkdirs = mkdirs,
+    path = path,
+    pwd = pwd,
+    redirect_out_err = redirect_out_err,
+    replace_absolute_paths = replace_absolute_paths,
+    replace_in_files = replace_in_files,
+    replace_sandbox_paths = replace_sandbox_paths,
+    replace_symlink = replace_symlink,
+    rm_rf = rm_rf,
+    script_extension = script_extension,
+    script_prelude = script_prelude,
+    shebang = shebang,
+    symlink_contents_to_dir = symlink_contents_to_dir,
+    symlink_to_dir = symlink_to_dir,
+    touch = touch,
+    use_var = use_var,
+)

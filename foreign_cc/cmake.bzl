@@ -142,7 +142,6 @@ load(
     "CC_EXTERNAL_RULE_FRAGMENTS",
     "cc_external_rule_impl",
     "create_attrs",
-    "expand_locations",
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:transitions.bzl", "make_variant")
@@ -216,7 +215,7 @@ def _create_configure_script(configureParameters):
 
     # Generate a list of arguments for cmake's build command
     build_args = " ".join([
-        expand_locations(ctx, arg, data)
+        expand_locations_and_make_variables(ctx, arg, "build_args", data)
         for arg in ctx.attr.build_args
     ])
 
@@ -240,7 +239,7 @@ def _create_configure_script(configureParameters):
     if ctx.attr.install:
         # Generate a list of arguments for cmake's install command
         install_args = " ".join([
-            expand_locations(ctx, arg, data)
+            expand_locations_and_make_variables(ctx, arg, "install_args", data)
             for arg in ctx.attr.install_args
         ])
 
@@ -251,7 +250,7 @@ def _create_configure_script(configureParameters):
             config = configuration,
         ))
 
-    prefix = expand_locations(ctx, {"prefix": attrs.tool_prefix}, data)["prefix"] if attrs.tool_prefix else ""
+    prefix = expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data) if attrs.tool_prefix else ""
 
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
@@ -263,7 +262,7 @@ def _create_configure_script(configureParameters):
         root = root,
         no_toolchain_file = no_toolchain_file,
         user_cache = dict(ctx.attr.cache_entries),
-        user_env = expand_locations_and_make_variables(ctx, "env", data),
+        user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data),
         options = attrs.generate_args,
         cmake_commands = cmake_commands,
         cmake_prefix = prefix,

@@ -188,7 +188,7 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
             lines.append('set({} "$$__var_{}$$")'.format(key, key))
 
     cache_entries.update({
-        "CMAKE_TOOLCHAIN_FILE": "crosstool_bazel.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "$$BUILD_TMPDIR$$/crosstool_bazel.cmake",
     })
     return struct(
         commands = sorted(crosstool_vars) + ["cat > crosstool_bazel.cmake << EOF"] + sorted(lines) + ["EOF", ""],

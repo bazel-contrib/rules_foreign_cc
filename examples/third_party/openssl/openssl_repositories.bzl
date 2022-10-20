@@ -8,12 +8,12 @@ def openssl_repositories():
         http_archive,
         name = "openssl",
         build_file = Label("//openssl:BUILD.openssl.bazel"),
-        sha256 = "892a0875b9872acd04a9fde79b1f943075d5ea162415de3047c327df33fbaee5",
-        strip_prefix = "openssl-1.1.1k",
+        sha256 = "0f745b85519aab2ce444a3dcada93311ba926aea2899596d01e7f948dbd99981",
+        strip_prefix = "openssl-OpenSSL_1_1_1o",
         urls = [
-            "https://mirror.bazel.build/www.openssl.org/source/openssl-1.1.1k.tar.gz",
-            "https://www.openssl.org/source/openssl-1.1.1k.tar.gz",
-            "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1k.tar.gz",
+            "https://mirror.bazel.build/www.openssl.org/source/openssl-1.1.1o.tar.gz",
+            "https://www.openssl.org/source/openssl-1.1.1o.tar.gz",
+            "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1o.tar.gz",
         ],
     )
 
@@ -28,25 +28,13 @@ def openssl_repositories():
             "https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-win64.zip",
         ],
     )
+
     maybe(
         http_archive,
         name = "rules_perl",
-        sha256 = "55fbe071971772758ad669615fc9aac9b126db6ae45909f0f36de499f6201dd3",
-        strip_prefix = "rules_perl-2f4f36f454375e678e81e5ca465d4d497c5c02da",
+        sha256 = "765e6a282cc38b197a6408c625bd3fc28f3f2d44353fb4615490a6eb0b8f420c",
+        strip_prefix = "rules_perl-e3ed0f1727d15db6c5ff84f64454b9a4926cc591",
         urls = [
-            "https://github.com/bazelbuild/rules_perl/archive/2f4f36f454375e678e81e5ca465d4d497c5c02da.tar.gz",
-        ],
-    )
-
-    # rules_perl doesn't currently support Windows, so we need to bring along our own Perl.
-    # https://github.com/bazelbuild/rules_perl/issues/30
-    maybe(
-        http_archive,
-        name = "perl",
-        build_file = Label("//openssl:BUILD.perl.bazel"),
-        sha256 = "aeb973da474f14210d3e1a1f942dcf779e2ae7e71e4c535e6c53ebabe632cc98",
-        urls = [
-            "https://mirror.bazel.build/strawberryperl.com/download/5.32.1.1/strawberry-perl-5.32.1.1-64bit.zip",
-            "https://strawberryperl.com/download/5.32.1.1/strawberry-perl-5.32.1.1-64bit.zip",
+            "https://github.com/bazelbuild/rules_perl/archive/e3ed0f1727d15db6c5ff84f64454b9a4926cc591.tar.gz",
         ],
     )

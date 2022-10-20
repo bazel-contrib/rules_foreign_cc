@@ -2,15 +2,12 @@
 rules_foreign_cc toolchains
 """
 
-load(":native_tools_toolchain.bzl", "ToolInfo")
-
-def access_tool(toolchain_type_, ctx, tool_name):
+def access_tool(toolchain_type_, ctx):
     """A helper macro for getting the path to a build tool's executable
 
     Args:
-        toolchain_type_ (str): The name of the toolchain type
+        toolchain_type_ (Label): The name of the toolchain type
         ctx (ctx): The rule's context object
-        tool_name (str): The name of the tool to query
 
     Returns:
         ToolInfo: A provider containing information about the toolchain's executable
@@ -18,34 +15,31 @@ def access_tool(toolchain_type_, ctx, tool_name):
     tool_toolchain = ctx.toolchains[toolchain_type_]
     if tool_toolchain:
         return tool_toolchain.data
-    return ToolInfo(
-        path = tool_name,
-        target = None,
-    )
+    fail("No toolchain found for " + toolchain_type_)
 
 def get_autoconf_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:autoconf_toolchain")), ctx, "autoconf")
+    return _access_and_expect_label_copied(Label("//toolchains:autoconf_toolchain"), ctx)
 
 def get_automake_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:automake_toolchain")), ctx, "automake")
+    return _access_and_expect_label_copied(Label("//toolchains:automake_toolchain"), ctx)
 
 def get_cmake_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:cmake_toolchain")), ctx, "cmake")
+    return _access_and_expect_label_copied(Label("//toolchains:cmake_toolchain"), ctx)
 
 def get_m4_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:m4_toolchain")), ctx, "m4")
+    return _access_and_expect_label_copied(Label("//toolchains:m4_toolchain"), ctx)
 
 def get_make_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:make_toolchain")), ctx, "make")
+    return _access_and_expect_label_copied(Label("//toolchains:make_toolchain"), ctx)
 
 def get_ninja_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:ninja_toolchain")), ctx, "ninja")
+    return _access_and_expect_label_copied(Label("//toolchains:ninja_toolchain"), ctx)
 
 def get_pkgconfig_data(ctx):
-    return _access_and_expect_label_copied(str(Label("//toolchains:pkgconfig_toolchain")), ctx, "pkg-config")
+    return _access_and_expect_label_copied(Label("//toolchains:pkgconfig_toolchain"), ctx)
 
-def _access_and_expect_label_copied(toolchain_type_, ctx, tool_name):
-    tool_data = access_tool(toolchain_type_, ctx, tool_name)
+def _access_and_expect_label_copied(toolchain_type_, ctx):
+    tool_data = access_tool(toolchain_type_, ctx)
     if tool_data.target:
         # This could be made more efficient by changing the
         # toolchain to provide the executable as a target
@@ -56,11 +50,13 @@ def _access_and_expect_label_copied(toolchain_type_, ctx, tool_name):
                 break
         return struct(
             deps = [tool_data.target],
+            env = tool_data.env,
             # as the tool will be copied into tools directory
             path = "$EXT_BUILD_ROOT/{}".format(cmd_file.path),
         )
     else:
         return struct(
             deps = [],
+            env = tool_data.env,
             path = tool_data.path,
         )
