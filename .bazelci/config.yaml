@@ -78,11 +78,13 @@ tasks:
       - "dbg"
       - "--spawn_strategy=standalone"
       - "-k"
+      - "--noincompatible_enable_cc_toolchain_resolution"
     test_targets: *macos_targets_standalone
     test_flags:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
+      - "--noincompatible_enable_cc_toolchain_resolution"
   macos_examples:
     name: Examples
     platform: macos
@@ -91,10 +93,18 @@ tasks:
       - "//..."
       - "//:third_party_examples_macos_tests"
     build_targets: *macos_targets
+    build_flags:
+      - "--noincompatible_enable_cc_toolchain_resolution"
     test_targets: *macos_targets
+    test_flags:
+      - "--noincompatible_enable_cc_toolchain_resolution"
   windows_examples:
     name: Examples
     platform: windows
+    # Ping MSVC version to 2017, since LLVM 11.0.0 is not yet available on Bazel CI.
+    # TODO: remove after https://github.com/bazelbuild/continuous-integration/pull/1433 is deployed.
+    environment:
+      BAZEL_VC: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC"
     working_directory: examples
     windows_targets: &windows_targets
       - "//..."
