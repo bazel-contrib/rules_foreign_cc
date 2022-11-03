@@ -274,6 +274,9 @@ dependencies.""",
     ),
 )
 
+def _is_msvc_var(var):
+    return var == "INCLUDE" or var == "LIB"
+
 def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     """Generate a bash snippet containing environment variable definitions
 
@@ -321,8 +324,10 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
 
     # If user has defined a PATH variable (e.g. PATH, LD_LIBRARY_PATH, CPATH) prepend it to the existing variable
     for user_var in user_vars:
-        if "PATH" in user_var and cc_env.get(user_var):
-            env.update({user_var: user_vars.get(user_var) + ":" + cc_env.get(user_var)})
+        is_existing_var = "PATH" in user_var or _is_msvc_var(user_var)
+        list_delimiter = ";" if _is_msvc_var(user_var) else ":"
+        if is_existing_var and cc_env.get(user_var):
+            env.update({user_var: user_vars.get(user_var) + list_delimiter + cc_env.get(user_var)})
 
     cc_toolchain = find_cpp_toolchain(ctx)
     if cc_toolchain.compiler == "msvc-cl":
