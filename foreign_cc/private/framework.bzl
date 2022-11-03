@@ -496,7 +496,15 @@ def cc_external_rule_impl(ctx, attrs):
 
     # Gather runfiles transitively as per the documentation in:
     # https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
-    runfiles = ctx.runfiles(files = ctx.files.data + outputs.libraries.shared_libraries)
+
+    # Include shared libraries of transitive dependencies in runfiles, facilitating the "runnable_binary" macro
+    transitive_shared_libraries = []
+    for linker_input in out_cc_info.linking_context.linker_inputs.to_list():
+        for lib in linker_input.libraries:
+            if lib.dynamic_library:
+                transitive_shared_libraries.append(lib.dynamic_library)
+
+    runfiles = ctx.runfiles(files = ctx.files.data + transitive_shared_libraries)
     for target in [ctx.attr.lib_source] + ctx.attr.deps + ctx.attr.data:
         runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
 
