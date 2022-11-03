@@ -20,12 +20,13 @@ load(
 )
 load("//foreign_cc/private:transitions.bzl", "make_variant")
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
-load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
+load("//toolchains/native_tools:tool_access.bzl", "get_make_data", "get_pkgconfig_data")
 
 def _configure_make(ctx):
     make_data = get_make_data(ctx)
+    pkg_config_data = get_pkgconfig_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + make_data.deps
+    tools_deps = ctx.attr.tools_deps + make_data.deps + pkg_config_data.deps
 
     if ctx.attr.autogen and not ctx.attr.configure_in_place:
         fail("`autogen` requires `configure_in_place = True`. Please update {}".format(
