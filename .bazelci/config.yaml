@@ -131,8 +131,6 @@ tasks:
       - "-//cmake_with_data/..."
     build_targets: *windows_targets
     test_targets: *windows_targets
-    test_flags:
-      - "--enable_runfiles"
   rbe_ubuntu1604_flags:
     name: Flags
     platform: rbe_ubuntu1604

@@ -31,12 +31,14 @@ _CMAKE_SRCS = {
 }
 
 # buildifier: disable=unnamed-macro
-def built_toolchains(cmake_version, make_version, ninja_version, pkgconfig_version, register_toolchains):
+def built_toolchains(cmake_version, make_version, ninja_version, pkgconfig_version, register_toolchains, register_built_pkgconfig_toolchain):
     """Register toolchains for built tools that will be built from source"""
     _cmake_toolchain(cmake_version, register_toolchains)
     _make_toolchain(make_version, register_toolchains)
     _ninja_toolchain(ninja_version, register_toolchains)
-    _pkgconfig_toolchain(pkgconfig_version, register_toolchains)
+
+    if register_built_pkgconfig_toolchain:
+        _pkgconfig_toolchain(pkgconfig_version, register_toolchains)
 
 def _cmake_toolchain(version, register_toolchains):
     if register_toolchains:
