@@ -1,5 +1,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+exports_files([
+    "runnable_binary_wrapper.sh",
+])
+
 bzl_library(
     name = "bzl_srcs",
     srcs = glob(["**/*.bzl"]),
