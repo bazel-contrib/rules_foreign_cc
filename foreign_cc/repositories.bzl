@@ -12,6 +12,7 @@ def rules_foreign_cc_dependencies(
         cmake_version = "3.23.2",
         make_version = "4.4",
         ninja_version = "1.11.0",
+        pkgconfig_version = "0.29.2",
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True):
@@ -38,6 +39,8 @@ def rules_foreign_cc_dependencies(
         ninja_version: The target version of the ninja toolchain if `register_default_tools`
             or `register_built_tools` is set to `True`.
 
+        pkgconfig_version: The target version of the pkg_config toolchain if `register_built_tools` is set to `True`.
+
         register_preinstalled_tools: If true, toolchains will be registered for the native built tools
             installed on the exec host
 
@@ -51,13 +54,6 @@ def rules_foreign_cc_dependencies(
     if register_toolchains:
         native.register_toolchains(*native_tools_toolchains)
 
-        native.register_toolchains(
-            "@rules_foreign_cc//toolchains:preinstalled_autoconf_toolchain",
-            "@rules_foreign_cc//toolchains:preinstalled_automake_toolchain",
-            "@rules_foreign_cc//toolchains:preinstalled_m4_toolchain",
-            "@rules_foreign_cc//toolchains:preinstalled_pkgconfig_toolchain",
-        )
-
     if register_default_tools:
         prebuilt_toolchains(cmake_version, ninja_version, register_toolchains)
 
@@ -66,6 +62,7 @@ def rules_foreign_cc_dependencies(
             cmake_version = cmake_version,
             make_version = make_version,
             ninja_version = ninja_version,
+            pkgconfig_version = pkgconfig_version,
             register_toolchains = register_toolchains,
         )
 
