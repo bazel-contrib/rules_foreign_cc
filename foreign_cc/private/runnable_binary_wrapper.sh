@@ -45,4 +45,4 @@ done
 set -u
 
 EXE=BIN
-$(rlocation "${EXE#external/}") $@
+exec $(rlocation "${EXE#external/}") "$@"
