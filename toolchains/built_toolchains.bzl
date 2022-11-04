@@ -32,7 +32,23 @@ _CMAKE_SRCS = {
 
 # buildifier: disable=unnamed-macro
 def built_toolchains(cmake_version, make_version, ninja_version, pkgconfig_version, register_toolchains, register_built_pkgconfig_toolchain):
-    """Register toolchains for built tools that will be built from source"""
+    """
+    Register toolchains for built tools that will be built from source
+
+
+    Args:
+        cmake_version: The CMake version to build
+
+        make_version: The Make version to build
+
+        ninja_version: The Ninja version to build
+
+        pkgconfig_version: The pkg-config version to build
+
+        register_toolchains: If true, registers the toolchains via native.register_toolchains. Used by bzlmod
+
+        register_built_pkgconfig_toolchain: If true, the built pkgconfig toolchain will be registered.
+    """
     _cmake_toolchain(cmake_version, register_toolchains)
     _make_toolchain(make_version, register_toolchains)
     _ninja_toolchain(ninja_version, register_toolchains)
