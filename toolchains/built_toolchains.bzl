@@ -416,6 +416,19 @@ def _make_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_make_toolchain",
         )
+    if version == "4.4":
+        maybe(
+            http_archive,
+            name = "gnumake_src",
+            build_file_content = _ALL_CONTENT,
+            sha256 = "581f4d4e872da74b3941c874215898a7d35802f03732bdccee1d4a7979105d18",
+            strip_prefix = "make-4.4",
+            urls = [
+                "https://mirror.bazel.build/ftpmirror.gnu.org/gnu/make/make-4.4.tar.gz",
+                "http://ftpmirror.gnu.org/gnu/make/make-4.4.tar.gz",
+            ],
+        )
+        return
     if version == "4.3":
         maybe(
             http_archive,
