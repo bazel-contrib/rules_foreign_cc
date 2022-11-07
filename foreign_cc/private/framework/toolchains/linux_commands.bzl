@@ -132,32 +132,42 @@ if [[ -z "$2" ]]; then
 fi
 local target="$2"
 mkdir -p "$target"
-if [[ -f "$1" ]]; then
-  # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
-  # files so updating them is possible.
-  if [[ "$1" == *.pc || "$1" == *.la || "$1" == *-config || "$1" == *.mk || "$1" == *.cmake ]]; then
-    dest="$target/$(basename \"$1\")"
-    cp "$1" "$dest" && chmod +w "$dest" && touch -r "$1" "$dest"
-  else
-    ln -sf "$1" "$target/${1##*/}"
-  fi
-elif [[ -L "$1" && ! -d "$1" ]]; then
-  cp -pR "$1" "$2"
-elif [[ -d "$1" ]]; then
-  SAVEIFS=$IFS
-  IFS=$'\n'
-  local children=($(find -H "$1" -maxdepth 1 -mindepth 1))
-  IFS=$SAVEIFS
-  local dirname=$(basename "$1")
-  mkdir -p "$target/$dirname"
-  for child in "${children[@]:-}"; do
-    if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
-      ##symlink_to_dir## "$child" "$target/$dirname"
+local basename=$(basename "$1")
+if [[ "$basename" != *.ext_build_deps ]]; then
+source="$(readlink -f $1)"
+
+# we symlink the ext_build_deps as well but we delete it after :)
+# this is a huge performance improvement than the original recursive version
+# so these extra copies are an okay performance loss
+if [[ -d \"$source\" ]] || [[ -f \"$source\" ]]; then
+    if [[ -d \"$source\" ]]; then
+        cp -prsL "$source" "$target"
+        SAVEIFS=$IFS
+        IFS=$'\n'
+        # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
+        # files so updating them is possible.
+        local files_to_copy=($(find -L "$source" -type f \\( -name "*.pc" -or -name "*.la" -or -name "*-config" -or -name "*.mk" -or -name "*.cmake" \\) -printf "%P\\n"))
+        IFS=$SAVEIFS
+        for f in "${files_to_copy[@]:-}"; do
+            if [[ "$f" != "" ]]; then
+                dest="$target/$basename/$f"
+                src=$(readlink -f "$source/$f")
+                # we have to delete the file because it is a symlink to the original file and we can't overwrite the copy to it
+                rm "$dest" || true
+                cp -pf "$src" "$dest" && chmod +w "$dest" && touch -r "$src" "$dest"
+            fi
+        done
+    else
+        mkdir -p $target
+        if [[ "$source" == *.pc || "$source" == *.la || "$source" == *-config || "$source" == *.mk || "$source" == *.cmake ]]; then
+            cp -pf "$source" "$target" && chmod +w "$target" && touch -r "$source" "$target"
+        else
+            ln -sf "$source" "$target"/$basename
+        fi
     fi
-  done
-else
-  echo "Can not copy $1"
 fi
+fi
+
 """
     return FunctionAndCallInfo(text = text)
 

@@ -1,2 +1,7 @@
+d
 header1.h
 header2.h
+
+aaa/d:
+header3.h
+header4.h
