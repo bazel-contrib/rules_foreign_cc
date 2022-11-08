@@ -227,6 +227,7 @@ PLATFORM_COMMANDS = {
                 doc = "Source directory, immediate children of which are symlinked, or file to be symlinked.",
             ),
             _argument_info(name = "target", data_type = type(""), doc = "Target directory"),
+            _argument_info(name = "replace_in_files", data_type = type(""), doc = "True if all transitive files in the source directory should have replace_in_files run"),
         ],
         doc = (
             "Symlink contents of the directory to target directory (create the target directory if needed). " +
@@ -241,6 +242,7 @@ PLATFORM_COMMANDS = {
                 doc = "Source directory",
             ),
             _argument_info(name = "target", data_type = type(""), doc = "Target directory"),
+            _argument_info(name = "replace_in_files", data_type = type(""), doc = "True if all transitive files in the source directory should have replace_in_files run"),
         ],
         doc = (
             "Symlink all files from source directory to target directory (create the target directory if needed). " +
