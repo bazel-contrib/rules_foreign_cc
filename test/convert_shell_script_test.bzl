@@ -70,8 +70,8 @@ def _replace_vars_win_test(ctx):
 
     return unittest.end(env)
 
-def _funny_fun(a, b):
-    return a + "_" + b
+def _funny_fun(a, b, c):
+    return a + "_" + b + "_" + c
 
 def _echo(text):
     return "echo1 " + text
@@ -109,7 +109,7 @@ def _do_function_call_test(ctx):
     cases = {
         "##echo## \"\ntext\n\"": "echo1 \"\ntext\n\"",
         "##script_prelude##": "set -euo pipefail",
-        "##symlink_contents_to_dir## 1 2": "1_2",
+        "##symlink_contents_to_dir## 1 2 3": "1_2_3",
         "export ROOT=\"A B C\"": "export1 ROOT=\"A B C\"",
         "export ROOT=\"ABC\"": "export1 ROOT=\"ABC\"",
         "export ROOT=ABC": "export1 ROOT=ABC",
@@ -196,22 +196,23 @@ fi
 
     return unittest.end(env)
 
-def _symlink_contents_to_dir(source, target):
+def _symlink_contents_to_dir(source, target, replace_in_files):
     text = """local target="$2"
 mkdir -p $target
+local replace_in_files="${3:-}"
 if [[ -f $1 ]]; then
-  ##symlink_to_dir## $1 $target
+  ##symlink_to_dir## $1 $target $replace_in_files
   return 0
 fi
 
 local children=$(find $1 -maxdepth 1 -mindepth 1)
 for child in $children; do
-  ##symlink_to_dir## $child $target
+  ##symlink_to_dir## $child $target $replace_in_files
 done
 """
     return FunctionAndCallInfo(text = text)
 
-def _symlink_to_dir(source, target):
+def _symlink_to_dir(source, target, replace_in_files):
     text = """local target="$2"
 mkdir -p ${target}
 
@@ -229,18 +230,19 @@ fi
 
 def _script_conversion_test(ctx):
     env = unittest.begin(ctx)
-    script = ["##symlink_contents_to_dir## a b"]
+    script = ["##symlink_contents_to_dir## a b False"]
     expected = """function symlink_contents_to_dir() {
 local target="$2"
 mkdir -p $target
+local replace_in_files="${3:-}"
 if [[ -f $1 ]]; then
-symlink_to_dir $1 $target
+symlink_to_dir $1 $target $replace_in_files
 return 0
 fi
 
 local children=$(find $1 -maxdepth 1 -mindepth 1)
 for child in $children; do
-symlink_to_dir $child $target
+symlink_to_dir $child $target $replace_in_files
 done
 
 }
@@ -259,7 +261,7 @@ echo "Can not copy $1"
 fi
 
 }
-symlink_contents_to_dir a b"""
+symlink_contents_to_dir a b False"""
     shell_ = struct(
         symlink_contents_to_dir = _symlink_contents_to_dir,
         symlink_to_dir = _symlink_to_dir,
