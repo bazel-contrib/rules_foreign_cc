@@ -150,7 +150,7 @@
                         <h1 id="rules-foreigncc"><a class="header" href="#rules-foreigncc">Rules ForeignCc</a></h1>
 <p>Rules for building C/C++ projects using foreign build systems (non Bazel) inside Bazel projects.</p>
 <table><thead><tr><th>Release</th><th>Commit</th><th>Status</th></tr></thead><tbody>
-<tr><td>main</td><td><a href="https://github.com/bazelbuild/rules_foreign_cc/commit/6425a21252116dac7553644b29248c2cf123c08d">6425a21</a></td><td><a href="https://buildkite.com/bazel/rules-foreign-cc/builds?branch=main"><img src="https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=main" alt="Build status" /></a></td></tr>
+<tr><td>main</td><td><a href="https://github.com/bazelbuild/rules_foreign_cc/commit/2c6262f8f487cd3481db27e2c509d9e6d30bfe53">2c6262f</a></td><td><a href="https://buildkite.com/bazel/rules-foreign-cc/builds?branch=main"><img src="https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=main" alt="Build status" /></a></td></tr>
 </tbody></table>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
 <p>Rules ForeignCc is designed to help users build projects that are not built by Bazel and also
@@ -168,8 +168,8 @@ http_archive(
     #       release on the releases page: https://github.com/bazelbuild/rules_foreign_cc/releases
     #
     # sha256 = &quot;...&quot;,
-    strip_prefix = &quot;rules_foreign_cc-6425a21252116dac7553644b29248c2cf123c08d&quot;,
-    url = &quot;https://github.com/bazelbuild/rules_foreign_cc/archive/6425a21252116dac7553644b29248c2cf123c08d.tar.gz&quot;,
+    strip_prefix = &quot;rules_foreign_cc-2c6262f8f487cd3481db27e2c509d9e6d30bfe53&quot;,
+    url = &quot;https://github.com/bazelbuild/rules_foreign_cc/archive/2c6262f8f487cd3481db27e2c509d9e6d30bfe53.tar.gz&quot;,
 )
 
 load(&quot;@rules_foreign_cc//foreign_cc:repositories.bzl&quot;, &quot;rules_foreign_cc_dependencies&quot;)
@@ -911,8 +911,9 @@ make_variant(<a href="flatten.html#make_variant-name">name</a>, <a href="flatten
 <h2 id="rules_foreign_cc_dependencies"><a class="header" href="#rules_foreign_cc_dependencies">rules_foreign_cc_dependencies</a></h2>
 <pre>
 rules_foreign_cc_dependencies(<a href="flatten.html#rules_foreign_cc_dependencies-native_tools_toolchains">native_tools_toolchains</a>, <a href="flatten.html#rules_foreign_cc_dependencies-register_default_tools">register_default_tools</a>, <a href="flatten.html#rules_foreign_cc_dependencies-cmake_version">cmake_version</a>,
-                              <a href="flatten.html#rules_foreign_cc_dependencies-make_version">make_version</a>, <a href="flatten.html#rules_foreign_cc_dependencies-ninja_version">ninja_version</a>, <a href="flatten.html#rules_foreign_cc_dependencies-register_preinstalled_tools">register_preinstalled_tools</a>,
-                              <a href="flatten.html#rules_foreign_cc_dependencies-register_built_tools">register_built_tools</a>, <a href="flatten.html#rules_foreign_cc_dependencies-register_toolchains">register_toolchains</a>)
+                              <a href="flatten.html#rules_foreign_cc_dependencies-make_version">make_version</a>, <a href="flatten.html#rules_foreign_cc_dependencies-ninja_version">ninja_version</a>, <a href="flatten.html#rules_foreign_cc_dependencies-pkgconfig_version">pkgconfig_version</a>,
+                              <a href="flatten.html#rules_foreign_cc_dependencies-register_preinstalled_tools">register_preinstalled_tools</a>, <a href="flatten.html#rules_foreign_cc_dependencies-register_built_tools">register_built_tools</a>, <a href="flatten.html#rules_foreign_cc_dependencies-register_toolchains">register_toolchains</a>,
+                              <a href="flatten.html#rules_foreign_cc_dependencies-register_built_pkgconfig_toolchain">register_built_pkgconfig_toolchain</a>)
 </pre>
 <p>Call this function from the WORKSPACE file to initialize rules_foreign_cc     dependencies and let neccesary code generation happen     (Code generation is needed to support different variants of the C++ Starlark API.).</p>
 <p><strong>PARAMETERS</strong></p>
@@ -922,9 +923,11 @@ rules_foreign_cc_dependencies(<a href="flatten.html#rules_foreign_cc_dependencie
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-cmake_version"></a>cmake_version</td><td align="left">The target version of the cmake toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.</td><td align="left"><code>&quot;3.23.2&quot;</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-make_version"></a>make_version</td><td align="left">The target version of the default make toolchain if <code>register_built_tools</code>     is set to <code>True</code>.</td><td align="left"><code>&quot;4.4&quot;</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-ninja_version"></a>ninja_version</td><td align="left">The target version of the ninja toolchain if <code>register_default_tools</code>     or <code>register_built_tools</code> is set to <code>True</code>.</td><td align="left"><code>&quot;1.11.0&quot;</code></td></tr>
+<tr><td align="left"><a id="rules_foreign_cc_dependencies-pkgconfig_version"></a>pkgconfig_version</td><td align="left">The target version of the pkg_config toolchain if <code>register_built_tools</code> is set to <code>True</code>.</td><td align="left"><code>&quot;0.29.2&quot;</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-register_preinstalled_tools"></a>register_preinstalled_tools</td><td align="left">If true, toolchains will be registered for the native built tools     installed on the exec host</td><td align="left"><code>True</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-register_built_tools"></a>register_built_tools</td><td align="left">If true, toolchains that build the tools from source are registered</td><td align="left"><code>True</code></td></tr>
 <tr><td align="left"><a id="rules_foreign_cc_dependencies-register_toolchains"></a>register_toolchains</td><td align="left">If true, registers the toolchains via native.register_toolchains. Used by bzlmod</td><td align="left"><code>True</code></td></tr>
+<tr><td align="left"><a id="rules_foreign_cc_dependencies-register_built_pkgconfig_toolchain"></a>register_built_pkgconfig_toolchain</td><td align="left">If true, the built pkgconfig toolchain will be registered. On Windows it may be preferrable to set this to False, as     this requires the --enable_runfiles bazel option. Also note that building pkgconfig from source under bazel results in paths that are more     than 256 characters long, which will not work on Windows unless the following options are added to the .bazelrc and symlinks are enabled in Windows.<br><br>    startup --windows_enable_symlinks -&gt; This is required to enable symlinking to avoid long runfile paths     build --action_env=MSYS=winsymlinks:nativestrict -&gt; This is required to enable symlinking to avoid long runfile paths     startup --output_user_root=C:/b  -&gt; This is required to keep paths as short as possible</td><td align="left"><code>False</code></td></tr>
 </tbody></table>
 
                     </main>
