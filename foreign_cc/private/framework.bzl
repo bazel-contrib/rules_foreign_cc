@@ -315,12 +315,6 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
             "export CMAKE_OSX_ARCHITECTURES={}".format(ctx.fragments.apple.single_arch_cpu),
         ])
 
-    cc_toolchain = find_cpp_toolchain(ctx)
-    if cc_toolchain.compiler == "msvc-cl":
-        # Prepend PATH environment variable with the path to the toolchain linker, which prevents MSYS using its linker (/usr/bin/link.exe) rather than the MSVC linker (both are named "link.exe")
-        linker_path = paths.dirname(cc_toolchain.ld_executable)
-        env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
-
     # Add all user defined variables
     user_vars = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data_dependencies)
     env.update(user_vars)
@@ -329,6 +323,12 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     for user_var in user_vars:
         if "PATH" in user_var and cc_env.get(user_var):
             env.update({user_var: user_vars.get(user_var) + ":" + cc_env.get(user_var)})
+
+    cc_toolchain = find_cpp_toolchain(ctx)
+    if cc_toolchain.compiler == "msvc-cl":
+        # Prepend PATH environment variable with the path to the toolchain linker, which prevents MSYS using its linker (/usr/bin/link.exe) rather than the MSVC linker (both are named "link.exe")
+        linker_path = paths.dirname(cc_toolchain.ld_executable)
+        env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
 
     env_snippet.extend(["export {}=\"{}\"".format(key, escape_dquote_bash(val)) for key, val in env.items()])
 
@@ -497,7 +497,7 @@ def cc_external_rule_impl(ctx, attrs):
 
     # Gather runfiles transitively as per the documentation in:
     # https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
-    runfiles = ctx.runfiles(files = ctx.files.data)
+    runfiles = ctx.runfiles(files = ctx.files.data + outputs.libraries.shared_libraries)
     for target in [ctx.attr.lib_source] + ctx.attr.deps + ctx.attr.data:
         runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
 
@@ -671,10 +671,10 @@ def _copy_deps_and_tools(files):
     if files.tools_files:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
     for tool in files.tools_files:
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/".format(tool))
+        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool))
 
     for ext_dir in files.ext_build_dirs:
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$".format(_file_path(ext_dir)))
+        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
 
     lines.append("##children_to_path## $$EXT_BUILD_DEPS$$/bin")
     lines.append("##path## $$EXT_BUILD_DEPS$$/bin")
@@ -693,7 +693,7 @@ def _symlink_contents_to_dir(dir_name, files_list):
         path = _file_path(file).strip()
         if path:
             lines.append("##symlink_contents_to_dir## \
-$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name))
+$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, dir_name))
 
     return lines
 

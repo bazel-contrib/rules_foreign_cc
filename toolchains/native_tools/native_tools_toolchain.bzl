@@ -1,8 +1,5 @@
 """Rules for building native build tools such as ninja, make or cmake"""
 
-# buildifier: disable=bzl-visibility
-load("//foreign_cc/private:framework.bzl", "expand_locations_and_make_variables")
-
 # buildifier: disable=module-docstring
 ToolInfo = provider(
     doc = "Information about the native tool",
@@ -28,10 +25,10 @@ def _native_tool_toolchain_impl(ctx):
     path = None
     if ctx.attr.target:
         path = ctx.expand_location(ctx.attr.path, targets = [ctx.attr.target])
-        env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", [ctx.attr.target])
+        env = {k: ctx.expand_location(v, targets = [ctx.attr.target]) for (k, v) in ctx.attr.env.items()}
     else:
         path = ctx.expand_location(ctx.attr.path)
-        env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", [])
+        env = {k: ctx.expand_location(v) for (k, v) in ctx.attr.env.items()}
     return platform_common.ToolchainInfo(data = ToolInfo(
         env = env,
         path = path,

@@ -104,6 +104,7 @@ def _create_configure_script(configureParameters):
         inputs = inputs,
         env_vars = user_env,
         configure_in_place = ctx.attr.configure_in_place,
+        prefix_flag = ctx.attr.prefix_flag,
         autoconf = ctx.attr.autoconf,
         autoconf_options = ctx.attr.autoconf_options,
         autoreconf = ctx.attr.autoreconf,
@@ -194,9 +195,16 @@ def _attrs():
         "install_prefix": attr.string(
             doc = (
                 "Install prefix, i.e. relative path to where to install the result of the build. " +
-                "Passed to the 'configure' script with --prefix flag."
+                "Passed to the 'configure' script with the flag specified by prefix_flag."
             ),
             mandatory = False,
+        ),
+        "prefix_flag": attr.string(
+            doc = (
+                "The flag to specify the install directory prefix with."
+            ),
+            mandatory = False,
+            default = "--prefix=",
         ),
         "targets": attr.string_list(
             doc = (
