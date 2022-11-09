@@ -225,7 +225,7 @@ if [ -d {dir_} ]; then
   for tool in $tools;
   do
     if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then
-      export PATH=$PATH:$tool
+      export PATH=$tool:$PATH
     fi
   done
 fi""".format(dir_ = dir_)

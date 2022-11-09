@@ -274,6 +274,9 @@ dependencies.""",
     ),
 )
 
+def _is_msvc_var(var):
+    return var == "INCLUDE" or var == "LIB"
+
 def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     """Generate a bash snippet containing environment variable definitions
 
@@ -321,8 +324,10 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
 
     # If user has defined a PATH variable (e.g. PATH, LD_LIBRARY_PATH, CPATH) prepend it to the existing variable
     for user_var in user_vars:
-        if "PATH" in user_var and cc_env.get(user_var):
-            env.update({user_var: user_vars.get(user_var) + ":" + cc_env.get(user_var)})
+        is_existing_var = "PATH" in user_var or _is_msvc_var(user_var)
+        list_delimiter = ";" if _is_msvc_var(user_var) else ":"
+        if is_existing_var and cc_env.get(user_var):
+            env.update({user_var: user_vars.get(user_var) + list_delimiter + cc_env.get(user_var)})
 
     cc_toolchain = find_cpp_toolchain(ctx)
     if cc_toolchain.compiler == "msvc-cl":
@@ -404,7 +409,7 @@ def cc_external_rule_impl(ctx, attrs):
     installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
     target_root = paths.dirname(installdir_copy.file.dirname)
 
-    data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
+    data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains + attrs.tools_deps
 
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
@@ -496,7 +501,15 @@ def cc_external_rule_impl(ctx, attrs):
 
     # Gather runfiles transitively as per the documentation in:
     # https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
-    runfiles = ctx.runfiles(files = ctx.files.data + outputs.libraries.shared_libraries)
+
+    # Include shared libraries of transitive dependencies in runfiles, facilitating the "runnable_binary" macro
+    transitive_shared_libraries = []
+    for linker_input in out_cc_info.linking_context.linker_inputs.to_list():
+        for lib in linker_input.libraries:
+            if lib.dynamic_library:
+                transitive_shared_libraries.append(lib.dynamic_library)
+
+    runfiles = ctx.runfiles(files = ctx.files.data + transitive_shared_libraries)
     for target in [ctx.attr.lib_source] + ctx.attr.deps + ctx.attr.data:
         runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
 

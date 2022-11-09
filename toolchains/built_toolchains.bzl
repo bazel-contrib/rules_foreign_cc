@@ -31,11 +31,30 @@ _CMAKE_SRCS = {
 }
 
 # buildifier: disable=unnamed-macro
-def built_toolchains(cmake_version, make_version, ninja_version, register_toolchains):
-    """Register toolchains for built tools that will be built from source"""
+def built_toolchains(cmake_version, make_version, ninja_version, pkgconfig_version, register_toolchains, register_built_pkgconfig_toolchain):
+    """
+    Register toolchains for built tools that will be built from source
+
+
+    Args:
+        cmake_version: The CMake version to build
+
+        make_version: The Make version to build
+
+        ninja_version: The Ninja version to build
+
+        pkgconfig_version: The pkg-config version to build
+
+        register_toolchains: If true, registers the toolchains via native.register_toolchains. Used by bzlmod
+
+        register_built_pkgconfig_toolchain: If true, the built pkgconfig toolchain will be registered.
+    """
     _cmake_toolchain(cmake_version, register_toolchains)
     _make_toolchain(make_version, register_toolchains)
     _ninja_toolchain(ninja_version, register_toolchains)
+
+    if register_built_pkgconfig_toolchain:
+        _pkgconfig_toolchain(pkgconfig_version, register_toolchains)
 
 def _cmake_toolchain(version, register_toolchains):
     if register_toolchains:
@@ -477,3 +496,104 @@ def _ninja_toolchain(version, register_toolchains):
         return
 
     fail("Unsupported ninja version: " + str(version))
+
+def _pkgconfig_toolchain(version, register_toolchains):
+    if register_toolchains:
+        native.register_toolchains(
+            "@rules_foreign_cc//toolchains:built_pkgconfig_toolchain",
+        )
+
+    maybe(
+        http_archive,
+        name = "glib_dev",
+        build_file_content = '''
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_import(
+    name = "glib_dev",
+    hdrs = glob(["include/**"]),
+    shared_library = "@glib_runtime//:bin/libglib-2.0-0.dll",
+    visibility = ["//visibility:public"],
+)
+        ''',
+        sha256 = "bdf18506df304d38be98a4b3f18055b8b8cca81beabecad0eece6ce95319c369",
+        urls = [
+            "https://download.gnome.org/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
+        ],
+    )
+
+    maybe(
+        http_archive,
+        name = "glib_src",
+        build_file_content = '''
+cc_import(
+    name = "msvc_hdr",
+    hdrs = ["msvc_recommended_pragmas.h"],
+    visibility = ["//visibility:public"],
+)
+        ''',
+        sha256 = "bc96f63112823b7d6c9f06572d2ad626ddac7eb452c04d762592197f6e07898e",
+        strip_prefix = "glib-2.26.1",
+        urls = [
+            "https://download.gnome.org/sources/glib/2.26/glib-2.26.1.tar.gz",
+        ],
+    )
+
+    maybe(
+        http_archive,
+        name = "glib_runtime",
+        build_file_content = '''
+exports_files(
+    [
+        "bin/libgio-2.0-0.dll",
+        "bin/libglib-2.0-0.dll",
+        "bin/libgmodule-2.0-0.dll",
+        "bin/libgobject-2.0-0.dll",
+        "bin/libgthread-2.0-0.dll",
+    ],
+    visibility = ["//visibility:public"],
+)
+        ''',
+        sha256 = "88d857087e86f16a9be651ee7021880b3f7ba050d34a1ed9f06113b8799cb973",
+        urls = [
+            "https://download.gnome.org/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
+        ],
+    )
+
+    maybe(
+        http_archive,
+        name = "gettext_runtime",
+        build_file_content = '''
+cc_import(
+    name = "gettext_runtime",
+    shared_library = "bin/libintl-8.dll",
+    visibility = ["//visibility:public"],
+)
+        ''',
+        sha256 = "1f4269c0e021076d60a54e98da6f978a3195013f6de21674ba0edbc339c5b079",
+        urls = [
+            "https://download.gnome.org/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip",
+        ],
+    )
+    if version == "0.29.2":
+        maybe(
+            http_archive,
+            name = "pkgconfig_src",
+            build_file_content = _ALL_CONTENT,
+            sha256 = "6fc69c01688c9458a57eb9a1664c9aba372ccda420a02bf4429fe610e7e7d591",
+            strip_prefix = "pkg-config-0.29.2",
+            # The patch is required as bazel does not provide the VCINSTALLDIR or WINDOWSSDKDIR vars
+            patches = [
+                # This patch is required as bazel does not provide the VCINSTALLDIR or WINDOWSSDKDIR vars
+                Label("//toolchains:pkgconfig-detectenv.patch"),
+
+                # This patch is required as rules_foreign_cc runs in MSYS2 on Windows and MSYS2's "mkdir" is used
+                Label("//toolchains:pkgconfig-makefile-vc.patch"),
+            ],
+            urls = [
+                "https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",
+            ],
+        )
+        return
+
+    fail("Unsupported pkgconfig version: " + str(version))

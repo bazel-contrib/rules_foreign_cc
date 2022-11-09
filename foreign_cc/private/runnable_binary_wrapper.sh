@@ -40,7 +40,7 @@ IFS=" " read -r -a SHARED_LIBS_DIRS_ARRAY <<< "$(tr ' ' '\n' <<< "${SHARED_LIBS_
 # Allow unbound variable here, in case LD_LIBRARY_PATH or similar is not already set
 set +u
 for dir in "${SHARED_LIBS_DIRS_ARRAY[@]}"; do
-    export ${LIB_PATH_VAR}="${!LIB_PATH_VAR}":"$dir"
+    export ${LIB_PATH_VAR}="$dir":"${!LIB_PATH_VAR}"
 done
 set -u
 

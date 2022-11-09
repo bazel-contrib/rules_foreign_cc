@@ -125,10 +125,7 @@ filegroup(
 
 runnable_binary(
     name = "runnable_openssl",
-    binary = select({
-        "@platforms//os:windows": "openssl.exe",
-        "//conditions:default": "openssl",
-    }),
+    binary = "openssl",
     foreign_cc_target = "@openssl//:openssl",
     visibility = ["//visibility:public"],
 )
