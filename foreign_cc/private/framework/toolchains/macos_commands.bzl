@@ -100,7 +100,7 @@ find "{target}" -type f -exec touch -r "{source}" "{{}}" \\;
         target = target,
     )
 
-def symlink_contents_to_dir(source, target):
+def symlink_contents_to_dir(source, target, replace_in_files):
     text = """\
 if [[ -z "$1" ]]; then
   echo "arg 1 to symlink_contents_to_dir is unexpectedly empty"
@@ -112,24 +112,25 @@ if [[ -z "$2" ]]; then
 fi
 local target="$2"
 mkdir -p "$target"
+local replace_in_files="${3:-}"
 if [[ -f "$1" ]]; then
-  ##symlink_to_dir## "$1" "$target"
+  ##symlink_to_dir## "$1" "$target" "$replace_in_files"
 elif [[ -L "$1" && ! -d "$1" ]]; then
   local actual=$(readlink "$1")
-  ##symlink_contents_to_dir## "$actual" "$target"
+  ##symlink_contents_to_dir## "$actual" "$target" "$replace_in_files"
 elif [[ -d "$1" ]]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   local children=($(find "$1/" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
   for child in "${children[@]:-}"; do
-    ##symlink_to_dir## "$child" "$target"
+    ##symlink_to_dir## "$child" "$target" "$replace_in_files"
   done
 fi
 """
     return FunctionAndCallInfo(text = text)
 
-def symlink_to_dir(source, target):
+def symlink_to_dir(source, target, replace_in_files):
     text = """\
 if [[ -z "$1" ]]; then
   echo "arg 1 to symlink_to_dir is unexpectedly empty"
@@ -141,6 +142,7 @@ if [[ -z "$2" ]]; then
 fi
 local target="$2"
 mkdir -p "$target"
+local replace_in_files="${3:-}"
 if [[ -f "$1" ]]; then
   # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
   # files so updating them is possible.
@@ -153,6 +155,13 @@ if [[ -f "$1" ]]; then
 elif [[ -L "$1" && ! -d "$1" ]]; then
   cp -pR "$1" "$2"
 elif [[ -d "$1" ]]; then
+
+  # If not replacing in files, simply create a symbolic link rather than traversing tree of files, which can result in very slow builds
+  if [[ "$replace_in_files" = False ]]; then
+    ln -s -f "$1" "$target"
+    return
+  fi
+
   SAVEIFS=$IFS
   IFS=$'\n'
   local children=($(find "$1/" -maxdepth 1 -mindepth 1))
@@ -161,7 +170,7 @@ elif [[ -d "$1" ]]; then
   mkdir -p "$target/$dirname"
   for child in "${children[@]:-}"; do
     if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
-      ##symlink_to_dir## "$child" "$target/$dirname"
+      ##symlink_to_dir## "$child" "$target/$dirname" "$replace_in_files"
     fi
   done
 else
