@@ -12,6 +12,7 @@ def rules_foreign_cc_dependencies(
         cmake_version = "3.23.2",
         make_version = "4.4",
         ninja_version = "1.11.1",
+        meson_version = "0.63.0",
         pkgconfig_version = "0.29.2",
         register_preinstalled_tools = True,
         register_built_tools = True,
@@ -39,6 +40,8 @@ def rules_foreign_cc_dependencies(
 
         ninja_version: The target version of the ninja toolchain if `register_default_tools`
             or `register_built_tools` is set to `True`.
+
+        meson_version: The target version of the meson toolchain if `register_built_tools` is set to `True`.
 
         pkgconfig_version: The target version of the pkg_config toolchain if `register_built_tools` is set to `True`.
 
@@ -71,6 +74,7 @@ def rules_foreign_cc_dependencies(
             cmake_version = cmake_version,
             make_version = make_version,
             ninja_version = ninja_version,
+            meson_version = meson_version,
             pkgconfig_version = pkgconfig_version,
             register_toolchains = register_toolchains,
             register_built_pkgconfig_toolchain = register_built_pkgconfig_toolchain,
