@@ -18,7 +18,7 @@ cmake(
     }),
     lib_source = ":all_srcs",
     out_static_libs = select({
-        "@platforms//os:windows": ["zlibstatic.lib"],
+        "@platforms//os:windows": ["z.lib"],
         "//conditions:default": ["libz.a"],
     }),
 )
