@@ -18,7 +18,7 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
-load("//foreign_cc/private:transitions.bzl", "make_variant")
+load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data", "get_pkgconfig_data")
 
@@ -253,7 +253,7 @@ def configure_make_variant(name, toolchain, **kwargs):
         toolchain: The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain
         **kwargs: Remaining keyword arguments
     """
-    make_variant(
+    foreign_cc_rule_variant(
         name = name,
         rule = configure_make,
         toolchain = toolchain,
