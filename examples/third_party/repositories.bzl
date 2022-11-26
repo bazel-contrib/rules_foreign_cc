@@ -32,6 +32,7 @@ def repositories():
     bison_repositories()
     cares_repositories()
     curl_repositories()
+    glib_repositories()
     gn_repositories()
     gperftools_repositories()
     iconv_repositories()
