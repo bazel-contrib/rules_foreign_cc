@@ -11,20 +11,9 @@ filegroup(
 )
 
 configure_make(
-    name = "m4",
-    env = select({
-        "@platforms//os:macos": {"AR": ""},
-        "//conditions:default": {},
-    }),
+    name = "libxshmfence",
     lib_source = ":all_srcs",
-    out_binaries = [
-        "m4",
+    deps = [
+        "@xorgproto",
     ],
-)
-
-filegroup(
-    name = "m4_exe",
-    srcs = [":m4"],
-    output_group = "m4",
-    visibility = ["//visibility:public"],
 )

@@ -10,21 +10,22 @@ filegroup(
     ),
 )
 
+DEPS = [
+    "@libxau",
+    "@xcb-proto",
+]
+
 configure_make(
-    name = "m4",
+    name = "libxcb",
     env = select({
-        "@platforms//os:macos": {"AR": ""},
+        "@platforms//os:macos": {
+            "AR": "",
+        },
         "//conditions:default": {},
     }),
     lib_source = ":all_srcs",
-    out_binaries = [
-        "m4",
-    ],
-)
-
-filegroup(
-    name = "m4_exe",
-    srcs = [":m4"],
-    output_group = "m4",
-    visibility = ["//visibility:public"],
+    deps = select({
+        "@platforms//os:macos": DEPS + ["@libpthread-stubs"],
+        "//conditions:default": DEPS,
+    }),
 )

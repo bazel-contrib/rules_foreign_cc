@@ -11,20 +11,19 @@ filegroup(
 )
 
 configure_make(
-    name = "m4",
+    name = "libxfixes",
     env = select({
-        "@platforms//os:macos": {"AR": ""},
+        "@platforms//os:macos": {
+            "AR": "",
+        },
         "//conditions:default": {},
     }),
     lib_source = ":all_srcs",
-    out_binaries = [
-        "m4",
+    out_static_libs = [
+        "libXfixes.a",
     ],
-)
-
-filegroup(
-    name = "m4_exe",
-    srcs = [":m4"],
-    output_group = "m4",
-    visibility = ["//visibility:public"],
+    deps = [
+        "@libx11",
+        "@xorgproto",
+    ],
 )

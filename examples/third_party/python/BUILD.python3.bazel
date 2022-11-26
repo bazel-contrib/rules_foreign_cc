@@ -38,9 +38,3 @@ configure_make(
         "@zlib",
     ],
 )
-
-filegroup(
-    name = "python3_bin",
-    srcs = [":python3"],
-    output_group = "python3.10",
-)

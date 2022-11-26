@@ -24,6 +24,7 @@ test_suite(
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
         "//log4cxx:log4cxx_build_test",
+        "//mesa:mesa_build_test",
         "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
@@ -57,6 +58,8 @@ test_suite(
         "//libjpeg_turbo:libjpeg_turbo_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
+        # Missing new enough automake to build mesa
+        #"//mesa:mesa_build_test",
         "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
@@ -91,6 +94,7 @@ test_suite(
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
         "//log4cxx:log4cxx_build_test",
+        "//mesa:mesa_build_test",
         "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
@@ -107,6 +111,7 @@ test_suite(
         "//curl:curl_test_suite",
         "//openssl:openssl_test_suite",
         "//glib:glib_build_test",
+        "//mesa:mesa_build_test",
         # TODO: Add more windows tests
     ],
 )
