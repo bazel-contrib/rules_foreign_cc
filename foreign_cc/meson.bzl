@@ -34,13 +34,13 @@ def _meson_impl(ctx):
     ninja_data = get_ninja_data(ctx)
     pkg_config_data = get_pkgconfig_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + meson_data.deps + cmake_data.deps + ninja_data.deps + pkg_config_data.deps
+    tools_data = [meson_data, cmake_data, ninja_data, pkg_config_data]
 
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Meson",
         create_configure_script = _create_meson_script,
-        tools_deps = tools_deps,
+        tools_data = tools_data,
         meson_path = meson_data.path,
         cmake_path = cmake_data.path,
         ninja_path = ninja_data.path,
