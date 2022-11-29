@@ -24,13 +24,13 @@ load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 def _make(ctx):
     make_data = get_make_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + make_data.deps
+    tools_data = [make_data]
 
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Make",
         create_configure_script = _create_make_script,
-        tools_deps = tools_deps,
+        tools_data = tools_data,
         make_path = make_data.path,
     )
     return cc_external_rule_impl(ctx, attrs)

@@ -18,7 +18,7 @@ def _pkgconfig_tool_impl(ctx):
         "%s install" % make_data.path,
     ]
 
-    additional_tools = depset(transitive = [dep.files for dep in make_data.deps])
+    additional_tools = depset(transitive = [make_data.target.files])
 
     return built_tool_rule_impl(
         ctx,

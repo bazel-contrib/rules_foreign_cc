@@ -6,7 +6,7 @@ load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
-load("//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
+load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load(
     "//foreign_cc/private/framework:helpers.bzl",
     "convert_shell_script",
@@ -409,7 +409,10 @@ def cc_external_rule_impl(ctx, attrs):
     installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
     target_root = paths.dirname(installdir_copy.file.dirname)
 
-    data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains + attrs.tools_deps
+    data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
+    for tool in attrs.tools_data:
+        if tool.target:
+            data_dependencies.append(tool.target)
 
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
@@ -683,12 +686,13 @@ def _copy_deps_and_tools(files):
     if files.tools_files:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
     for tool in files.tools_files:
+        tool_prefix = "$EXT_BUILD_ROOT/"
+        tool = tool[len(tool_prefix):] if tool.startswith(tool_prefix) else tool
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool))
 
     for ext_dir in files.ext_build_dirs:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
 
-    lines.append("##children_to_path## $$EXT_BUILD_DEPS$$/bin")
     lines.append("##path## $$EXT_BUILD_DEPS$$/bin")
 
     return lines
@@ -836,14 +840,14 @@ def _define_inputs(attrs):
     # but filter out repeating directories
     ext_build_dirs = uniq_list_keep_order(ext_build_dirs)
 
-    tools_roots = []
+    tools = []
     tools_files = []
     input_files = []
-    for tool in attrs.tools_deps:
-        tool_root = detect_root(tool)
-        tools_roots.append(tool_root)
-        for file_list in tool.files.to_list():
-            tools_files += _list(file_list)
+    for tool in attrs.tools_data:
+        tools.append(tool.path)
+        if tool.target:
+            for file_list in tool.target.files.to_list():
+                tools_files += _list(file_list)
 
     # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:
@@ -862,7 +866,7 @@ def _define_inputs(attrs):
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
-        tools_files = tools_roots,
+        tools_files = tools,
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
