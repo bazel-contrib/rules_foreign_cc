@@ -159,21 +159,18 @@ load(
 def _cmake_impl(ctx):
     cmake_data = get_cmake_data(ctx)
 
-    tools_deps = cmake_data.deps
-
-    # TODO: `tool_deps` is deprecated. Remove
-    tools_deps += ctx.attr.tools_deps
+    tools_data = [cmake_data]
 
     env = dict(ctx.attr.env)
 
     generator, generate_args = _get_generator_target(ctx)
     if "Unix Makefiles" == generator:
         make_data = get_make_data(ctx)
-        tools_deps.extend(make_data.deps)
+        tools_data.append(make_data)
         generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(make_data.path))
     elif "Ninja" in generator:
         ninja_data = get_ninja_data(ctx)
-        tools_deps.extend(ninja_data.deps)
+        tools_data.append(ninja_data)
         generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(ninja_data.path))
 
     attrs = create_attrs(
@@ -183,7 +180,7 @@ def _cmake_impl(ctx):
         generate_args = generate_args,
         configure_name = "CMake",
         create_configure_script = _create_configure_script,
-        tools_deps = tools_deps,
+        tools_data = tools_data,
         cmake_path = cmake_data.path,
     )
 

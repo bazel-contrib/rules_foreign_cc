@@ -26,7 +26,7 @@ def _configure_make(ctx):
     make_data = get_make_data(ctx)
     pkg_config_data = get_pkgconfig_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + make_data.deps + pkg_config_data.deps
+    tools_data = [make_data, pkg_config_data]
 
     if ctx.attr.autogen and not ctx.attr.configure_in_place:
         fail("`autogen` requires `configure_in_place = True`. Please update {}".format(
@@ -50,7 +50,7 @@ def _configure_make(ctx):
         configure_name = "Configure",
         create_configure_script = _create_configure_script,
         postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
-        tools_deps = tools_deps,
+        tools_data = tools_data,
         make_path = make_data.path,
     )
     return cc_external_rule_impl(ctx, attrs)
