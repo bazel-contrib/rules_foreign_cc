@@ -481,6 +481,9 @@ def cc_external_rule_impl(ctx, attrs):
     for data in data_dependencies:
         tool_runfiles += data[DefaultInfo].default_runfiles.files.to_list()
 
+    for tool in attrs.tools_deps:
+        tool_runfiles += tool[DefaultInfo].default_runfiles.files.to_list()
+
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
