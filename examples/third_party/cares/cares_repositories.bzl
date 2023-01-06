@@ -2,14 +2,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
-_ALL_CONTENT = """\
-filegroup(
-    name = "all", 
-    srcs = glob(["**"]), 
-    visibility = ["//visibility:public"],
-)
-"""
-
 def cares_repositories():
     """Load all repositories needed for cares"""
     maybe(

@@ -7,8 +7,7 @@ local_repository(
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
-# Don't use preinstalled tools to ensure builds are as hermetic as possible
-rules_foreign_cc_dependencies(register_preinstalled_tools = False)
+rules_foreign_cc_dependencies(register_built_pkgconfig_toolchain = True)
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 

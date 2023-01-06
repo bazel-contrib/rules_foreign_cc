@@ -1,0 +1,8 @@
+
+# Required for Windows
+build --enable_runfiles
+
+# These are required otherwise paths are too long
+startup --windows_enable_symlinks
+build --action_env=MSYS=winsymlinks:nativestrict
+test --action_env=MSYS=winsymlinks:nativestrict

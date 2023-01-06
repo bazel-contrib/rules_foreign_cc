@@ -25,13 +25,13 @@ def _ninja_impl(ctx):
     """
     ninja_data = get_ninja_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + ninja_data.deps
+    tools_data = [ninja_data]
 
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Ninja",
         create_configure_script = _create_ninja_script,
-        tools_deps = tools_deps,
+        tools_data = tools_data,
         ninja_path = ninja_data.path,
     )
     return cc_external_rule_impl(ctx, attrs)

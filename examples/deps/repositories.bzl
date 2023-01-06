@@ -20,8 +20,8 @@ def repositories():
         strip_prefix = "rules_android-0.1.1",
     )
 
-    RULES_JVM_EXTERNAL_TAG = "4.0"
-    RULES_JVM_EXTERNAL_SHA = "31701ad93dbfe544d597dbe62c9a1fdd76d81d8a9150c2bf1ecf928ecdf97169"
+    RULES_JVM_EXTERNAL_TAG = "4.5"
+    RULES_JVM_EXTERNAL_SHA = "b17d7388feb9bfa7f2fa09031b32707df529f26c91ab9e5d909eb1676badd9a6"
 
     maybe(
         http_archive,
