@@ -19,6 +19,7 @@ def _escape_dquote_bash_crosstool(text):
 
 def create_cmake_script(
         workspace_name,
+        target_os,
         generator,
         cmake_path,
         tools,
@@ -37,6 +38,7 @@ def create_cmake_script(
 
     Args:
         workspace_name: current workspace name
+        target_os: The target OS for the build
         generator: The generator target for cmake to use
         cmake_path: The path to the cmake executable
         tools: cc_toolchain tools (CxxToolsInfo)
@@ -90,6 +92,14 @@ def create_cmake_script(
     # see https://github.com/envoyproxy/envoy/pull/6991
     if not params.cache.get("CMAKE_RANLIB"):
         params.cache.update({"CMAKE_RANLIB": ""})
+
+    # Avoid cmake passing wrong linker flags when targeting android on macOS
+    # https://github.com/bazelbuild/rules_foreign_cc/issues/289
+    if target_os == "android":
+        params.cache.update({
+            "ANDROID": "YES",
+            "CMAKE_SYSTEM_NAME": "Linux",
+        })
 
     set_env_vars = [
         "export {}=\"{}\"".format(key, _escape_dquote_bash(params.env[key]))

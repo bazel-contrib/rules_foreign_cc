@@ -209,6 +209,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
+    "_android_constraint": attr.label(default = Label("@platforms//os:android")),
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
