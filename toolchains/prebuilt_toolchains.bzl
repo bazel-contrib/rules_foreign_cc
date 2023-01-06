@@ -4636,6 +4636,6 @@ def _ninja_toolchains(version, register_toolchains):
 
     fail("Unsupported version: " + str(version))
 
-def _make_toolchains(register_toolchains):
+def _make_toolchains(_):
     # There are currently no prebuilt make binaries
     pass

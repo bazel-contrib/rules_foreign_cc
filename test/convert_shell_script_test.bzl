@@ -131,7 +131,7 @@ def _do_function_call_test(ctx):
 
     return unittest.end(env)
 
-def _touch(path):
+def _touch(_path):
     text = "call_touch $1"
     return FunctionAndCallInfo(text = text)
 
@@ -196,7 +196,7 @@ fi
 
     return unittest.end(env)
 
-def _symlink_contents_to_dir(source, target, replace_in_files):
+def _symlink_contents_to_dir(_source, _target, _replace_in_files):
     text = """local target="$2"
 mkdir -p $target
 local replace_in_files="${3:-}"
@@ -212,7 +212,7 @@ done
 """
     return FunctionAndCallInfo(text = text)
 
-def _symlink_to_dir(source, target, replace_in_files):
+def _symlink_to_dir(_source, _target, _replace_in_files):
     text = """local target="$2"
 mkdir -p ${target}
 
