@@ -54,6 +54,17 @@ tasks:
       - "//:third_party_examples_linux_tests"
     build_targets: *linux_targets
     test_targets: *linux_targets
+  ubuntu2004_examples_bzlmod:
+    name: Examples (bzlmod)
+    platform: ubuntu2004
+    working_directory: examples
+    linux_targets: &linux_targets_bzlmod
+      - "//..."
+      - "//:third_party_examples_linux_tests"
+    build_targets: *linux_targets_bzlmod
+    test_targets: *linux_targets_bzlmod
+    build_flags:
+      - "--enable_bzlmod"
   rbe_ubuntu1604_examples:
     name: Examples
     platform: rbe_ubuntu1604

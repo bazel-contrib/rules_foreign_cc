@@ -1,0 +1,13 @@
+{
+  "homepage": "https://github.com/bazel-contrib/rules_cuda",
+  "maintainers": [
+    {
+      "email": "james.sharpe@zenotech.com",
+      "github": "jsharpe",
+      "name": "James Sharpe"
+    }
+  ],
+  "repository": ["github:bazel-contrib/rules_cuda"],
+  "versions": [],
+  "yanked_versions": {}
+}
