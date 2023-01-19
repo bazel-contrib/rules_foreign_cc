@@ -41,6 +41,8 @@ CxxFlagsInfo = provider(
 # them here when configuring the toolchain flags to pass to the external
 # build system.
 FOREIGN_CC_DISABLED_FEATURES = [
+    "fdo_instrument",
+    "fdo_optimize",
     "layering_check",
     "module_maps",
     "thin_lto",
