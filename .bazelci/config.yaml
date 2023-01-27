@@ -201,13 +201,18 @@ tasks:
       - "--experimental_enable_aggregating_middleman=False"
   min_supported_version_examples:
     name: "Minimum Supported Version Examples"
-    bazel: "5.0.0"
+    bazel: "4.0.0"
     platform: ubuntu1804
     working_directory: examples
     min_supported_targets: &min_supported_targets
       - "//..."
     build_targets: *min_supported_targets
+    # See comment above regarding --experimental_enable_aggregating_middleman=False
+    build_flags:
+      - "--experimental_enable_aggregating_middleman=False"
     test_targets: *min_supported_targets
+    test_flags:
+      - "--experimental_enable_aggregating_middleman=False"
 
 buildifier:
   version: "5.1.0"
