@@ -148,6 +148,7 @@ load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//foreign_cc/private/framework:platform.bzl",
     "os_name",
+    "target_os_name",
 )
 load(
     "//toolchains/native_tools:tool_access.bzl",
@@ -251,6 +252,7 @@ def _create_configure_script(configureParameters):
 
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
+        target_os = target_os_name(ctx),
         generator = attrs.generator,
         cmake_path = attrs.cmake_path,
         tools = tools,
