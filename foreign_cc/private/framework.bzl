@@ -672,11 +672,6 @@ def _correct_path_variable(env):
     env["PATH"] = "$PATH:" + value
     return env
 
-def _depset(item):
-    if item == None:
-        return depset()
-    return depset([item])
-
 def _list(item):
     if item:
         return [item]
@@ -878,7 +873,7 @@ def _define_inputs(attrs):
                           bazel_libs +
                           tools_files +
                           input_files +
-                          cc_info_merged.compilation_context.headers.to_list() +
+                          cc_info_merged.compilation_context.headers.to_list() + _collect_libs(cc_info_merged.linking_context) +
                           ext_build_dirs,
     )
 
@@ -947,7 +942,9 @@ def _extract_libraries(library_to_link):
         library_to_link.static_library,
         library_to_link.pic_static_library,
         library_to_link.dynamic_library,
+        library_to_link.resolved_symlink_dynamic_library,
         library_to_link.interface_library,
+        library_to_link.resolved_symlink_interface_library,
     ]
 
 def _collect_libs(cc_linking):
@@ -958,12 +955,6 @@ def _collect_libs(cc_linking):
                 if library:
                     libs.append(library)
     return collections.uniq(libs)
-
-def _expand_command_path(binary, path, command):
-    if command == binary or command.startswith(binary + " "):
-        return command.replace(binary, path, 1)
-    else:
-        return command
 
 def expand_locations_and_make_variables(ctx, unexpanded, attr_name, data):
     """Expand locations and make variables while ensuring that `execpath` is always set to an absolute path

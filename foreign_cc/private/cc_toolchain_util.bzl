@@ -41,21 +41,12 @@ CxxFlagsInfo = provider(
 # them here when configuring the toolchain flags to pass to the external
 # build system.
 FOREIGN_CC_DISABLED_FEATURES = [
+    "fdo_instrument",
+    "fdo_optimize",
     "layering_check",
     "module_maps",
     "thin_lto",
 ]
-
-def _to_list(element):
-    if element == None:
-        return []
-    else:
-        return [element]
-
-def _to_depset(element):
-    if element == None:
-        return depset()
-    return depset(element)
 
 def _configure_features(ctx, cc_toolchain):
     return cc_common.configure_features(
@@ -119,69 +110,6 @@ def _files_map(files_list):
 
 def _defines_from_deps(ctx):
     return depset(transitive = [dep[CcInfo].compilation_context.defines for dep in getattr(ctx.attr, "deps", [])])
-
-def _build_cc_link_params(
-        ctx,
-        user_link_flags,
-        static_libraries,
-        dynamic_libraries,
-        runtime_artifacts):
-    static_shared = None
-    static_no_shared = None
-    if static_libraries != None and len(static_libraries) > 0:
-        static_shared = cc_common.create_cc_link_params(
-            ctx = ctx,
-            user_link_flags = user_link_flags,
-            libraries_to_link = _to_depset(static_libraries),
-        )
-        static_no_shared = cc_common.create_cc_link_params(
-            ctx = ctx,
-            libraries_to_link = _to_depset(static_libraries),
-        )
-    else:
-        static_shared = cc_common.create_cc_link_params(
-            ctx = ctx,
-            user_link_flags = user_link_flags,
-            libraries_to_link = _to_depset(dynamic_libraries),
-            dynamic_libraries_for_runtime = _to_depset(runtime_artifacts),
-        )
-        static_no_shared = cc_common.create_cc_link_params(
-            ctx = ctx,
-            libraries_to_link = _to_depset(dynamic_libraries),
-            dynamic_libraries_for_runtime = _to_depset(runtime_artifacts),
-        )
-
-    no_static_shared = None
-    no_static_no_shared = None
-    if dynamic_libraries != None and len(dynamic_libraries) > 0:
-        no_static_shared = cc_common.create_cc_link_params(
-            ctx = ctx,
-            user_link_flags = user_link_flags,
-            libraries_to_link = _to_depset(dynamic_libraries),
-            dynamic_libraries_for_runtime = _to_depset(runtime_artifacts),
-        )
-        no_static_no_shared = cc_common.create_cc_link_params(
-            ctx = ctx,
-            libraries_to_link = _to_depset(dynamic_libraries),
-            dynamic_libraries_for_runtime = _to_depset(runtime_artifacts),
-        )
-    else:
-        no_static_shared = cc_common.create_cc_link_params(
-            ctx = ctx,
-            user_link_flags = user_link_flags,
-            libraries_to_link = _to_depset(static_libraries),
-        )
-        no_static_no_shared = cc_common.create_cc_link_params(
-            ctx = ctx,
-            libraries_to_link = _to_depset(static_libraries),
-        )
-
-    return {
-        "dynamic_mode_params_for_dynamic_library": no_static_shared,
-        "dynamic_mode_params_for_executable": no_static_no_shared,
-        "static_mode_params_for_dynamic_library": static_shared,
-        "static_mode_params_for_executable": static_no_shared,
-    }
 
 def targets_windows(ctx, cc_toolchain):
     """Returns true if build is targeting Windows
@@ -443,5 +371,5 @@ def _prefix(text, from_str, prefix):
     return before + prefix + middle + after
 
 def _file_name_no_ext(basename):
-    (before, separator, after) = basename.rpartition(".")
+    (before, _separator, _after) = basename.rpartition(".")
     return before

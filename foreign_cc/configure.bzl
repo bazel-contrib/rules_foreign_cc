@@ -6,7 +6,6 @@ load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
     "get_tools_info",
-    "is_debug_mode",
 )
 load("//foreign_cc/private:configure_script.bzl", "create_configure_script")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
@@ -19,7 +18,6 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
-load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data", "get_pkgconfig_data")
 
 def _configure_make(ctx):
@@ -60,8 +58,6 @@ def _create_configure_script(configureParameters):
     attrs = configureParameters.attrs
     inputs = configureParameters.inputs
 
-    install_prefix = _get_install_prefix(ctx)
-
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
 
@@ -92,13 +88,10 @@ def _create_configure_script(configureParameters):
 
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
-        # as default, pass execution OS as target OS
-        target_os = os_name(ctx),
         tools = tools,
         flags = flags,
         root = detect_root(ctx.attr.lib_source),
         user_options = ctx.attr.configure_options,
-        is_debug = is_debug_mode(ctx),
         configure_prefix = configure_prefix,
         configure_command = ctx.attr.configure_command,
         deps = ctx.attr.deps,
