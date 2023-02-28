@@ -50,16 +50,10 @@ FOREIGN_CC_DISABLED_FEATURES = [
 
 def _configure_features(ctx, cc_toolchain):
     disabled_features = ctx.disabled_features + FOREIGN_CC_DISABLED_FEATURES
-    instrumented_files_info = coverage_common.instrumented_files_info(
-        ctx,
-        source_attributes = ["lib_source"],
-        dependency_attributes = ["deps"],
-    )
-    if not instrumented_files_info.instrumented_files:
-        # cc_common.configure_features() adds coverage related flags, such as --coverage
-        # to the compiler and linker. However, if there is nothing in this library or its
-        # deps that are instrumented, we don't need to pass those flags, and avoid unncessary
-        # rebuilds.
+    if not ctx.coverage_instrumented():
+        # In coverage mode, cc_common.configure_features() adds coverage related flags,
+        # such as --coverage to the compiler and linker. However, if this library is not
+        # instrumented, we don't need to pass those flags, and avoid unncessary rebuilds.
         disabled_features.append("coverage")
     return cc_common.configure_features(
         ctx = ctx,
