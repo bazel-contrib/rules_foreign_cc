@@ -65,3 +65,20 @@ def os_name(ctx):
         return "unknown"
 
     return platform_info[ForeignCcPlatformInfo].os
+
+def target_os_name(ctx):
+    """A helper function for getting the target operating system name based on the constraints
+
+    Args:
+        ctx (ctx): The current rule's context object
+
+    Returns:
+        str: The string of the current platform
+    """
+    operating_systems = ["android"]
+    for os in operating_systems:
+        constraint = getattr(ctx.attr, "_{}_constraint".format(os))
+        if constraint and ctx.target_platform_has_constraint(constraint[platform_common.ConstraintValueInfo]):
+            return os
+
+    return "unknown"

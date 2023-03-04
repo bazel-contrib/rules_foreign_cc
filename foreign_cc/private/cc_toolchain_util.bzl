@@ -49,11 +49,17 @@ FOREIGN_CC_DISABLED_FEATURES = [
 ]
 
 def _configure_features(ctx, cc_toolchain):
+    disabled_features = ctx.disabled_features + FOREIGN_CC_DISABLED_FEATURES
+    if not ctx.coverage_instrumented():
+        # In coverage mode, cc_common.configure_features() adds coverage related flags,
+        # such as --coverage to the compiler and linker. However, if this library is not
+        # instrumented, we don't need to pass those flags, and avoid unncessary rebuilds.
+        disabled_features.append("coverage")
     return cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features + FOREIGN_CC_DISABLED_FEATURES,
+        unsupported_features = disabled_features,
     )
 
 def _create_libraries_to_link(ctx, files):
