@@ -16,6 +16,7 @@ def rules_foreign_cc_dependencies(
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True,
+        built_toolchain_no_remote = False,
         register_built_pkgconfig_toolchain = False):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
     dependencies and let neccesary code generation happen \
@@ -49,6 +50,8 @@ def rules_foreign_cc_dependencies(
 
         register_toolchains: If true, registers the toolchains via native.register_toolchains. Used by bzlmod
 
+        built_toolchain_no_remote: If true, build the built toolchain locally. In some cases, remote executors may be FUSE based and not handle system time well
+
         register_built_pkgconfig_toolchain: If true, the built pkgconfig toolchain will be registered. On Windows it may be preferrable to set this to False, as
             this requires the --enable_runfiles bazel option. Also note that building pkgconfig from source under bazel results in paths that are more
             than 256 characters long, which will not work on Windows unless the following options are added to the .bazelrc and symlinks are enabled in Windows.
@@ -74,6 +77,7 @@ def rules_foreign_cc_dependencies(
             pkgconfig_version = pkgconfig_version,
             register_toolchains = register_toolchains,
             register_built_pkgconfig_toolchain = register_built_pkgconfig_toolchain,
+            built_toolchain_no_remote = built_toolchain_no_remote,
         )
 
     if register_preinstalled_tools:
