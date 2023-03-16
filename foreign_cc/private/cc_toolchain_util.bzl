@@ -187,6 +187,16 @@ def is_debug_mode(ctx):
     # https://docs.bazel.build/versions/master/command-line-reference.html#flag--compilation_mode
     return ctx.var.get("COMPILATION_MODE", "fastbuild") == "dbg"
 
+def pick_cpp_toolchain(cxx):
+    cxx_splitted = cxx.split("/")
+    if(cxx_splitted[-1].startswith("gcc")):
+        cxx_splitted[-1] = cxx_splitted[-1].replace("gcc", "g++")
+        cxx = "/".join(cxx_splitted)
+    if(cxx_splitted[-1].startswith("clang")):
+        cxx_splitted[-1] = cxx_splitted[-1].replace("clang", "clang++")
+        cxx = "/".join(cxx_splitted)
+    return cxx
+
 def get_tools_info(ctx):
     """Takes information about tools paths from cc_toolchain, returns CxxToolsInfo
 
@@ -198,16 +208,6 @@ def get_tools_info(ctx):
         ctx = ctx,
         cc_toolchain = cc_toolchain,
     )
-
-    def pick_cpp_toolchain(cxx):
-        cxx_splitted = cxx.split("/")
-        if(cxx_splitted[-1].startswith("gcc")):
-            cxx_splitted[-1] = cxx_splitted[-1].replace("gcc", "g++")
-            cxx = "/".join(cxx_splitted)
-        if(cxx_splitted[-1].startswith("clang")):
-            cxx_splitted[-1] = cxx_splitted[-1].replace("clang", "clang++")
-            cxx = "/".join(cxx_splitted)
-        return cxx
 
     return CxxToolsInfo(
         cc = cc_common.get_tool_for_action(
