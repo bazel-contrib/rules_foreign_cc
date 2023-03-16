@@ -189,18 +189,18 @@ def is_debug_mode(ctx):
 
 def pick_cpp_toolchain(cxx):
     """Picks the right toolchain for the given cxx compiler
-       
+
     Args:
         cxx: path to the cxx compiler
-    
+
     Returns:
         correct path to the cxx compiler
     """
     cxx_splitted = cxx.split("/")
-    if(cxx_splitted[-1].startswith("gcc")):
+    if (cxx_splitted[-1].startswith("gcc")):
         cxx_splitted[-1] = cxx_splitted[-1].replace("gcc", "g++")
         cxx = "/".join(cxx_splitted)
-    if(cxx_splitted[-1].startswith("clang")):
+    if (cxx_splitted[-1].startswith("clang")):
         cxx_splitted[-1] = cxx_splitted[-1].replace("clang", "clang++")
         cxx = "/".join(cxx_splitted)
     return cxx
