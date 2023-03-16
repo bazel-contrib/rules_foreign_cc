@@ -199,7 +199,7 @@ def get_tools_info(ctx):
         cc_toolchain = cc_toolchain,
     )
 
-    +def pick_cpp_toolchain(cxx):
+    def pick_cpp_toolchain(cxx):
         cxx_splitted = cxx.split("/")
         if(cxx_splitted[-1].startswith("gcc")):
             cxx_splitted[-1] = cxx_splitted[-1].replace("gcc", "g++")
