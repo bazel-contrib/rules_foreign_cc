@@ -199,15 +199,25 @@ def get_tools_info(ctx):
         cc_toolchain = cc_toolchain,
     )
 
+    +def pick_cpp_toolchain(cxx):
+        cxx_splitted = cxx.split("/")
+        if(cxx_splitted[-1].startswith("gcc")):
+            cxx_splitted[-1] = cxx_splitted[-1].replace("gcc", "g++")
+            cxx = "/".join(cxx_splitted)
+        if(cxx_splitted[-1].startswith("clang")):
+            cxx_splitted[-1] = cxx_splitted[-1].replace("clang", "clang++")
+            cxx = "/".join(cxx_splitted)
+        return cxx
+
     return CxxToolsInfo(
         cc = cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.c_compile,
         ),
-        cxx = cc_common.get_tool_for_action(
+        cxx = pick_cpp_toolchain(cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.cpp_compile,
-        ),
+        )),
         cxx_linker_static = cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.cpp_link_static_library,
