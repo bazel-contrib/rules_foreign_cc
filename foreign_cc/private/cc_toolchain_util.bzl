@@ -188,6 +188,14 @@ def is_debug_mode(ctx):
     return ctx.var.get("COMPILATION_MODE", "fastbuild") == "dbg"
 
 def pick_cpp_toolchain(cxx):
+    """Picks the right toolchain for the given cxx compiler
+       
+       Args:
+           cxx: path to the cxx compiler
+        
+        Returns:
+            correct path to the cxx compiler
+    """
     cxx_splitted = cxx.split("/")
     if(cxx_splitted[-1].startswith("gcc")):
         cxx_splitted[-1] = cxx_splitted[-1].replace("gcc", "g++")
