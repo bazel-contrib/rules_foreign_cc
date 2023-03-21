@@ -134,10 +134,28 @@ native_tool_toolchain(
     path = "nmake.exe",
 )
 
+constraint_setting(name = "make_remote_build")
+
+# Make Toolchain that doesn't compile make on remote executor
+# Some remote executors may be FUSE based and make tool uses autoconf which checks system clock
+# Thus, we bypass this error by compiling on local machine
+# To enable pass flag --define make_remote_build=make_no_remote_exec
+constraint_value(
+    name = "make_no_remote_exec",
+    constraint_setting = "make_remote_build",
+)
+
 make_tool(
     name = "make_tool",
     srcs = "@gnumake_src//:all_srcs",
     tags = ["manual"],
+    tags = select({
+        ":make_no_remote_exec": [
+            "manual",
+            "no-remote-exec",
+        ],
+        "//conditions:default": ["manual"],
+    }),
 )
 
 native_tool_toolchain(
