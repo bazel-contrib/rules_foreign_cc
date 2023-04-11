@@ -540,7 +540,7 @@ def cc_external_rule_impl(ctx, attrs):
     output_groups[attrs.configure_name + "_logs"] = wrapped_files
     return [
         DefaultInfo(
-            files = depset(direct = rule_outputs),
+            files = depset(direct = outputs.declared_outputs),
             runfiles = runfiles,
         ),
         OutputGroupInfo(**output_groups),
