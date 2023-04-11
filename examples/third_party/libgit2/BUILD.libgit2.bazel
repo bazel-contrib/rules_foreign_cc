@@ -1,6 +1,5 @@
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
-
 filegroup(
     name = "all_srcs",
     srcs = glob(
@@ -39,8 +38,8 @@ cmake(
     visibility = ["//visibility:public"],
     deps = [
         "@libssh2",
-        "@zlib",
         "@openssl",
+        "@zlib",
     ] + select({
         "@platforms//os:linux": ["@pcre"],
         "@platforms//os:macos": ["@iconv_macos//:iconv"],
