@@ -3,7 +3,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/keith/pre-commit-buildifier
-    rev: 5.1.0.2
+    rev: 6.1.0.1
     hooks:
       - id: buildifier
         args: &args
