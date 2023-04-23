@@ -61,6 +61,8 @@ tasks:
     linux_targets: &linux_targets_bzlmod
       - "//..."
       - "//:third_party_examples_linux_tests"
+      # gives error '//external:databinding_annotation_processor': target 'databinding_annotation_processor' not declared in package 'external' defined by /workdir/examples/WORKSPACE.bazel (Tip: use `query "//external:*"` to see all the targets in that package) and referenced by '@bazel_tools//tools/android:databinding_annotation_processor'
+      - "-//cmake_android/..."
     build_targets: *linux_targets_bzlmod
     test_targets: *linux_targets_bzlmod
     build_flags:
