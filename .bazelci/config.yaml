@@ -221,6 +221,6 @@ tasks:
       - "--experimental_enable_aggregating_middleman=False"
 
 buildifier:
-  version: "5.1.0"
+  version: "6.1.0"
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "all"
