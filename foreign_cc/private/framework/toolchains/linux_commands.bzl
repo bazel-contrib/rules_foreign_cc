@@ -74,7 +74,7 @@ if [ -d "$1" ]; then
   for file in ${files[@]+"${files[@]}"}; do
     local backup=$(mktemp)
     touch -r "${file}" "${backup}"
-    /usr/bin/sed -i 's@'"$2"'@'"$3"'@g' "${file}"
+    sed -i 's@'"$2"'@'"$3"'@g' "${file}"
     if [[ "$?" -ne "0" ]]; then
       exit 1
     fi
