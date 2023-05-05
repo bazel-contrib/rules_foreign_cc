@@ -72,17 +72,22 @@ tasks:
     macos_targets: &macos_targets_standalone
       - "//..."
       - "//:third_party_examples_macos_tests"
+      # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
+      - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
+      - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
     build_targets: *macos_targets_standalone
     build_flags:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
       - "-k"
+      - "--noincompatible_enable_cc_toolchain_resolution"
     test_targets: *macos_targets_standalone
     test_flags:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
+      - "--noincompatible_enable_cc_toolchain_resolution"
   macos_examples:
     name: Examples
     platform: macos
@@ -90,11 +95,22 @@ tasks:
     macos_targets: &macos_targets
       - "//..."
       - "//:third_party_examples_macos_tests"
+      # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
+      - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
+      - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
     build_targets: *macos_targets
+    build_flags:
+      - "--noincompatible_enable_cc_toolchain_resolution"
     test_targets: *macos_targets
+    test_flags:
+      - "--noincompatible_enable_cc_toolchain_resolution"
   windows_examples:
     name: Examples
     platform: windows
+    # Ping MSVC version to 2017, since LLVM 11.0.0 is not yet available on Bazel CI.
+    # TODO: remove after https://github.com/bazelbuild/continuous-integration/pull/1433 is deployed.
+    environment:
+      BAZEL_VC: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC"
     working_directory: examples
     windows_targets: &windows_targets
       - "//..."
@@ -118,8 +134,6 @@ tasks:
       - "-//cmake_with_data/..."
     build_targets: *windows_targets
     test_targets: *windows_targets
-    test_flags:
-      - "--enable_runfiles"
   rbe_ubuntu1604_flags:
     name: Flags
     platform: rbe_ubuntu1604
@@ -177,22 +191,38 @@ tasks:
   min_supported_version:
     name: "Minimum Supported Version"
     bazel: "4.0.0"
+    skip_in_bazel_downstream_pipeline: "Bazel 4 required"
     platform: ubuntu1804
     build_targets:
       - "//..."
+    # experimental_enable_aggregating_middleman=False is required in bazel 4 otherwise ctx.resolve_command fails.
+    # This was resolved in https://github.com/bazelbuild/bazel/commit/fb1c369530bd26f9a13560c5979929a999e585e2
+    build_flags:
+      - "--experimental_enable_aggregating_middleman=False"
     test_targets:
       - "//..."
+    test_flags:
+      - "--experimental_enable_aggregating_middleman=False"
   min_supported_version_examples:
     name: "Minimum Supported Version Examples"
     bazel: "4.0.0"
+    skip_in_bazel_downstream_pipeline: "Bazel 4 required"
     platform: ubuntu1804
     working_directory: examples
     min_supported_targets: &min_supported_targets
       - "//..."
+      # Requires Python 2 under Bazel 4; skip so that Bazel 7 can disable Python 2
+      # See https://github.com/bazelbuild/bazel/issues/17293
+      - "-//cmake_android:app"
     build_targets: *min_supported_targets
+    # See comment above regarding --experimental_enable_aggregating_middleman=False
+    build_flags:
+      - "--experimental_enable_aggregating_middleman=False"
     test_targets: *min_supported_targets
+    test_flags:
+      - "--experimental_enable_aggregating_middleman=False"
 
 buildifier:
-  version: "4.2.5" 
+  version: "6.1.0"
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "all"

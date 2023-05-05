@@ -18,19 +18,19 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:make_script.bzl", "create_make_script")
-load("//foreign_cc/private:transitions.bzl", _make_variant = "make_variant")
+load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
 def _make(ctx):
     make_data = get_make_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + make_data.deps
+    tools_data = [make_data]
 
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Make",
         create_configure_script = _create_make_script,
-        tools_deps = tools_deps,
+        tools_data = tools_data,
         make_path = make_data.path,
     )
     return cc_external_rule_impl(ctx, attrs)
@@ -131,7 +131,7 @@ def make_variant(name, toolchain, **kwargs):
         toolchain: The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain
         **kwargs: Remaining keyword arguments
     """
-    _make_variant(
+    foreign_cc_rule_variant(
         name = name,
         rule = make,
         toolchain = toolchain,

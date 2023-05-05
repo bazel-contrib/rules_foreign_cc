@@ -11,8 +11,8 @@ def _symlink_contents_to_dir_test_rule_impl(ctx):
     dir2 = detect_root(ctx.attr.dir2)
     script_lines = [
         "##mkdirs## aaa",
-        "##symlink_contents_to_dir## %s aaa" % dir1,
-        "##symlink_contents_to_dir## %s aaa" % dir2,
+        "##symlink_contents_to_dir## %s aaa False" % dir1,
+        "##symlink_contents_to_dir## %s aaa False" % dir2,
         "ls -R aaa > %s" % out.path,
     ]
     converted_script = convert_shell_script(ctx, script_lines)

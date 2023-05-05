@@ -49,14 +49,14 @@ def _access_and_expect_label_copied(toolchain_type_, ctx):
                 cmd_file = f
                 break
         return struct(
-            deps = [tool_data.target],
+            target = tool_data.target,
             env = tool_data.env,
             # as the tool will be copied into tools directory
             path = "$EXT_BUILD_ROOT/{}".format(cmd_file.path),
         )
     else:
         return struct(
-            deps = [],
+            target = None,
             env = tool_data.env,
             path = tool_data.path,
         )

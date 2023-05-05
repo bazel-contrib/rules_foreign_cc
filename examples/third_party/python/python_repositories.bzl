@@ -7,16 +7,6 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 def python_repositories():
     maybe(
         http_archive,
-        name = "python2",
-        build_file = Label("//python:BUILD.python2.bazel"),
-        strip_prefix = "Python-2.7.18",
-        urls = [
-            "https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz",
-        ],
-        sha256 = "da3080e3b488f648a3d7a4560ddee895284c3380b11d6de75edb986526b9a814",
-    )
-    maybe(
-        http_archive,
         name = "python3",
         build_file = Label("//python:BUILD.python3.bazel"),
         strip_prefix = "Python-3.10.1",
