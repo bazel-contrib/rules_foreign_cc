@@ -1,0 +1,12 @@
+# We recommend included a bcr test workspace that exercises your ruleset with bzlmod.
+# For an example, see https://github.com/aspect-build/bazel-lib/tree/main/e2e/bzlmod.
+#bcr_test_module:
+#  module_path: "examples"
+#  matrix:
+#    platform: ["debian10", "macos", "ubuntu2004", "windows"]
+#  tasks:
+#    run_tests:
+#      name: "Run test module"
+#      platform: ${{ platform }}
+#      test_targets:
+#        - "//..."
