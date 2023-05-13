@@ -298,3 +298,35 @@ bzl_library(
         "//toolchains/native_tools:bzl_srcs",
     ],
 )
+
+## No-remote toolchains
+
+toolchain_type(
+    name = "make_toolchain_local",
+)
+
+toolchain(
+    name = "built_make_toolchain_local",
+    toolchain = ":built_make_local",
+    toolchain_type = ":make_toolchain_local",
+)
+
+make_tool(
+    name = "make_tool_local",
+    srcs = "@gnumake_src//:all_srcs",
+    tags = ["manual", "no-remote-exec"],
+)
+
+native_tool_toolchain(
+    name = "built_make_local",
+    env = select({
+        "@platforms//os:windows": {"MAKE": "$(execpath :make_tool_local)/bin/make.exe"},
+        "//conditions:default": {"MAKE": "$(execpath :make_tool_local)/bin/make"},
+    }),
+    path = select({
+        "@platforms//os:windows": "$(execpath :make_tool_local)/bin/make.exe",
+        "//conditions:default": "$(execpath :make_tool_local)/bin/make",
+    }),
+    target = ":make_tool_local",
+    tags = ["no-remote-exec"]
+)
