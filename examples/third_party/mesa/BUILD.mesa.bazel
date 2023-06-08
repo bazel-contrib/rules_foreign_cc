@@ -97,6 +97,7 @@ meson_with_requirements(
             "@expat",
             "@libdrm",
             "@libpciaccess",
+            "@libx11",
             "@libxau",
             "@libxcb",
             "@libxdmcp",
@@ -104,14 +105,13 @@ meson_with_requirements(
             "@libxrandr",
             "@libxrender",
             "@libxshmfence",
-            "@libx11",
             "@xorgproto",
             "@zlib",
         ],
         "@platforms//os:macos": [
+            "@libx11",
             "@libxext",
             "@libxfixes",
-            "@libx11",
             "@zlib",
         ],
         "@platforms//os:windows": [
