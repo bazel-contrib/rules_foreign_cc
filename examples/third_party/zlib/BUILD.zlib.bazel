@@ -12,13 +12,19 @@ filegroup(
 
 cmake(
     name = "zlib",
+    cache_entries = select({
+        "@platforms//os:linux": {
+            "CMAKE_C_FLAGS": "${CMAKE_C_FLAGS:-} -fPIC",
+        },
+        "//conditions:default": {},
+    }),
     generate_args = select({
         "@platforms//os:windows": ["-GNinja"],
         "//conditions:default": [],
     }),
     lib_source = ":all_srcs",
     out_static_libs = select({
-        "@platforms//os:windows": ["zlibstatic.lib"],
+        "@platforms//os:windows": ["z.lib"],
         "//conditions:default": ["libz.a"],
     }),
 )

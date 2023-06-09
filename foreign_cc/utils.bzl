@@ -1,6 +1,6 @@
 """ This file contains useful utilities """
 
-def _full_label(label):
+def full_label(label):
     return native.repository_name() + "//" + native.package_name() + ":" + label
 
 def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, **kwargs):
@@ -50,8 +50,8 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
         srcs = ["@rules_foreign_cc//foreign_cc/private:runnable_binary_wrapper.sh", name + "_fg"],
         outs = [name + "_wrapper.sh"],
         cmd = select({
-            "@platforms//os:windows": wrapper_cmd.format(name = _full_label(name + "_fg"), sh_binary_filename = binary + ".exe" if match_binary_name else name),
-            "//conditions:default": wrapper_cmd.format(name = _full_label(name + "_fg"), sh_binary_filename = binary if match_binary_name else name),
+            "@platforms//os:windows": wrapper_cmd.format(name = full_label(name + "_fg"), sh_binary_filename = binary + ".exe" if match_binary_name else name),
+            "//conditions:default": wrapper_cmd.format(name = full_label(name + "_fg"), sh_binary_filename = binary if match_binary_name else name),
         }),
         tags = tags + ["manual"],
     )

@@ -35,6 +35,9 @@ def get_make_data(ctx):
 def get_ninja_data(ctx):
     return _access_and_expect_label_copied(Label("//toolchains:ninja_toolchain"), ctx)
 
+def get_meson_data(ctx):
+    return _access_and_expect_label_copied(Label("//toolchains:meson_toolchain"), ctx)
+
 def get_pkgconfig_data(ctx):
     return _access_and_expect_label_copied(Label("//toolchains:pkgconfig_toolchain"), ctx)
 

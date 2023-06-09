@@ -21,3 +21,10 @@ configure_make(
         "m4",
     ],
 )
+
+filegroup(
+    name = "m4_exe",
+    srcs = [":m4"],
+    output_group = "m4",
+    visibility = ["//visibility:public"],
+)

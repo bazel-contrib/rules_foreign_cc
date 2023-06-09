@@ -1,4 +1,11 @@
-# Required for Windows
+# Required by Meson on Windows
+build --action_env=PROCESSOR_ARCHITECTURE
+build --action_env=USERPROFILE
+
+# Required when using the built meson toolchain on windows
+build --nobuild_python_zip
+
+# Required by Meson and built pkg-config on Windows
 build --enable_runfiles
 
 # These are required otherwise paths are too long

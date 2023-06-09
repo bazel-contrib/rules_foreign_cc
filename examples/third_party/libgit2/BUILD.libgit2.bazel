@@ -20,7 +20,7 @@ _CACHE_ENTRIES = {
 
 _LINUX_CACHE_ENTRIES = dict(_CACHE_ENTRIES.items() + {
     "CMAKE_C_FLAGS": "${CMAKE_C_FLAGS:-} -fPIC",
-    "REGEX_BACKEND": "pcre",
+    "REGEX_BACKEND": "pcre2",
 }.items())
 
 cmake(

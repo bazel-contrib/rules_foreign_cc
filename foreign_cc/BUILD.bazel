@@ -15,5 +15,6 @@ bzl_library(
         "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:versions",
+        "@rules_python//docs:defs",
     ],
 )
