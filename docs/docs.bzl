@@ -10,7 +10,7 @@ load(
     _make = "make",
     _make_variant = "make_variant",
     _meson = "meson",
-    _meson_with_requirements = "meson_with_requirements"
+    _meson_with_requirements = "meson_with_requirements",
     _ninja = "ninja",
 )
 load(
