@@ -9,6 +9,8 @@ load(
     _configure_make_variant = "configure_make_variant",
     _make = "make",
     _make_variant = "make_variant",
+    _meson = "meson",
+    _meson_with_requirements = "meson_with_requirements",
     _ninja = "ninja",
 )
 load(
@@ -36,6 +38,8 @@ configure_make_variant = _configure_make_variant
 make = _make
 make_tool = _make_tool
 make_variant = _make_variant
+meson = _meson
+meson_with_requirements = _meson_with_requirements
 native_tool_toolchain = _native_tool_toolchain
 ninja = _ninja
 ninja_tool = _ninja_tool
