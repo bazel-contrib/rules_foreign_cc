@@ -139,7 +139,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = [],
     ),
     "out_bin_dir": attr.string(
-        doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'.",
+        doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'. ",
         mandatory = False,
         default = "bin",
     ),
