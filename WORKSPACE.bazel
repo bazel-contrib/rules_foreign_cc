@@ -3,7 +3,7 @@ workspace(name = "rules_foreign_cc")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
-rules_foreign_cc_dependencies()
+rules_foreign_cc_dependencies(register_built_pkgconfig_toolchain = True)
 
 local_repository(
     name = "rules_foreign_cc_examples",
@@ -20,6 +20,10 @@ python_register_toolchains(
     name = "python3_9",
     python_version = "3.9",
 )
+
+load("//:docs/stardoc_repository.bzl", "stardoc_repository")
+
+stardoc_repository()
 
 http_archive(
     name = "bazelci_rules",

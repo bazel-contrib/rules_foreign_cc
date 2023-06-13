@@ -1,0 +1,65 @@
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "..",
+)
+
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.23.1")
+tools.ninja(version = "1.11.1")
+use_repo(
+    tools,
+    "meson_src",
+)
+
+bazel_dep(name = "platforms", version = "0.0.6")
+bazel_dep(name = "rules_swift", version = "1.6.0", repo_name = "build_bazel_rules_swift")
+bazel_dep(name = "rules_apple", version = "2.1.0", repo_name = "build_bazel_rules_apple")
+bazel_dep(name = "apple_support", version = "1.4.1", repo_name = "build_bazel_apple_support")
+bazel_dep(name = "rules_python", version = "0.22.0")
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    name = "python3_9",
+    python_version = "3.9",
+)
+use_repo(python, "python3_9")
+use_repo(python, "python3_9_toolchains")
+
+register_toolchains(
+    "@python3_9_toolchains//:all",
+)
+
+interpreter = use_extension("@rules_python//python/extensions:interpreter.bzl", "interpreter")
+interpreter.install(
+    name = "interpreter_python3_9",
+    python_name = "python3_9",
+)
+use_repo(interpreter, "interpreter_python3_9")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    name = "pip",
+    python_interpreter_target = "@interpreter_python3_9//:python",
+    requirements_lock = "//:requirements_lock.txt",
+    requirements_windows = "//:requirements_windows.txt",
+)
+use_repo(pip, "pip")
+
+# bazel_dep(name = "rules_android", version = "0.1.1")
+# bazel_dep(name = "rules_jvm_external", version = "5.1")
+#
+# maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+#
+# maven.install(
+#     name = "maven_deps",
+#     artifacts = [
+#         "com.android.support.constraint:constraint-layout:aar:1.1.2",
+#         "com.android.support:appcompat-v7:aar:26.1.0",
+#     ],
+#     repositories = [
+#         "https://jcenter.bintray.com/",
+#         "https://maven.google.com",
+#         "https://repo1.maven.org/maven2",
+#     ],
+# )

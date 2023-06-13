@@ -7,12 +7,21 @@ local_repository(
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
-# Don't use preinstalled tools to ensure builds are as hermetic as possible
-rules_foreign_cc_dependencies(register_preinstalled_tools = False)
+rules_foreign_cc_dependencies(register_built_pkgconfig_toolchain = True)
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+
+maybe(
+    http_archive,
+    name = "rules_cc",
+    sha256 = "4dccbfd22c0def164c8f47458bd50e0c7148f3d92002cdb459c2a96a68498241",
+    urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.1/rules_cc-0.0.1.tar.gz"],
+)
 
 load("//deps:repositories.bzl", "repositories")
 
@@ -26,6 +35,26 @@ load("//deps:deps_jvm_external.bzl", "deps_jvm_external")
 
 deps_jvm_external()
 
+load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+
+python_register_toolchains(
+    name = "python3_9",
+    python_version = "3.9",
+)
+
+load("@python3_9//:defs.bzl", py3_interpreter = "interpreter")
+load("@rules_python//python:pip.bzl", "pip_parse")
+
+pip_parse(
+    name = "pip",
+    python_interpreter_target = py3_interpreter,
+    requirements_lock = "//:requirements_lock.txt",
+)
+
+load("@pip//:requirements.bzl", "install_deps")
+
+install_deps()
+
 local_repository(
     name = "rules_foreign_cc_examples_third_party",
     path = "third_party",
@@ -38,8 +67,6 @@ examples_third_party_repositories()
 load("@rules_foreign_cc_examples_third_party//:setup.bzl", examples_third_party_setup = "setup")
 
 examples_third_party_setup()
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazelci_rules",
@@ -56,6 +83,13 @@ load("@bazelci_rules//:rbe_repo.bzl", "rbe_preconfig")
 rbe_preconfig(
     name = "buildkite_config",
     toolchain = "ubuntu1804-bazel-java11",
+)
+
+http_archive(
+    name = "build_bazel_apple_support",
+    patches = ["//deps:apple_support.patch"],
+    sha256 = "77a121a0f5d4cd88824429464ad2bfb54bdc8a3bccdb4d31a6c846003a3f5e44",
+    url = "https://github.com/bazelbuild/apple_support/releases/download/1.4.1/apple_support.1.4.1.tar.gz",
 )
 
 http_archive(

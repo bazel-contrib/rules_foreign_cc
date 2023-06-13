@@ -62,7 +62,7 @@ def define_function(name, text):
     lines.append("}")
     return "\n".join(lines)
 
-def replace_in_files(dir, from_, to_):
+def replace_in_files(_dir, _from, _to):
     return FunctionAndCallInfo(
         text = """\
 if [ -d "$1" ]; then
@@ -91,7 +91,7 @@ def copy_dir_contents_to_dir(source, target):
         target = target,
     )
 
-def symlink_contents_to_dir(source, target, replace_in_files):
+def symlink_contents_to_dir(_source, _target, _replace_in_files):
     text = """\
 if [[ -z "$1" ]]; then
   echo "arg 1 to symlink_contents_to_dir is unexpectedly empty"
@@ -121,7 +121,7 @@ fi
 """
     return FunctionAndCallInfo(text = text)
 
-def symlink_to_dir(source, target, replace_in_files):
+def symlink_to_dir(_source, _target, _replace_in_files):
     text = """\
 if [[ -z "$1" ]]; then
   echo "arg 1 to symlink_to_dir is unexpectedly empty"
@@ -173,7 +173,7 @@ fi
 def script_prelude():
     return "set -euo pipefail"
 
-def increment_pkg_config_path(source):
+def increment_pkg_config_path(_source):
     text = """\
 local children=$(find "$1" -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
@@ -211,7 +211,7 @@ if [ -d {dir_} ]; then
   for tool in $tools;
   do
     if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then
-      export PATH=$PATH:$tool
+      export PATH=$tool:$PATH
     fi
   done
 fi""".format(dir_ = dir_)

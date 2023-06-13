@@ -6,7 +6,7 @@ load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
-load("//foreign_cc/private:detect_root.bzl", "detect_root", "filter_containing_dirs_from_inputs")
+load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load(
     "//foreign_cc/private/framework:helpers.bzl",
     "convert_shell_script",
@@ -209,6 +209,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
+    "_android_constraint": attr.label(default = Label("@platforms//os:android")),
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
@@ -274,6 +275,9 @@ dependencies.""",
     ),
 )
 
+def _is_msvc_var(var):
+    return var == "INCLUDE" or var == "LIB"
+
 def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     """Generate a bash snippet containing environment variable definitions
 
@@ -321,8 +325,10 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
 
     # If user has defined a PATH variable (e.g. PATH, LD_LIBRARY_PATH, CPATH) prepend it to the existing variable
     for user_var in user_vars:
-        if "PATH" in user_var and cc_env.get(user_var):
-            env.update({user_var: user_vars.get(user_var) + ":" + cc_env.get(user_var)})
+        is_existing_var = "PATH" in user_var or _is_msvc_var(user_var)
+        list_delimiter = ";" if _is_msvc_var(user_var) else ":"
+        if is_existing_var and cc_env.get(user_var):
+            env.update({user_var: user_vars.get(user_var) + list_delimiter + cc_env.get(user_var)})
 
     cc_toolchain = find_cpp_toolchain(ctx)
     if cc_toolchain.compiler == "msvc-cl":
@@ -405,6 +411,9 @@ def cc_external_rule_impl(ctx, attrs):
     target_root = paths.dirname(installdir_copy.file.dirname)
 
     data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
+    for tool in attrs.tools_data:
+        if tool.target:
+            data_dependencies.append(tool.target)
 
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
@@ -473,6 +482,9 @@ def cc_external_rule_impl(ctx, attrs):
     for data in data_dependencies:
         tool_runfiles += data[DefaultInfo].default_runfiles.files.to_list()
 
+    for tool in attrs.tools_deps:
+        tool_runfiles += tool[DefaultInfo].default_runfiles.files.to_list()
+
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
@@ -497,7 +509,15 @@ def cc_external_rule_impl(ctx, attrs):
 
     # Gather runfiles transitively as per the documentation in:
     # https://docs.bazel.build/versions/master/skylark/rules.html#runfiles
-    runfiles = ctx.runfiles(files = ctx.files.data + outputs.libraries.shared_libraries)
+
+    # Include shared libraries of transitive dependencies in runfiles, facilitating the "runnable_binary" macro
+    transitive_shared_libraries = []
+    for linker_input in out_cc_info.linking_context.linker_inputs.to_list():
+        for lib in linker_input.libraries:
+            if lib.dynamic_library:
+                transitive_shared_libraries.append(lib.dynamic_library)
+
+    runfiles = ctx.runfiles(files = ctx.files.data + transitive_shared_libraries)
     for target in [ctx.attr.lib_source] + ctx.attr.deps + ctx.attr.data:
         runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
 
@@ -512,7 +532,7 @@ def cc_external_rule_impl(ctx, attrs):
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
     )
-    output_groups = _declare_output_groups(installdir_copy.file, outputs.out_binary_files)
+    output_groups = _declare_output_groups(installdir_copy.file, outputs.out_binary_files + outputs.libraries.static_libraries + outputs.libraries.shared_libraries + [outputs.out_include_dir])
     wrapped_files = [
         wrapped_outputs.script_file,
         wrapped_outputs.log_file,
@@ -521,7 +541,7 @@ def cc_external_rule_impl(ctx, attrs):
     output_groups[attrs.configure_name + "_logs"] = wrapped_files
     return [
         DefaultInfo(
-            files = depset(direct = rule_outputs),
+            files = depset(direct = outputs.declared_outputs),
             runfiles = runfiles,
         ),
         OutputGroupInfo(**output_groups),
@@ -653,11 +673,6 @@ def _correct_path_variable(env):
     env["PATH"] = "$PATH:" + value
     return env
 
-def _depset(item):
-    if item == None:
-        return depset()
-    return depset([item])
-
 def _list(item):
     if item:
         return [item]
@@ -671,12 +686,13 @@ def _copy_deps_and_tools(files):
     if files.tools_files:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
     for tool in files.tools_files:
+        tool_prefix = "$EXT_BUILD_ROOT/"
+        tool = tool[len(tool_prefix):] if tool.startswith(tool_prefix) else tool
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool))
 
     for ext_dir in files.ext_build_dirs:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
 
-    lines.append("##children_to_path## $$EXT_BUILD_DEPS$$/bin")
     lines.append("##path## $$EXT_BUILD_DEPS$$/bin")
 
     return lines
@@ -825,16 +841,15 @@ def _define_inputs(attrs):
     # but filter out repeating directories
     ext_build_dirs = uniq_list_keep_order(ext_build_dirs)
 
-    tools_roots = []
+    tools = []
     tools_files = []
     tool_runfiles = []
     input_files = []
-    for tool in attrs.tools_deps:
-        tool_runfiles += tool[DefaultInfo].default_runfiles.files.to_list()
-        tool_root = detect_root(tool)
-        tools_roots.append(tool_root)
-        for file_list in tool.files.to_list():
-            tools_files += _list(file_list)
+    for tool in attrs.tools_data:
+        tools.append(tool.path)
+        if tool.target:
+            for file_list in tool.target.files.to_list():
+                tools_files += _list(file_list)
 
     # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:
@@ -854,7 +869,7 @@ def _define_inputs(attrs):
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
-        tools_files = tools_roots,
+        tools_files = tools,
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
@@ -863,7 +878,7 @@ def _define_inputs(attrs):
                           bazel_libs +
                           tools_files +
                           input_files +
-                          cc_info_merged.compilation_context.headers.to_list() +
+                          cc_info_merged.compilation_context.headers.to_list() + _collect_libs(cc_info_merged.linking_context) +
                           ext_build_dirs,
     )
 
@@ -932,7 +947,9 @@ def _extract_libraries(library_to_link):
         library_to_link.static_library,
         library_to_link.pic_static_library,
         library_to_link.dynamic_library,
+        library_to_link.resolved_symlink_dynamic_library,
         library_to_link.interface_library,
+        library_to_link.resolved_symlink_interface_library,
     ]
 
 def _collect_libs(cc_linking):
@@ -943,12 +960,6 @@ def _collect_libs(cc_linking):
                 if library:
                     libs.append(library)
     return collections.uniq(libs)
-
-def _expand_command_path(binary, path, command):
-    if command == binary or command.startswith(binary + " "):
-        return command.replace(binary, path, 1)
-    else:
-        return command
 
 def expand_locations_and_make_variables(ctx, unexpanded, attr_name, data):
     """Expand locations and make variables while ensuring that `execpath` is always set to an absolute path

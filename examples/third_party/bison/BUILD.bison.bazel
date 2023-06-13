@@ -16,13 +16,29 @@ configure_make(
     build_data = [
         "@m4",
     ],
-    env = {
-        "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
-    },
+    env = select({
+        "@platforms//os:linux": {
+            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+        },
+        "@platforms//os:macos": {
+            "AR": "",
+            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+        },
+        "//conditions:default": {},
+    }),
     lib_source = ":all_srcs",
     out_binaries = [
         "bison",
         "yacc",
     ],
+    # Bison depends on m4sugar.m4 in the "share" directory at runtime
+    out_data_dirs = ["share"],
     out_static_libs = ["liby.a"],
+)
+
+filegroup(
+    name = "gen_dir",
+    srcs = [":bison"],
+    output_group = "gen_dir",
+    visibility = ["//visibility:public"],
 )

@@ -5,12 +5,10 @@ load(":make_script.bzl", "pkgconfig_script")
 # buildifier: disable=function-docstring
 def create_configure_script(
         workspace_name,
-        target_os,
         tools,
         flags,
         root,
         user_options,
-        is_debug,
         configure_prefix,
         configure_command,
         deps,
