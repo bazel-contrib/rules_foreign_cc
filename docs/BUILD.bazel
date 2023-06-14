@@ -78,6 +78,7 @@ DOCS_TARGETS = [
     ":ninja_docs",
     ":make_docs",
     ":configure_make_docs",
+    ":meson_docs",
     ":providers_docs",
 ]
 
