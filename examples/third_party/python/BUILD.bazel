@@ -1,4 +1,4 @@
-load("@rules_python//python:defs.bzl", "py_runtime", "py_runtime_pair", "py_test")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
 exports_files(
     [
@@ -7,34 +7,18 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 
-py_runtime(
-    name = "py3_runtime",
-    files = ["@python3"],
-    interpreter = "@python3//:python3_bin",
-    python_version = "PY3",
-)
-
-py_runtime_pair(
-    name = "py_runtime_pair",
-    py3_runtime = ":py3_runtime",
-)
-
-toolchain(
-    name = "python_toolchain",
-    toolchain = ":py_runtime_pair",
-    toolchain_type = "@rules_python//python:toolchain_type",
-)
-
-py_test(
-    name = "python3_test",
-    srcs = ["python3_test.py"],
-    python_version = "PY3",
+build_test(
+    name = "build_test",
+    targets = [
+        "@python3//:python3",
+    ],
     visibility = ["//:__pkg__"],
 )
 
 test_suite(
     name = "python_tests",
     tests = [
-        ":python3_test",
+        ":build_test",
     ],
+    visibility = ["//:__pkg__"],
 )

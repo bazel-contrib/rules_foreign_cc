@@ -5,5 +5,6 @@
         - [cmake](cmake.md)
         - [configure_make](configure_make.md)
         - [make](make.md)
+        - [meson](meson.md)
         - [ninja](ninja.md)
 - [Full API](flatten.md)

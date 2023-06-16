@@ -139,7 +139,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = [],
     ),
     "out_bin_dir": attr.string(
-        doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'.",
+        doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'. ",
         mandatory = False,
         default = "bin",
     ),
@@ -531,7 +531,7 @@ def cc_external_rule_impl(ctx, attrs):
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
     )
-    output_groups = _declare_output_groups(installdir_copy.file, outputs.out_binary_files)
+    output_groups = _declare_output_groups(installdir_copy.file, outputs.out_binary_files + outputs.libraries.static_libraries + outputs.libraries.shared_libraries + [outputs.out_include_dir])
     wrapped_files = [
         wrapped_outputs.script_file,
         wrapped_outputs.log_file,

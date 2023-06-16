@@ -18,7 +18,10 @@ cmake(
         "CMAKE_C_FLAGS": "${CMAKE_C_FLAGS:-} -fPIC",
     },
     lib_source = ":all_srcs",
-    out_static_libs = ["libpcre.a"],
+    out_static_libs = select({
+        "@platforms//os:windows": ["pcre2-8.lib"],
+        "//conditions:default": ["libpcre2-8.a"],
+    }),
 )
 
 filegroup(
