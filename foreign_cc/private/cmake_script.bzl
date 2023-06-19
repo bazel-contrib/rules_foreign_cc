@@ -101,6 +101,11 @@ def create_cmake_script(
             "CMAKE_SYSTEM_NAME": "Linux",
         })
 
+    if target_os == "linux":
+        params.cache.update({
+            "CMAKE_SYSTEM_NAME": "Linux",
+        })
+
     set_env_vars = [
         "export {}=\"{}\"".format(key, _escape_dquote_bash(params.env[key]))
         for key in params.env

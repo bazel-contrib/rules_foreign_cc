@@ -75,7 +75,7 @@ def target_os_name(ctx):
     Returns:
         str: The string of the current platform
     """
-    operating_systems = ["android"]
+    operating_systems = ["android", "linux"]
     for os in operating_systems:
         constraint = getattr(ctx.attr, "_{}_constraint".format(os))
         if constraint and ctx.target_platform_has_constraint(constraint[platform_common.ConstraintValueInfo]):
