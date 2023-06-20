@@ -17,6 +17,25 @@ def _escape_dquote_bash_crosstool(text):
     # We use a starlark raw string to prevent the need to escape backslashes for starlark as well.
     return text.replace('"', r'\\\\\\\"')
 
+_TARGET_OS_PARAMS = {
+    "android": {
+        "ANDROID": "YES",
+        "CMAKE_SYSTEM_NAME": "Linux",
+    },
+    "linux": {
+        "CMAKE_SYSTEM_NAME": "Linux",
+    },
+}
+
+_TARGET_ARCH_PARAMS = {
+    "aarch64": {
+        "CMAKE_SYSTEM_PROCESSOR": "aarch64",
+    },
+    "x86_64": {
+        "CMAKE_SYSTEM_PROCESSOR": "x86_64",
+    },
+}
+
 def create_cmake_script(
         workspace_name,
         target_os,
@@ -97,28 +116,13 @@ def create_cmake_script(
     if not params.cache.get("CMAKE_RANLIB"):
         params.cache.update({"CMAKE_RANLIB": ""})
 
-    _target_os_params = {
-        "android": {
-            "ANDROID": "YES",
-            "CMAKE_SYSTEM_NAME": "Linux",
-        },
-        "linux": {
-            "CMAKE_SYSTEM_NAME": "Linux",
-        },
-    }
-
-    _target_arch_params = {
-        "aarch64": {
-            "CMAKE_SYSTEM_PROCESSOR": "aarch64",
-        },
-        "x86_64": {
-            "CMAKE_SYSTEM_PROCESSOR": "x86_64",
-        },
-    }
-
+    # Avoid CMake passing the wrong linker flags when cross compiling
+    # by setting CMAKE_SYSTEM_NAME and CMAKE_SYSTEM_PROCESSOR,
+    # see https://github.com/bazelbuild/rules_foreign_cc/issues/289,
+    # and https://github.com/bazelbuild/rules_foreign_cc/pull/1062
     if target_os != host_os and target_os != "unknown":
-        params.cache.update(_target_os_params.get(target_os))
-        params.cache.update(_target_arch_params.get(target_arch))
+        params.cache.update(_TARGET_OS_PARAMS.get(target_os, {}))
+        params.cache.update(_TARGET_ARCH_PARAMS.get(target_arch, {}))
 
     set_env_vars = [
         "export {}=\"{}\"".format(key, _escape_dquote_bash(params.env[key]))
