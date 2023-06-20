@@ -66,6 +66,15 @@ def os_name(ctx):
 
     return platform_info[ForeignCcPlatformInfo].os
 
+def target_arch_name(ctx):
+    archs = ["x86_64", "aarch64"]
+    for arch in archs:
+        constraint = getattr(ctx.attr, "_{}_constraint".format(arch))
+        if constraint and ctx.target_platform_has_constraint(constraint[platform_common.ConstraintValueInfo]):
+            return arch
+
+    return "unknown"
+
 def target_os_name(ctx):
     """A helper function for getting the target operating system name based on the constraints
 

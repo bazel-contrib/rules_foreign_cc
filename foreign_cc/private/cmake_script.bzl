@@ -20,6 +20,8 @@ def _escape_dquote_bash_crosstool(text):
 def create_cmake_script(
         workspace_name,
         target_os,
+        target_arch,
+        host_os,
         generator,
         cmake_path,
         tools,
@@ -93,6 +95,29 @@ def create_cmake_script(
     if not params.cache.get("CMAKE_RANLIB"):
         params.cache.update({"CMAKE_RANLIB": ""})
 
+    _target_os_params = {
+        "android": {
+            "ANDROID": "YES",
+            "CMAKE_SYSTEM_NAME": "Linux",
+        },
+        "linux": {
+            "CMAKE_SYSTEM_NAME": "Linux",
+        }
+    }
+
+    _target_arch_params = {
+        "x86_64": {
+            "CMAKE_SYSTEM_PROCESSOR": "x86_64"
+        },
+        "aarch64": {
+            "CMAKE_SYSTEM_PROCESSOR": "aarch64",
+        }
+    }
+
+    if target_os != host_os:
+        params.cache.update(_target_os_params.get(target_os))
+        params.cache.update(_target_arch_params.get(target_arch))
+
     # Avoid cmake passing wrong linker flags when targeting android on macOS
     # https://github.com/bazelbuild/rules_foreign_cc/issues/289
     if target_os == "android":
@@ -104,6 +129,12 @@ def create_cmake_script(
     if target_os == "linux":
         params.cache.update({
             "CMAKE_SYSTEM_NAME": "Linux",
+            "CMAKE_SYSTEM_PROCESSOR": "x86_64",
+        })
+
+    if params.cache.get("CMAKE_SYSTEM_NAME"):
+        params.cache.update({
+            "CMAKE_SYSTEM_PROCESSOR": 
         })
 
     set_env_vars = [
