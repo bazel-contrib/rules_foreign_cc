@@ -118,25 +118,6 @@ def create_cmake_script(
         params.cache.update(_target_os_params.get(target_os))
         params.cache.update(_target_arch_params.get(target_arch))
 
-    # Avoid cmake passing wrong linker flags when targeting android on macOS
-    # https://github.com/bazelbuild/rules_foreign_cc/issues/289
-    if target_os == "android":
-        params.cache.update({
-            "ANDROID": "YES",
-            "CMAKE_SYSTEM_NAME": "Linux",
-        })
-
-    if target_os == "linux":
-        params.cache.update({
-            "CMAKE_SYSTEM_NAME": "Linux",
-            "CMAKE_SYSTEM_PROCESSOR": "x86_64",
-        })
-
-    if params.cache.get("CMAKE_SYSTEM_NAME"):
-        params.cache.update({
-            "CMAKE_SYSTEM_PROCESSOR": 
-        })
-
     set_env_vars = [
         "export {}=\"{}\"".format(key, _escape_dquote_bash(params.env[key]))
         for key in params.env
