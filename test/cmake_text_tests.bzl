@@ -683,6 +683,8 @@ def _create_cmake_script_toolchain_file_test(ctx):
     script = create_cmake_script(
         "ws",
         "unknown",
+        "unknown",
+        "unknown",
         "Ninja",
         "cmake",
         tools,
