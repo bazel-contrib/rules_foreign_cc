@@ -210,7 +210,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = [],
     ),
     "_android_constraint": attr.label(default = Label("@platforms//os:android")),
-    "_linux_constraint": attr.label(default = Label("@platforms//os:linux")),
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
@@ -220,6 +219,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
     ),
+    "_linux_constraint": attr.label(default = Label("@platforms//os:linux")),
 }
 
 # A list of common fragments required by rules using this framework
