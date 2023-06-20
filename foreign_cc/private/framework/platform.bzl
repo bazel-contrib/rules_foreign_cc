@@ -67,6 +67,14 @@ def os_name(ctx):
     return platform_info[ForeignCcPlatformInfo].os
 
 def target_arch_name(ctx):
+    """A helper function for getting the target architecture name based on the constraints
+
+    Args:
+        ctx (ctx): The current rule's context object
+
+    Returns:
+        str: The string of the current platform
+    """
     archs = ["x86_64", "aarch64"]
     for arch in archs:
         constraint = getattr(ctx.attr, "_{}_constraint".format(arch))

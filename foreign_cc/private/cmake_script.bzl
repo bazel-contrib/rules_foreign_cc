@@ -41,6 +41,8 @@ def create_cmake_script(
     Args:
         workspace_name: current workspace name
         target_os: The target OS for the build
+        target_arch: The target arch for the build
+        host_os: The execution OS for the build
         generator: The generator target for cmake to use
         cmake_path: The path to the cmake executable
         tools: cc_toolchain tools (CxxToolsInfo)
@@ -106,11 +108,11 @@ def create_cmake_script(
     }
 
     _target_arch_params = {
-        "x86_64": {
-            "CMAKE_SYSTEM_PROCESSOR": "x86_64",
-        },
         "aarch64": {
             "CMAKE_SYSTEM_PROCESSOR": "aarch64",
+        },
+        "x86_64": {
+            "CMAKE_SYSTEM_PROCESSOR": "x86_64",
         },
     }
 
