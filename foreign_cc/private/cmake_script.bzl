@@ -102,16 +102,16 @@ def create_cmake_script(
         },
         "linux": {
             "CMAKE_SYSTEM_NAME": "Linux",
-        }
+        },
     }
 
     _target_arch_params = {
         "x86_64": {
-            "CMAKE_SYSTEM_PROCESSOR": "x86_64"
+            "CMAKE_SYSTEM_PROCESSOR": "x86_64",
         },
         "aarch64": {
             "CMAKE_SYSTEM_PROCESSOR": "aarch64",
-        }
+        },
     }
 
     if target_os != host_os:
