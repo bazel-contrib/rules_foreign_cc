@@ -65,6 +65,7 @@ def create_cmake_script(
 
     # Collect the keys that are "" in order to suppress them below.
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
+
     # Allow user to actually set a key to "" by specifying "<empty>".
     user_cache.update([(key, "") for key in user_cache if user_cache.get(key) == "<empty>"])
 
