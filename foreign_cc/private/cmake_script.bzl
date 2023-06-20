@@ -114,6 +114,9 @@ def create_cmake_script(
         },
     }
 
+    print(target_os)
+    print(host_os)
+    print(arch)
     if target_os != host_os:
         params.cache.update(_target_os_params.get(target_os))
         params.cache.update(_target_arch_params.get(target_arch))
