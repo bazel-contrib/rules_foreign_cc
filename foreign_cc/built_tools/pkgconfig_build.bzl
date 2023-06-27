@@ -27,7 +27,7 @@ def _pkgconfig_tool_impl(ctx):
     frozen_arflags = flags_info.cxx_linker_static
 
     cc_path = tools_info.cc
-    cflags = flags_info.cc
+    cflags = flags_info.cc + ["-Wno-int-conversion"]  # Fix building with clang 15+
     sysroot_cflags = [flag for flag in cflags if flag.startswith("--sysroot=")]
     non_sysroot_cflags = [flag for flag in cflags if not flag.startswith("--sysroot=")]
 
