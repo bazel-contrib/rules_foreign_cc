@@ -9,7 +9,7 @@ def script_extension():
     return ".sh"
 
 def pwd():
-    return "$(type -t cygpath > /dev/null && cygpath $(pwd) -w || pwd -W)"
+    return "$(type -t cygpath > /dev/null && cygpath $(pwd) -m || pwd -W)"
 
 def echo(text):
     return "echo \"{text}\"".format(text = text)

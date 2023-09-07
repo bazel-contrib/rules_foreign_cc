@@ -10,6 +10,12 @@ CMAKE_SHA256_URL_TEMPLATE = "https://cmake.org/files/v{minor}/cmake-{full}-SHA-2
 CMAKE_URL_TEMPLATE = "https://github.com/Kitware/CMake/releases/download/v{full}/{file}"
 
 CMAKE_VERSIONS = [
+    "3.26.4",
+    "3.26.3",
+    "3.26.2",
+    "3.26.1",
+    "3.26.0",
+    "3.25.3",
     "3.25.2",
     "3.25.1",
     "3.25.0",

@@ -1,0 +1,37 @@
+"bazelbuild/rules_foreign_cc"
+
+module(
+    name = "rules_foreign_cc",
+    version = "0.0.0",
+    compatibility_level = 1,
+)
+
+bazel_dep(name = "bazel_skylib", version = "1.1.1")
+bazel_dep(name = "platforms", version = "0.0.5")
+bazel_dep(name = "rules_python", version = "0.20.0")
+
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+use_repo(
+    tools,
+    "cmake_3.23.2_toolchains",
+    "cmake_src",
+    "gnumake_src",
+    "meson_src",
+    "ninja_1.11.1_toolchains",
+    "ninja_build_src",
+    "pkgconfig_src",
+    "rules_foreign_cc_framework_toolchains",
+)
+
+register_toolchains(
+    "@rules_foreign_cc_framework_toolchains//:all",
+    "@rules_foreign_cc//toolchains:built_make_toolchain",
+    "@rules_foreign_cc//toolchains:built_meson_toolchain",
+    "@rules_foreign_cc//toolchains:built_pkgconfig_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_autoconf_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_automake_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_m4_toolchain",
+    "@rules_foreign_cc//toolchains:preinstalled_pkgconfig_toolchain",
+    "@cmake_3.23.2_toolchains//:all",
+    "@ninja_1.11.1_toolchains//:all",
+)

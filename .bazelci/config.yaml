@@ -54,6 +54,19 @@ tasks:
       - "//:third_party_examples_linux_tests"
     build_targets: *linux_targets
     test_targets: *linux_targets
+  ubuntu2004_examples_bzlmod:
+    name: Examples (bzlmod)
+    platform: ubuntu2004
+    working_directory: examples
+    linux_targets: &linux_targets_bzlmod
+      - "//..."
+      - "//:third_party_examples_linux_tests"
+      # gives error '//external:databinding_annotation_processor': target 'databinding_annotation_processor' not declared in package 'external' defined by /workdir/examples/WORKSPACE.bazel (Tip: use `query "//external:*"` to see all the targets in that package) and referenced by '@bazel_tools//tools/android:databinding_annotation_processor'
+      - "-//cmake_android/..."
+    build_targets: *linux_targets_bzlmod
+    test_targets: *linux_targets_bzlmod
+    build_flags:
+      - "--enable_bzlmod"
   rbe_ubuntu1604_examples:
     name: Examples
     platform: rbe_ubuntu1604
@@ -63,6 +76,8 @@ tasks:
       - "//:third_party_examples_linux_rbe_tests"
       # Gives error: zipalign: error while loading shared libraries: /usr/local/lib/libc++.so: file too short
       - "-//cmake_android/..."
+      # Python requirements not supported onUbuntu 16.04
+      - "-//:requirements_test"
     build_targets: *rbe_targets
     test_targets: *rbe_targets
   macos_examples_standalone:
@@ -107,10 +122,6 @@ tasks:
   windows_examples:
     name: Examples
     platform: windows
-    # Ping MSVC version to 2017, since LLVM 11.0.0 is not yet available on Bazel CI.
-    # TODO: remove after https://github.com/bazelbuild/continuous-integration/pull/1433 is deployed.
-    environment:
-      BAZEL_VC: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC"
     working_directory: examples
     windows_targets: &windows_targets
       - "//..."
@@ -191,6 +202,7 @@ tasks:
   min_supported_version:
     name: "Minimum Supported Version"
     bazel: "4.0.0"
+    skip_in_bazel_downstream_pipeline: "Bazel 4 required"
     platform: ubuntu1804
     build_targets:
       - "//..."
@@ -204,7 +216,8 @@ tasks:
       - "--experimental_enable_aggregating_middleman=False"
   min_supported_version_examples:
     name: "Minimum Supported Version Examples"
-    bazel: "4.0.0"
+    bazel: "4.2.0"
+    skip_in_bazel_downstream_pipeline: "Bazel 4 required"
     platform: ubuntu1804
     working_directory: examples
     min_supported_targets: &min_supported_targets
@@ -221,6 +234,6 @@ tasks:
       - "--experimental_enable_aggregating_middleman=False"
 
 buildifier:
-  version: "5.1.0"
+  version: "6.1.0"
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "all"

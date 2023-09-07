@@ -1,6 +1,6 @@
 """ This file contains useful utilities """
 
-def _full_label(label):
+def full_label(label):
     return native.repository_name() + "//" + native.package_name() + ":" + label
 
 def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, **kwargs):
@@ -22,9 +22,11 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
 
     tags = kwargs.pop("tags", [])
 
+    config_setting_name = name + "_windows_config_setting"
+
     # filegroups cannot select on constraint_values in before Bazel 5.1. Add this config_setting as a workaround. See https://github.com/bazelbuild/bazel/issues/13047
     native.config_setting(
-        name = "windows_config_setting",
+        name = config_setting_name,
         constraint_values = [
             "@platforms//os:windows",
         ],
@@ -35,7 +37,7 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
         srcs = [foreign_cc_target],
         tags = tags + ["manual"],
         output_group = select({
-            ":windows_config_setting": binary + ".exe",
+            ":" + config_setting_name: binary + ".exe",
             "//conditions:default": binary,
         }),
     )
@@ -50,8 +52,8 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
         srcs = ["@rules_foreign_cc//foreign_cc/private:runnable_binary_wrapper.sh", name + "_fg"],
         outs = [name + "_wrapper.sh"],
         cmd = select({
-            "@platforms//os:windows": wrapper_cmd.format(name = _full_label(name + "_fg"), sh_binary_filename = binary + ".exe" if match_binary_name else name),
-            "//conditions:default": wrapper_cmd.format(name = _full_label(name + "_fg"), sh_binary_filename = binary if match_binary_name else name),
+            "@platforms//os:windows": wrapper_cmd.format(name = full_label(name + "_fg"), sh_binary_filename = binary + ".exe" if match_binary_name else name),
+            "//conditions:default": wrapper_cmd.format(name = full_label(name + "_fg"), sh_binary_filename = binary if match_binary_name else name),
         }),
         tags = tags + ["manual"],
     )

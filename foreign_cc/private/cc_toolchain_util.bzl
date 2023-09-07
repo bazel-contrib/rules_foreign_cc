@@ -268,6 +268,7 @@ def get_flags_info(ctx, link_output_file = None):
                 feature_configuration = feature_configuration,
                 is_using_linker = True,
                 is_linking_dynamic_library = True,
+                must_keep_debug = False,
             ),
         ),
         cxx_linker_static = cc_common.get_memory_inefficient_command_line(
@@ -278,6 +279,7 @@ def get_flags_info(ctx, link_output_file = None):
                 feature_configuration = feature_configuration,
                 is_using_linker = False,
                 is_linking_dynamic_library = False,
+                must_keep_debug = False,
                 output_file = link_output_file,
             ),
         ),
@@ -289,6 +291,7 @@ def get_flags_info(ctx, link_output_file = None):
                 feature_configuration = feature_configuration,
                 is_using_linker = True,
                 is_linking_dynamic_library = False,
+                must_keep_debug = False,
             ),
         ),
         assemble = cc_common.get_memory_inefficient_command_line(

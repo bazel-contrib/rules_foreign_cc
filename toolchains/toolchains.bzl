@@ -16,6 +16,7 @@ def preinstalled_toolchains():
         "@rules_foreign_cc//toolchains:preinstalled_cmake_toolchain",
         "@rules_foreign_cc//toolchains:preinstalled_make_toolchain",
         "@rules_foreign_cc//toolchains:preinstalled_ninja_toolchain",
+        "@rules_foreign_cc//toolchains:preinstalled_meson_toolchain",
         "@rules_foreign_cc//toolchains:preinstalled_autoconf_toolchain",
         "@rules_foreign_cc//toolchains:preinstalled_automake_toolchain",
         "@rules_foreign_cc//toolchains:preinstalled_m4_toolchain",
@@ -76,6 +77,17 @@ current_ninja_toolchain = rule(
     incompatible_use_toolchain_transition = True,
     toolchains = [
         str(Label("//toolchains:ninja_toolchain")),
+    ],
+)
+
+current_meson_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:meson_toolchain"))),
+    },
+    incompatible_use_toolchain_transition = True,
+    toolchains = [
+        str(Label("//toolchains:meson_toolchain")),
     ],
 )
 

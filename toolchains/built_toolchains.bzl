@@ -15,8 +15,18 @@ filegroup(
 )
 """
 
+_MESON_BUILD_FILE_CONTENT = """\
+exports_files(["meson.py"])
+
+filegroup(
+    name = "runtime",
+    srcs = glob(["mesonbuild/**"]),
+    visibility = ["//visibility:public"],
+)
+"""
+
 # buildifier: disable=unnamed-macro
-def built_toolchains(cmake_version, make_version, ninja_version, pkgconfig_version, register_toolchains, register_built_pkgconfig_toolchain):
+def built_toolchains(cmake_version, make_version, ninja_version, meson_version, pkgconfig_version, register_toolchains, register_built_pkgconfig_toolchain):
     """
     Register toolchains for built tools that will be built from source
 
@@ -28,6 +38,8 @@ def built_toolchains(cmake_version, make_version, ninja_version, pkgconfig_versi
 
         ninja_version: The Ninja version to build
 
+        meson_version: The Meson version to build
+
         pkgconfig_version: The pkg-config version to build
 
         register_toolchains: If true, registers the toolchains via native.register_toolchains. Used by bzlmod
@@ -37,6 +49,7 @@ def built_toolchains(cmake_version, make_version, ninja_version, pkgconfig_versi
     _cmake_toolchain(cmake_version, register_toolchains)
     _make_toolchain(make_version, register_toolchains)
     _ninja_toolchain(ninja_version, register_toolchains)
+    _meson_toolchain(meson_version, register_toolchains)
 
     if register_built_pkgconfig_toolchain:
         _pkgconfig_toolchain(pkgconfig_version, register_toolchains)
@@ -142,6 +155,33 @@ def _ninja_toolchain(version, register_toolchains):
         return
 
     fail("Unsupported ninja version: " + str(version))
+
+def _meson_toolchain(version, register_toolchains):
+    if register_toolchains:
+        native.register_toolchains(
+            "@rules_foreign_cc//toolchains:built_meson_toolchain",
+        )
+    if version == "1.1.1":
+        maybe(
+            http_archive,
+            name = "meson_src",
+            build_file_content = _MESON_BUILD_FILE_CONTENT,
+            strip_prefix = "meson-1.1.1",
+            url = "https://github.com/mesonbuild/meson/releases/download/1.1.1/meson-1.1.1.tar.gz",
+        )
+        return
+    if version == "0.63.0":
+        maybe(
+            http_archive,
+            name = "meson_src",
+            build_file_content = _MESON_BUILD_FILE_CONTENT,
+            sha256 = "3b51d451744c2bc71838524ec8d96cd4f8c4793d5b8d5d0d0a9c8a4f7c94cd6f",
+            strip_prefix = "meson-0.63.0",
+            url = "https://github.com/mesonbuild/meson/releases/download/0.63.0/meson-0.63.0.tar.gz",
+        )
+        return
+
+    fail("Unsupported meson version: " + str(version))
 
 def _pkgconfig_toolchain(version, register_toolchains):
     if register_toolchains:
