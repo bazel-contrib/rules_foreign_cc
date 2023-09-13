@@ -39,6 +39,9 @@ while IFS=  read -r -d $'\0'; do
     SHARED_LIBS_ARRAY+=("$REPLY")
 done < <(find . -name "*${SHARED_LIB_SUFFIX}" -print0)
 
+# Allow unbound variable here, in case there isn't any shared libraries
+set +u
+
 # Add paths to shared library directories to SHARED_LIBS_DIRS_ARRAY
 SHARED_LIBS_DIRS_ARRAY=()
 for lib in "${SHARED_LIBS_ARRAY[@]}"; do
