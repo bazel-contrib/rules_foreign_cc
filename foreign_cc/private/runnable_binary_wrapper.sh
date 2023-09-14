@@ -39,6 +39,9 @@ while IFS=  read -r -d $'\0'; do
     SHARED_LIBS_ARRAY+=("$REPLY")
 done < <(find . -name "*${SHARED_LIB_SUFFIX}" -print0)
 
+# Allow unbound variable here, in case there are no shared libraries
+set +u
+
 # Add paths to shared library directories to SHARED_LIBS_DIRS_ARRAY
 SHARED_LIBS_DIRS_ARRAY=()
 for lib in "${SHARED_LIBS_ARRAY[@]}"; do
@@ -48,8 +51,6 @@ done
 # Remove duplicates from array
 IFS=" " read -r -a SHARED_LIBS_DIRS_ARRAY <<< "$(tr ' ' '\n' <<< "${SHARED_LIBS_DIRS_ARRAY[@]}" | sort -u | tr '\n' ' ')"
 
-# Allow unbound variable here, in case LD_LIBRARY_PATH or similar is not already set
-set +u
 for dir in "${SHARED_LIBS_DIRS_ARRAY[@]}"; do
     export ${LIB_PATH_VAR}="$dir":"${!LIB_PATH_VAR}"
 done
