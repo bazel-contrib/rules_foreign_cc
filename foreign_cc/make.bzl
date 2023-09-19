@@ -125,6 +125,7 @@ make = rule(
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
+    provides = [CcInfo],
     implementation = _make,
     toolchains = [
         "@rules_foreign_cc//toolchains:make_toolchain",
