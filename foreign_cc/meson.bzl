@@ -149,6 +149,7 @@ meson = rule(
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
+    provides = [CcInfo],
     implementation = _meson_impl,
     toolchains = [
         "@rules_foreign_cc//toolchains:meson_toolchain",
