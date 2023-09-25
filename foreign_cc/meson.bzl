@@ -15,6 +15,7 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
+load("//foreign_cc/private:cc_toolchain_util.bzl", "get_tools_info", "absolutize_path_in_str")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
@@ -61,8 +62,12 @@ def _create_meson_script(configureParameters):
     attrs = configureParameters.attrs
     inputs = configureParameters.inputs
 
+    tools = get_tools_info(ctx)
     script = pkgconfig_script(inputs.ext_build_dirs)
 
+    # CFLAGS and CXXFLAGS are also set in foreign_cc/private/cmake_script.bzl
+    script.append("##export_var## CC {}".format(_absolutize(ctx.workspace_name, tools.cc)))
+    script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
     script.append("##export_var## PKG_CONFIG {}".format(attrs.pkg_config_path))
@@ -201,3 +206,11 @@ def meson_with_requirements(name, requirements, **kwargs):
         toolchain = full_label("built_meson_toolchain_for_{}".format(name)),
         **kwargs
     )
+
+# TODO: converge with cmake_script.bzl
+def _absolutize(workspace_name, text, force = False):
+    if text.strip(" ").startswith("C:") or text.strip(" ").startswith("c:"):
+        return text
+
+    # Use bash parameter substitution to replace backslashes with forward slashes as CMake fails if provided paths containing backslashes
+    return absolutize_path_in_str(workspace_name, "$${EXT_BUILD_ROOT//\\\\//}$$/", text, force)
