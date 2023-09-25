@@ -3,6 +3,12 @@
 load("//foreign_cc:utils.bzl", "full_label")
 load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load(
+    "//foreign_cc/private:cc_toolchain_util.bzl",
+    "absolutize_path_in_str",
+    "get_flags_info",
+    "get_tools_info",
+)
+load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",
 )
@@ -15,7 +21,6 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
-load("//foreign_cc/private:cc_toolchain_util.bzl", "get_tools_info", "absolutize_path_in_str")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
@@ -65,9 +70,23 @@ def _create_meson_script(configureParameters):
     tools = get_tools_info(ctx)
     script = pkgconfig_script(inputs.ext_build_dirs)
 
-    # CFLAGS and CXXFLAGS are also set in foreign_cc/private/cmake_script.bzl
-    script.append("##export_var## CC {}".format(_absolutize(ctx.workspace_name, tools.cc)))
-    script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
+    # CFLAGS and CXXFLAGS are also set in foreign_cc/private/cmake_script.bzl, so that meson
+    # can use the intended tools.
+    # However, they are split by meson on whitespace. For Windows it's common to have spaces in path
+    # https://github.com/mesonbuild/meson/issues/3565
+    # Skip setting them in this case.
+    if " " not in tools.cc:
+        script.append("##export_var## CC {}".format(_absolutize(ctx.workspace_name, tools.cc)))
+    if " " not in tools.cxx:
+        script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
+    flags = get_flags_info(ctx)
+    if flags.cc:
+        print("tanx debug:" + "##export_var## CFLAGS {}".format(" ".join(flags.cc)))
+        script.append("##export_var## CFLAGS {}".format(" ".join(flags.cc)))
+    if flags.cxx:
+        script.append("##export_var## CXXFLAGS {}".format(" ".join(flags.cxx)))
+    if flags.cxx_linker_executable:
+        script.append("##export_var## LDFLAGS {}".format(" ".join(flags.cxx_linker_executable)))
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
     script.append("##export_var## PKG_CONFIG {}".format(attrs.pkg_config_path))
@@ -210,7 +229,7 @@ def meson_with_requirements(name, requirements, **kwargs):
 # TODO: converge with cmake_script.bzl
 def _absolutize(workspace_name, text, force = False):
     if text.strip(" ").startswith("C:") or text.strip(" ").startswith("c:"):
-        return text
+        return "\"{}\"".format(text)
 
     # Use bash parameter substitution to replace backslashes with forward slashes as CMake fails if provided paths containing backslashes
-    return absolutize_path_in_str(workspace_name, "$${EXT_BUILD_ROOT//\\\\//}$$/", text, force)
+    return "{}".format(absolutize_path_in_str(workspace_name, "$${EXT_BUILD_ROOT//\\\\//}$$/", text, force))
