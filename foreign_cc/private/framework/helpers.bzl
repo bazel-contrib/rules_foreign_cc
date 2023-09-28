@@ -148,7 +148,6 @@ def replace_exports(text, shell_context):
         fail("Wrong export declaration")
 
     (funname, after) = get_function_name(value.strip(" "))
-
     if funname:
         value = call_shell(shell_context, funname, *split_arguments(after.strip(" ")))
 
@@ -186,11 +185,12 @@ def do_function_call(text, shell_context):
     (funname, after) = get_function_name(text.strip(" "))
     if not funname:
         return text
-
+    print("tanx:", (funname, after))
     if funname == "export":
         return replace_exports(after, shell_context)
 
     arguments = split_arguments(after.strip(" ")) if after else []
+    print("tanx args:", arguments)
     return call_shell(shell_context, funname, *arguments)
 
 # buildifier: disable=function-docstring
@@ -199,22 +199,28 @@ def split_arguments(text):
     current = text.strip(" ")
 
     for _ in range(1, 2147483647):
+        current = current.strip(" ")
         if not current:
             break
 
         # we are ignoring escaped quotes
-        (before, separator, after) = current.partition("\"")
-        if not separator:
-            parts += current.split(" ")
+        s_quote = current.find("\"")
+        if s_quote < 0:
+            for e in current.split(" ") :
+                if len(e) > 0:
+                    parts.append(e)
             break
-        (quoted, separator2, after2) = after.partition("\"")
-        if not separator2:
-            fail("Incorrect quoting in fragment: {}".format(current))
 
-        before = before.strip(" ")
-        if before:
+        e_quote = current.find("\"", s_quote+1)
+        if e_quote < 0:
+            fail("Incorrect quoting in fragment: {}".format(current))
+        
+        # backtrack to first space, from here to e_quote is a token
+        e_before = current.rfind(" ", 0,s_quote)
+        if e_before >= 0:
+            before = current[0:e_before].strip(" ")
             parts += before.split(" ")
-        parts.append("\"" + quoted + "\"")
-        current = after2
+        parts.append(current[e_before+1:e_quote+1])
+        current = current[e_quote+1:]
 
     return parts

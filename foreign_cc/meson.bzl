@@ -82,11 +82,11 @@ def _create_meson_script(configureParameters):
     flags = get_flags_info(ctx)
     if flags.cc:
         print("tanx debug:" + "##export_var## CFLAGS {}".format(" ".join(flags.cc)))
-        script.append("##export_var## CFLAGS {}".format(" ".join(flags.cc)))
+        script.append("##export_var## CFLAGS \"{}\"".format(" ".join(flags.cc)))
     if flags.cxx:
-        script.append("##export_var## CXXFLAGS {}".format(" ".join(flags.cxx)))
+        script.append("##export_var## CXXFLAGS \"{}\"".format(" ".join(flags.cxx)))
     if flags.cxx_linker_executable:
-        script.append("##export_var## LDFLAGS {}".format(" ".join(flags.cxx_linker_executable)))
+        script.append("##export_var## LDFLAGS \"{}\"".format(" ".join(flags.cxx_linker_executable)))
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
     script.append("##export_var## PKG_CONFIG {}".format(attrs.pkg_config_path))
