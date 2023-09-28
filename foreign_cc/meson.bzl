@@ -5,7 +5,6 @@ load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "absolutize_path_in_str",
-    "get_flags_info",
     "get_tools_info",
 )
 load(
@@ -70,6 +69,8 @@ def _create_meson_script(configureParameters):
     tools = get_tools_info(ctx)
     script = pkgconfig_script(inputs.ext_build_dirs)
 
+
+
     # CFLAGS and CXXFLAGS are also set in foreign_cc/private/cmake_script.bzl, so that meson
     # can use the intended tools.
     # However, they are split by meson on whitespace. For Windows it's common to have spaces in path
@@ -77,16 +78,27 @@ def _create_meson_script(configureParameters):
     # Skip setting them in this case.
     if " " not in tools.cc:
         script.append("##export_var## CC {}".format(_absolutize(ctx.workspace_name, tools.cc)))
+        script.append("##export_var## CC_LD {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_executable)))
     if " " not in tools.cxx:
+        print("tanx tools.cxx", tools.cxx)
         script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
-    flags = get_flags_info(ctx)
-    if flags.cc:
-        print("tanx debug:" + "##export_var## CFLAGS {}".format(" ".join(flags.cc).replace("\"", "'")))
-        script.append("##export_var## CFLAGS \"{}\"".format(" ".join(flags.cc).replace("\"", "'")))
-    if flags.cxx:
-        script.append("##export_var## CXXFLAGS \"{}\"".format(" ".join(flags.cxx).replace("\"", "'")))
-    if flags.cxx_linker_executable:
-        script.append("##export_var## LDFLAGS \"{}\"".format(" ".join(flags.cxx_linker_executable).replace("\"", "'")))
+        script.append("##export_var## CXX_LD {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_executable)))
+    
+    copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + getattr(ctx.attr, "copts", [])) or []
+    cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []
+    linkopts = (ctx.fragments.cpp.linkopts + getattr(ctx.attr, "linkopts", [])) or []
+
+    if copts:
+        script.append("##export_var## CFLAGS \"{}\"".format(" ".join(copts).replace("\"", "'")))
+    if cxxopts:
+        script.append("##export_var## CXXFLAGS \"{}\"".format(" ".join(cxxopts).replace("\"", "'")))
+    if linkopts:
+        # print("tanx flags.cxx_linker_executable", linkopts)
+        script.append("##export_var## LDFLAGS \"{}\"".format(" ".join(linkopts).replace("\"", "'")))
+    # if attrs.copts:
+    #     script.append("##export_var## CFLAGS {}".format(",".join(attrs.copts)))
+    # if attrs.linkopts:
+    #     script.append("##export_var## LDFLAGS {}".format(",".join(attrs.linkopts)))
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
     script.append("##export_var## PKG_CONFIG {}".format(attrs.pkg_config_path))

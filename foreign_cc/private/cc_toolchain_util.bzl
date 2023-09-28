@@ -237,6 +237,7 @@ def get_flags_info(ctx, link_output_file = None):
         cc_toolchain = cc_toolchain_,
     )
 
+
     copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + getattr(ctx.attr, "copts", [])) or []
     cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []
     linkopts = (ctx.fragments.cpp.linkopts + getattr(ctx.attr, "linkopts", [])) or []
@@ -306,6 +307,8 @@ def get_flags_info(ctx, link_output_file = None):
             ),
         ),
     )
+    print("tanx flags.cxx_linker_executable: ", flags.cxx_linker_executable)
+
     return CxxFlagsInfo(
         cc = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cc, copts)),
         cxx = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cxx, cxxopts)),

@@ -38,6 +38,13 @@ meson_with_requirements(
             "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @bison//:gen_dir))/bison/bin:$$(dirname $$EXT_BUILD_ROOT$$/$(location @flex//:flex_exe)):$$EXT_BUILD_DEPS$$/bin/m4/bin/:$$(dirname $$EXT_BUILD_ROOT$$/$(PYTHON3)):$$PATH",
         },
     }),
+    copts = select({
+        "@platforms//os:macos": ["-std=c++"],
+        "@openssl//:msvc_compiler": ["/std:c++14"],
+        "@platforms//os:linux": ["-std=c++14"],
+        "//conditions:default": [],
+    }),
+
     lib_source = ":all_srcs",
     linkopts = select({
         "@openssl//:msvc_compiler": [
