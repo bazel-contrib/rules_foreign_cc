@@ -196,20 +196,10 @@ def get_tools_info(ctx):
     """
     cc_toolchain = find_cpp_toolchain(ctx)
 
-    # print("tanx cc_toolchain.basename:",cc_toolchain.all_files.to_list()[-2].basename)
-    # print("tanx cc_toolchain.dirname:",cc_toolchain.all_files.to_list()[-2].dirname)
-    # print("tanx cc_toolchain.extension:",cc_toolchain.all_files.to_list()[-2].extension)
-    # print("tanx cc_toolchain.path:",cc_toolchain.all_files.to_list()[-2].path)
-    # print("tanx cc_toolchain.root:",cc_toolchain.all_files.to_list()[-2].root.path)
     feature_configuration = _configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
     )
-    cppp = cc_common.get_tool_for_action(
-        feature_configuration = feature_configuration,
-        action_name = ACTION_NAMES.cpp_compile,
-    )
-    print("cppp", cppp)
 
     return CxxToolsInfo(
         cc = cc_common.get_tool_for_action(
@@ -317,7 +307,6 @@ def get_flags_info(ctx, link_output_file = None):
             ),
         ),
     )
-    print("tanx flags.cxx_linker_executable: ", flags.cxx_linker_executable)
 
     return CxxFlagsInfo(
         cc = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cc, copts)),
