@@ -68,7 +68,7 @@ def _create_meson_script(configureParameters):
 
     tools = get_tools_info(ctx)
     script = pkgconfig_script(inputs.ext_build_dirs)
-
+    
 
 
     # CFLAGS and CXXFLAGS are also set in foreign_cc/private/cmake_script.bzl, so that meson
@@ -78,11 +78,11 @@ def _create_meson_script(configureParameters):
     # Skip setting them in this case.
     if " " not in tools.cc:
         script.append("##export_var## CC {}".format(_absolutize(ctx.workspace_name, tools.cc)))
-        script.append("##export_var## CC_LD {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_executable)))
+        # script.append("##export_var## CC_LD {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_executable)))
     if " " not in tools.cxx:
-        print("tanx tools.cxx", tools.cxx)
+        # print("tanx tools.cxx", tools.cxx)
         script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
-        script.append("##export_var## CXX_LD {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_executable)))
+        # script.append("##export_var## CXX_LD {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_executable)))
     
     copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + getattr(ctx.attr, "copts", [])) or []
     cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []
@@ -93,7 +93,6 @@ def _create_meson_script(configureParameters):
     if cxxopts:
         script.append("##export_var## CXXFLAGS \"{}\"".format(" ".join(cxxopts).replace("\"", "'")))
     if linkopts:
-        # print("tanx flags.cxx_linker_executable", linkopts)
         script.append("##export_var## LDFLAGS \"{}\"".format(" ".join(linkopts).replace("\"", "'")))
     # if attrs.copts:
     #     script.append("##export_var## CFLAGS {}".format(",".join(attrs.copts)))

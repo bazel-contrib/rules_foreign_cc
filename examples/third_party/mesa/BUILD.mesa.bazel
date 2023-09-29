@@ -39,7 +39,6 @@ meson_with_requirements(
         },
     }),
     copts = select({
-        "@platforms//os:macos": ["-std=c++"],
         "@openssl//:msvc_compiler": ["/std:c++14"],
         "@platforms//os:linux": ["-std=c++14"],
         "//conditions:default": [],
@@ -51,6 +50,7 @@ meson_with_requirements(
             "ws2_32.lib",
         ],
         "@platforms//os:linux": ["-lstdc++"],
+        # "@platforms//os:macos": ["-mlinker-version=305"],
         "//conditions:default": [],
     }),
     options = select({
