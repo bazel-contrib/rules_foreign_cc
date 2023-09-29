@@ -39,7 +39,7 @@ meson_with_requirements(
         },
     }),
     copts = select({
-        "@openssl//:msvc_compiler": ["/std:c++14"],
+        # "@openssl//:msvc_compiler": ["/std:c++14"],
         "@platforms//os:linux": ["-std=c++14"],
         "//conditions:default": [],
     }),
