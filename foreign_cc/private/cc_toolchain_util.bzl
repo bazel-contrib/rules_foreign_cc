@@ -195,6 +195,7 @@ def get_tools_info(ctx):
         ctx: rule context
     """
     cc_toolchain = find_cpp_toolchain(ctx)
+
     # print("tanx cc_toolchain.basename:",cc_toolchain.all_files.to_list()[-2].basename)
     # print("tanx cc_toolchain.dirname:",cc_toolchain.all_files.to_list()[-2].dirname)
     # print("tanx cc_toolchain.extension:",cc_toolchain.all_files.to_list()[-2].extension)
@@ -208,7 +209,7 @@ def get_tools_info(ctx):
         feature_configuration = feature_configuration,
         action_name = ACTION_NAMES.cpp_compile,
     )
-    print("cppp",cppp)
+    print("cppp", cppp)
 
     return CxxToolsInfo(
         cc = cc_common.get_tool_for_action(
@@ -246,7 +247,6 @@ def get_flags_info(ctx, link_output_file = None):
         ctx = ctx,
         cc_toolchain = cc_toolchain_,
     )
-
 
     copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + getattr(ctx.attr, "copts", [])) or []
     cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []

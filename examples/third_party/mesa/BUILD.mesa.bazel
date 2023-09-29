@@ -28,6 +28,11 @@ meson_with_requirements(
             "@m4//:m4_exe",
         ],
     }),
+    copts = select({
+        "@openssl//:msvc_compiler": ["/std:c++11"],
+        "@platforms//os:linux": ["-std=c++14"],
+        "//conditions:default": [],
+    }),
     env = select({
         "@bazel_tools//src/conditions:host_windows": {
             "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @winflexbison//:gen_dir))/winflexbison:$$(dirname $$EXT_BUILD_ROOT$$/$(PYTHON3)):$$PATH",
@@ -38,12 +43,6 @@ meson_with_requirements(
             "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @bison//:gen_dir))/bison/bin:$$(dirname $$EXT_BUILD_ROOT$$/$(location @flex//:flex_exe)):$$EXT_BUILD_DEPS$$/bin/m4/bin/:$$(dirname $$EXT_BUILD_ROOT$$/$(PYTHON3)):$$PATH",
         },
     }),
-    copts = select({
-        "@openssl//:msvc_compiler": ["/std:c++11"],
-        "@platforms//os:linux": ["-std=c++14"],
-        "//conditions:default": [],
-    }),
-
     lib_source = ":all_srcs",
     linkopts = select({
         "@openssl//:msvc_compiler": [
