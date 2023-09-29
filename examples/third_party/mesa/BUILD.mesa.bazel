@@ -48,7 +48,6 @@ meson_with_requirements(
         "@openssl//:msvc_compiler": [
             "ws2_32.lib",
         ],
-        "@platforms//os:linux": ["-lstdc++"],
         "//conditions:default": [],
     }),
     options = select({

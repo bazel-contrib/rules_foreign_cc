@@ -5,6 +5,7 @@ load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "absolutize_path_in_str",
+    "get_flags_info",
     "get_tools_info",
 )
 load(
@@ -84,14 +85,15 @@ def _create_meson_script(configureParameters):
     # aren't compatible with compiler or linker above
     copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + getattr(ctx.attr, "copts", [])) or []
     cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []
-    linkopts = (ctx.fragments.cpp.linkopts + getattr(ctx.attr, "linkopts", [])) or []
 
     if copts:
         script.append("##export_var## CFLAGS \"{}\"".format(" ".join(copts).replace("\"", "'")))
     if cxxopts:
         script.append("##export_var## CXXFLAGS \"{}\"".format(" ".join(cxxopts).replace("\"", "'")))
-    if linkopts:
-        script.append("##export_var## LDFLAGS \"{}\"".format(" ".join(linkopts).replace("\"", "'")))
+    
+    flags = get_flags_info(ctx)
+    if flags.cxx_linker_executable:
+        script.append("##export_var## LDFLAGS \"{}\"".format(" ".join(flags.cxx_linker_executable).replace("\"", "'")))
 
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
