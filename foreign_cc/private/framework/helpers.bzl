@@ -148,6 +148,7 @@ def replace_exports(text, shell_context):
         fail("Wrong export declaration")
 
     (funname, after) = get_function_name(value.strip(" "))
+
     if funname:
         value = call_shell(shell_context, funname, *split_arguments(after.strip(" ")))
 
@@ -185,12 +186,12 @@ def do_function_call(text, shell_context):
     (funname, after) = get_function_name(text.strip(" "))
     if not funname:
         return text
-    print("tanx:", (funname, after))
+
     if funname == "export":
         return replace_exports(after, shell_context)
 
     arguments = split_arguments(after.strip(" ")) if after else []
-    print("tanx args:", arguments)
+
     return call_shell(shell_context, funname, *arguments)
 
 # buildifier: disable=function-docstring
