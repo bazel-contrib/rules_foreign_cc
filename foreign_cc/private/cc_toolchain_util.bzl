@@ -195,7 +195,6 @@ def get_tools_info(ctx):
         ctx: rule context
     """
     cc_toolchain = find_cpp_toolchain(ctx)
-
     feature_configuration = _configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
@@ -307,7 +306,6 @@ def get_flags_info(ctx, link_output_file = None):
             ),
         ),
     )
-
     return CxxFlagsInfo(
         cc = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cc, copts)),
         cxx = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cxx, cxxopts)),

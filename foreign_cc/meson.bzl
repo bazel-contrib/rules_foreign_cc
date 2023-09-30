@@ -90,7 +90,7 @@ def _create_meson_script(configureParameters):
         script.append("##export_var## CFLAGS \"{}\"".format(" ".join(copts).replace("\"", "'")))
     if cxxopts:
         script.append("##export_var## CXXFLAGS \"{}\"".format(" ".join(cxxopts).replace("\"", "'")))
-    
+
     flags = get_flags_info(ctx)
     if flags.cxx_linker_executable:
         script.append("##export_var## LDFLAGS \"{}\"".format(" ".join(flags.cxx_linker_executable).replace("\"", "'")))
