@@ -23,7 +23,7 @@ def iconv_repositories():
             "https://opensource.apple.com/tarballs/libiconv/libiconv-59.tar.gz",
         ],
         type = "tar.gz",
-        sha256 = "f7729999a9f2adc8c158012bc4bc8d69bea5dec88c8203cdd62067f91ed60b43",
-        strip_prefix = "libiconv-59/libiconv",
+        sha256 = "975f31be8eb193d5099b5fc4fc343b95c0eb83d59ffa6e5bde9454def2228a53",
+        strip_prefix = "libiconv-libiconv-59/libiconv",
         build_file = Label("//iconv:BUILD.iconv.macos.bazel"),
     )

@@ -20,7 +20,7 @@ _CACHE_ENTRIES = {
 
 _LINUX_CACHE_ENTRIES = dict(_CACHE_ENTRIES.items() + {
     "CMAKE_C_FLAGS": "${CMAKE_C_FLAGS:-} -fPIC",
-    "REGEX_BACKEND": "pcre",
+    "REGEX_BACKEND": "pcre2",
 }.items())
 
 cmake(
@@ -38,8 +38,8 @@ cmake(
     visibility = ["//visibility:public"],
     deps = [
         "@libssh2",
-        "@zlib",
         "@openssl",
+        "@zlib",
     ] + select({
         "@platforms//os:linux": ["@pcre"],
         "@platforms//os:macos": ["@iconv_macos//:iconv"],

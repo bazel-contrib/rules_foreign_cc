@@ -14,7 +14,7 @@ utils_test_suite()
 shell_script_helper_test_rule(
     name = "shell_script_inner_fun",
     out = "inner_fun_text.txt",
-    script = ["##symlink_contents_to_dir## $$SOURCE_DIR$$ $$TARGET_DIR$$"],
+    script = ["##symlink_contents_to_dir## $$SOURCE_DIR$$ $$TARGET_DIR$$ False"],
 )
 
 # TODO: This should not be necessary but there appears to be some inconsistent

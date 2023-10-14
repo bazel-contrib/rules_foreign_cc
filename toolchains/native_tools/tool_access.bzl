@@ -35,6 +35,9 @@ def get_make_data(ctx):
 def get_ninja_data(ctx):
     return _access_and_expect_label_copied(Label("//toolchains:ninja_toolchain"), ctx)
 
+def get_meson_data(ctx):
+    return _access_and_expect_label_copied(Label("//toolchains:meson_toolchain"), ctx)
+
 def get_pkgconfig_data(ctx):
     return _access_and_expect_label_copied(Label("//toolchains:pkgconfig_toolchain"), ctx)
 
@@ -49,14 +52,14 @@ def _access_and_expect_label_copied(toolchain_type_, ctx):
                 cmd_file = f
                 break
         return struct(
-            deps = [tool_data.target],
+            target = tool_data.target,
             env = tool_data.env,
             # as the tool will be copied into tools directory
             path = "$EXT_BUILD_ROOT/{}".format(cmd_file.path),
         )
     else:
         return struct(
-            deps = [],
+            target = None,
             env = tool_data.env,
             path = tool_data.path,
         )

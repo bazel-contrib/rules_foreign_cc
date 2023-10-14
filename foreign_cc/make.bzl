@@ -18,19 +18,19 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:make_script.bzl", "create_make_script")
-load("//foreign_cc/private:transitions.bzl", _make_variant = "make_variant")
+load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
 def _make(ctx):
     make_data = get_make_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + make_data.deps
+    tools_data = [make_data]
 
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Make",
         create_configure_script = _create_make_script,
-        tools_deps = tools_deps,
+        tools_data = tools_data,
         make_path = make_data.path,
     )
     return cc_external_rule_impl(ctx, attrs)
@@ -94,7 +94,9 @@ def _attrs():
         "targets": attr.string_list(
             doc = (
                 "A list of targets within the foreign build system to produce. An empty string (`\"\"`) will result in " +
-                "a call to the underlying build system with no explicit target set"
+                "a call to the underlying build system with no explicit target set. However, in order to extract build " +
+                "outputs, you must execute at least an equivalent of make install, and have your make file copy the build " +
+                "outputs into the directory specified by `install_prefix`."
             ),
             mandatory = False,
             default = ["", "install"],
@@ -107,11 +109,23 @@ make = rule(
         "Rule for building external libraries with GNU Make. " +
         "GNU Make commands (make and make install by default) are invoked with PREFIX=\"install\" " +
         "(by default), and other environment variables for compilation and linking, taken from Bazel C/C++ " +
-        "toolchain and passed dependencies."
+        "toolchain and passed dependencies. " +
+        "Not all Makefiles will work equally well here, and some may require patching." +
+        "Your Makefile must either support passing the install prefix using the PREFIX flag, or " +
+        "it needs to have a different way to pass install prefix to it. An equivalent of " +
+        "make install MUST be specified as one of the targets." +
+        "This is because all the paths with param names prefixed by out_* are expressed " +
+        "as relative to INSTALLDIR, not the source directory." +
+        "That is, if you execute only make, but not make install, this rule will not be able " +
+        "to pick up any build outputs. Finally, your make install rule must dereference symlinks " +
+        "to ensure that the installed files don't end up being symlinks to files in the sandbox. " +
+        "For example, installation lines like `cp $SOURCE $DEST` must become `cp -L $SOURCE $DEST`, " +
+        "as the -L will ensure that symlinks are dereferenced."
     ),
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
+    provides = [CcInfo],
     implementation = _make,
     toolchains = [
         "@rules_foreign_cc//toolchains:make_toolchain",
@@ -131,7 +145,7 @@ def make_variant(name, toolchain, **kwargs):
         toolchain: The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain
         **kwargs: Remaining keyword arguments
     """
-    _make_variant(
+    foreign_cc_rule_variant(
         name = name,
         rule = make,
         toolchain = toolchain,

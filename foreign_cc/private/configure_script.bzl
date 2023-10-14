@@ -5,18 +5,17 @@ load(":make_script.bzl", "pkgconfig_script")
 # buildifier: disable=function-docstring
 def create_configure_script(
         workspace_name,
-        target_os,
         tools,
         flags,
         root,
         user_options,
-        is_debug,
         configure_prefix,
         configure_command,
         deps,
         inputs,
         env_vars,
         configure_in_place,
+        prefix_flag,
         autoconf,
         autoconf_options,
         autoreconf,
@@ -70,10 +69,11 @@ def create_configure_script(
         ).lstrip())
 
     script.append("##mkdirs## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$")
-    script.append("{env_vars} {prefix}\"{configure}\" --prefix=$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+    script.append("{env_vars} {prefix}\"{configure}\" {prefix_flag}$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
         env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs),
         prefix = configure_prefix,
         configure = configure_path,
+        prefix_flag = prefix_flag,
         user_options = " ".join(user_options),
     ))
 

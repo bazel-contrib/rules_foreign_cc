@@ -41,8 +41,8 @@ extra_toolchains_transitioned_foreign_cc_target = rule(
     incompatible_use_toolchain_transition = True,
 )
 
-def make_variant(name, rule, toolchain, **kwargs):
-    """ Wrapper macro around foreign cc rules to force usage of the given make variant toolchain.
+def foreign_cc_rule_variant(name, rule, toolchain, **kwargs):
+    """ Wrapper macro around foreign cc rules to force usage of the given  toolchain.
 
     Args:
         name: The target name
@@ -51,19 +51,22 @@ def make_variant(name, rule, toolchain, **kwargs):
         **kwargs: Remaining keyword arguments
     """
 
-    make_variant_target_name = name + "_"
+    foreign_cc_rule_target_name = name + "_"
 
     tags = kwargs.pop("tags", [])
+    visibility = kwargs.pop("visibility", [])
 
     rule(
-        name = make_variant_target_name,
+        name = foreign_cc_rule_target_name,
         tags = tags + ["manual"],
+        visibility = visibility,
         **kwargs
     )
 
     extra_toolchains_transitioned_foreign_cc_target(
         name = name,
         extra_toolchains = [toolchain],
-        target = make_variant_target_name,
+        target = foreign_cc_rule_target_name,
         tags = tags,
+        visibility = visibility,
     )

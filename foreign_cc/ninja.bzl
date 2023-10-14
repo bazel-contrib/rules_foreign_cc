@@ -25,13 +25,13 @@ def _ninja_impl(ctx):
     """
     ninja_data = get_ninja_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + ninja_data.deps
+    tools_data = [ninja_data]
 
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Ninja",
         create_configure_script = _create_ninja_script,
-        tools_deps = tools_deps,
+        tools_data = tools_data,
         ninja_path = ninja_data.path,
     )
     return cc_external_rule_impl(ctx, attrs)
@@ -51,7 +51,7 @@ def _create_ninja_script(configureParameters):
     script = []
 
     root = detect_root(ctx.attr.lib_source)
-    script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
+    script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$ False".format(root))
 
     data = ctx.attr.data + ctx.attr.build_data
 
@@ -111,6 +111,7 @@ ninja = rule(
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
+    provides = [CcInfo],
     implementation = _ninja_impl,
     toolchains = [
         "@rules_foreign_cc//toolchains:ninja_toolchain",
