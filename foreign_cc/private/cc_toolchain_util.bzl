@@ -21,6 +21,7 @@ CxxToolsInfo = provider(
         cxx = "C++ compiler",
         cxx_linker_static = "C++ linker to link static library",
         cxx_linker_executable = "C++ linker to link executable",
+        ld = "linker",
     ),
 )
 
@@ -216,6 +217,7 @@ def get_tools_info(ctx):
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.cpp_link_executable,
         ),
+        ld = cc_toolchain.ld_executable,
     )
 
 def get_flags_info(ctx, link_output_file = None):
