@@ -242,6 +242,9 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "unknown",
+        "unknown",
+        "unknown",
         "Unix Makefiles",
         "cmake",
         tools,
@@ -291,6 +294,9 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "unknown",
+        "unknown",
+        "unknown",
         "Ninja",
         "cmake",
         tools,
@@ -344,6 +350,9 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "unknown",
+        "unknown",
+        "unknown",
         "Ninja",
         "cmake",
         tools,
@@ -393,6 +402,9 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "unknown",
+        "unknown",
+        "unknown",
         "Ninja",
         "cmake",
         tools,
@@ -470,6 +482,9 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "unknown",
+        "unknown",
+        "unknown",
         "Ninja",
         "cmake",
         tools,
@@ -490,6 +505,140 @@ export ASMFLAGS="assemble assemble-user"
 export CUSTOM_ENV="YES"
 ##enable_tracing##
 cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+##disable_tracing##
+"""
+    asserts.equals(env, expected.splitlines(), script)
+
+    return unittest.end(env)
+
+def _create_cmake_script_android_test(ctx):
+    env = unittest.begin(ctx)
+
+    tools = CxxToolsInfo(
+        cc = "/some-cc-value",
+        cxx = "external/cxx-value",
+        cxx_linker_static = "/cxx_linker_static",
+        cxx_linker_executable = "ws/cxx_linker_executable",
+    )
+    flags = CxxFlagsInfo(
+        cc = ["-cc-flag", "-gcc_toolchain", "cc-toolchain"],
+        cxx = [
+            "--quoted=\"abc def\"",
+            "--sysroot=/abc/sysroot",
+            "--gcc_toolchain",
+            "cxx-toolchain",
+        ],
+        cxx_linker_shared = ["shared1", "shared2"],
+        cxx_linker_static = ["static"],
+        cxx_linker_executable = ["executable"],
+        assemble = ["assemble"],
+    )
+    user_env = {
+        "CC": "sink-cc-value",
+        "CFLAGS": "--from-env",
+        "CUSTOM_ENV": "YES",
+        "CXX": "sink-cxx-value",
+    }
+    user_cache = {
+        "CMAKE_ASM_FLAGS": "assemble-user",
+        "CMAKE_BUILD_TYPE": "user_type",
+        "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CMAKE_C_FLAGS": "--additional-flag",
+        "CUSTOM_CACHE": "YES",
+    }
+
+    script = create_cmake_script(
+        "ws",
+        "android",
+        "x86_64",
+        "unknown",
+        "Ninja",
+        "cmake",
+        tools,
+        flags,
+        "test_rule",
+        "external/test_rule",
+        True,
+        user_cache,
+        user_env,
+        ["--debug-output", "-Wdev"],
+        cmake_commands = [],
+    )
+    expected = r"""export CC="sink-cc-value"
+export CXX="sink-cxx-value"
+export CFLAGS="-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag"
+export CXXFLAGS="--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain"
+export ASMFLAGS="assemble assemble-user"
+export CUSTOM_ENV="YES"
+##enable_tracing##
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" -DANDROID="YES" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="x86_64" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+##disable_tracing##
+"""
+    asserts.equals(env, expected.splitlines(), script)
+
+    return unittest.end(env)
+
+def _create_cmake_script_linux_test(ctx):
+    env = unittest.begin(ctx)
+
+    tools = CxxToolsInfo(
+        cc = "/some-cc-value",
+        cxx = "external/cxx-value",
+        cxx_linker_static = "/cxx_linker_static",
+        cxx_linker_executable = "ws/cxx_linker_executable",
+    )
+    flags = CxxFlagsInfo(
+        cc = ["-cc-flag", "-gcc_toolchain", "cc-toolchain"],
+        cxx = [
+            "--quoted=\"abc def\"",
+            "--sysroot=/abc/sysroot",
+            "--gcc_toolchain",
+            "cxx-toolchain",
+        ],
+        cxx_linker_shared = ["shared1", "shared2"],
+        cxx_linker_static = ["static"],
+        cxx_linker_executable = ["executable"],
+        assemble = ["assemble"],
+    )
+    user_env = {
+        "CC": "sink-cc-value",
+        "CFLAGS": "--from-env",
+        "CUSTOM_ENV": "YES",
+        "CXX": "sink-cxx-value",
+    }
+    user_cache = {
+        "CMAKE_ASM_FLAGS": "assemble-user",
+        "CMAKE_BUILD_TYPE": "user_type",
+        "CMAKE_CXX_LINK_EXECUTABLE": "became",
+        "CMAKE_C_FLAGS": "--additional-flag",
+        "CUSTOM_CACHE": "YES",
+    }
+
+    script = create_cmake_script(
+        "ws",
+        "linux",
+        "aarch64",
+        "unknown",
+        "Ninja",
+        "cmake",
+        tools,
+        flags,
+        "test_rule",
+        "external/test_rule",
+        True,
+        user_cache,
+        user_env,
+        ["--debug-output", "-Wdev"],
+        cmake_commands = [],
+    )
+    expected = r"""export CC="sink-cc-value"
+export CXX="sink-cxx-value"
+export CFLAGS="-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag"
+export CXXFLAGS="--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain"
+export ASMFLAGS="assemble assemble-user"
+export CUSTOM_ENV="YES"
+##enable_tracing##
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="aarch64" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -533,6 +682,9 @@ def _create_cmake_script_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        "unknown",
+        "unknown",
+        "unknown",
         "Ninja",
         "cmake",
         tools,
@@ -592,6 +744,8 @@ create_min_cmake_script_no_toolchain_file_test = unittest.make(_create_min_cmake
 create_min_cmake_script_toolchain_file_test = unittest.make(_create_min_cmake_script_toolchain_file_test)
 create_cmake_script_no_toolchain_file_test = unittest.make(_create_cmake_script_no_toolchain_file_test)
 create_cmake_script_toolchain_file_test = unittest.make(_create_cmake_script_toolchain_file_test)
+create_cmake_script_android_test = unittest.make(_create_cmake_script_android_test)
+create_cmake_script_linux_test = unittest.make(_create_cmake_script_linux_test)
 merge_flag_values_no_toolchain_file_test = unittest.make(_merge_flag_values_no_toolchain_file_test)
 create_min_cmake_script_wipe_toolchain_test = unittest.make(_create_min_cmake_script_wipe_toolchain_test)
 
@@ -609,6 +763,8 @@ def cmake_script_test_suite():
         create_min_cmake_script_toolchain_file_test,
         create_cmake_script_no_toolchain_file_test,
         create_cmake_script_toolchain_file_test,
+        create_cmake_script_android_test,
+        create_cmake_script_linux_test,
         merge_flag_values_no_toolchain_file_test,
         create_min_cmake_script_wipe_toolchain_test,
     )

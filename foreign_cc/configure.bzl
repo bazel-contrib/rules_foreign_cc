@@ -6,7 +6,6 @@ load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
     "get_tools_info",
-    "is_debug_mode",
 )
 load("//foreign_cc/private:configure_script.bzl", "create_configure_script")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
@@ -18,14 +17,14 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
-load("//foreign_cc/private:transitions.bzl", "make_variant")
-load("//foreign_cc/private/framework:platform.bzl", "os_name")
-load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
+load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
+load("//toolchains/native_tools:tool_access.bzl", "get_make_data", "get_pkgconfig_data")
 
 def _configure_make(ctx):
     make_data = get_make_data(ctx)
+    pkg_config_data = get_pkgconfig_data(ctx)
 
-    tools_deps = ctx.attr.tools_deps + make_data.deps
+    tools_data = [make_data, pkg_config_data]
 
     if ctx.attr.autogen and not ctx.attr.configure_in_place:
         fail("`autogen` requires `configure_in_place = True`. Please update {}".format(
@@ -49,7 +48,7 @@ def _configure_make(ctx):
         configure_name = "Configure",
         create_configure_script = _create_configure_script,
         postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
-        tools_deps = tools_deps,
+        tools_data = tools_data,
         make_path = make_data.path,
     )
     return cc_external_rule_impl(ctx, attrs)
@@ -58,8 +57,6 @@ def _create_configure_script(configureParameters):
     ctx = configureParameters.ctx
     attrs = configureParameters.attrs
     inputs = configureParameters.inputs
-
-    install_prefix = _get_install_prefix(ctx)
 
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
@@ -91,19 +88,17 @@ def _create_configure_script(configureParameters):
 
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
-        # as default, pass execution OS as target OS
-        target_os = os_name(ctx),
         tools = tools,
         flags = flags,
         root = detect_root(ctx.attr.lib_source),
         user_options = ctx.attr.configure_options,
-        is_debug = is_debug_mode(ctx),
         configure_prefix = configure_prefix,
         configure_command = ctx.attr.configure_command,
         deps = ctx.attr.deps,
         inputs = inputs,
         env_vars = user_env,
         configure_in_place = ctx.attr.configure_in_place,
+        prefix_flag = ctx.attr.prefix_flag,
         autoconf = ctx.attr.autoconf,
         autoconf_options = ctx.attr.autoconf_options,
         autoreconf = ctx.attr.autoreconf,
@@ -194,9 +189,16 @@ def _attrs():
         "install_prefix": attr.string(
             doc = (
                 "Install prefix, i.e. relative path to where to install the result of the build. " +
-                "Passed to the 'configure' script with --prefix flag."
+                "Passed to the 'configure' script with the flag specified by prefix_flag."
             ),
             mandatory = False,
+        ),
+        "prefix_flag": attr.string(
+            doc = (
+                "The flag to specify the install directory prefix with."
+            ),
+            mandatory = False,
+            default = "--prefix=",
         ),
         "targets": attr.string_list(
             doc = (
@@ -244,7 +246,7 @@ def configure_make_variant(name, toolchain, **kwargs):
         toolchain: The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain
         **kwargs: Remaining keyword arguments
     """
-    make_variant(
+    foreign_cc_rule_variant(
         name = name,
         rule = configure_make,
         toolchain = toolchain,

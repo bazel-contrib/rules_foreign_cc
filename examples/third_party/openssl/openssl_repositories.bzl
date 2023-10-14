@@ -8,12 +8,12 @@ def openssl_repositories():
         http_archive,
         name = "openssl",
         build_file = Label("//openssl:BUILD.openssl.bazel"),
-        sha256 = "892a0875b9872acd04a9fde79b1f943075d5ea162415de3047c327df33fbaee5",
-        strip_prefix = "openssl-1.1.1k",
+        sha256 = "9384a2b0570dd80358841464677115df785edb941c71211f75076d72fe6b438f",
+        strip_prefix = "openssl-1.1.1o",
         urls = [
-            "https://mirror.bazel.build/www.openssl.org/source/openssl-1.1.1k.tar.gz",
-            "https://www.openssl.org/source/openssl-1.1.1k.tar.gz",
-            "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1k.tar.gz",
+            "https://mirror.bazel.build/www.openssl.org/source/openssl-1.1.1o.tar.gz",
+            "https://www.openssl.org/source/openssl-1.1.1o.tar.gz",
+            "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1o.tar.gz",
         ],
     )
 

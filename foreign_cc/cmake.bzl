@@ -144,10 +144,12 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
-load("//foreign_cc/private:transitions.bzl", "make_variant")
+load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//foreign_cc/private/framework:platform.bzl",
     "os_name",
+    "target_arch_name",
+    "target_os_name",
 )
 load(
     "//toolchains/native_tools:tool_access.bzl",
@@ -159,21 +161,18 @@ load(
 def _cmake_impl(ctx):
     cmake_data = get_cmake_data(ctx)
 
-    tools_deps = cmake_data.deps
-
-    # TODO: `tool_deps` is deprecated. Remove
-    tools_deps += ctx.attr.tools_deps
+    tools_data = [cmake_data]
 
     env = dict(ctx.attr.env)
 
     generator, generate_args = _get_generator_target(ctx)
     if "Unix Makefiles" == generator:
         make_data = get_make_data(ctx)
-        tools_deps.extend(make_data.deps)
+        tools_data.append(make_data)
         generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(make_data.path))
     elif "Ninja" in generator:
         ninja_data = get_ninja_data(ctx)
-        tools_deps.extend(ninja_data.deps)
+        tools_data.append(ninja_data)
         generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(ninja_data.path))
 
     attrs = create_attrs(
@@ -183,7 +182,7 @@ def _cmake_impl(ctx):
         generate_args = generate_args,
         configure_name = "CMake",
         create_configure_script = _create_configure_script,
-        tools_deps = tools_deps,
+        tools_data = tools_data,
         cmake_path = cmake_data.path,
     )
 
@@ -254,6 +253,9 @@ def _create_configure_script(configureParameters):
 
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
+        target_os = target_os_name(ctx),
+        target_arch = target_arch_name(ctx),
+        host_os = os_name(ctx),
         generator = attrs.generator,
         cmake_path = attrs.cmake_path,
         tools = tools,
@@ -416,6 +418,7 @@ cmake = rule(
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
+    provides = [CcInfo],
     # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
     # version is updated to a release of Bazel containing the new default for this setting.
     incompatible_use_toolchain_transition = True,
@@ -429,7 +432,7 @@ def cmake_variant(name, toolchain, **kwargs):
         toolchain: The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain
         **kwargs: Remaining keyword arguments
     """
-    make_variant(
+    foreign_cc_rule_variant(
         name = name,
         rule = cmake,
         toolchain = toolchain,

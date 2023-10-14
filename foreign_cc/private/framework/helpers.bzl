@@ -97,7 +97,7 @@ def convert_shell_script_by_context(shell_context, script):
     # and 4 times is enough for our toolchain.
     # Example of such function: 'symlink_contents_to_dir'.
     processed_prelude = {}
-    for i in range(1, 4):
+    for _ in range(1, 4):
         for key in shell_context.prelude.keys():
             text = shell_context.prelude[key]
             lines = text.splitlines()
@@ -123,7 +123,7 @@ def replace_var_ref(text, shell_context):
     parts = []
     current = text
 
-    for i in range(2147483647):
+    for _ in range(2147483647):
         (before, varname, after) = extract_wrapped(current, "$$")
         if not varname:
             parts.append(current)
@@ -156,7 +156,7 @@ def replace_exports(text, shell_context):
 
 # buildifier: disable=function-docstring
 def get_function_name(text):
-    (funname, separator, after) = text.partition(" ")
+    (funname, _, after) = text.partition(" ")
 
     if funname == "export":
         return (funname, after)
@@ -198,7 +198,7 @@ def split_arguments(text):
     parts = []
     current = text.strip(" ")
 
-    for i in range(1, 2147483647):
+    for _ in range(1, 2147483647):
         if not current:
             break
 

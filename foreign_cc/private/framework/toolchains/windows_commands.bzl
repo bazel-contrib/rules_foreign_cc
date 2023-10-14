@@ -62,7 +62,7 @@ def define_function(name, text):
     lines.append("}")
     return "\n".join(lines)
 
-def replace_in_files(dir, from_, to_):
+def replace_in_files(_dir, _from, _to):
     return FunctionAndCallInfo(
         text = """\
 if [ -d "$1" ]; then
@@ -95,7 +95,7 @@ def copy_dir_contents_to_dir(source, target):
         target = target,
     )
 
-def symlink_contents_to_dir(source, target):
+def symlink_contents_to_dir(_source, _target, _replace_in_files):
     text = """\
 if [[ -z "$1" ]]; then
   echo "arg 1 to symlink_contents_to_dir is unexpectedly empty"
@@ -107,24 +107,25 @@ if [[ -z "$2" ]]; then
 fi
 local target="$2"
 mkdir -p "$target"
+local replace_in_files="${3:-}"
 if [[ -f "$1" ]]; then
-  ##symlink_to_dir## "$1" "$target"
+  ##symlink_to_dir## "$1" "$target" "$replace_in_files"
 elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
-  ##symlink_contents_to_dir## "$actual" "$target"
+  ##symlink_contents_to_dir## "$actual" "$target" "$replace_in_files"
 elif [[ -d "$1" ]]; then
   SAVEIFS=$IFS
   IFS=$'\n'
   local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
   for child in "${children[@]}"; do
-    ##symlink_to_dir## "$child" "$target"
+    ##symlink_to_dir## "$child" "$target" "$replace_in_files"
   done
 fi
 """
     return FunctionAndCallInfo(text = text)
 
-def symlink_to_dir(source, target):
+def symlink_to_dir(_source, _target, _replace_in_files):
     text = """\
 if [[ -z "$1" ]]; then
   echo "arg 1 to symlink_to_dir is unexpectedly empty"
@@ -136,6 +137,7 @@ if [[ -z "$2" ]]; then
 fi
 local target="$2"
 mkdir -p "$target"
+local replace_in_files="${3:-}"
 if [[ -f "$1" ]]; then
   # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
   # files so updating them is possible.
@@ -147,8 +149,15 @@ if [[ -f "$1" ]]; then
   fi
 elif [[ -L "$1" ]]; then
   local actual=$(readlink "$1")
-  ##symlink_to_dir## "$actual" "$target"
+  ##symlink_to_dir## "$actual" "$target" "$replace_in_files"
 elif [[ -d "$1" ]]; then
+
+  # If not replacing in files, simply create a symbolic link rather than traversing tree of files, which can result in very slow builds
+  if [[ "$replace_in_files" = False ]]; then
+    ln -s -f "$1" "$target"
+    return
+  fi
+
   SAVEIFS=$IFS
   IFS=$'\n'
   local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
@@ -156,7 +165,7 @@ elif [[ -d "$1" ]]; then
   local dirname=$(basename "$1")
   for child in "${children[@]}"; do
     if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
-      ##symlink_to_dir## "$child" "$target/$dirname"
+      ##symlink_to_dir## "$child" "$target/$dirname" "$replace_in_files"
     fi
   done
 else
@@ -178,12 +187,15 @@ export MSYS2_ARG_CONV_EXCL="*"
 export SYSTEMDRIVE="C:"
 """
 
-def increment_pkg_config_path(source):
+def increment_pkg_config_path(_source):
     text = """\
 local children=$($REAL_FIND "$1" -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
-  export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$(dirname $child)"
+  LIB_DIR=$(dirname $child)
+  # pkg-config requires unix paths, e.g of the form /c/Users/..., rather than C:/Users/...
+  LIB_DIR=$(cygpath $${LIB_DIR//\\\\//}$$)
+  export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$${LIB_DIR}$$"
   return
 done
 """
@@ -216,7 +228,7 @@ if [ -d {dir_} ]; then
   for tool in $tools;
   do
     if  [[ -d \"$tool\" ]] || [[ -L \"$tool\" ]]; then
-      export PATH=$PATH:$tool
+      export PATH=$tool:$PATH
     fi
   done
 fi""".format(dir_ = dir_)

@@ -39,6 +39,7 @@ configure_make(
         "--without-docbook",
         "--without-examples",
         "--without-tests",
+        "CFLAGS='-fPIC'",
     ],
     env = select({
         "@platforms//os:macos": {"AR": ""},

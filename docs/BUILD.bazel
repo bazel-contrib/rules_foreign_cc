@@ -57,6 +57,14 @@ stardoc(
 )
 
 stardoc(
+    name = "meson_docs",
+    out = "stardoc_meson.md",
+    header_template = "common_header.vm",
+    input = "@rules_foreign_cc//foreign_cc:meson.bzl",
+    deps = ["@rules_foreign_cc//:bzl_srcs"],
+)
+
+stardoc(
     name = "providers_docs",
     out = "stardoc_providers.md",
     header_template = "common_header.vm",
@@ -70,6 +78,7 @@ DOCS_TARGETS = [
     ":ninja_docs",
     ":make_docs",
     ":configure_make_docs",
+    ":meson_docs",
     ":providers_docs",
 ]
 
