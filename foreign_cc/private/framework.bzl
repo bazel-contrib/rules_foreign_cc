@@ -209,6 +209,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
+    "_aarch64_constraint": attr.label(default = Label("@platforms//cpu:aarch64")),
     "_android_constraint": attr.label(default = Label("@platforms//os:android")),
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(
@@ -219,6 +220,8 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
     ),
+    "_linux_constraint": attr.label(default = Label("@platforms//os:linux")),
+    "_x86_64_constraint": attr.label(default = Label("@platforms//cpu:x86_64")),
 }
 
 # A list of common fragments required by rules using this framework
