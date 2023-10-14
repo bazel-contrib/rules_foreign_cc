@@ -9,7 +9,7 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
 
     The wrapper script also facilitates the running of binaries that are dynamically linked to shared libraries also built by rules_foreign_cc. The runnable bin could be used as a tool in a dependent bazel target
 
-    Note that this macro only works on foreign_cc_targets in external repositories, not in the main repository. This is due to the issue described here: https://github.com/bazelbuild/bazel/issues/10923
+    Note that this macro requires bazel 5.4.0 due to the use of the rlocationpath variable (see https://github.com/bazelbuild/bazel/issues/10923 for context)
     Also note that the macro requires the `--enable_runfiles` option to be set on Windows.
 
     Args:
@@ -22,9 +22,11 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
 
     tags = kwargs.pop("tags", [])
 
+    config_setting_name = name + "_windows_config_setting"
+
     # filegroups cannot select on constraint_values in before Bazel 5.1. Add this config_setting as a workaround. See https://github.com/bazelbuild/bazel/issues/13047
     native.config_setting(
-        name = "windows_config_setting",
+        name = config_setting_name,
         constraint_values = [
             "@platforms//os:windows",
         ],
@@ -35,13 +37,13 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
         srcs = [foreign_cc_target],
         tags = tags + ["manual"],
         output_group = select({
-            ":windows_config_setting": binary + ".exe",
+            ":" + config_setting_name: binary + ".exe",
             "//conditions:default": binary,
         }),
     )
 
     wrapper_cmd = """
-    sed s@EXECUTABLE@$(rootpath {name})@g $(location @rules_foreign_cc//foreign_cc/private:runnable_binary_wrapper.sh) > tmp
+    sed s@EXECUTABLE@$(rlocationpath {name})@g $(location @rules_foreign_cc//foreign_cc/private:runnable_binary_wrapper.sh) > tmp
     sed s@SH_BINARY_FILENAME@{sh_binary_filename}@g tmp > $@
     """
 

@@ -148,6 +148,7 @@ load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//foreign_cc/private/framework:platform.bzl",
     "os_name",
+    "target_arch_name",
     "target_os_name",
 )
 load(
@@ -253,6 +254,8 @@ def _create_configure_script(configureParameters):
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
         target_os = target_os_name(ctx),
+        target_arch = target_arch_name(ctx),
+        host_os = os_name(ctx),
         generator = attrs.generator,
         cmake_path = attrs.cmake_path,
         tools = tools,
@@ -415,6 +418,7 @@ cmake = rule(
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
+    provides = [CcInfo],
     # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
     # version is updated to a release of Bazel containing the new default for this setting.
     incompatible_use_toolchain_transition = True,
