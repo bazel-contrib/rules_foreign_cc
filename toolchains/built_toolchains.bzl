@@ -161,6 +161,15 @@ def _meson_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_meson_toolchain",
         )
+    if version == "1.1.1":
+        maybe(
+            http_archive,
+            name = "meson_src",
+            build_file_content = _MESON_BUILD_FILE_CONTENT,
+            strip_prefix = "meson-1.1.1",
+            url = "https://github.com/mesonbuild/meson/releases/download/1.1.1/meson-1.1.1.tar.gz",
+        )
+        return
     if version == "0.63.0":
         maybe(
             http_archive,

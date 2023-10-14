@@ -22,6 +22,9 @@ The following flags are required in Bazel 4.x but not Bazel 5.x or newer:
 Note that the rules may be compatible with older versions of Bazel but support may break
 in future changes as these older versions are not tested.
 
+Note also that the `runnable_binary` macro requires bazel 5.4.0, for the `rlocationpath` [path
+variable](https://bazel.build/reference/be/make-variables)
+
 ## News
 
 For more generalized updates, please see [NEWS.md](./NEWS.md) or checkout the
