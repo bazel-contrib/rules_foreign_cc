@@ -14,8 +14,8 @@ configure_make(
     name = "python3",
     configure_options = [
         "CFLAGS='-Dredacted=\"redacted\"'",
-        "--with-openssl=$EXT_BUILD_DEPS/openssl",
-        "--with-zlib=$EXT_BUILD_DEPS/zlib",
+        "--with-openssl=$$EXT_BUILD_DEPS/openssl",
+        "--with-zlib=$$EXT_BUILD_DEPS/zlib",
         "--enable-optimizations",
     ],
     env = select({
