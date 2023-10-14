@@ -7,7 +7,7 @@
       "name": "James Sharpe"
     }
   ],
-  "repository": ["github:bazel-contrib/rules_cuda"],
+  "repository": ["github:bazelbuild/rules_foreign_cc"],
   "versions": [],
   "yanked_versions": {}
 }
