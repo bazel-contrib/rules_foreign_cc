@@ -17,7 +17,7 @@ def rules_foreign_cc_dependencies(
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True,
-        register_built_pkgconfig_toolchain = False):
+        register_built_pkgconfig_toolchain = True):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
     dependencies and let neccesary code generation happen \
     (Code generation is needed to support different variants of the C++ Starlark API.).
