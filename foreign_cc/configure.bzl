@@ -76,6 +76,7 @@ def _create_configure_script(configureParameters):
     make_commands = []
     prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
     configure_prefix = "{} ".format(expand_locations_and_make_variables(ctx, ctx.attr.configure_prefix, "configure_prefix", data)) if ctx.attr.configure_prefix else ""
+    configure_options = [expand_locations_and_make_variables(ctx, option, "configure_option", data) for option in ctx.attr.configure_options] if ctx.attr.configure_options else []
 
     for target in ctx.attr.targets:
         # Configure will have generated sources into `$BUILD_TMPDIR` so make sure we `cd` there
@@ -91,7 +92,7 @@ def _create_configure_script(configureParameters):
         tools = tools,
         flags = flags,
         root = detect_root(ctx.attr.lib_source),
-        user_options = ctx.attr.configure_options,
+        user_options = configure_options,
         configure_prefix = configure_prefix,
         configure_command = ctx.attr.configure_command,
         deps = ctx.attr.deps,
