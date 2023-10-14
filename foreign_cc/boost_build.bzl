@@ -54,6 +54,7 @@ boost_build = rule(
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
+    provides = [CcInfo],
     implementation = _boost_build_impl,
     toolchains = [
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
