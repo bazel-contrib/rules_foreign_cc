@@ -1,8 +1,20 @@
+# Required by Meson on Windows
+build --action_env=PROCESSOR_ARCHITECTURE
+build --action_env=USERPROFILE
 
-# Required for Windows
+# Required when using the built meson toolchain on windows
+build --nobuild_python_zip
+
+# Required by Meson and built pkg-config on Windows
 build --enable_runfiles
 
 # These are required otherwise paths are too long
 startup --windows_enable_symlinks
 build --action_env=MSYS=winsymlinks:nativestrict
 test --action_env=MSYS=winsymlinks:nativestrict
+
+# Enable CC toolchain that supports iOS from https://github.com/bazelbuild/apple_support
+build --enable_platform_specific_config
+build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain
+build:macos --crosstool_top=@local_config_apple_cc//:toolchain
+build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain

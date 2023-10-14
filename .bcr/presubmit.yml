@@ -1,0 +1,9 @@
+matrix:
+  platform: ["centos7", "debian10", "macos", "ubuntu2004", "windows"]
+
+tasks:
+  verify_targets:
+    name: "Verify build targets"
+    platform: ${{ platform }}
+    build_targets:
+      - "@rules_foreign_cc//toolchains:make_tool"

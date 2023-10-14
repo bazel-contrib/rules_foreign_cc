@@ -1,9 +1,10 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//foreign_cc/built_tools:cmake_build.bzl", "cmake_tool")
 load("//foreign_cc/built_tools:make_build.bzl", "make_tool")
+load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load("//foreign_cc/built_tools:ninja_build.bzl", "ninja_tool")
 load("//foreign_cc/built_tools:pkgconfig_build.bzl", "pkgconfig_tool")
-load("//toolchains:toolchains.bzl", "current_autoconf_toolchain", "current_automake_toolchain", "current_cmake_toolchain", "current_m4_toolchain", "current_make_toolchain", "current_ninja_toolchain", "current_pkgconfig_toolchain")
+load("//toolchains:toolchains.bzl", "current_autoconf_toolchain", "current_automake_toolchain", "current_cmake_toolchain", "current_m4_toolchain", "current_make_toolchain", "current_meson_toolchain", "current_ninja_toolchain", "current_pkgconfig_toolchain")
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 
 package(default_visibility = ["//visibility:public"])
@@ -18,6 +19,10 @@ toolchain_type(
 
 toolchain_type(
     name = "make_toolchain",
+)
+
+toolchain_type(
+    name = "meson_toolchain",
 )
 
 toolchain_type(
@@ -42,6 +47,10 @@ current_cmake_toolchain(
 
 current_ninja_toolchain(
     name = "current_ninja_toolchain",
+)
+
+current_meson_toolchain(
+    name = "current_meson_toolchain",
 )
 
 current_m4_toolchain(
@@ -80,6 +89,12 @@ toolchain(
     name = "built_make_toolchain",
     toolchain = ":built_make",
     toolchain_type = ":make_toolchain",
+)
+
+toolchain(
+    name = "built_meson_toolchain",
+    toolchain = ":built_meson",
+    toolchain_type = ":meson_toolchain",
 )
 
 toolchain(
@@ -213,6 +228,34 @@ native_tool_toolchain(
         "//conditions:default": "$(execpath :ninja_tool)/bin/ninja",
     }),
     target = ":ninja_tool",
+)
+
+toolchain(
+    name = "preinstalled_meson_toolchain",
+    toolchain = ":preinstalled_meson",
+    toolchain_type = ":meson_toolchain",
+)
+
+native_tool_toolchain(
+    name = "preinstalled_meson",
+    path = select({
+        "@platforms//os:windows": "meson.exe",
+        "//conditions:default": "meson",
+    }),
+)
+
+meson_tool(
+    name = "meson_tool",
+    data = ["@meson_src//:runtime"],
+    main = "@meson_src//:meson.py",
+    tags = ["manual"],
+)
+
+native_tool_toolchain(
+    name = "built_meson",
+    env = {"MESON": "$(execpath :meson_tool)"},
+    path = "$(execpath :meson_tool)",
+    target = ":meson_tool",
 )
 
 toolchain(

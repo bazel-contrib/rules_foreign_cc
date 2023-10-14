@@ -54,10 +54,12 @@ def foreign_cc_rule_variant(name, rule, toolchain, **kwargs):
     foreign_cc_rule_target_name = name + "_"
 
     tags = kwargs.pop("tags", [])
+    visibility = kwargs.pop("visibility", [])
 
     rule(
         name = foreign_cc_rule_target_name,
         tags = tags + ["manual"],
+        visibility = visibility,
         **kwargs
     )
 
@@ -66,4 +68,5 @@ def foreign_cc_rule_variant(name, rule, toolchain, **kwargs):
         extra_toolchains = [toolchain],
         target = foreign_cc_rule_target_name,
         tags = tags,
+        visibility = visibility,
     )

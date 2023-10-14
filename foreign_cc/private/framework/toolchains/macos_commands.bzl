@@ -74,7 +74,7 @@ if [ -d "$1" ]; then
   for file in ${files[@]+"${files[@]}"}; do
     local backup=$(mktemp)
     touch -r "${file}" "${backup}"
-    sed -i '' -e 's@'"$2"'@'"$3"'@g' "${file}"
+    /usr/bin/sed -i '' -e 's@'"$2"'@'"$3"'@g' "${file}"
     if [[ "$?" -ne "0" ]]; then
       exit 1
     fi
@@ -261,7 +261,7 @@ def replace_symlink(file):
     # as `readlink` is.
     return """\
 if [[ -L "{file}" ]]; then
-  target="$(python -c "import os; print(os.path.realpath('{file}'))")"
+  target="$(python3 -c "import os; print(os.path.realpath('{file}'))")"
   rm "{file}" && cp -a "${{target}}" "{file}"
 fi
 """.format(file = file)
