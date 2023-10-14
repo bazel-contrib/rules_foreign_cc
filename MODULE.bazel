@@ -20,17 +20,11 @@ use_repo(
     "ninja_1.11.1_toolchains",
     "ninja_build_src",
     "pkgconfig_src",
-    "rules_foreign_cc_framework_toolchain_freebsd",
-    "rules_foreign_cc_framework_toolchain_linux",
-    "rules_foreign_cc_framework_toolchain_macos",
-    "rules_foreign_cc_framework_toolchain_windows",
+    "rules_foreign_cc_framework_toolchains",
 )
 
 register_toolchains(
-    "@rules_foreign_cc_framework_toolchain_freebsd//:toolchain",
-    "@rules_foreign_cc_framework_toolchain_linux//:toolchain",
-    "@rules_foreign_cc_framework_toolchain_macos//:toolchain",
-    "@rules_foreign_cc_framework_toolchain_windows//:toolchain",
+    "@rules_foreign_cc_framework_toolchains//:all",
     "@rules_foreign_cc//toolchains:built_make_toolchain",
     "@rules_foreign_cc//toolchains:built_meson_toolchain",
     "@rules_foreign_cc//toolchains:built_pkgconfig_toolchain",

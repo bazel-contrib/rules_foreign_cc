@@ -384,6 +384,13 @@ CMAKE_SRCS = {
         "cmake-3.26.3",
         "bbd8d39217509d163cb544a40d6428ac666ddc83e22905d3e52c925781f0f659",
     ],
+    "3.26.4": [
+        [
+            "https://github.com/Kitware/CMake/releases/download/v3.26.4/cmake-3.26.4.tar.gz",
+        ],
+        "cmake-3.26.4",
+        "313b6880c291bd4fe31c0aa51d6e62659282a521e695f30d5cc0d25abbd5c208",
+    ],
     "3.3.2": [
         [
             "https://github.com/Kitware/CMake/releases/download/v3.3.2/cmake-3.3.2.tar.gz",
