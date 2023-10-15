@@ -234,10 +234,8 @@ def meson_with_requirements(name, requirements, **kwargs):
         **kwargs
     )
 
-# TODO: converge with cmake_script.bzl
 def _absolutize(workspace_name, text, force = False):
     if text.strip(" ").startswith("C:") or text.strip(" ").startswith("c:"):
         return "\"{}\"".format(text)
 
-    # Use bash parameter substitution to replace backslashes with forward slashes as CMake fails if provided paths containing backslashes
-    return "{}".format(absolutize_path_in_str(workspace_name, "$${EXT_BUILD_ROOT//\\\\//}$$/", text, force))
+    return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text, force)
