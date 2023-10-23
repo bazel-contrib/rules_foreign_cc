@@ -11,11 +11,9 @@ configure_make(
     env = select({
         "@platforms//os:macos": {
             "AR": "",
-            "AR_FLAGS": "-r -c -s",
         },
         "//conditions:default": {},
     }),
-    features = ["-coverage"],
     lib_source = ":all",
     out_lib_dir = "lib",
     out_static_libs = ["libsodium.a"],
