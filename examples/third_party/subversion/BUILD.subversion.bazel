@@ -19,9 +19,9 @@ configure_make(
     configure_options = [
         "--enable-all-static",
         "--without-boost",
-        "--with-apr=$EXT_BUILD_DEPS/apr",
-        "--with-apr-util=$EXT_BUILD_DEPS/apr_util",
-        "--with-zlib=$EXT_BUILD_DEPS/zlib",
+        "--with-apr=$$EXT_BUILD_DEPS/apr",
+        "--with-apr-util=$$EXT_BUILD_DEPS/apr_util",
+        "--with-zlib=$$EXT_BUILD_DEPS/zlib",
         "--with-lz4=internal",
         "--with-utf8proc=internal",
         "--enable-optimize",
