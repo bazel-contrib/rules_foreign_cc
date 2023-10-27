@@ -166,6 +166,7 @@ def _meson_toolchain(version, register_toolchains):
             http_archive,
             name = "meson_src",
             build_file_content = _MESON_BUILD_FILE_CONTENT,
+            sha256 = "d04b541f97ca439fb82fab7d0d480988be4bd4e62563a5ca35fadb5400727b1c",
             strip_prefix = "meson-1.1.1",
             url = "https://github.com/mesonbuild/meson/releases/download/1.1.1/meson-1.1.1.tar.gz",
         )
