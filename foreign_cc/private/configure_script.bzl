@@ -14,6 +14,7 @@ def create_configure_script(
         deps,
         inputs,
         env_vars,
+        env_vars_override,
         configure_in_place,
         prefix_flag,
         autoconf,
@@ -70,7 +71,7 @@ def create_configure_script(
 
     script.append("##mkdirs## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$")
     script.append("{env_vars} {prefix}\"{configure}\" {prefix_flag}$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
-        env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs),
+        env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, env_vars_override, deps, inputs),
         prefix = configure_prefix,
         configure = configure_path,
         prefix_flag = prefix_flag,

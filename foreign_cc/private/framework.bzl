@@ -108,6 +108,13 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
             "Variables containing `PATH` (e.g. `PATH`, `LD_LIBRARY_PATH`, `CPATH`) entries will be prepended to the existing variable."
         ),
     ),
+    "env_override": attr.string_list(
+        doc = (
+            "List of keys from the 'env' attribute that should override any values set by the underlying C toolchain."
+        ),
+        mandatory = False,
+        default = [],
+    ),
     "includes": attr.string_list(
         doc = (
             "Optional list of include dirs to be passed to the dependencies of this library. " +

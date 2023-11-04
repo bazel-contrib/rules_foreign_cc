@@ -74,6 +74,7 @@ def _create_make_script(configureParameters):
         deps = ctx.attr.deps,
         inputs = inputs,
         env_vars = user_env,
+        env_vars_override = ctx.attr.env_override,
         make_commands = make_commands,
     )
 
