@@ -14,12 +14,14 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
 
-load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+load("@rules_python//python:repositories.bzl", "python_register_toolchains", "py_repositories")
 
 python_register_toolchains(
     name = "python3_9",
     python_version = "3.9",
 )
+
+py_repositories()
 
 load("//:docs/stardoc_repository.bzl", "stardoc_repository")
 
