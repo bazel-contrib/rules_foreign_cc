@@ -224,6 +224,7 @@ configure_make = rule(
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
+    provides = [CcInfo],
     implementation = _configure_make,
     toolchains = [
         "@rules_foreign_cc//toolchains:autoconf_toolchain",
