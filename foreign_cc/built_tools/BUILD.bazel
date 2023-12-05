@@ -23,7 +23,7 @@ bzl_library(
     name = "meson_build",
     srcs = ["meson_build.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["@rules_python//python:defs"],
+    deps = ["@rules_python//python:defs_bzl"],
 )
 
 bzl_library(
