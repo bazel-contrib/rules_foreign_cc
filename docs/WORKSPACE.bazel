@@ -61,4 +61,4 @@ load("@bazel_skylib_gazelle_plugin//:setup.bzl", "bazel_skylib_gazelle_plugin_se
 
 bazel_skylib_gazelle_plugin_setup()
 
-go_register_toolchains(version = "1.20.5")
+go_register_toolchains()
