@@ -201,19 +201,12 @@ tasks:
       - //...
   min_supported_version:
     name: "Minimum Supported Version"
-    bazel: "4.0.0"
-    skip_in_bazel_downstream_pipeline: "Bazel 4 required"
+    bazel: "5.4.0"
     platform: ubuntu1804
     build_targets:
       - "//..."
-    # experimental_enable_aggregating_middleman=False is required in bazel 4 otherwise ctx.resolve_command fails.
-    # This was resolved in https://github.com/bazelbuild/bazel/commit/fb1c369530bd26f9a13560c5979929a999e585e2
-    build_flags:
-      - "--experimental_enable_aggregating_middleman=False"
     test_targets:
       - "//..."
-    test_flags:
-      - "--experimental_enable_aggregating_middleman=False"
   min_supported_version_examples:
     name: "Minimum Supported Version Examples"
     bazel: "5.4.0"

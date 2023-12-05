@@ -23,8 +23,7 @@ python.toolchain(
     name = "python3_9",
     python_version = "3.9",
 )
-use_repo(python, "python3_9")
-use_repo(python, "python3_9_toolchains")
+use_repo(python, "python3_9", "python3_9_toolchains")
 
 register_toolchains(
     "@python3_9_toolchains//:all",
