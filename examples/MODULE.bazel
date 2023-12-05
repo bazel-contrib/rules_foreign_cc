@@ -20,7 +20,7 @@ bazel_dep(name = "rules_python", version = "0.23.0")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
-    hub_name = "pip",
+    name = "pip",
     requirements_lock = "//:requirements_lock.txt",
     requirements_windows = "//:requirements_windows.txt",
 )
