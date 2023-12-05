@@ -29,7 +29,7 @@ stardoc(
     out = "stardoc_cmake.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:cmake.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:cmake"],
 )
 
 stardoc(
@@ -37,7 +37,7 @@ stardoc(
     out = "stardoc_make.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:make.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:make"],
 )
 
 stardoc(
@@ -45,7 +45,7 @@ stardoc(
     out = "stardoc_ninja.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:ninja.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:ninja"],
 )
 
 stardoc(
@@ -53,7 +53,7 @@ stardoc(
     out = "stardoc_configure_make.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:configure.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:configure"],
 )
 
 stardoc(
@@ -61,7 +61,7 @@ stardoc(
     out = "stardoc_meson.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:meson.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:meson"],
 )
 
 stardoc(
@@ -69,7 +69,7 @@ stardoc(
     out = "stardoc_providers.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:providers.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:providers"],
 )
 
 DOCS_TARGETS = [
