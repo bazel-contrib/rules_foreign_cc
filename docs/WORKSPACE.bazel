@@ -20,15 +20,6 @@ stardoc_deps()
 # Gazelle dependencies
 
 http_archive(
-    name = "io_bazel_rules_go",
-    sha256 = "91585017debb61982f7054c9688857a2ad1fd823fc3f9cb05048b0025c47d023",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.42.0/rules_go-v0.42.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.42.0/rules_go-v0.42.0.zip",
-    ],
-)
-
-http_archive(
     name = "bazel_gazelle",
     sha256 = "b7387f72efb59f876e4daae42f1d3912d0d45563eac7cb23d1de0b094ab588cf",
     urls = [
@@ -46,19 +37,13 @@ http_archive(
     ],
 )
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
-
-go_rules_dependencies()
-
-gazelle_dependencies(go_repository_default_config = "//:WORKSPACE.bazel")
-
 load("@bazel_skylib_gazelle_plugin//:workspace.bzl", "bazel_skylib_gazelle_plugin_workspace")
 
 bazel_skylib_gazelle_plugin_workspace()
 
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 load("@bazel_skylib_gazelle_plugin//:setup.bzl", "bazel_skylib_gazelle_plugin_setup")
 
 bazel_skylib_gazelle_plugin_setup()
 
-go_register_toolchains()
+gazelle_dependencies(go_repository_default_config = "//:WORKSPACE.bazel")
