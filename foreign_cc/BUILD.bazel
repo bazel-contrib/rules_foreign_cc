@@ -6,15 +6,130 @@ exports_files(
 )
 
 bzl_library(
-    name = "bzl_srcs",
-    srcs = glob(["**/*.bzl"]),
-    visibility = ["//:__subpackages__"],
+    name = "boost_build",
+    srcs = ["boost_build.bzl"],
+    visibility = ["//visibility:public"],
     deps = [
-        "//foreign_cc/built_tools:bzl_srcs",
-        "//foreign_cc/private:bzl_srcs",
-        "@bazel_skylib//lib:collections",
-        "@bazel_skylib//lib:paths",
-        "@bazel_skylib//lib:versions",
-        "@rules_python//docs:defs",
+        "//foreign_cc/private:detect_root",
+        "//foreign_cc/private:framework",
     ],
+)
+
+bzl_library(
+    name = "cmake",
+    srcs = ["cmake.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//foreign_cc/private:cc_toolchain_util",
+        "//foreign_cc/private:cmake_script",
+        "//foreign_cc/private:detect_root",
+        "//foreign_cc/private:framework",
+        "//foreign_cc/private:transitions",
+        "//foreign_cc/private/framework:platform",
+        "//toolchains/native_tools:tool_access",
+    ],
+)
+
+bzl_library(
+    name = "configure",
+    srcs = ["configure.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//foreign_cc/private:cc_toolchain_util",
+        "//foreign_cc/private:configure_script",
+        "//foreign_cc/private:detect_root",
+        "//foreign_cc/private:framework",
+        "//foreign_cc/private:transitions",
+        "//toolchains/native_tools:tool_access",
+    ],
+)
+
+bzl_library(
+    name = "defs",
+    srcs = ["defs.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":boost_build",
+        ":cmake",
+        ":configure",
+        ":make",
+        ":meson",
+        ":ninja",
+        ":utils",
+    ],
+)
+
+bzl_library(
+    name = "extensions",
+    srcs = ["extensions.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":repositories",
+        "//toolchains:prebuilt_toolchains",
+    ],
+)
+
+bzl_library(
+    name = "make",
+    srcs = ["make.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//foreign_cc/private:cc_toolchain_util",
+        "//foreign_cc/private:detect_root",
+        "//foreign_cc/private:framework",
+        "//foreign_cc/private:make_script",
+        "//foreign_cc/private:transitions",
+        "//toolchains/native_tools:tool_access",
+    ],
+)
+
+bzl_library(
+    name = "meson",
+    srcs = ["meson.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":utils",
+        "//foreign_cc/built_tools:meson_build",
+        "//foreign_cc/private:detect_root",
+        "//foreign_cc/private:framework",
+        "//foreign_cc/private:make_script",
+        "//foreign_cc/private:transitions",
+        "//toolchains/native_tools:native_tools_toolchain",
+        "//toolchains/native_tools:tool_access",
+    ],
+)
+
+bzl_library(
+    name = "ninja",
+    srcs = ["ninja.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//foreign_cc/private:detect_root",
+        "//foreign_cc/private:framework",
+        "//toolchains/native_tools:tool_access",
+    ],
+)
+
+bzl_library(
+    name = "repositories",
+    srcs = ["repositories.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//foreign_cc/private/framework:toolchain",
+        "//toolchains",
+        "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
+    ],
+)
+
+bzl_library(
+    name = "providers",
+    srcs = ["providers.bzl"],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "utils",
+    srcs = ["utils.bzl"],
+    visibility = ["//visibility:public"],
 )
