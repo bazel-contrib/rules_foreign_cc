@@ -43,7 +43,7 @@ done < <(find . -name "*${SHARED_LIB_SUFFIX}" -print0)
 # Allow unbound variable here, in case there are no shared libraries
 set +u
 SHARED_LIBS_DIRS_ARRAY=()
-for lib in "${SHARED_LIBS_ARRAY[@]}"; do
+for lib in "${SHARED_LIBS_ARRAY[@]-}"; do
     SHARED_LIBS_DIRS_ARRAY+=($(dirname $(realpath $lib)))
 done
 set -u
