@@ -40,10 +40,13 @@ while IFS=  read -r -d $'\0'; do
 done < <(find . -name "*${SHARED_LIB_SUFFIX}" -print0)
 
 # Add paths to shared library directories to SHARED_LIBS_DIRS_ARRAY
+# Allow unbound variable here, in case there are no shared libraries
+set +u
 SHARED_LIBS_DIRS_ARRAY=()
 for lib in "${SHARED_LIBS_ARRAY[@]}"; do
     SHARED_LIBS_DIRS_ARRAY+=($(dirname $(realpath $lib)))
 done
+set -u
 
 # Remove duplicates from array
 IFS=" " read -r -a SHARED_LIBS_DIRS_ARRAY <<< "$(tr ' ' '\n' <<< "${SHARED_LIBS_DIRS_ARRAY[@]}" | sort -u | tr '\n' ' ')"
