@@ -1,0 +1,9 @@
+
+filegroup(
+    name = "src",
+    srcs = glob(["include/**", "arch/**", "scripts/**", "init/**", "**/Kconfig*", "tools/include/**"] + 
+    ["Kconfig", "Makefile"]),
+    visibility = ["//visibility:public"],
+)
+
+

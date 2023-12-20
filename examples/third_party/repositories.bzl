@@ -12,6 +12,7 @@ load("//glib:glib_repositories.bzl", "glib_repositories")
 load("//gn:gn_repositories.bzl", "gn_repositories")
 load("//gperftools:gperftools_repositories.bzl", "gperftools_repositories")
 load("//iconv:iconv_repositories.bzl", "iconv_repositories")
+load("//kernel_headers:kernel_headers_repositories.bzl", "kernel_headers_repositories")
 load("//libgit2:libgit2_repositories.bzl", "libgit2_repositories")
 load("//libjpeg_turbo:libjpeg_turbo_repositories.bzl", "libjpeg_turbo_repositories")
 load("//libpng:libpng_repositories.bzl", "libpng_repositories")
@@ -50,6 +51,7 @@ def repositories():
     sqlite_repositories()
     subversion_repositories()
     zlib_repositories()
+    kernel_headers_repositories()
 
     maybe(
         http_archive,

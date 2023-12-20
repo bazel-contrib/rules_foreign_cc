@@ -11,6 +11,7 @@ LibrariesToLinkInfo = provider(
         static_libraries = "Static library files, optional",
         shared_libraries = "Shared library files, optional",
         interface_libraries = "Interface library files, optional",
+        startfiles = "Startfiles",
     ),
 )
 
@@ -143,14 +144,22 @@ def create_linking_info(ctx, user_link_flags, files):
         ctx (ctx): rule context
         user_link_flags (list of strings): link optins, provided by user
         files (LibrariesToLink): provider with the library files
+    Returns:
+        LinkingContext: The Linking Context
     """
 
+    additional_inputs = None
+    if len(files.startfiles) > 0:
+        extra_link_flags = depset(direct = ["-B" + f.dirname for f in files.startfiles]).to_list()
+        user_link_flags = extra_link_flags + user_link_flags
+        additional_inputs = depset(direct = files.startfiles)
     return cc_common.create_linking_context(
         linker_inputs = depset(direct = [
             cc_common.create_linker_input(
                 owner = ctx.label,
                 libraries = _create_libraries_to_link(ctx, files),
                 user_link_flags = depset(direct = user_link_flags),
+                additional_inputs = additional_inputs,
             ),
         ]),
     )
