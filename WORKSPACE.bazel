@@ -17,8 +17,8 @@ bazel_skylib_workspace()
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
 python_register_toolchains(
-    name = "python3_9",
-    python_version = "3.9",
+    name = "python3_10",
+    python_version = "3.10",
 )
 
 load("//:docs/stardoc_repository.bzl", "stardoc_repository")
