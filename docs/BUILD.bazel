@@ -21,7 +21,14 @@ stardoc(
     out = "stardoc_flatten.md",
     header_template = ":flatten_header_vm",
     input = "docs.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = [
+        "@rules_foreign_cc//foreign_cc:cmake",
+        "@rules_foreign_cc//foreign_cc:make",
+        "@rules_foreign_cc//foreign_cc:ninja",
+        "@rules_foreign_cc//foreign_cc:configure",
+        "@rules_foreign_cc//foreign_cc:meson",
+        "@rules_foreign_cc//foreign_cc:providers",
+    ],
 )
 
 stardoc(
@@ -123,6 +130,7 @@ cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:flatten_docs) > \\$${BUILD_WOR
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:cmake_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/cmake.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:ninja_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/ninja.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/make.md
+cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:meson_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/meson.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:configure_make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/configure_make.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:providers_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/providers.md
 # Non generated sources
