@@ -96,6 +96,7 @@ tasks:
     macos_targets: &macos_targets_standalone
       - "//..."
       - "//:third_party_examples_macos_tests"
+      - "-//cmake_android/..."
       # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
       - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
       - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
@@ -120,6 +121,7 @@ tasks:
     macos_targets: &macos_targets
       - "//..."
       - "//:third_party_examples_macos_tests"
+      - "-//cmake_android/..."
       # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
       - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
       - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
