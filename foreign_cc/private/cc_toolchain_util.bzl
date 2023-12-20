@@ -379,6 +379,8 @@ def _prefix(text, from_str, prefix):
     (before, middle, after) = text.partition(from_str)
     if not middle or before.endswith("/"):
         return text
+    if prefix.endswith("@"):
+        return before + prefix + middle + after
     return prefix + before + middle + after
 
 def _file_name_no_ext(basename):
