@@ -20,6 +20,7 @@ use_repo(
     tools,
     "cmake_3.23.2_toolchains",
     "cmake_src",
+    "glib_dev",
     "gnumake_src",
     "meson_src",
     "ninja_1.11.1_toolchains",
