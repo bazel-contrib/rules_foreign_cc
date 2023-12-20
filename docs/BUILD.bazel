@@ -14,7 +14,7 @@ genrule(
 
 # Note that the stardoc `out` files are prefixed with `stardoc_` so the
 # `diff_test` targets which ensure documentation is up to date can access the
-# committed markdown files instead ouf the `out` targets from the stardoc rules
+# committed markdown files instead of the `out` targets from the stardoc rules
 
 stardoc(
     name = "flatten_docs",
@@ -110,7 +110,7 @@ release="$${RELEASE}"
 release_archive="$${RELEASE}"
 
 # TODO: If a release is set, we assume it's set to a branch name.
-# thus we defautl the archive value to a commit. This is likely
+# thus we default the archive value to a commit. This is likely
 # only appropriate when publishing on the branch in specified
 # and a smarter solution should be found to avoid unexpected behavior. 
 if [[ -n "\\$${RELEASE:-}" ]]; then
@@ -125,7 +125,7 @@ cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:ninja_docs) > \\$${BUILD_WORKS
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/make.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:configure_make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/configure_make.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:providers_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/providers.md
-# Non generated sourrces
+# Non generated sources
 cp \\$${BUILD_WORKSPACE_DIRECTORY}/$(rootpath rules.md) \\$${BUILD_WORKSPACE_DIRECTORY}/src/rules.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(rootpath index.md)  \
 | sed "s/{short_commit}/\\$${short_commit}/" \
