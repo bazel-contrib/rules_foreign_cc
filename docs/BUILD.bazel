@@ -21,7 +21,11 @@ stardoc(
     out = "stardoc_flatten.md",
     header_template = ":flatten_header_vm",
     input = "docs.bzl",
+    tags = ["no-sandbox"], # https://github.com/bazelbuild/stardoc/issues/112
     deps = [
+        "@rules_foreign_cc//foreign_cc:defs",
+        "@rules_foreign_cc//foreign_cc:repositories",
+    ] + [
         "@rules_foreign_cc//foreign_cc:cmake",
         "@rules_foreign_cc//foreign_cc:make",
         "@rules_foreign_cc//foreign_cc:ninja",
