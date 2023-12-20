@@ -1,3 +1,4 @@
-# Bazel configuration flags for rules_foregin_cc_docs
+# Bazel configuration flags for rules_foreign_cc_docs
 
+common --noenable_bzlmod
 build --workspace_status_command=tools/workspace_status.sh
