@@ -6,18 +6,30 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
+    build_flags:
+      - "--noenable_bzlmod"
+    test_flags:
+      - "--noenable_bzlmod"
   rbe_ubuntu1604:
     platform: rbe_ubuntu1604
     build_targets:
       - "//..."
     test_targets:
       - "//..."
+    build_flags:
+      - "--noenable_bzlmod"
+    test_flags:
+      - "--noenable_bzlmod"
   macos:
     platform: macos
     build_targets:
       - "//..."
     test_targets:
       - "//..."
+    build_flags:
+      - "--noenable_bzlmod"
+    test_flags:
+      - "--noenable_bzlmod"
   windows:
     platform: windows
     build_targets:
@@ -27,6 +39,10 @@ tasks:
       # TODO: https://github.com/bazelbuild/rules_foreign_cc/issues/495
       - "-//test:shell_method_symlink_contents_to_dir_test"
       - "-//test:shell_script_inner_fun_test"
+    build_flags:
+      - "--noenable_bzlmod"
+    test_flags:
+      - "--noenable_bzlmod"
   ubuntu1804_examples_standalone:
     name: Examples (spawn_strategy=standalone)
     platform: ubuntu1804
@@ -39,12 +55,13 @@ tasks:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
-      - "-k"
+      - "--noenable_bzlmod"
     test_targets: *linux_targets_standalone
     test_flags:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
+      - "--noenable_bzlmod"
   ubuntu2004_examples:
     name: Examples
     platform: ubuntu2004
@@ -54,6 +71,10 @@ tasks:
       - "//:third_party_examples_linux_tests"
     build_targets: *linux_targets
     test_targets: *linux_targets
+    build_flags:
+      - "--noenable_bzlmod"
+    test_flags:
+      - "--noenable_bzlmod"
   ubuntu2004_examples_bzlmod:
     name: Examples (bzlmod)
     platform: ubuntu2004
@@ -76,7 +97,7 @@ tasks:
       - "//:third_party_examples_linux_rbe_tests"
       # Gives error: zipalign: error while loading shared libraries: /usr/local/lib/libc++.so: file too short
       - "-//cmake_android/..."
-      # Python requirements not supported onUbuntu 16.04
+      # Python requirements not supported on Ubuntu 16.04
       - "-//:requirements_test"
     build_targets: *rbe_targets
     test_targets: *rbe_targets
@@ -145,6 +166,10 @@ tasks:
       - "-//cmake_with_data/..."
     build_targets: *windows_targets
     test_targets: *windows_targets
+    build_flags:
+      - "--noenable_bzlmod"
+    test_flags:
+      - "--noenable_bzlmod"
   rbe_ubuntu1604_flags:
     name: Flags
     platform: rbe_ubuntu1604
