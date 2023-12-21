@@ -72,6 +72,9 @@ def _cmake_toolchain(version, register_toolchains):
             sha256 = sha256,
             strip_prefix = prefix,
             urls = urls,
+            patches = [
+                Label("//toolchains:cmake-c++11.patch"),
+            ],
         )
         return
 
