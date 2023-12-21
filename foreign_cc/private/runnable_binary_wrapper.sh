@@ -40,15 +40,14 @@ while IFS=  read -r -d $'\0'; do
 done < <(find . -name "*${SHARED_LIB_SUFFIX}" -print0)
 
 # Add paths to shared library directories to SHARED_LIBS_DIRS_ARRAY
-
-if [[ -v SHARED_LIBS_ARRAY[@] ]]; then
-    SHARED_LIBS_DIRS_ARRAY=()
+SHARED_LIBS_DIRS_ARRAY=()
+if [ ${#SHARED_LIBS_ARRAY[@]} -ne 0 ]; then
     for lib in "${SHARED_LIBS_ARRAY[@]}"; do
         SHARED_LIBS_DIRS_ARRAY+=($(dirname $(realpath $lib)))
     done
 fi
 
-if [[ -v SHARED_LIBS_DIRS_ARRAY[@] ]]; then
+if [ ${#SHARED_LIBS_DIRS_ARRAY[@]} -ne 0 ]; then
     # Remove duplicates from array
     IFS=" " read -r -a SHARED_LIBS_DIRS_ARRAY <<< "$(tr ' ' '\n' <<< "${SHARED_LIBS_DIRS_ARRAY[@]}" | sort -u | tr '\n' ' ')"
 
