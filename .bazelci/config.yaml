@@ -10,8 +10,8 @@ tasks:
       - "--noenable_bzlmod"
     test_flags:
       - "--noenable_bzlmod"
-  rbe_ubuntu1604:
-    platform: rbe_ubuntu1604
+  rbe_ubuntu2004:
+    platform: rbe_ubuntu2004
     build_targets:
       - "//..."
     test_targets:
@@ -88,9 +88,9 @@ tasks:
     test_targets: *linux_targets_bzlmod
     build_flags:
       - "--enable_bzlmod"
-  rbe_ubuntu1604_examples:
+  rbe_ubuntu2004_examples:
     name: Examples
-    platform: rbe_ubuntu1604
+    platform: rbe_ubuntu2004
     working_directory: examples
     rbe_targets: &rbe_targets
       - "//..."
@@ -170,9 +170,9 @@ tasks:
       - "--noenable_bzlmod"
     test_flags:
       - "--noenable_bzlmod"
-  rbe_ubuntu1604_flags:
+  rbe_ubuntu2004_flags:
     name: Flags
-    platform: rbe_ubuntu1604
+    platform: rbe_ubuntu2004
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
@@ -194,9 +194,9 @@ tasks:
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
-  rbe_ubuntu1604_detect_root:
+  rbe_ubuntu2004_detect_root:
     name: Detect root
-    platform: rbe_ubuntu1604
+    platform: rbe_ubuntu2004
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
