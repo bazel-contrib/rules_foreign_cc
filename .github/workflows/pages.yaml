@@ -17,6 +17,7 @@ jobs:
         # Create a job for release
         include:
           - ref: main
+          - ref: "0.10.1"
           - ref: "0.9.0"
           - ref: "0.8.0"
           - ref: "0.7.1"
