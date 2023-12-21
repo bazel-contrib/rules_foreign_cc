@@ -334,10 +334,40 @@ native_tool_toolchain(
 )
 
 bzl_library(
-    name = "bzl_srcs",
-    srcs = glob(["**/*.bzl"]),
-    visibility = ["//:__subpackages__"],
+    name = "built_toolchains",
+    srcs = ["built_toolchains.bzl"],
     deps = [
-        "//toolchains/native_tools:bzl_srcs",
+        "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
+        "@rules_foreign_cc//toolchains:cmake_versions",
     ],
+)
+
+bzl_library(
+    name = "prebuilt_toolchains",
+    srcs = ["prebuilt_toolchains.bzl"],
+    deps = [
+        "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
+        "@rules_foreign_cc//toolchains:prebuilt_toolchains_repository",
+    ],
+)
+
+bzl_library(
+    name = "toolchains",
+    srcs = ["toolchains.bzl"],
+    deps = [
+        ":built_toolchains",
+        ":prebuilt_toolchains",
+    ],
+)
+
+bzl_library(
+    name = "cmake_versions",
+    srcs = ["cmake_versions.bzl"],
+)
+
+bzl_library(
+    name = "prebuilt_toolchains_repository",
+    srcs = ["prebuilt_toolchains_repository.bzl"],
 )

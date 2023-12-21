@@ -6,30 +6,18 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
-    build_flags:
-      - "--noenable_bzlmod"
-    test_flags:
-      - "--noenable_bzlmod"
   rbe_ubuntu1604:
     platform: rbe_ubuntu1604
     build_targets:
       - "//..."
     test_targets:
       - "//..."
-    build_flags:
-      - "--noenable_bzlmod"
-    test_flags:
-      - "--noenable_bzlmod"
   macos:
     platform: macos
     build_targets:
       - "//..."
     test_targets:
       - "//..."
-    build_flags:
-      - "--noenable_bzlmod"
-    test_flags:
-      - "--noenable_bzlmod"
   windows:
     platform: windows
     build_targets:
@@ -108,6 +96,7 @@ tasks:
     macos_targets: &macos_targets_standalone
       - "//..."
       - "//:third_party_examples_macos_tests"
+      - "-//cmake_android/..."
       # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
       - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
       - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
@@ -116,14 +105,15 @@ tasks:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
-      - "-k"
       - "--noincompatible_enable_cc_toolchain_resolution"
+      - "--noenable_bzlmod"
     test_targets: *macos_targets_standalone
     test_flags:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
       - "--noincompatible_enable_cc_toolchain_resolution"
+      - "--noenable_bzlmod"
   macos_examples:
     name: Examples
     platform: macos
@@ -131,15 +121,18 @@ tasks:
     macos_targets: &macos_targets
       - "//..."
       - "//:third_party_examples_macos_tests"
+      - "-//cmake_android/..."
       # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
       - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
       - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
     build_targets: *macos_targets
     build_flags:
       - "--noincompatible_enable_cc_toolchain_resolution"
+      - "--noenable_bzlmod"
     test_targets: *macos_targets
     test_flags:
       - "--noincompatible_enable_cc_toolchain_resolution"
+      - "--noenable_bzlmod"
   windows_examples:
     name: Examples
     platform: windows
