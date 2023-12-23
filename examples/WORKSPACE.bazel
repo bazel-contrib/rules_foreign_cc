@@ -38,11 +38,11 @@ deps_jvm_external()
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
 python_register_toolchains(
-    name = "python3_9",
-    python_version = "3.9",
+    name = "python3_10",
+    python_version = "3.10",
 )
 
-load("@python3_9//:defs.bzl", py3_interpreter = "interpreter")
+load("@python3_10//:defs.bzl", py3_interpreter = "interpreter")
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 pip_parse(
@@ -83,14 +83,6 @@ load("@bazelci_rules//:rbe_repo.bzl", "rbe_preconfig")
 rbe_preconfig(
     name = "buildkite_config",
     toolchain = "ubuntu1804-bazel-java11",
-)
-
-# TODO: Remove once bazel 4.x is no longer supported
-http_archive(
-    name = "rules_proto",
-    sha256 = "20b240eba17a36be4b0b22635aca63053913d5c1ee36e16be36499d167a2f533",
-    strip_prefix = "rules_proto-11bf7c25e666dd7ddacbcd4d4c4a9de7a25175f8",
-    urls = ["https://github.com/bazelbuild/rules_proto/archive/11bf7c25e666dd7ddacbcd4d4c4a9de7a25175f8.tar.gz"],
 )
 
 http_archive(

@@ -15,11 +15,11 @@ test_suite(
         "//bison:bison_build_test",
         "//cares:test_c_ares",
         "//curl:curl_test_suite",
+        "//glib:glib_build_test",
         "//gn:gn_launch_test",
         "//gperftools:test",
-        "//glib:glib_build_test",
-        "//libgit2:libgit2_build_test",
         "//iconv:iconv_linux_build_test",
+        "//libgit2:libgit2_build_test",
         "//libjpeg_turbo:libjpeg_turbo_build_test",
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
@@ -30,6 +30,7 @@ test_suite(
         "//python:python_tests",
         "//sqlite:sqlite_build_test",
         "//subversion:subversion_build_test",
+        "//zlib:test_zlib",
     ],
 )
 
@@ -78,7 +79,7 @@ test_suite(
         # Builds but not useful as it hardcodes paths so isn't relocateable
         # "//autotools:autoconf_build_test",
         # Fails due to hardcoded paths in autoconf
-        #"//autotools:automake_build_test",
+        # "//autotools:automake_build_test",
         "//autotools:libtool_build_test",
         "//autotools:m4_build_test",
         # "//bison:bison_build_test",
@@ -100,6 +101,7 @@ test_suite(
         "//python:python_tests",
         "//sqlite:sqlite_build_test",
         "//subversion:subversion_build_test",
+        "//zlib:test_zlib",
     ],
 )
 
@@ -109,9 +111,9 @@ test_suite(
     tests = [
         "//apr:apr_build_test",
         "//curl:curl_test_suite",
-        "//openssl:openssl_test_suite",
         "//glib:glib_build_test",
         "//mesa:mesa_build_test",
+        "//openssl:openssl_test_suite",
         # TODO: Add more windows tests
     ],
 )
