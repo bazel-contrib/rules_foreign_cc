@@ -6,7 +6,10 @@ if [[ -z $RUN_UNDER_RUNFILES ]]; then
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
     RUNFILES_DIR=${SCRIPT_DIR}/SH_BINARY_FILENAME.runfiles
 fi
-cd ${RUNFILES_DIR}
+
+if [[ -n "$RUNFILES_DIR"]] && [[ -d "$RUNFILES_DIR" ]]; then
+    cd ${RUNFILES_DIR}
+fi
 
 # --- begin runfiles.bash initialization v2 ---
 # Copy-pasted from the Bazel Bash runfiles library v2. (@bazel_tools//tools/bash/runfiles)
@@ -59,5 +62,8 @@ if [ ${#SHARED_LIBS_DIRS_ARRAY[@]} -ne 0 ]; then
     set -u
 fi
 
-cd - &> /dev/null
+if [[ -n "$RUNFILES_DIR" ]] && [[ -d "$RUNFILES_DIR" ]]; then
+    cd - &> /dev/null
+fi
+
 exec ${EXE_PATH} "$@"
