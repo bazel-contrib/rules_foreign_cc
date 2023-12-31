@@ -7,7 +7,7 @@ if [[ -z $RUN_UNDER_RUNFILES ]]; then
     RUNFILES_DIR=${SCRIPT_DIR}/SH_BINARY_FILENAME.runfiles
 fi
 
-if [[ -n "$RUNFILES_DIR"]] && [[ -d "$RUNFILES_DIR" ]]; then
+if [[ -n "$RUNFILES_DIR" ]] && [[ -d "$RUNFILES_DIR" ]]; then
     cd ${RUNFILES_DIR}
 fi
 
