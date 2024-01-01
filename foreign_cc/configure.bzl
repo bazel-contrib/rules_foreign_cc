@@ -195,13 +195,6 @@ def _attrs():
         "configure_prefix": attr.string(
             doc = "A prefix for the call to the `configure_command`.",
         ),
-        "install_prefix": attr.string(
-            doc = (
-                "Install prefix, i.e. relative path to where to install the result of the build. " +
-                "Passed to the 'configure' script with the flag specified by prefix_flag."
-            ),
-            mandatory = False,
-        ),
         "experimental_absolute_install_prefix": attr.bool(
             doc = (
                 "Allows the install_prefix to be an absolute path, and relies on DESTDIR to place" +
@@ -209,6 +202,13 @@ def _attrs():
             ),
             mandatory = False,
             default = False,
+        ),
+        "install_prefix": attr.string(
+            doc = (
+                "Install prefix, i.e. relative path to where to install the result of the build. " +
+                "Passed to the 'configure' script with the flag specified by prefix_flag."
+            ),
+            mandatory = False,
         ),
         "prefix_flag": attr.string(
             doc = (
