@@ -69,8 +69,6 @@ def create_configure_script(
             options = " ".join(autoreconf_options),
         ).lstrip())
 
-    prefix_dir = "$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$"
-
     script.append("##mkdirs## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$")
     script.append("{env_vars} {prefix}\"{configure}\" {prefix_flag}{prefix_dir} {user_options}".format(
         env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs),
