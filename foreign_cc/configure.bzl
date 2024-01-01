@@ -78,12 +78,19 @@ def _create_configure_script(configureParameters):
     configure_prefix = "{} ".format(expand_locations_and_make_variables(ctx, ctx.attr.configure_prefix, "configure_prefix", data)) if ctx.attr.configure_prefix else ""
     configure_options = [expand_locations_and_make_variables(ctx, option, "configure_option", data) for option in ctx.attr.configure_options] if ctx.attr.configure_options else []
 
+    if ctx.attr.experimental_absolute_install_prefix:
+        destdir_arg = 'DESTDIR="$$BUILD_TMPDIR$$/" '
+    else:
+        destdir_arg = ""
+
     for target in ctx.attr.targets:
         # Configure will have generated sources into `$BUILD_TMPDIR` so make sure we `cd` there
         make_commands.append("{prefix}{make} {target} {args}".format(
             prefix = prefix,
             make = attrs.make_path,
-            args = args,
+            # https://www.gnu.org/prep/standards/html_node/DESTDIR.html
+            # DESTDIR only applies to INSTALL or UNINSTALL targets
+            args = destdir_arg + args if target.startswith("install") or target.startswith("uninstall") else args,
             target = target,
         ))
 
@@ -100,6 +107,7 @@ def _create_configure_script(configureParameters):
         env_vars = user_env,
         configure_in_place = ctx.attr.configure_in_place,
         prefix_flag = ctx.attr.prefix_flag,
+        absolute_prefix = ctx.attr.experimental_absolute_install_prefix,
         autoconf = ctx.attr.autoconf,
         autoconf_options = ctx.attr.autoconf_options,
         autoreconf = ctx.attr.autoreconf,
@@ -193,6 +201,14 @@ def _attrs():
                 "Passed to the 'configure' script with the flag specified by prefix_flag."
             ),
             mandatory = False,
+        ),
+        "experimental_absolute_install_prefix": attr.bool(
+            doc = (
+                "Allows the install_prefix to be an absolute path, and relies on DESTDIR to place" +
+                "the installation files into the correct output directory when calling `make install`"
+            ),
+            mandatory = False,
+            default = False,
         ),
         "prefix_flag": attr.string(
             doc = (
