@@ -4,7 +4,13 @@
 # Otherwise, first cd to the runfiles dir for the wrapped executable before searching for shared libraries for the wrapped executable
 if [[ -z $RUN_UNDER_RUNFILES ]]; then
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-    RUNFILES_DIR=${SCRIPT_DIR}/SH_BINARY_FILENAME.runfiles
+    RUNFILES_DIR_TMP=${SCRIPT_DIR}/SH_BINARY_FILENAME.runfiles
+
+    if [[ -d "$RUNFILES_DIR_TMP" ]]; then
+        RUNFILES_DIR="$RUNFILES_DIR_TMP"
+    fi
+
+    unset RUNFILES_DIR_TMP
 fi
 
 if [[ -n "$RUNFILES_DIR" ]] && [[ -d "$RUNFILES_DIR" ]]; then
