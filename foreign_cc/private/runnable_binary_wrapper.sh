@@ -15,6 +15,8 @@ fi
 
 if [[ -n "$RUNFILES_DIR" ]] && [[ -d "$RUNFILES_DIR" ]]; then
     cd ${RUNFILES_DIR}
+else
+    cd "$(pwd)"
 fi
 
 # --- begin runfiles.bash initialization v2 ---
@@ -68,8 +70,6 @@ if [ ${#SHARED_LIBS_DIRS_ARRAY[@]} -ne 0 ]; then
     set -u
 fi
 
-if [[ -n "$RUNFILES_DIR" ]] && [[ -d "$RUNFILES_DIR" ]]; then
-    cd - &> /dev/null
-fi
+cd - &> /dev/null
 
 exec ${EXE_PATH} "$@"
