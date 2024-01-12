@@ -17,7 +17,7 @@ def rules_foreign_cc_dependencies(
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True,
-        register_built_pkgconfig_toolchain = False):
+        register_built_pkgconfig_toolchain = True):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
     dependencies and let neccesary code generation happen \
     (Code generation is needed to support different variants of the C++ Starlark API.).
@@ -96,7 +96,7 @@ def rules_foreign_cc_dependencies(
     maybe(
         http_archive,
         name = "rules_python",
-        sha256 = "a3a6e99f497be089f81ec082882e40246bfd435f52f4e82f37e89449b04573f6",
-        strip_prefix = "rules_python-0.10.2",
-        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.10.2.tar.gz",
+        sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
+        strip_prefix = "rules_python-0.23.1",
+        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.23.1.tar.gz",
     )

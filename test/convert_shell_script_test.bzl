@@ -84,6 +84,7 @@ def _split_arguments_test(ctx):
         " 1 2 3": ["1", "2", "3"],
         " usual \"quoted argument\"": ["usual", "\"quoted argument\""],
         "1 2": ["1", "2"],
+        "var -flag1=\"redacted\" -flag2=\"redacted\"": ["var", "-flag1=\"redacted\"", "-flag2=\"redacted\""],
     }
     for case in cases:
         result = split_arguments(case)

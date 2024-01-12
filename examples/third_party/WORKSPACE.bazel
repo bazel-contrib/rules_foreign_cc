@@ -17,3 +17,7 @@ local_repository(
 load("//:repositories.bzl", "repositories")
 
 repositories()
+
+load("//:setup.bzl", "setup")
+
+setup()
