@@ -1,4 +1,3 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//foreign_cc/built_tools:cmake_build.bzl", "cmake_tool")
 load("//foreign_cc/built_tools:make_build.bzl", "make_tool")
 load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
@@ -173,13 +172,4 @@ native_tool_toolchain(
         "//conditions:default": "$(execpath :pkgconfig_tool)/bin/pkg-config",
     }),
     target = ":pkgconfig_tool",
-)
-
-bzl_library(
-    name = "bzl_srcs",
-    srcs = glob(["**/*.bzl"]),
-    visibility = ["//:__subpackages__"],
-    deps = [
-        "//toolchains/native_tools:bzl_srcs",
-    ],
 )
