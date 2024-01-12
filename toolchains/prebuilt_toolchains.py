@@ -209,13 +209,6 @@ maybe(
 )
 """
 
-REGISTER_TOOLCHAINS = """\
-if register_toolchains:
-    native.register_toolchains(
-{toolchains}
-    )
-"""
-
 BZL_FILE_TEMPLATE = """\
 \"\"\" A U T O G E N E R A T E D  -- D O   N O T   M O D I F Y
 @generated
@@ -281,21 +274,20 @@ native_tool_toolchain(
 \"\"\"
 
 # buildifier: disable=unnamed-macro
-def prebuilt_toolchains(cmake_version, ninja_version, register_toolchains):
+def prebuilt_toolchains(cmake_version, ninja_version):
     \"\"\"Register toolchains for pre-built cmake and ninja binaries
 
     Args:
         cmake_version (string): The target cmake version
         ninja_version (string): The target ninja-build version
-        register_toolchains (boolean): Whether to call native.register_toolchains or not
     \"\"\"
-    _cmake_toolchains(cmake_version, register_toolchains)
-    _ninja_toolchains(ninja_version, register_toolchains)
+    cmake_toolchains(cmake_version)
+    ninja_toolchains(ninja_version)
 
-def _cmake_toolchains(version, register_toolchains):
+def cmake_toolchains(version):
 {cmake_definitions}
 
-def _ninja_toolchains(version, register_toolchains):
+def ninja_toolchains(version):
 {ninja_definitions}
 """
 
@@ -314,7 +306,7 @@ def get_cmake_definitions() -> str:
     """Define a set of repositories and calls for registering `cmake` toolchains
 
     Returns:
-        str: The Implementation of `_cmake_toolchains`
+        str: The Implementation of `cmake_toolchains`
     """
 
     archives = []
@@ -388,30 +380,11 @@ def get_cmake_definitions() -> str:
         archives.append(
             indent(
                 TOOLCHAIN_REPO_DEFINITION.format(
-                    name="cmake_{}_toolchains".format(version),
+                    name="prebuilt_cmake_toolchains",
                     repos=indent(
                         json.dumps(toolchains_repos, indent=4), " " * 4
                     ).lstrip(),
                     tool="cmake",
-                ),
-                " " * 8,
-            )
-        )
-
-        archives.append(
-            indent(
-                REGISTER_TOOLCHAINS.format(
-                    toolchains="\n".join(
-                        [
-                            indent(
-                                '"@cmake_{}_toolchains//:{}_toolchain",'.format(
-                                    version, repo
-                                ),
-                                " " * 8,
-                            )
-                            for repo in toolchains_repos
-                        ]
-                    )
                 ),
                 " " * 8,
             )
@@ -433,7 +406,7 @@ def get_ninja_definitions() -> str:
     """Define a set of repositories and calls for registering `ninja` toolchains
 
     Returns:
-        str: The Implementation of `_ninja_toolchains`
+        str: The Implementation of `ninja_toolchains`
     """
 
     archives = []
@@ -506,30 +479,11 @@ def get_ninja_definitions() -> str:
         archives.append(
             indent(
                 TOOLCHAIN_REPO_DEFINITION.format(
-                    name="ninja_{}_toolchains".format(version),
+                    name="prebuilt_ninja_toolchains",
                     repos=indent(
                         json.dumps(toolchains_repos, indent=4), " " * 4
                     ).lstrip(),
                     tool="ninja",
-                ),
-                " " * 8,
-            )
-        )
-
-        archives.append(
-            indent(
-                REGISTER_TOOLCHAINS.format(
-                    toolchains="\n".join(
-                        [
-                            indent(
-                                '"@ninja_{}_toolchains//:{}_toolchain",'.format(
-                                    version, repo
-                                ),
-                                " " * 8,
-                            )
-                            for repo in toolchains_repos
-                        ]
-                    )
                 ),
                 " " * 8,
             )

@@ -533,17 +533,17 @@ CMAKE_SRCS = {
     ],
     "3.28.5": [
         [
-            "https://github.com/Kitware/CMake/releases/download/v3.28.5/cmake-3.28.5.tar.gz",
+            "https://github.com/Kitware/CMake/releases/download/v3.28.5/cmake-3.28.5.tar.gz"
         ],
         "cmake-3.28.5",
-        "a75d3487ffe817e116a2bf668bf1434af7fe5864cbd4c7e3dcf33dd1a470d659",
+        "a75d3487ffe817e116a2bf668bf1434af7fe5864cbd4c7e3dcf33dd1a470d659"
     ],
     "3.28.6": [
         [
-            "https://github.com/Kitware/CMake/releases/download/v3.28.6/cmake-3.28.6.tar.gz",
+            "https://github.com/Kitware/CMake/releases/download/v3.28.6/cmake-3.28.6.tar.gz"
         ],
         "cmake-3.28.6",
-        "c39c733900affc4eb0e9688b4d1a45435a732105d9bf9cc1e75dd2b9b81a36bb",
+        "c39c733900affc4eb0e9688b4d1a45435a732105d9bf9cc1e75dd2b9b81a36bb"
     ],
     "3.29.0": [
         [
@@ -568,24 +568,24 @@ CMAKE_SRCS = {
     ],
     "3.29.3": [
         [
-            "https://github.com/Kitware/CMake/releases/download/v3.29.3/cmake-3.29.3.tar.gz",
+            "https://github.com/Kitware/CMake/releases/download/v3.29.3/cmake-3.29.3.tar.gz"
         ],
         "cmake-3.29.3",
-        "252aee1448d49caa04954fd5e27d189dd51570557313e7b281636716a238bccb",
+        "252aee1448d49caa04954fd5e27d189dd51570557313e7b281636716a238bccb"
     ],
     "3.29.4": [
         [
-            "https://github.com/Kitware/CMake/releases/download/v3.29.4/cmake-3.29.4.tar.gz",
+            "https://github.com/Kitware/CMake/releases/download/v3.29.4/cmake-3.29.4.tar.gz"
         ],
         "cmake-3.29.4",
-        "b1b48d7100bdff0b46e8c8f6a3c86476dbe872c8df39c42b8d104298b3d56a2c",
+        "b1b48d7100bdff0b46e8c8f6a3c86476dbe872c8df39c42b8d104298b3d56a2c"
     ],
     "3.29.5": [
         [
-            "https://github.com/Kitware/CMake/releases/download/v3.29.5/cmake-3.29.5.tar.gz",
+            "https://github.com/Kitware/CMake/releases/download/v3.29.5/cmake-3.29.5.tar.gz"
         ],
         "cmake-3.29.5",
-        "dd63da7d763c0db455ca232f2c443f5234fe0b11f8bd6958a81d29cc987dfd6e",
+        "dd63da7d763c0db455ca232f2c443f5234fe0b11f8bd6958a81d29cc987dfd6e"
     ],
     "3.3.2": [
         [

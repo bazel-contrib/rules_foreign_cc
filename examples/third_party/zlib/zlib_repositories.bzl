@@ -17,6 +17,7 @@ def zlib_repositories():
         ],
         urls = [
             "https://zlib.net/zlib-1.2.13.tar.gz",
+            "https://zlib.net/archive/zlib-1.2.13.tar.gz",
             "https://storage.googleapis.com/mirror.tensorflow.org/zlib.net/zlib-1.2.13.tar.gz",
         ],
     )
