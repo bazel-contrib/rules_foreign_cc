@@ -98,6 +98,7 @@ def _create_configure_script(configureParameters):
         deps = ctx.attr.deps,
         inputs = inputs,
         env_vars = user_env,
+        env_vars_override = ctx.attr.env_override,
         configure_in_place = ctx.attr.configure_in_place,
         prefix_flag = ctx.attr.prefix_flag,
         autoconf = ctx.attr.autoconf,

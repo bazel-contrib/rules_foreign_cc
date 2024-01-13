@@ -9,9 +9,10 @@ def get_make_env_vars(
         tools,
         flags,
         user_vars,
+        user_vars_override,
         deps,
         inputs):
-    vars = _get_make_variables(workspace_name, tools, flags, user_vars)
+    vars = _get_make_variables(workspace_name, tools, flags, user_vars, user_vars_override)
     deps_flags = _define_deps_flags(deps, inputs)
 
     # For cross-compilation.
@@ -94,7 +95,7 @@ _MAKE_TOOLS = {
     # missing: cxx_linker_executable
 }
 
-def _get_make_variables(workspace_name, tools, flags, user_env_vars):
+def _get_make_variables(workspace_name, tools, flags, user_env_vars, user_vars_override):
     vars = {}
 
     for flag in _MAKE_FLAGS:
@@ -106,7 +107,10 @@ def _get_make_variables(workspace_name, tools, flags, user_env_vars):
     for user_var in user_env_vars:
         toolchain_val = vars.get(user_var)
         if toolchain_val:
-            vars[user_var] = toolchain_val + [user_env_vars[user_var]]
+            if user_var in user_vars_override:
+                vars[user_var] = [user_env_vars[user_var]]
+            else:
+                vars[user_var] = toolchain_val + [user_env_vars[user_var]]
 
     tools_dict = {}
     for tool in _MAKE_TOOLS:
