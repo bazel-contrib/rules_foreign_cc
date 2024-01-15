@@ -1,24 +1,5 @@
 #!/usr/bin/env bash
 
-# RUN_UNDER_RUNFILES is set in the "bazel test" environment, where all transitive runfiles are placed into one directory
-# Otherwise, first cd to the runfiles dir for the wrapped executable before searching for shared libraries for the wrapped executable
-if [[ -z $RUN_UNDER_RUNFILES ]]; then
-    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-    RUNFILES_DIR_TMP=${SCRIPT_DIR}/SH_BINARY_FILENAME.runfiles
-
-    if [[ -d "$RUNFILES_DIR_TMP" ]]; then
-        RUNFILES_DIR="$RUNFILES_DIR_TMP"
-    fi
-
-    unset RUNFILES_DIR_TMP
-fi
-
-if [[ -n "$RUNFILES_DIR" ]] && [[ -d "$RUNFILES_DIR" ]]; then
-    cd ${RUNFILES_DIR}
-else
-    cd "$(pwd)"
-fi
-
 # --- begin runfiles.bash initialization v2 ---
 # Copy-pasted from the Bazel Bash runfiles library v2. (@bazel_tools//tools/bash/runfiles)
 set -uo pipefail; f=bazel_tools/tools/bash/runfiles/runfiles.bash
@@ -29,6 +10,8 @@ source "$(grep -sm1 "^$f " "$0.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null
 source "$(grep -sm1 "^$f " "$0.exe.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
 { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
 # --- end runfiles.bash initialization v2 ---
+
+cd "${RUNFILES_DIR}"
 
 EXE=EXECUTABLE
 EXE_PATH=$(rlocation "${EXE#external/}")
@@ -71,5 +54,4 @@ if [ ${#SHARED_LIBS_DIRS_ARRAY[@]} -ne 0 ]; then
 fi
 
 cd - &> /dev/null
-
 exec ${EXE_PATH} "$@"
