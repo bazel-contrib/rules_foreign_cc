@@ -19,7 +19,7 @@ def create_make_script(
     script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$ False".format(root))
 
     script.append("##enable_tracing##")
-    configure_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs)
+    configure_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, make_commands)
     script.extend(["{env_vars} {command}".format(
         env_vars = configure_vars,
         command = command,

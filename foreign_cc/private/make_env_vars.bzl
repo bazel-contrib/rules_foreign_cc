@@ -10,8 +10,9 @@ def get_make_env_vars(
         flags,
         user_vars,
         deps,
-        inputs):
-    vars = _get_make_variables(workspace_name, tools, flags, user_vars)
+        inputs,
+        make_commands = []):
+    vars = _get_make_variables(workspace_name, tools, flags, user_vars, make_commands)
     deps_flags = _define_deps_flags(deps, inputs)
 
     # For cross-compilation.
@@ -94,7 +95,7 @@ _MAKE_TOOLS = {
     # missing: cxx_linker_executable
 }
 
-def _get_make_variables(workspace_name, tools, flags, user_env_vars):
+def _get_make_variables(workspace_name, tools, flags, user_env_vars, make_commands):
     vars = {}
 
     for flag in _MAKE_FLAGS:
@@ -115,9 +116,12 @@ def _get_make_variables(workspace_name, tools, flags, user_env_vars):
             # Force absolutize of tool paths, which may relative to the exec root (e.g. hermetic toolchains built from source)
             tool_value_absolute = _absolutize(workspace_name, tool_value, True)
 
-            # If the tool path contains whitespaces (e.g. C:\Program Files\...),
-            # MSYS2 requires that the path is wrapped in double quotes
-            if " " in tool_value_absolute:
+            # There are 2 conditions where we need to wrap the tool path in double quotes:
+            # 1. If the tool path contains whitespaces (e.g. C:\Program Files\...),
+            #    MSYS2 requires that the path is wrapped in double quotes.
+            # 2. If nmake is used, it requires the tool path to be wrapped in double quotes,
+            #    otherwise nmake will output the command as a string instead of executing it.
+            if " " in tool_value_absolute or _nmake_in_make_commands(make_commands):
                 tool_value_absolute = "\\\"" + tool_value_absolute + "\\\""
 
             tools_dict[tool] = [tool_value_absolute]
@@ -140,3 +144,6 @@ def _absolutize(workspace_name, text, force = False):
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+
+def _nmake_in_make_commands(make_commands):
+    return make_commands and "nmake.exe" in make_commands[0]
