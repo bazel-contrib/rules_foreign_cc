@@ -87,15 +87,14 @@ rbe_preconfig(
 
 http_archive(
     name = "build_bazel_apple_support",
-    patches = ["//deps:apple_support.patch"],
-    sha256 = "77a121a0f5d4cd88824429464ad2bfb54bdc8a3bccdb4d31a6c846003a3f5e44",
-    url = "https://github.com/bazelbuild/apple_support/releases/download/1.4.1/apple_support.1.4.1.tar.gz",
+    sha256 = "cf4d63f39c7ba9059f70e995bf5fe1019267d3f77379c2028561a5d7645ef67c",
+    url = "https://github.com/bazelbuild/apple_support/releases/download/1.11.1/apple_support.1.11.1.tar.gz",
 )
 
 http_archive(
     name = "build_bazel_rules_apple",
-    sha256 = "62b24b9c3c1eb5bdb6fe1a3f4bf541d6e61eac8997e87c25a50c821f85bf8ff2",
-    url = "https://github.com/bazelbuild/rules_apple/releases/download/3.0.0-rc1/rules_apple.3.0.0-rc1.tar.gz",
+    sha256 = "9c4f1e1ec4fdfeac5bddb07fa0e872c398e3d8eb0ac596af9c463f9123ace292",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/3.2.1/rules_apple.3.2.1.tar.gz",
 )
 
 load(
