@@ -11,6 +11,13 @@ source "$(grep -sm1 "^$f " "$0.exe.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/
 { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
 # --- end runfiles.bash initialization v2 ---
 
+if [[ ! -d "${RUNFILES_DIR}" ]]; then
+    >&2 echo "RUNFILES_DIR is set to '${RUNFILES_DIR}' which does not exist";
+    exit 1;
+fi
+
+RUNFILES_DIR=$(realpath ${RUNFILES_DIR})
+
 cd "${RUNFILES_DIR}"
 
 EXE=EXECUTABLE
