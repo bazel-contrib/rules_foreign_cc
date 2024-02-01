@@ -16,7 +16,7 @@ if [[ ! -d "${RUNFILES_DIR}" ]]; then
     exit 1;
 fi
 
-RUNFILES_DIR=$(realpath ${RUNFILES_DIR})
+RUNFILES_DIR=$( cd "$(dirname "${RUNFILES_DIR}")" ; pwd -P )
 
 cd "${RUNFILES_DIR}"
 
