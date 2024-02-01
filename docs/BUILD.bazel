@@ -123,7 +123,7 @@ release_archive="$${RELEASE}"
 # TODO: If a release is set, we assume it's set to a branch name.
 # thus we default the archive value to a commit. This is likely
 # only appropriate when publishing on the branch in specified
-# and a smarter solution should be found to avoid unexpected behavior. 
+# and a smarter solution should be found to avoid unexpected behavior.
 if [[ -n "\\$${RELEASE:-}" ]]; then
     release="\\$${RELEASE}"
     release_archive="\\$${commit}"
