@@ -158,8 +158,7 @@ tasks:
       - "-//cmake_hello_world_lib/static:test_hello"
       - "-//cmake_with_data/..."
     batch_commands:
-      - echo %cd%
-      - powershell -noexit "& "".\.bazelci\windows-update-certs.ps1"""
+      - powershell -noexit "& "".\..\.bazelci\windows-update-certs.ps1"""
     build_targets: *windows_targets
     test_targets: *windows_targets
     build_flags:
