@@ -661,10 +661,10 @@ def _print_env():
     ]
 
 def _normalize_path(path):
-    # Change Windows style paths to Unix style. E.g. change "C:" to "/c"
+    # Change Windows style paths to Unix style.
     if path[0].isalpha() and path[1] == ":":
-        path = path.replace(path[0:2], "/" + path[0].lower())
-
+        # Change "c:\foo;d:\bar" to "/c/foo:/d/bar
+        return "/" + path.replace("\\", "/").replace(":/", "/").replace(";", ":/")
     return path.replace("\\", "/").replace(";", ":")
 
 def _correct_path_variable(env):
