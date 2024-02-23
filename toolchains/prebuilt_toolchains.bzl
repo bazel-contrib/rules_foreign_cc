@@ -8303,6 +8303,20 @@ def _ninja_toolchains(version, register_toolchains):
 
         maybe(
             http_archive,
+            name = "ninja_1.11.1_mac_aarch64",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-mac.zip",
+            ],
+            sha256 = "482ecb23c59ae3d4f158029112de172dd96bb0e97549c4b1ca32d8fad11f873e",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
             name = "ninja_1.11.1_win",
             urls = [
                 "https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip",
@@ -8328,6 +8342,10 @@ def _ninja_toolchains(version, register_toolchains):
                     "@platforms//cpu:x86_64",
                     "@platforms//os:macos",
                 ],
+                "ninja_1.11.1_mac_aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:macos",
+                ],
                 "ninja_1.11.1_win": [
                     "@platforms//cpu:x86_64",
                     "@platforms//os:windows",
@@ -8340,6 +8358,7 @@ def _ninja_toolchains(version, register_toolchains):
             native.register_toolchains(
                 "@ninja_1.11.1_toolchains//:ninja_1.11.1_linux_toolchain",
                 "@ninja_1.11.1_toolchains//:ninja_1.11.1_mac_toolchain",
+                "@ninja_1.11.1_toolchains//:ninja_1.11.1_mac_aarch64_toolchain",
                 "@ninja_1.11.1_toolchains//:ninja_1.11.1_win_toolchain",
             )
 
@@ -8363,6 +8382,20 @@ def _ninja_toolchains(version, register_toolchains):
         maybe(
             http_archive,
             name = "ninja_1.11.0_mac",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.11.0/ninja-mac.zip",
+            ],
+            sha256 = "21915277db59756bfc61f6f281c1f5e3897760b63776fd3d360f77dd7364137f",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.11.0_mac_aarch64",
             urls = [
                 "https://github.com/ninja-build/ninja/releases/download/v1.11.0/ninja-mac.zip",
             ],
@@ -8401,6 +8434,10 @@ def _ninja_toolchains(version, register_toolchains):
                     "@platforms//cpu:x86_64",
                     "@platforms//os:macos",
                 ],
+                "ninja_1.11.0_mac_aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:macos",
+                ],
                 "ninja_1.11.0_win": [
                     "@platforms//cpu:x86_64",
                     "@platforms//os:windows",
@@ -8413,6 +8450,7 @@ def _ninja_toolchains(version, register_toolchains):
             native.register_toolchains(
                 "@ninja_1.11.0_toolchains//:ninja_1.11.0_linux_toolchain",
                 "@ninja_1.11.0_toolchains//:ninja_1.11.0_mac_toolchain",
+                "@ninja_1.11.0_toolchains//:ninja_1.11.0_mac_aarch64_toolchain",
                 "@ninja_1.11.0_toolchains//:ninja_1.11.0_win_toolchain",
             )
 
@@ -8436,6 +8474,20 @@ def _ninja_toolchains(version, register_toolchains):
         maybe(
             http_archive,
             name = "ninja_1.10.2_mac",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-mac.zip",
+            ],
+            sha256 = "6fa359f491fac7e5185273c6421a000eea6a2f0febf0ac03ac900bd4d80ed2a5",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.10.2_mac_aarch64",
             urls = [
                 "https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-mac.zip",
             ],
@@ -8474,6 +8526,10 @@ def _ninja_toolchains(version, register_toolchains):
                     "@platforms//cpu:x86_64",
                     "@platforms//os:macos",
                 ],
+                "ninja_1.10.2_mac_aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:macos",
+                ],
                 "ninja_1.10.2_win": [
                     "@platforms//cpu:x86_64",
                     "@platforms//os:windows",
@@ -8486,6 +8542,7 @@ def _ninja_toolchains(version, register_toolchains):
             native.register_toolchains(
                 "@ninja_1.10.2_toolchains//:ninja_1.10.2_linux_toolchain",
                 "@ninja_1.10.2_toolchains//:ninja_1.10.2_mac_toolchain",
+                "@ninja_1.10.2_toolchains//:ninja_1.10.2_mac_aarch64_toolchain",
                 "@ninja_1.10.2_toolchains//:ninja_1.10.2_win_toolchain",
             )
 
