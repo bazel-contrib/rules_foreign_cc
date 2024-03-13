@@ -212,6 +212,11 @@ load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "n
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
+    name = "cmake_bin",
+    srcs = ["bin/{{bin}}"],
+)
+
+filegroup(
     name = "cmake_data",
     srcs = glob(
         [
@@ -230,6 +235,8 @@ native_tool_toolchain(
     name = "cmake_tool",
     path = "bin/{{bin}}",
     target = ":cmake_data",
+    env = {{env}},
+    tools = [":cmake_bin"],
 )
 \"\"\"
 
@@ -338,7 +345,7 @@ def get_cmake_definitions() -> str:
                     build="cmake",
                     template="_CMAKE_BUILD_FILE",
                     bin=bin,
-                    env="{}",
+                    env='{\\"CMAKE\\": \\"$(execpath :cmake_bin)\\"}',
                 )
             )
             version_toolchains.update({plat_target: name})
