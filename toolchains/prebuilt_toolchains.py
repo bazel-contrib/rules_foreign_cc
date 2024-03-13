@@ -146,6 +146,10 @@ NINJA_TARGETS = {
         "@platforms//cpu:x86_64",
         "@platforms//os:macos",
     ],
+    "mac_aarch64": [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:macos",
+    ],
     "win": [
         "@platforms//cpu:x86_64",
         "@platforms//os:windows",
@@ -418,13 +422,17 @@ def get_ninja_definitions() -> str:
 
     for version in NINJA_VERSIONS:
 
+        supports_mac_universal = not version in ["1.8.2", "1.9.0", "1.10.0", "1.10.1"]
         version_archives = []
         version_toolchains = {}
 
         for target in NINJA_TARGETS.keys():
+            if not supports_mac_universal and target == "mac_aarch64":
+                continue
+
             url = NINJA_URL_TEMPLATE.format(
                 full=version,
-                target=target,
+                target="mac" if target == "mac_aarch64" else target,
             )
 
             # Get sha256 (can be slow)
