@@ -23,22 +23,31 @@ def _init(module_ctx):
         register_built_pkgconfig_toolchain = True,
     )
 
-    versions = {
-        "cmake": _DEFAULT_CMAKE_VERSION,
-        "ninja": _DEFAULT_NINJA_VERSION,
-    }
+    cmake_version = _DEFAULT_CMAKE_VERSION
+    ninja_version = _DEFAULT_NINJA_VERSION
+
+    # Traverse all modules starting from the root one (the first in
+    # module_ctx.modules). The first occurrence of cmake or ninja tag wins.
+    # Multiple versions requested from the same module are rejected.
+    for mod in module_ctx.modules:
+        cmake_versions_count = len(mod.tags.cmake)
+        if cmake_versions_count == 1:
+            cmake_version = mod.tags.cmake[0].version
+            break
+        elif cmake_versions_count > 1:
+            fail("More than one cmake version requested: {}".format(mod.tags.cmake))
 
     for mod in module_ctx.modules:
-        if not mod.is_root:
-            for toolchain in mod.tags.cmake:
-                versions["cmake"] = toolchain.version
-
-            for toolchain in mod.tags.ninja:
-                versions["ninja"] = toolchain.version
+        ninja_versions_count = len(mod.tags.ninja)
+        if ninja_versions_count == 1:
+            ninja_version = mod.tags.ninja[0].version
+            break
+        elif ninja_versions_count > 1:
+            fail("More than one ninja version requested: {}".format(mod.tags.ninja))
 
     prebuilt_toolchains(
-        cmake_version = versions["cmake"],
-        ninja_version = versions["ninja"],
+        cmake_version = cmake_version,
+        ninja_version = ninja_version,
         register_toolchains = False,
     )
 
