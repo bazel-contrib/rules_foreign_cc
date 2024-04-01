@@ -146,6 +146,10 @@ NINJA_TARGETS = {
         "@platforms//cpu:x86_64",
         "@platforms//os:macos",
     ],
+    "mac_aarch64": [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:macos",
+    ],
     "win": [
         "@platforms//cpu:x86_64",
         "@platforms//os:windows",
@@ -212,6 +216,11 @@ load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "n
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
+    name = "cmake_bin",
+    srcs = ["bin/{{bin}}"],
+)
+
+filegroup(
     name = "cmake_data",
     srcs = glob(
         [
@@ -230,6 +239,8 @@ native_tool_toolchain(
     name = "cmake_tool",
     path = "bin/{{bin}}",
     target = ":cmake_data",
+    env = {{env}},
+    tools = [":cmake_bin"],
 )
 \"\"\"
 
@@ -338,7 +349,7 @@ def get_cmake_definitions() -> str:
                     build="cmake",
                     template="_CMAKE_BUILD_FILE",
                     bin=bin,
-                    env="{}",
+                    env='{\\"CMAKE\\": \\"$(execpath :cmake_bin)\\"}',
                 )
             )
             version_toolchains.update({plat_target: name})
@@ -411,13 +422,17 @@ def get_ninja_definitions() -> str:
 
     for version in NINJA_VERSIONS:
 
+        supports_mac_universal = not version in ["1.8.2", "1.9.0", "1.10.0", "1.10.1"]
         version_archives = []
         version_toolchains = {}
 
         for target in NINJA_TARGETS.keys():
+            if not supports_mac_universal and target == "mac_aarch64":
+                continue
+
             url = NINJA_URL_TEMPLATE.format(
                 full=version,
-                target=target,
+                target="mac" if target == "mac_aarch64" else target,
             )
 
             # Get sha256 (can be slow)
