@@ -75,6 +75,7 @@ def pkgconfig_tool(name, srcs, **kwargs):
         **kwargs
     )
 
+    kwargs.pop("env", {})
     make_variant(
         name = "{}_msvc_build".format(name),
         lib_source = srcs,

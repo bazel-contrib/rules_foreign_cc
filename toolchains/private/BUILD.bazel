@@ -158,6 +158,13 @@ native_tool_toolchain(
 pkgconfig_tool(
     name = "pkgconfig_tool",
     srcs = "@pkgconfig_src//:all_srcs",
+    env = select({
+        "@platforms//os:macos": {
+            "CFLAGS": "-Wno-int-conversion",
+            "CXXFLAGS": "-Wno-int-conversion",
+        },
+        "//conditions:default": {},
+    }),
     tags = ["manual"],
 )
 
