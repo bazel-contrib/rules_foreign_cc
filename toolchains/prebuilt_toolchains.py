@@ -10,6 +10,11 @@ CMAKE_SHA256_URL_TEMPLATE = "https://cmake.org/files/v{minor}/cmake-{full}-SHA-2
 CMAKE_URL_TEMPLATE = "https://github.com/Kitware/CMake/releases/download/v{full}/{file}"
 
 CMAKE_VERSIONS = [
+    "3.29.1",
+    "3.29.0",
+    "3.28.4",
+    "3.28.3",
+    "3.28.2",
     "3.28.1",
     "3.28.0",
     "3.27.9",
@@ -142,6 +147,10 @@ NINJA_TARGETS = {
         "@platforms//cpu:x86_64",
         "@platforms//os:linux",
     ],
+    "linux-aarch64": [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
     "mac": [
         "@platforms//cpu:x86_64",
         "@platforms//os:macos",
@@ -157,6 +166,7 @@ NINJA_TARGETS = {
 }
 
 NINJA_VERSIONS = (
+    "1.12.0",
     "1.11.1",
     "1.11.0",
     "1.10.2",
@@ -422,11 +432,15 @@ def get_ninja_definitions() -> str:
 
     for version in NINJA_VERSIONS:
 
+        supports_linux_aarch64 = not version in ["1.8.2", "1.9.0", "1.10.0", "1.10.1", "1.10.2", "1.11.0", "1.11.1"]
         supports_mac_universal = not version in ["1.8.2", "1.9.0", "1.10.0", "1.10.1"]
         version_archives = []
         version_toolchains = {}
 
         for target in NINJA_TARGETS.keys():
+            if not supports_linux_aarch64 and target == "linux-aarch64":
+                continue
+
             if not supports_mac_universal and target == "mac_aarch64":
                 continue
 
@@ -434,6 +448,8 @@ def get_ninja_definitions() -> str:
                 full=version,
                 target="mac" if target == "mac_aarch64" else target,
             )
+
+            print(f"fetching {url}")
 
             # Get sha256 (can be slow)
             remote = urllib.request.urlopen(url)
