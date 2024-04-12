@@ -20,7 +20,7 @@ TABLE_OF_CONTENTS=$(grep "=" "$1" \
 | sed '/^$/d' \
 | sed '/^#/d' \
 | sed 's/ = .*//' \
-| ${PYTHON3} -c 'import sys; print("\n".join(["- [{}](#{})".format(symbol.strip(), symbol.strip().lower()) for symbol in sys.stdin.readlines()]))' \
+| python -c 'import sys; print("\n".join(["- [{}](#{})".format(symbol.strip(), symbol.strip().lower()) for symbol in sys.stdin.readlines()]))' \
 | sort -f
 )
 
