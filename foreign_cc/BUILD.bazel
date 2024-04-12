@@ -20,6 +20,7 @@ bzl_library(
     srcs = ["cmake.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        "//foreign_cc/built_tools:cmake_build",
         "//foreign_cc/private:cc_toolchain_util",
         "//foreign_cc/private:cmake_script",
         "//foreign_cc/private:detect_root",
@@ -74,6 +75,7 @@ bzl_library(
     srcs = ["make.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        "//foreign_cc/built_tools:make_build",
         "//foreign_cc/private:cc_toolchain_util",
         "//foreign_cc/private:detect_root",
         "//foreign_cc/private:framework",
@@ -104,6 +106,7 @@ bzl_library(
     srcs = ["ninja.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        "//foreign_cc/built_tools:ninja_build",
         "//foreign_cc/private:detect_root",
         "//foreign_cc/private:framework",
         "//toolchains/native_tools:tool_access",

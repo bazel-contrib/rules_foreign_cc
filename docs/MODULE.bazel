@@ -1,0 +1,12 @@
+bazel_dep(name = "rules_foreign_cc")
+
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "..",
+)
+
+bazel_dep(name = "stardoc", version = "0.6.2", dev_dependency = True)
+
+bazel_dep(name = "rules_python", version = "0.31.0", dev_dependency = True)
+bazel_dep(name = "gazelle", version = "0.36.0", dev_dependency = True)
+bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.5.0", dev_dependency = True)
