@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@stardoc//stardoc:stardoc.bzl", "stardoc")
+load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
 
 genrule(
     name = "flatten_header_vm",
@@ -8,9 +8,8 @@ genrule(
         "docs.bzl",
     ],
     outs = ["flatten_header.vm"],
-    cmd = "PYTHON3=$(PYTHON3) $(location gen_header.sh) $(location docs.bzl) $@",
+    cmd = "$(location gen_header.sh) $(location docs.bzl) $@",
     output_to_bindir = True,
-    toolchains=["@rules_python//python:current_py_toolchain"],
 )
 
 # Note that the stardoc `out` files are prefixed with `stardoc_` so the

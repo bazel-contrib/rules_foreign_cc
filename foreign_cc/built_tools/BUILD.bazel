@@ -4,6 +4,7 @@ bzl_library(
     name = "cmake_build",
     srcs = ["cmake_build.bzl"],
     visibility = ["//visibility:public"],
+    deps = ["//foreign_cc:defs"],
 )
 
 bzl_library(
