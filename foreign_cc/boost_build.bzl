@@ -15,6 +15,7 @@ def _boost_build_impl(ctx):
         ctx.attr,
         configure_name = "BoostBuild",
         create_configure_script = _create_configure_script,
+        tools_data = [],
     )
     return cc_external_rule_impl(ctx, attrs)
 

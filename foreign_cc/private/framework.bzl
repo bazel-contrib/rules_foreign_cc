@@ -304,7 +304,8 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     env = dict()
 
     # Add all environment variables from the cc_toolchain
-    cc_env = _correct_path_variable(get_env_vars(ctx))
+    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_env = _correct_path_variable(cc_toolchain, get_env_vars(ctx))
     env.update(cc_env)
 
     # This logic mirrors XcodeLocalEnvProvider#querySdkRoot in bazel itself
@@ -333,10 +334,12 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
         if is_existing_var and cc_env.get(user_var):
             env.update({user_var: user_vars.get(user_var) + list_delimiter + cc_env.get(user_var)})
 
-    cc_toolchain = find_cpp_toolchain(ctx)
     if cc_toolchain.compiler == "msvc-cl":
         # Prepend PATH environment variable with the path to the toolchain linker, which prevents MSYS using its linker (/usr/bin/link.exe) rather than the MSVC linker (both are named "link.exe")
         linker_path = paths.dirname(cc_toolchain.ld_executable)
+        if linker_path[1] != ":":
+            linker_path = "$EXT_BUILD_ROOT/" + linker_path
+
         env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
 
     env_snippet.extend(["export {}=\"{}\"".format(key, escape_dquote_bash(val)) for key, val in env.items()])
@@ -661,13 +664,27 @@ def _print_env():
     ]
 
 def _normalize_path(path):
-    # Change Windows style paths to Unix style. E.g. change "C:" to "/c"
-    if path[0].isalpha() and path[1] == ":":
-        path = path.replace(path[0:2], "/" + path[0].lower())
-
+    # Change Windows style paths to Unix style.
+    if path[0].isalpha() and path[1] == ":" or path[0] == "$":
+        # Change "c:\foo;d:\bar" to "/c/foo:/d/bar
+        return "/" + path.replace("\\", "/").replace(":/", "/").replace(";", ":/")
     return path.replace("\\", "/").replace(";", ":")
 
-def _correct_path_variable(env):
+def _correct_path_variable(toolchain, env):
+    if toolchain.compiler == "msvc-cl":
+        # Workaround for msvc toolchain to prefix relative paths with $EXT_BUILD_ROOT
+        corrected_env = dict()
+        for key, value in env.items():
+            corrected_env[key] = value
+            if _is_msvc_var(key) or key == "PATH":
+                path_paths = value.split(";")
+                for i in range(len(path_paths)):
+                    # external/path becomes $EXT_BUILD_ROOT/external/path
+                    if path_paths[i] and path_paths[i][1] != ":":
+                        path_paths[i] = "$EXT_BUILD_ROOT/" + path_paths[i]
+                corrected_env[key] = ";".join(path_paths)
+        env = corrected_env
+
     value = env.get("PATH", "")
     if not value:
         return env

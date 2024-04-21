@@ -38,11 +38,11 @@ deps_jvm_external()
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
 python_register_toolchains(
-    name = "python3_9",
-    python_version = "3.9",
+    name = "python3_10",
+    python_version = "3.10",
 )
 
-load("@python3_9//:defs.bzl", py3_interpreter = "interpreter")
+load("@python3_10//:defs.bzl", py3_interpreter = "interpreter")
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 pip_parse(
@@ -85,25 +85,16 @@ rbe_preconfig(
     toolchain = "ubuntu1804-bazel-java11",
 )
 
-# TODO: Remove once bazel 4.x is no longer supported
-http_archive(
-    name = "rules_proto",
-    sha256 = "20b240eba17a36be4b0b22635aca63053913d5c1ee36e16be36499d167a2f533",
-    strip_prefix = "rules_proto-11bf7c25e666dd7ddacbcd4d4c4a9de7a25175f8",
-    urls = ["https://github.com/bazelbuild/rules_proto/archive/11bf7c25e666dd7ddacbcd4d4c4a9de7a25175f8.tar.gz"],
-)
-
 http_archive(
     name = "build_bazel_apple_support",
-    patches = ["//deps:apple_support.patch"],
-    sha256 = "77a121a0f5d4cd88824429464ad2bfb54bdc8a3bccdb4d31a6c846003a3f5e44",
-    url = "https://github.com/bazelbuild/apple_support/releases/download/1.4.1/apple_support.1.4.1.tar.gz",
+    sha256 = "100d12617a84ebc7ee7a10ecf3b3e2fdadaebc167ad93a21f820a6cb60158ead",
+    url = "https://github.com/bazelbuild/apple_support/releases/download/1.12.0/apple_support.1.12.0.tar.gz",
 )
 
 http_archive(
     name = "build_bazel_rules_apple",
-    sha256 = "62b24b9c3c1eb5bdb6fe1a3f4bf541d6e61eac8997e87c25a50c821f85bf8ff2",
-    url = "https://github.com/bazelbuild/rules_apple/releases/download/3.0.0-rc1/rules_apple.3.0.0-rc1.tar.gz",
+    sha256 = "ed432a2d5929452748bd53a4ff9e652f2332283eb3d7ffad6cb63aab96a06301",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/3.4.0/rules_apple.3.4.0.tar.gz",
 )
 
 load(

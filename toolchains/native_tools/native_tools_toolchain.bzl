@@ -19,7 +19,7 @@ ToolInfo = provider(
     },
 )
 
-def _resolve_tool_path(ctx, path, target):
+def _resolve_tool_path(ctx, path, target, tools):
     """
         Resolve the path to a tool.
 
@@ -32,7 +32,7 @@ def _resolve_tool_path(ctx, path, target):
     _, resolved_bash_command, _ = ctx.resolve_command(
         command = path,
         expand_locations = True,
-        tools = [target],
+        tools = tools + [target],
     )
 
     return resolved_bash_command[-1]
@@ -43,10 +43,10 @@ def _native_tool_toolchain_impl(ctx):
     path = None
     env = {}
     if ctx.attr.target:
-        path = _resolve_tool_path(ctx, ctx.attr.path, ctx.attr.target)
+        path = _resolve_tool_path(ctx, ctx.attr.path, ctx.attr.target, ctx.attr.tools)
 
         for k, v in ctx.attr.env.items():
-            env[k] = _resolve_tool_path(ctx, v, ctx.attr.target)
+            env[k] = _resolve_tool_path(ctx, v, ctx.attr.target, ctx.attr.tools)
 
     else:
         path = ctx.expand_location(ctx.attr.path)
@@ -86,6 +86,17 @@ native_tool_toolchain = rule(
                 "If the tool is built as part of the build, the corresponding build target, " +
                 "which should produce the tree artifact with the binary to call."
             ),
+            allow_files = True,
+        ),
+        "tools": attr.label_list(
+            mandatory = False,
+            cfg = "exec",
+            doc = (
+                "Additional tools." +
+                "If `target` expands to several files, `tools` can be used to " +
+                "isolate a specific file that can be used in `env`."
+            ),
+            allow_files = True,
         ),
     },
     incompatible_use_toolchain_transition = True,

@@ -39,6 +39,12 @@ meson_with_requirements(
         },
     }),
     lib_source = ":all_srcs",
+    linkopts = select({
+        "@openssl//:msvc_compiler": [
+            "ws2_32.lib",
+        ],
+        "//conditions:default": [],
+    }),
     options = select({
         "@platforms//os:linux": {
             # Disable LLVM support, as building LLVM in rules_foreign_cc CI would drastically increase the build time

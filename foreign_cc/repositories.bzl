@@ -10,14 +10,14 @@ def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
         cmake_version = "3.23.2",
-        make_version = "4.4",
-        ninja_version = "1.11.1",
+        make_version = "4.4.1",
+        ninja_version = "1.12.0",
         meson_version = "1.1.1",
         pkgconfig_version = "0.29.2",
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True,
-        register_built_pkgconfig_toolchain = False):
+        register_built_pkgconfig_toolchain = True):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
     dependencies and let neccesary code generation happen \
     (Code generation is needed to support different variants of the C++ Starlark API.).

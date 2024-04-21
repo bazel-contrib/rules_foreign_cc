@@ -6,8 +6,8 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
-  rbe_ubuntu1604:
-    platform: rbe_ubuntu1604
+  rbe_ubuntu2004:
+    platform: rbe_ubuntu2004
     build_targets:
       - "//..."
     test_targets:
@@ -27,6 +27,10 @@ tasks:
       # TODO: https://github.com/bazelbuild/rules_foreign_cc/issues/495
       - "-//test:shell_method_symlink_contents_to_dir_test"
       - "-//test:shell_script_inner_fun_test"
+    build_flags:
+      - "--noenable_bzlmod"
+    test_flags:
+      - "--noenable_bzlmod"
   ubuntu1804_examples_standalone:
     name: Examples (spawn_strategy=standalone)
     platform: ubuntu1804
@@ -39,12 +43,13 @@ tasks:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
-      - "-k"
+      - "--noenable_bzlmod"
     test_targets: *linux_targets_standalone
     test_flags:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
+      - "--noenable_bzlmod"
   ubuntu2004_examples:
     name: Examples
     platform: ubuntu2004
@@ -54,6 +59,10 @@ tasks:
       - "//:third_party_examples_linux_tests"
     build_targets: *linux_targets
     test_targets: *linux_targets
+    build_flags:
+      - "--noenable_bzlmod"
+    test_flags:
+      - "--noenable_bzlmod"
   ubuntu2004_examples_bzlmod:
     name: Examples (bzlmod)
     platform: ubuntu2004
@@ -67,16 +76,16 @@ tasks:
     test_targets: *linux_targets_bzlmod
     build_flags:
       - "--enable_bzlmod"
-  rbe_ubuntu1604_examples:
+  rbe_ubuntu2004_examples:
     name: Examples
-    platform: rbe_ubuntu1604
+    platform: rbe_ubuntu2004
     working_directory: examples
     rbe_targets: &rbe_targets
       - "//..."
       - "//:third_party_examples_linux_rbe_tests"
       # Gives error: zipalign: error while loading shared libraries: /usr/local/lib/libc++.so: file too short
       - "-//cmake_android/..."
-      # Python requirements not supported onUbuntu 16.04
+      # Python requirements not supported on Ubuntu 16.04
       - "-//:requirements_test"
     build_targets: *rbe_targets
     test_targets: *rbe_targets
@@ -87,6 +96,7 @@ tasks:
     macos_targets: &macos_targets_standalone
       - "//..."
       - "//:third_party_examples_macos_tests"
+      - "-//cmake_android/..."
       # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
       - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
       - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
@@ -95,14 +105,15 @@ tasks:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
-      - "-k"
       - "--noincompatible_enable_cc_toolchain_resolution"
+      - "--noenable_bzlmod"
     test_targets: *macos_targets_standalone
     test_flags:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
       - "--noincompatible_enable_cc_toolchain_resolution"
+      - "--noenable_bzlmod"
   macos_examples:
     name: Examples
     platform: macos
@@ -110,15 +121,18 @@ tasks:
     macos_targets: &macos_targets
       - "//..."
       - "//:third_party_examples_macos_tests"
+      - "-//cmake_android/..."
       # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
       - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
       - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
     build_targets: *macos_targets
     build_flags:
       - "--noincompatible_enable_cc_toolchain_resolution"
+      - "--noenable_bzlmod"
     test_targets: *macos_targets
     test_flags:
       - "--noincompatible_enable_cc_toolchain_resolution"
+      - "--noenable_bzlmod"
   windows_examples:
     name: Examples
     platform: windows
@@ -143,11 +157,17 @@ tasks:
       - "-//cmake_hello_world_lib/static:libhello_example"
       - "-//cmake_hello_world_lib/static:test_hello"
       - "-//cmake_with_data/..."
+    batch_commands:
+      - powershell -noexit "& "".\..\.bazelci\windows-update-certs.ps1"""
     build_targets: *windows_targets
     test_targets: *windows_targets
-  rbe_ubuntu1604_flags:
+    build_flags:
+      - "--noenable_bzlmod"
+    test_flags:
+      - "--noenable_bzlmod"
+  rbe_ubuntu2004_flags:
     name: Flags
-    platform: rbe_ubuntu1604
+    platform: rbe_ubuntu2004
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
@@ -169,9 +189,9 @@ tasks:
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
-  rbe_ubuntu1604_detect_root:
+  rbe_ubuntu2004_detect_root:
     name: Detect root
-    platform: rbe_ubuntu1604
+    platform: rbe_ubuntu2004
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
@@ -201,22 +221,17 @@ tasks:
       - //...
   min_supported_version:
     name: "Minimum Supported Version"
-    bazel: "4.0.0"
-    skip_in_bazel_downstream_pipeline: "Bazel 4 required"
+    bazel: "5.4.0"
+    skip_in_bazel_downstream_pipeline: "Duplicates tests in other targets"
     platform: ubuntu1804
     build_targets:
       - "//..."
-    # experimental_enable_aggregating_middleman=False is required in bazel 4 otherwise ctx.resolve_command fails.
-    # This was resolved in https://github.com/bazelbuild/bazel/commit/fb1c369530bd26f9a13560c5979929a999e585e2
-    build_flags:
-      - "--experimental_enable_aggregating_middleman=False"
     test_targets:
       - "//..."
-    test_flags:
-      - "--experimental_enable_aggregating_middleman=False"
   min_supported_version_examples:
     name: "Minimum Supported Version Examples"
     bazel: "5.4.0"
+    skip_in_bazel_downstream_pipeline: "Duplicates tests in other targets"
     platform: ubuntu1804
     working_directory: examples
     min_supported_targets: &min_supported_targets

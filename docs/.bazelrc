@@ -1,3 +1,7 @@
-# Bazel configuration flags for rules_foregin_cc_docs
+# Bazel configuration flags for rules_foreign_cc_docs
 
+# https://github.com/bazelbuild/stardoc/issues/112
+common --incompatible_allow_tags_propagation
+
+common --noenable_bzlmod
 build --workspace_status_command=tools/workspace_status.sh

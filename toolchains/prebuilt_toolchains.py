@@ -10,6 +10,25 @@ CMAKE_SHA256_URL_TEMPLATE = "https://cmake.org/files/v{minor}/cmake-{full}-SHA-2
 CMAKE_URL_TEMPLATE = "https://github.com/Kitware/CMake/releases/download/v{full}/{file}"
 
 CMAKE_VERSIONS = [
+    "3.29.1",
+    "3.29.0",
+    "3.28.4",
+    "3.28.3",
+    "3.28.2",
+    "3.28.1",
+    "3.28.0",
+    "3.27.9",
+    "3.27.8",
+    "3.27.7",
+    "3.27.6",
+    "3.27.5",
+    "3.27.4",
+    "3.27.3",
+    "3.27.2",
+    "3.27.1",
+    "3.27.0",
+    "3.26.6",
+    "3.26.5",
     "3.26.4",
     "3.26.3",
     "3.26.2",
@@ -19,6 +38,7 @@ CMAKE_VERSIONS = [
     "3.25.2",
     "3.25.1",
     "3.25.0",
+    "3.24.4",
     "3.24.3",
     "3.24.2",
     "3.24.1",
@@ -28,6 +48,7 @@ CMAKE_VERSIONS = [
     "3.23.3",
     "3.23.2",
     "3.23.1",
+    "3.23.0",
     "3.22.6",
     "3.22.5",
     "3.22.4",
@@ -35,6 +56,7 @@ CMAKE_VERSIONS = [
     "3.22.2",
     "3.22.1",
     "3.22.0",
+    "3.21.7",
     "3.21.6",
     "3.21.5",
     "3.21.4",
@@ -125,8 +147,16 @@ NINJA_TARGETS = {
         "@platforms//cpu:x86_64",
         "@platforms//os:linux",
     ],
+    "linux-aarch64": [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
     "mac": [
         "@platforms//cpu:x86_64",
+        "@platforms//os:macos",
+    ],
+    "mac_aarch64": [
+        "@platforms//cpu:aarch64",
         "@platforms//os:macos",
     ],
     "win": [
@@ -136,6 +166,7 @@ NINJA_TARGETS = {
 }
 
 NINJA_VERSIONS = (
+    "1.12.0",
     "1.11.1",
     "1.11.0",
     "1.10.2",
@@ -195,6 +226,11 @@ load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "n
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
+    name = "cmake_bin",
+    srcs = ["bin/{{bin}}"],
+)
+
+filegroup(
     name = "cmake_data",
     srcs = glob(
         [
@@ -213,6 +249,8 @@ native_tool_toolchain(
     name = "cmake_tool",
     path = "bin/{{bin}}",
     target = ":cmake_data",
+    env = {{env}},
+    tools = [":cmake_bin"],
 )
 \"\"\"
 
@@ -321,7 +359,7 @@ def get_cmake_definitions() -> str:
                     build="cmake",
                     template="_CMAKE_BUILD_FILE",
                     bin=bin,
-                    env="{}",
+                    env='{\\"CMAKE\\": \\"$(execpath :cmake_bin)\\"}',
                 )
             )
             version_toolchains.update({plat_target: name})
@@ -394,14 +432,24 @@ def get_ninja_definitions() -> str:
 
     for version in NINJA_VERSIONS:
 
+        supports_linux_aarch64 = not version in ["1.8.2", "1.9.0", "1.10.0", "1.10.1", "1.10.2", "1.11.0", "1.11.1"]
+        supports_mac_universal = not version in ["1.8.2", "1.9.0", "1.10.0", "1.10.1"]
         version_archives = []
         version_toolchains = {}
 
         for target in NINJA_TARGETS.keys():
+            if not supports_linux_aarch64 and target == "linux-aarch64":
+                continue
+
+            if not supports_mac_universal and target == "mac_aarch64":
+                continue
+
             url = NINJA_URL_TEMPLATE.format(
                 full=version,
-                target=target,
+                target="mac" if target == "mac_aarch64" else target,
             )
+
+            print(f"fetching {url}")
 
             # Get sha256 (can be slow)
             remote = urllib.request.urlopen(url)

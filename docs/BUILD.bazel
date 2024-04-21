@@ -14,14 +14,25 @@ genrule(
 
 # Note that the stardoc `out` files are prefixed with `stardoc_` so the
 # `diff_test` targets which ensure documentation is up to date can access the
-# committed markdown files instead ouf the `out` targets from the stardoc rules
+# committed markdown files instead of the `out` targets from the stardoc rules
 
 stardoc(
     name = "flatten_docs",
     out = "stardoc_flatten.md",
     header_template = ":flatten_header_vm",
     input = "docs.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    tags = ["no-sandbox"],  # https://github.com/bazelbuild/stardoc/issues/112
+    deps = [
+        "@rules_foreign_cc//foreign_cc:defs",
+        "@rules_foreign_cc//foreign_cc:repositories",
+    ] + [
+        "@rules_foreign_cc//foreign_cc:cmake",
+        "@rules_foreign_cc//foreign_cc:configure",
+        "@rules_foreign_cc//foreign_cc:make",
+        "@rules_foreign_cc//foreign_cc:meson",
+        "@rules_foreign_cc//foreign_cc:ninja",
+        "@rules_foreign_cc//foreign_cc:providers",
+    ],
 )
 
 stardoc(
@@ -29,7 +40,7 @@ stardoc(
     out = "stardoc_cmake.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:cmake.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:cmake"],
 )
 
 stardoc(
@@ -37,7 +48,7 @@ stardoc(
     out = "stardoc_make.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:make.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:make"],
 )
 
 stardoc(
@@ -45,7 +56,7 @@ stardoc(
     out = "stardoc_ninja.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:ninja.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:ninja"],
 )
 
 stardoc(
@@ -53,7 +64,7 @@ stardoc(
     out = "stardoc_configure_make.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:configure.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:configure"],
 )
 
 stardoc(
@@ -61,7 +72,7 @@ stardoc(
     out = "stardoc_meson.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:meson.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:meson"],
 )
 
 stardoc(
@@ -69,7 +80,7 @@ stardoc(
     out = "stardoc_providers.md",
     header_template = "common_header.vm",
     input = "@rules_foreign_cc//foreign_cc:providers.bzl",
-    deps = ["@rules_foreign_cc//:bzl_srcs"],
+    deps = ["@rules_foreign_cc//foreign_cc:providers"],
 )
 
 DOCS_TARGETS = [
@@ -110,9 +121,9 @@ release="$${RELEASE}"
 release_archive="$${RELEASE}"
 
 # TODO: If a release is set, we assume it's set to a branch name.
-# thus we defautl the archive value to a commit. This is likely
+# thus we default the archive value to a commit. This is likely
 # only appropriate when publishing on the branch in specified
-# and a smarter solution should be found to avoid unexpected behavior. 
+# and a smarter solution should be found to avoid unexpected behavior.
 if [[ -n "\\$${RELEASE:-}" ]]; then
     release="\\$${RELEASE}"
     release_archive="\\$${commit}"
@@ -123,9 +134,10 @@ cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:flatten_docs) > \\$${BUILD_WOR
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:cmake_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/cmake.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:ninja_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/ninja.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/make.md
+cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:meson_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/meson.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:configure_make_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/configure_make.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(location //:providers_docs) > \\$${BUILD_WORKSPACE_DIRECTORY}/src/providers.md
-# Non generated sourrces
+# Non generated sources
 cp \\$${BUILD_WORKSPACE_DIRECTORY}/$(rootpath rules.md) \\$${BUILD_WORKSPACE_DIRECTORY}/src/rules.md
 cat \\$${BUILD_WORKSPACE_DIRECTORY}/$(rootpath index.md)  \
 | sed "s/{short_commit}/\\$${short_commit}/" \

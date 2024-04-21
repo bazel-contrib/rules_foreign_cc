@@ -1,11 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//foreign_cc/built_tools:cmake_build.bzl", "cmake_tool")
-load("//foreign_cc/built_tools:make_build.bzl", "make_tool")
-load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
-load("//foreign_cc/built_tools:ninja_build.bzl", "ninja_tool")
-load("//foreign_cc/built_tools:pkgconfig_build.bzl", "pkgconfig_tool")
 load("//toolchains:toolchains.bzl", "current_autoconf_toolchain", "current_automake_toolchain", "current_cmake_toolchain", "current_m4_toolchain", "current_make_toolchain", "current_meson_toolchain", "current_ninja_toolchain", "current_pkgconfig_toolchain")
-load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -75,31 +69,31 @@ current_autoconf_toolchain(
 
 toolchain(
     name = "built_cmake_toolchain",
-    toolchain = ":built_cmake",
+    toolchain = "//toolchains/private:built_cmake",
     toolchain_type = ":cmake_toolchain",
 )
 
 toolchain(
     name = "built_ninja_toolchain",
-    toolchain = ":built_ninja",
+    toolchain = "//toolchains/private:built_ninja",
     toolchain_type = ":ninja_toolchain",
 )
 
 toolchain(
     name = "built_make_toolchain",
-    toolchain = ":built_make",
+    toolchain = "//toolchains/private:built_make",
     toolchain_type = ":make_toolchain",
 )
 
 toolchain(
     name = "built_meson_toolchain",
-    toolchain = ":built_meson",
+    toolchain = "//toolchains/private:built_meson",
     toolchain_type = ":meson_toolchain",
 )
 
 toolchain(
     name = "built_pkgconfig_toolchain",
-    toolchain = ":built_pkgconfig",
+    toolchain = "//toolchains/private:built_pkgconfig",
     toolchain_type = ":pkgconfig_toolchain",
 )
 
@@ -107,7 +101,7 @@ toolchain(
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(
     name = "preinstalled_cmake_toolchain",
-    toolchain = ":preinstalled_cmake",
+    toolchain = "//toolchains/private:preinstalled_cmake",
     toolchain_type = ":cmake_toolchain",
 )
 
@@ -115,7 +109,7 @@ toolchain(
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(
     name = "preinstalled_ninja_toolchain",
-    toolchain = ":preinstalled_ninja",
+    toolchain = "//toolchains/private:preinstalled_ninja",
     toolchain_type = ":ninja_toolchain",
 )
 
@@ -123,16 +117,8 @@ toolchain(
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(
     name = "preinstalled_make_toolchain",
-    toolchain = ":preinstalled_make",
+    toolchain = "//toolchains/private:preinstalled_make",
     toolchain_type = ":make_toolchain",
-)
-
-native_tool_toolchain(
-    name = "preinstalled_make",
-    path = select({
-        "@platforms//os:windows": "make.exe",
-        "//conditions:default": "make",
-    }),
 )
 
 toolchain(
@@ -140,204 +126,75 @@ toolchain(
     exec_compatible_with = [
         "@platforms//os:windows",
     ],
-    toolchain = ":preinstalled_nmake",
+    toolchain = "//toolchains/private:preinstalled_nmake",
     toolchain_type = ":make_toolchain",
-)
-
-native_tool_toolchain(
-    name = "preinstalled_nmake",
-    path = "nmake.exe",
-)
-
-make_tool(
-    name = "make_tool",
-    srcs = "@gnumake_src//:all_srcs",
-    tags = ["manual"],
-)
-
-native_tool_toolchain(
-    name = "built_make",
-    env = select({
-        "@platforms//os:windows": {"MAKE": "$(execpath :make_tool)/bin/make.exe"},
-        "//conditions:default": {"MAKE": "$(execpath :make_tool)/bin/make"},
-    }),
-    path = select({
-        "@platforms//os:windows": "$(execpath :make_tool)/bin/make.exe",
-        "//conditions:default": "$(execpath :make_tool)/bin/make",
-    }),
-    target = ":make_tool",
-)
-
-native_tool_toolchain(
-    name = "preinstalled_cmake",
-    env = select({
-        "@platforms//os:windows": {"CMAKE": "cmake.exe"},
-        "//conditions:default": {"CMAKE": "cmake"},
-    }),
-    path = select({
-        "@platforms//os:windows": "cmake.exe",
-        "//conditions:default": "cmake",
-    }),
-)
-
-cmake_tool(
-    name = "cmake_tool",
-    srcs = "@cmake_src//:all_srcs",
-    tags = ["manual"],
-)
-
-native_tool_toolchain(
-    name = "built_cmake",
-    env = select({
-        "@platforms//os:windows": {"CMAKE": "$(execpath :cmake_tool)/bin/cmake.exe"},
-        "//conditions:default": {"CMAKE": "$(execpath :cmake_tool)/bin/cmake"},
-    }),
-    path = select({
-        "@platforms//os:windows": "$(execpath :cmake_tool)/bin/cmake.exe",
-        "//conditions:default": "$(execpath :cmake_tool)/bin/cmake",
-    }),
-    target = ":cmake_tool",
-)
-
-native_tool_toolchain(
-    name = "preinstalled_ninja",
-    env = select({
-        "@platforms//os:windows": {"NINJA": "ninja.exe"},
-        "//conditions:default": {"NINJA": "ninja"},
-    }),
-    path = select({
-        "@platforms//os:windows": "ninja.exe",
-        "//conditions:default": "ninja",
-    }),
-)
-
-ninja_tool(
-    name = "ninja_tool",
-    srcs = "@ninja_build_src//:all_srcs",
-    tags = ["manual"],
-)
-
-native_tool_toolchain(
-    name = "built_ninja",
-    env = select({
-        "@platforms//os:windows": {"NINJA": "$(execpath :ninja_tool)/bin/ninja.exe"},
-        "//conditions:default": {"NINJA": "$(execpath :ninja_tool)/bin/ninja"},
-    }),
-    path = select({
-        "@platforms//os:windows": "$(execpath :ninja_tool)/bin/ninja.exe",
-        "//conditions:default": "$(execpath :ninja_tool)/bin/ninja",
-    }),
-    target = ":ninja_tool",
 )
 
 toolchain(
     name = "preinstalled_meson_toolchain",
-    toolchain = ":preinstalled_meson",
+    toolchain = "//toolchains/private:preinstalled_meson",
     toolchain_type = ":meson_toolchain",
-)
-
-native_tool_toolchain(
-    name = "preinstalled_meson",
-    path = select({
-        "@platforms//os:windows": "meson.exe",
-        "//conditions:default": "meson",
-    }),
-)
-
-meson_tool(
-    name = "meson_tool",
-    data = ["@meson_src//:runtime"],
-    main = "@meson_src//:meson.py",
-    tags = ["manual"],
-)
-
-native_tool_toolchain(
-    name = "built_meson",
-    env = {"MESON": "$(execpath :meson_tool)"},
-    path = "$(execpath :meson_tool)",
-    target = ":meson_tool",
 )
 
 toolchain(
     name = "preinstalled_autoconf_toolchain",
-    toolchain = ":preinstalled_autoconf",
+    toolchain = "//toolchains/private:preinstalled_autoconf",
     toolchain_type = ":autoconf_toolchain",
-)
-
-native_tool_toolchain(
-    name = "preinstalled_autoconf",
-    path = select({
-        "@platforms//os:windows": "autoconf.exe",
-        "//conditions:default": "autoconf",
-    }),
 )
 
 toolchain(
     name = "preinstalled_automake_toolchain",
-    toolchain = ":preinstalled_automake",
+    toolchain = "//toolchains/private:preinstalled_automake",
     toolchain_type = ":automake_toolchain",
-)
-
-native_tool_toolchain(
-    name = "preinstalled_automake",
-    path = select({
-        "@platforms//os:windows": "automake.exe",
-        "//conditions:default": "automake",
-    }),
 )
 
 toolchain(
     name = "preinstalled_m4_toolchain",
-    toolchain = ":preinstalled_m4",
+    toolchain = "//toolchains/private:preinstalled_m4",
     toolchain_type = ":m4_toolchain",
-)
-
-native_tool_toolchain(
-    name = "preinstalled_m4",
-    path = select({
-        "@platforms//os:windows": "m4.exe",
-        "//conditions:default": "m4",
-    }),
 )
 
 toolchain(
     name = "preinstalled_pkgconfig_toolchain",
-    toolchain = ":preinstalled_pkgconfig",
+    toolchain = "//toolchains/private:preinstalled_pkgconfig",
     toolchain_type = ":pkgconfig_toolchain",
 )
 
-native_tool_toolchain(
-    name = "preinstalled_pkgconfig",
-    path = select({
-        "@platforms//os:windows": "pkg-config.exe",
-        "//conditions:default": "pkg-config",
-    }),
-)
-
-pkgconfig_tool(
-    name = "pkgconfig_tool",
-    srcs = "@pkgconfig_src//:all_srcs",
-    tags = ["manual"],
-)
-
-native_tool_toolchain(
-    name = "built_pkgconfig",
-    env = select({
-        "@platforms//os:windows": {"PKG_CONFIG": "$(execpath :pkgconfig_tool)"},
-        "//conditions:default": {"PKG_CONFIG": "$(execpath :pkgconfig_tool)/bin/pkg-config"},
-    }),
-    path = select({
-        "@platforms//os:windows": "$(execpath :pkgconfig_tool)",
-        "//conditions:default": "$(execpath :pkgconfig_tool)/bin/pkg-config",
-    }),
-    target = ":pkgconfig_tool",
+bzl_library(
+    name = "built_toolchains",
+    srcs = ["built_toolchains.bzl"],
+    deps = [
+        "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
+        "@rules_foreign_cc//toolchains:cmake_versions",
+    ],
 )
 
 bzl_library(
-    name = "bzl_srcs",
-    srcs = glob(["**/*.bzl"]),
-    visibility = ["//:__subpackages__"],
+    name = "prebuilt_toolchains",
+    srcs = ["prebuilt_toolchains.bzl"],
     deps = [
-        "//toolchains/native_tools:bzl_srcs",
+        "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
+        "@rules_foreign_cc//toolchains:prebuilt_toolchains_repository",
     ],
+)
+
+bzl_library(
+    name = "toolchains",
+    srcs = ["toolchains.bzl"],
+    deps = [
+        ":built_toolchains",
+        ":prebuilt_toolchains",
+    ],
+)
+
+bzl_library(
+    name = "cmake_versions",
+    srcs = ["cmake_versions.bzl"],
+)
+
+bzl_library(
+    name = "prebuilt_toolchains_repository",
+    srcs = ["prebuilt_toolchains_repository.bzl"],
 )

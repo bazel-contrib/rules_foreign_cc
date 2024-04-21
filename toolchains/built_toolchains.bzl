@@ -72,6 +72,9 @@ def _cmake_toolchain(version, register_toolchains):
             sha256 = sha256,
             strip_prefix = prefix,
             urls = urls,
+            patches = [
+                Label("//toolchains:cmake-c++11.patch"),
+            ],
         )
         return
 
@@ -82,6 +85,21 @@ def _make_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_make_toolchain",
         )
+
+    if version == "4.4.1":
+        maybe(
+            http_archive,
+            name = "gnumake_src",
+            build_file_content = _ALL_CONTENT,
+            sha256 = "dd16fb1d67bfab79a72f5e8390735c49e3e8e70b4945a15ab1f81ddb78658fb3",
+            strip_prefix = "make-4.4.1",
+            urls = [
+                "https://mirror.bazel.build/ftpmirror.gnu.org/gnu/make/make-4.4.1.tar.gz",
+                "http://ftpmirror.gnu.org/gnu/make/make-4.4.1.tar.gz",
+            ],
+        )
+        return
+
     if version == "4.4":
         maybe(
             http_archive,
@@ -117,6 +135,19 @@ def _ninja_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_ninja_toolchain",
         )
+    if version == "1.12.0":
+        maybe(
+            http_archive,
+            name = "ninja_build_src",
+            build_file_content = _ALL_CONTENT,
+            integrity = "sha256-iyyGzUg9x/y3l1xexzKRNdIQCZqJvH2wWQoHsLv+SaU=",
+            strip_prefix = "ninja-1.12.0",
+            urls = [
+                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.12.0.tar.gz",
+                "https://github.com/ninja-build/ninja/archive/v1.12.0.tar.gz",
+            ],
+        )
+        return
     if version == "1.11.1":
         maybe(
             http_archive,
@@ -125,6 +156,7 @@ def _ninja_toolchain(version, register_toolchains):
             sha256 = "31747ae633213f1eda3842686f83c2aa1412e0f5691d1c14dbbcc67fe7400cea",
             strip_prefix = "ninja-1.11.1",
             urls = [
+                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.11.1.tar.gz",
                 "https://github.com/ninja-build/ninja/archive/v1.11.1.tar.gz",
             ],
         )
@@ -137,6 +169,7 @@ def _ninja_toolchain(version, register_toolchains):
             sha256 = "3c6ba2e66400fe3f1ae83deb4b235faf3137ec20bd5b08c29bfc368db143e4c6",
             strip_prefix = "ninja-1.11.0",
             urls = [
+                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.11.0.tar.gz",
                 "https://github.com/ninja-build/ninja/archive/v1.11.0.tar.gz",
             ],
         )
@@ -149,6 +182,7 @@ def _ninja_toolchain(version, register_toolchains):
             sha256 = "ce35865411f0490368a8fc383f29071de6690cbadc27704734978221f25e2bed",
             strip_prefix = "ninja-1.10.2",
             urls = [
+                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.10.2.tar.gz",
                 "https://github.com/ninja-build/ninja/archive/v1.10.2.tar.gz",
             ],
         )
@@ -166,8 +200,12 @@ def _meson_toolchain(version, register_toolchains):
             http_archive,
             name = "meson_src",
             build_file_content = _MESON_BUILD_FILE_CONTENT,
+            sha256 = "d04b541f97ca439fb82fab7d0d480988be4bd4e62563a5ca35fadb5400727b1c",
             strip_prefix = "meson-1.1.1",
-            url = "https://github.com/mesonbuild/meson/releases/download/1.1.1/meson-1.1.1.tar.gz",
+            urls = [
+                "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/1.1.1/meson-1.1.1.tar.gz",
+                "https://github.com/mesonbuild/meson/releases/download/1.1.1/meson-1.1.1.tar.gz",
+            ],
         )
         return
     if version == "0.63.0":
@@ -177,7 +215,10 @@ def _meson_toolchain(version, register_toolchains):
             build_file_content = _MESON_BUILD_FILE_CONTENT,
             sha256 = "3b51d451744c2bc71838524ec8d96cd4f8c4793d5b8d5d0d0a9c8a4f7c94cd6f",
             strip_prefix = "meson-0.63.0",
-            url = "https://github.com/mesonbuild/meson/releases/download/0.63.0/meson-0.63.0.tar.gz",
+            urls = [
+                "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/0.63.0/meson-0.63.0.tar.gz",
+                "https://github.com/mesonbuild/meson/releases/download/0.63.0/meson-0.63.0.tar.gz",
+            ],
         )
         return
 
@@ -204,6 +245,7 @@ cc_import(
         ''',
         sha256 = "bdf18506df304d38be98a4b3f18055b8b8cca81beabecad0eece6ce95319c369",
         urls = [
+            "https://mirror.bazel.build/download.gnome.org/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
             "https://download.gnome.org/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
         ],
     )
@@ -221,6 +263,7 @@ cc_import(
         sha256 = "bc96f63112823b7d6c9f06572d2ad626ddac7eb452c04d762592197f6e07898e",
         strip_prefix = "glib-2.26.1",
         urls = [
+            "https://mirror.bazel.build/download.gnome.org/sources/glib/2.26/glib-2.26.1.tar.gz",
             "https://download.gnome.org/sources/glib/2.26/glib-2.26.1.tar.gz",
         ],
     )
@@ -242,6 +285,7 @@ exports_files(
         ''',
         sha256 = "88d857087e86f16a9be651ee7021880b3f7ba050d34a1ed9f06113b8799cb973",
         urls = [
+            "https://mirror.bazel.build/download.gnome.org/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
             "https://download.gnome.org/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
         ],
     )
@@ -258,6 +302,7 @@ cc_import(
         ''',
         sha256 = "1f4269c0e021076d60a54e98da6f978a3195013f6de21674ba0edbc339c5b079",
         urls = [
+            "https://mirror.bazel.build/download.gnome.org/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip",
             "https://download.gnome.org/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip",
         ],
     )
@@ -278,6 +323,7 @@ cc_import(
             ],
             urls = [
                 "https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",
+                "https://mirror.bazel.build/pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",
             ],
         )
         return
