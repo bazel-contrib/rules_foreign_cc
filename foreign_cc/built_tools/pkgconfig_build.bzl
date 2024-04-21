@@ -6,14 +6,74 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_ATTRS",
     "FOREIGN_CC_BUILT_TOOLS_FRAGMENTS",
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
+    "absolutize",
     "built_tool_rule_impl",
 )
+load(
+    "//foreign_cc/private:cc_toolchain_util.bzl",
+    "get_env_vars",
+    "get_flags_info",
+    "get_tools_info",
+)
+load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
 def _pkgconfig_tool_impl(ctx):
+    env = get_env_vars(ctx)
+    flags_info = get_flags_info(ctx)
+    tools_info = get_tools_info(ctx)
+
+    ar_path = tools_info.cxx_linker_static
+    frozen_arflags = flags_info.cxx_linker_static
+
+    cc_path = tools_info.cc
+    cflags = flags_info.cc + ["-Wno-int-conversion"]  # Fix building with clang 15+
+    sysroot_cflags = [flag for flag in cflags if flag.startswith("--sysroot=")]
+    non_sysroot_cflags = [flag for flag in cflags if not flag.startswith("--sysroot=")]
+
+    ld_path = tools_info.cxx_linker_executable
+    ldflags = flags_info.cxx_linker_executable
+    sysroot_ldflags = [flag for flag in ldflags if flag.startswith("--sysroot=")]
+    non_sysroot_ldflags = [flag for flag in ldflags if not flag.startswith("--sysroot=")]
+
+    # Make's build script does not forward CFLAGS to all compiler and linker
+    # invocations, so we append --sysroot flags directly to CC and LD.
+    absolute_cc = absolutize(ctx.workspace_name, cc_path, True)
+    if sysroot_cflags:
+        absolute_cc += " " + _join_flags_list(ctx.workspace_name, sysroot_cflags)
+    absolute_ld = absolutize(ctx.workspace_name, ld_path, True)
+    if sysroot_ldflags:
+        absolute_ld += " " + _join_flags_list(ctx.workspace_name, sysroot_ldflags)
+
+    # If libtool is used as AR, the output file has to be prefixed with
+    # "-o". Since the make Makefile only uses ar-style invocations, the
+    # output file always comes first and we can append this argument to the
+    # flags list.
+    absolute_ar = absolutize(ctx.workspace_name, ar_path, True)
+
+    if os_name(ctx) == "macos":
+        absolute_ar = ""
+        non_sysroot_ldflags += ["-undefined", "error"]
+
+    arflags = [e for e in frozen_arflags]
+    if absolute_ar == "libtool" or absolute_ar.endswith("/libtool"):
+        arflags.append("-o")
+
     make_data = get_make_data(ctx)
+
+    env.update({
+        "AR": absolute_ar,
+        "ARFLAGS": _join_flags_list(ctx.workspace_name, arflags),
+        "CC": absolute_cc,
+        "CFLAGS": _join_flags_list(ctx.workspace_name, non_sysroot_cflags),
+        "LD": absolute_ld,
+        "LDFLAGS": _join_flags_list(ctx.workspace_name, non_sysroot_ldflags),
+        "MAKE": make_data.path,
+    })
+
+    configure_env = " ".join(["%s=\"%s\"" % (key, value) for key, value in env.items()])
     script = [
-        "./configure  --with-internal-glib --prefix=$$INSTALLDIR$$",
+        "%s ./configure  --with-internal-glib --prefix=$$INSTALLDIR$$" % configure_env,
         "%s" % make_data.path,
         "%s install" % make_data.path,
     ]
@@ -109,3 +169,6 @@ def pkgconfig_tool(name, srcs, **kwargs):
         match_binary_name = True,
         tags = tags,
     )
+
+def _join_flags_list(workspace_name, flags):
+    return " ".join([absolutize(workspace_name, flag) for flag in flags])
