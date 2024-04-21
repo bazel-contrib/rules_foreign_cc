@@ -74,7 +74,7 @@ if [ -d "$1" ]; then
   for file in ${files[@]+"${files[@]}"}; do
     local backup=$(mktemp)
     touch -r "${file}" "${backup}"
-    /usr/bin/sed -i '' -e 's@'"$2"'@'"$3"'@g' "${file}"
+    /usr/bin/sed -i '' -e 's'$'\001'"$2"$'\001'"$3"$'\001''g' "${file}"
     if [[ "$?" -ne "0" ]]; then
       exit 1
     fi
@@ -90,7 +90,7 @@ def copy_dir_contents_to_dir(source, target):
     # do something more complext for this environment.
     return """\
 if [[ -d "{source}" ]]; then
-  cp -L -R "{source}"/* "{target}"
+  cp -L -R "{source}"/ "{target}"
 else
   cp -L -R "{source}" "{target}"
 fi

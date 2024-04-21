@@ -14,6 +14,11 @@ load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "n
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
+    name = "cmake_bin",
+    srcs = ["bin/{bin}"],
+)
+
+filegroup(
     name = "cmake_data",
     srcs = glob(
         [
@@ -32,6 +37,8 @@ native_tool_toolchain(
     name = "cmake_tool",
     path = "bin/{bin}",
     target = ":cmake_data",
+    env = {env},
+    tools = [":cmake_bin"],
 )
 """
 
@@ -66,6 +73,556 @@ def prebuilt_toolchains(cmake_version, ninja_version, register_toolchains):
     _ninja_toolchains(ninja_version, register_toolchains)
 
 def _cmake_toolchains(version, register_toolchains):
+    if "3.29.1" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.29.1-linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.1/cmake-3.29.1-linux-aarch64.tar.gz",
+            ],
+            sha256 = "14130b1eaae0dfcc1c148926d6cc2792556c1b5cca71abef443eab4dea54115f",
+            strip_prefix = "cmake-3.29.1-linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.29.1-linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.1/cmake-3.29.1-linux-x86_64.tar.gz",
+            ],
+            sha256 = "751bbe7ccabb78179335a75b88999b1c52afcd4d8a4cd03217d367d8bb2c5100",
+            strip_prefix = "cmake-3.29.1-linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.29.1-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.1/cmake-3.29.1-macos-universal.tar.gz",
+            ],
+            sha256 = "203ac4392fff68e3456b2f6b0251a2727766d16cf4e49d2725869e88051372fc",
+            strip_prefix = "cmake-3.29.1-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.29.1-windows-i386",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.1/cmake-3.29.1-windows-i386.zip",
+            ],
+            sha256 = "4c832bbd9bb7a6756b13743956b87a9ae0ba869cb2e1a139bb540e456fd919ee",
+            strip_prefix = "cmake-3.29.1-windows-i386",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.29.1-windows-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.1/cmake-3.29.1-windows-x86_64.zip",
+            ],
+            sha256 = "c8cf6ed50551d00ad8cd1f3b232810cd0a8b43b4a1d4f1393f0a575d423884dc",
+            strip_prefix = "cmake-3.29.1-windows-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.29.1_toolchains",
+            repos = {
+                "cmake-3.29.1-linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.29.1-linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.29.1-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.29.1-windows-i386": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.29.1-windows-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        if register_toolchains:
+            native.register_toolchains(
+                "@cmake_3.29.1_toolchains//:cmake-3.29.1-linux-aarch64_toolchain",
+                "@cmake_3.29.1_toolchains//:cmake-3.29.1-linux-x86_64_toolchain",
+                "@cmake_3.29.1_toolchains//:cmake-3.29.1-macos-universal_toolchain",
+                "@cmake_3.29.1_toolchains//:cmake-3.29.1-windows-i386_toolchain",
+                "@cmake_3.29.1_toolchains//:cmake-3.29.1-windows-x86_64_toolchain",
+            )
+
+        return
+
+    if "3.29.0" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.29.0-linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.0/cmake-3.29.0-linux-aarch64.tar.gz",
+            ],
+            sha256 = "2cb768a14b28a4478bb931d917dbc419305b82433bdecc046df98e7c336225fa",
+            strip_prefix = "cmake-3.29.0-linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.29.0-linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.0/cmake-3.29.0-linux-x86_64.tar.gz",
+            ],
+            sha256 = "f06258f52c5649752dfb10c4c2e1d8167c760c8826f078c6f5c332fa9d976bf8",
+            strip_prefix = "cmake-3.29.0-linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.29.0-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.0/cmake-3.29.0-macos-universal.tar.gz",
+            ],
+            sha256 = "4adc9d97242e18b47a4c4fa4c7d09200e4b9550cba6116e4522a7525639f436a",
+            strip_prefix = "cmake-3.29.0-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.29.0-windows-i386",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.0/cmake-3.29.0-windows-i386.zip",
+            ],
+            sha256 = "db687afa0b1d0e0c5a2641b31fab050b5e2c044189b6f022ea5a09adba6cf4f5",
+            strip_prefix = "cmake-3.29.0-windows-i386",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.29.0-windows-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.0/cmake-3.29.0-windows-x86_64.zip",
+            ],
+            sha256 = "9ab28eba1ab7911a0e57ab274f5990a283fffa1d22eb711792d5562e5869f9ef",
+            strip_prefix = "cmake-3.29.0-windows-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.29.0_toolchains",
+            repos = {
+                "cmake-3.29.0-linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.29.0-linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.29.0-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.29.0-windows-i386": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.29.0-windows-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        if register_toolchains:
+            native.register_toolchains(
+                "@cmake_3.29.0_toolchains//:cmake-3.29.0-linux-aarch64_toolchain",
+                "@cmake_3.29.0_toolchains//:cmake-3.29.0-linux-x86_64_toolchain",
+                "@cmake_3.29.0_toolchains//:cmake-3.29.0-macos-universal_toolchain",
+                "@cmake_3.29.0_toolchains//:cmake-3.29.0-windows-i386_toolchain",
+                "@cmake_3.29.0_toolchains//:cmake-3.29.0-windows-x86_64_toolchain",
+            )
+
+        return
+
+    if "3.28.4" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.28.4-linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.4/cmake-3.28.4-linux-aarch64.tar.gz",
+            ],
+            sha256 = "74edb3d6f7d179dc5021bd9f3c4ac59c72bb2c4e6bea9abd8297d8ce0a385228",
+            strip_prefix = "cmake-3.28.4-linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.4-linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.4/cmake-3.28.4-linux-x86_64.tar.gz",
+            ],
+            sha256 = "1f74731c80cbba3263c64fca6f6af0fb8dd1d06365425e404f79564773080d11",
+            strip_prefix = "cmake-3.28.4-linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.4-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.4/cmake-3.28.4-macos-universal.tar.gz",
+            ],
+            sha256 = "ad47a7e8e3da180b7cff69efe337f4285305052a77f28960cd40ca66f2f5c894",
+            strip_prefix = "cmake-3.28.4-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.4-windows-i386",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.4/cmake-3.28.4-windows-i386.zip",
+            ],
+            sha256 = "8008dfe27cd59c7550365b56f8d1f708ec2063fd807226ba0822531faee91efc",
+            strip_prefix = "cmake-3.28.4-windows-i386",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.4-windows-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.4/cmake-3.28.4-windows-x86_64.zip",
+            ],
+            sha256 = "7690887b57d3d4138dc78e88200236eec137314047334a30e4fecda614c5a079",
+            strip_prefix = "cmake-3.28.4-windows-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.28.4_toolchains",
+            repos = {
+                "cmake-3.28.4-linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.28.4-linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.28.4-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.28.4-windows-i386": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.28.4-windows-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        if register_toolchains:
+            native.register_toolchains(
+                "@cmake_3.28.4_toolchains//:cmake-3.28.4-linux-aarch64_toolchain",
+                "@cmake_3.28.4_toolchains//:cmake-3.28.4-linux-x86_64_toolchain",
+                "@cmake_3.28.4_toolchains//:cmake-3.28.4-macos-universal_toolchain",
+                "@cmake_3.28.4_toolchains//:cmake-3.28.4-windows-i386_toolchain",
+                "@cmake_3.28.4_toolchains//:cmake-3.28.4-windows-x86_64_toolchain",
+            )
+
+        return
+
+    if "3.28.3" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.28.3-linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-aarch64.tar.gz",
+            ],
+            sha256 = "bbf023139f944cefe731d944f2864d8ea3ea0c4f9310b46ac72b3cb4e314b023",
+            strip_prefix = "cmake-3.28.3-linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.3-linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.tar.gz",
+            ],
+            sha256 = "804d231460ab3c8b556a42d2660af4ac7a0e21c98a7f8ee3318a74b4a9a187a6",
+            strip_prefix = "cmake-3.28.3-linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.3-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-macos-universal.tar.gz",
+            ],
+            sha256 = "d9e2c22fec920a4d1f6b0d0683c035d799475c179c91e41e1a7fbfab610a0305",
+            strip_prefix = "cmake-3.28.3-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.3-windows-i386",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-windows-i386.zip",
+            ],
+            sha256 = "411812b6b29ac793faf69bdbd36c612f72659363c5491b9f0a478915db3fc58c",
+            strip_prefix = "cmake-3.28.3-windows-i386",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.3-windows-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-windows-x86_64.zip",
+            ],
+            sha256 = "cac7916f7e1e73a25de857704c94fd5b72ba9fe2f055356b5602d2f960e50e5b",
+            strip_prefix = "cmake-3.28.3-windows-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.28.3_toolchains",
+            repos = {
+                "cmake-3.28.3-linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.28.3-linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.28.3-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.28.3-windows-i386": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.28.3-windows-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        if register_toolchains:
+            native.register_toolchains(
+                "@cmake_3.28.3_toolchains//:cmake-3.28.3-linux-aarch64_toolchain",
+                "@cmake_3.28.3_toolchains//:cmake-3.28.3-linux-x86_64_toolchain",
+                "@cmake_3.28.3_toolchains//:cmake-3.28.3-macos-universal_toolchain",
+                "@cmake_3.28.3_toolchains//:cmake-3.28.3-windows-i386_toolchain",
+                "@cmake_3.28.3_toolchains//:cmake-3.28.3-windows-x86_64_toolchain",
+            )
+
+        return
+
+    if "3.28.2" == version:
+        maybe(
+            http_archive,
+            name = "cmake-3.28.2-linux-aarch64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.2/cmake-3.28.2-linux-aarch64.tar.gz",
+            ],
+            sha256 = "1140177a9e32f15f06dcb9cc7ad3946cfd0a7ba5eed5194d76064133fadfd96d",
+            strip_prefix = "cmake-3.28.2-linux-aarch64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.2-linux-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.2/cmake-3.28.2-linux-x86_64.tar.gz",
+            ],
+            sha256 = "3c67150b288657d156c261757f715e646c08e855f907af8930f36a378cd25163",
+            strip_prefix = "cmake-3.28.2-linux-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.2-macos-universal",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.2/cmake-3.28.2-macos-universal.tar.gz",
+            ],
+            sha256 = "6213c7710e5e20e7d4a295321b8b0ec0036c63914f52e71df1d0db84932f8058",
+            strip_prefix = "cmake-3.28.2-macos-universal/CMake.app/Contents",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.2-windows-i386",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.2/cmake-3.28.2-windows-i386.zip",
+            ],
+            sha256 = "dabdd59fb8ecdf90f91a161bef502652f07a4b0ed741b2039f2e86eea97db27b",
+            strip_prefix = "cmake-3.28.2-windows-i386",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "cmake-3.28.2-windows-x86_64",
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.2/cmake-3.28.2-windows-x86_64.zip",
+            ],
+            sha256 = "f4c751bc3ee070a59977206d6e2896c97217bbf48ba60939603b38112c31f1bd",
+            strip_prefix = "cmake-3.28.2-windows-x86_64",
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = "cmake.exe",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "cmake_3.28.2_toolchains",
+            repos = {
+                "cmake-3.28.2-linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.28.2-linux-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "cmake-3.28.2-macos-universal": [
+                    "@platforms//os:macos",
+                ],
+                "cmake-3.28.2-windows-i386": [
+                    "@platforms//cpu:x86_32",
+                    "@platforms//os:windows",
+                ],
+                "cmake-3.28.2-windows-x86_64": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "cmake",
+        )
+
+        if register_toolchains:
+            native.register_toolchains(
+                "@cmake_3.28.2_toolchains//:cmake-3.28.2-linux-aarch64_toolchain",
+                "@cmake_3.28.2_toolchains//:cmake-3.28.2-linux-x86_64_toolchain",
+                "@cmake_3.28.2_toolchains//:cmake-3.28.2-macos-universal_toolchain",
+                "@cmake_3.28.2_toolchains//:cmake-3.28.2-windows-i386_toolchain",
+                "@cmake_3.28.2_toolchains//:cmake-3.28.2-windows-x86_64_toolchain",
+            )
+
+        return
+
     if "3.28.1" == version:
         maybe(
             http_archive,
@@ -77,7 +634,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.28.1-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -91,7 +648,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.28.1-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -105,7 +662,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.28.1-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -119,7 +676,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.28.1-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -133,7 +690,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.28.1-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -187,7 +744,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.28.0-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -201,7 +758,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.28.0-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -215,7 +772,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.28.0-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -229,7 +786,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.28.0-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -243,7 +800,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.28.0-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -297,7 +854,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.9-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -311,7 +868,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.9-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -325,7 +882,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.9-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -339,7 +896,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.9-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -353,7 +910,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.9-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -407,7 +964,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.8-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -421,7 +978,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.8-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -435,7 +992,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.8-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -449,7 +1006,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.8-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -463,7 +1020,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.8-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -517,7 +1074,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.7-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -531,7 +1088,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.7-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -545,7 +1102,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.7-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -559,7 +1116,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.7-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -573,7 +1130,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.7-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -627,7 +1184,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.6-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -641,7 +1198,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.6-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -655,7 +1212,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.6-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -669,7 +1226,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.6-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -683,7 +1240,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.6-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -737,7 +1294,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.5-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -751,7 +1308,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.5-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -765,7 +1322,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.5-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -779,7 +1336,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.5-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -793,7 +1350,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.5-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -847,7 +1404,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.4-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -861,7 +1418,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.4-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -875,7 +1432,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.4-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -889,7 +1446,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.4-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -903,7 +1460,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.4-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -957,7 +1514,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.3-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -971,7 +1528,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.3-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -985,7 +1542,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.3-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -999,7 +1556,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.3-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1013,7 +1570,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.3-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1067,7 +1624,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.2-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1081,7 +1638,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.2-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1095,7 +1652,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.2-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1109,7 +1666,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.2-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1123,7 +1680,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.2-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1177,7 +1734,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.1-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1191,7 +1748,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.1-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1205,7 +1762,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.1-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1219,7 +1776,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.1-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1233,7 +1790,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.1-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1287,7 +1844,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.0-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1301,7 +1858,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.0-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1315,7 +1872,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.0-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1329,7 +1886,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.0-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1343,7 +1900,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.27.0-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1397,7 +1954,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.6-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1411,7 +1968,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.6-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1425,7 +1982,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.6-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1439,7 +1996,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.6-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1453,7 +2010,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.6-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1507,7 +2064,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.5-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1521,7 +2078,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.5-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1535,7 +2092,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.5-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1549,7 +2106,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.5-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1563,7 +2120,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.5-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1617,7 +2174,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.4-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1631,7 +2188,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.4-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1645,7 +2202,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.4-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1659,7 +2216,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.4-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1673,7 +2230,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.4-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1727,7 +2284,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.3-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1741,7 +2298,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.3-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1755,7 +2312,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.3-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1769,7 +2326,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.3-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1783,7 +2340,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.3-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1837,7 +2394,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.2-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1851,7 +2408,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.2-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1865,7 +2422,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.2-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1879,7 +2436,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.2-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1893,7 +2450,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.2-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1947,7 +2504,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.1-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1961,7 +2518,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.1-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1975,7 +2532,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.1-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -1989,7 +2546,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.1-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2003,7 +2560,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.1-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2057,7 +2614,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.0-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2071,7 +2628,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.0-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2085,7 +2642,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.0-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2099,7 +2656,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.0-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2113,7 +2670,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.26.0-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2167,7 +2724,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.3-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2181,7 +2738,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.3-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2195,7 +2752,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.3-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2209,7 +2766,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.3-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2223,7 +2780,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.3-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2277,7 +2834,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.2-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2291,7 +2848,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.2-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2305,7 +2862,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.2-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2319,7 +2876,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.2-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2333,7 +2890,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.2-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2387,7 +2944,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.1-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2401,7 +2958,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.1-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2415,7 +2972,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.1-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2429,7 +2986,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.1-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2443,7 +3000,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.1-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2497,7 +3054,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.0-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2511,7 +3068,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.0-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2525,7 +3082,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.0-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2539,7 +3096,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.0-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2553,7 +3110,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.25.0-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2607,7 +3164,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.4-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2621,7 +3178,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.4-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2635,7 +3192,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.4-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2649,7 +3206,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.4-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2663,7 +3220,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.4-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2717,7 +3274,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.3-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2731,7 +3288,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.3-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2745,7 +3302,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.3-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2759,7 +3316,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.3-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2773,7 +3330,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.3-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2827,7 +3384,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.2-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2841,7 +3398,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.2-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2855,7 +3412,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.2-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2869,7 +3426,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.2-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2883,7 +3440,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.2-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2937,7 +3494,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.1-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2951,7 +3508,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.1-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2965,7 +3522,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.1-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2979,7 +3536,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.1-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -2993,7 +3550,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.1-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3047,7 +3604,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.0-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3061,7 +3618,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.0-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3075,7 +3632,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.0-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3089,7 +3646,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.0-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3103,7 +3660,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.24.0-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3157,7 +3714,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.5-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3171,7 +3728,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.5-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3185,7 +3742,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.5-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3199,7 +3756,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.5-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3213,7 +3770,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.5-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3267,7 +3824,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.4-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3281,7 +3838,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.4-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3295,7 +3852,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.4-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3309,7 +3866,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.4-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3323,7 +3880,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.4-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3377,7 +3934,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.3-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3391,7 +3948,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.3-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3405,7 +3962,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.3-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3419,7 +3976,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.3-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3433,7 +3990,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.3-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3487,7 +4044,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.2-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3501,7 +4058,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.2-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3515,7 +4072,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.2-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3529,7 +4086,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.2-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3543,7 +4100,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.2-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3597,7 +4154,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.1-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3611,7 +4168,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.1-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3625,7 +4182,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.1-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3639,7 +4196,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.1-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3653,7 +4210,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.1-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3707,7 +4264,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.0-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3721,7 +4278,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.0-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3735,7 +4292,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.0-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3749,7 +4306,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.0-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3763,7 +4320,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.23.0-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3817,7 +4374,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.6-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3831,7 +4388,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.6-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3845,7 +4402,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.6-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3859,7 +4416,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.6-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3873,7 +4430,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.6-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3927,7 +4484,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.5-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3941,7 +4498,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.5-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3955,7 +4512,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.5-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3969,7 +4526,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.5-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -3983,7 +4540,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.5-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4037,7 +4594,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.4-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4051,7 +4608,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.4-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4065,7 +4622,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.4-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4079,7 +4636,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.4-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4093,7 +4650,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.4-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4147,7 +4704,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.3-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4161,7 +4718,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.3-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4175,7 +4732,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.3-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4189,7 +4746,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.3-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4203,7 +4760,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.3-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4257,7 +4814,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.2-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4271,7 +4828,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.2-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4285,7 +4842,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.2-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4299,7 +4856,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.2-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4313,7 +4870,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.2-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4367,7 +4924,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.1-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4381,7 +4938,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.1-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4395,7 +4952,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.1-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4409,7 +4966,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.1-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4423,7 +4980,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.1-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4477,7 +5034,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.0-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4491,7 +5048,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.0-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4505,7 +5062,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.0-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4519,7 +5076,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.0-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4533,7 +5090,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.22.0-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4587,7 +5144,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.7-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4601,7 +5158,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.7-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4615,7 +5172,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.7-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4629,7 +5186,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.7-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4643,7 +5200,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.7-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4697,7 +5254,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.6-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4711,7 +5268,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.6-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4725,7 +5282,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.6-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4739,7 +5296,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.6-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4753,7 +5310,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.6-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4807,7 +5364,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.5-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4821,7 +5378,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.5-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4835,7 +5392,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.5-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4849,7 +5406,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.5-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4863,7 +5420,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.5-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4917,7 +5474,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.4-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4931,7 +5488,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.4-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4945,7 +5502,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.4-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4959,7 +5516,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.4-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -4973,7 +5530,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.4-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5027,7 +5584,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.3-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5041,7 +5598,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.3-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5055,7 +5612,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.3-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5069,7 +5626,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.3-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5083,7 +5640,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.3-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5137,7 +5694,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.2-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5151,7 +5708,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.2-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5165,7 +5722,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.2-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5179,7 +5736,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.2-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5193,7 +5750,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.2-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5247,7 +5804,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.1-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5261,7 +5818,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.1-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5275,7 +5832,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.1-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5289,7 +5846,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.1-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5303,7 +5860,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.1-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5357,7 +5914,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.0-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5371,7 +5928,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.0-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5385,7 +5942,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.0-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5399,7 +5956,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.0-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5413,7 +5970,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.21.0-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5467,7 +6024,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.6-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5481,7 +6038,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.6-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5495,7 +6052,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.6-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5509,7 +6066,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.6-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5523,7 +6080,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.6-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5577,7 +6134,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.5-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5591,7 +6148,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.5-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5605,7 +6162,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.5-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5619,7 +6176,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.5-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5633,7 +6190,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.5-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5687,7 +6244,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.4-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5701,7 +6258,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.4-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5715,7 +6272,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.4-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5729,7 +6286,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.4-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5743,7 +6300,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.4-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5797,7 +6354,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.3-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5811,7 +6368,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.3-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5825,7 +6382,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.3-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5839,7 +6396,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.3-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5853,7 +6410,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.3-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5907,7 +6464,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.2-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5921,7 +6478,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.2-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5935,7 +6492,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.2-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5949,7 +6506,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.2-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -5963,7 +6520,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.2-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6017,7 +6574,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.1-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6031,7 +6588,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.1-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6045,7 +6602,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.1-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6059,7 +6616,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.1-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6073,7 +6630,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.1-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6127,7 +6684,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.0-linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6141,7 +6698,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.0-linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6155,7 +6712,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.0-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6169,7 +6726,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.0-windows-i386",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6183,7 +6740,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.20.0-windows-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6237,7 +6794,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.8-Linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6251,7 +6808,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.8-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6265,7 +6822,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.8-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6279,7 +6836,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.8-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6293,7 +6850,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.8-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6347,7 +6904,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.7-Linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6361,7 +6918,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.7-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6375,7 +6932,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.7-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6389,7 +6946,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.7-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6403,7 +6960,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.7-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6457,7 +7014,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.6-Linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6471,7 +7028,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.6-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6485,7 +7042,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.6-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6499,7 +7056,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.6-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6513,7 +7070,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.6-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6567,7 +7124,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.5-Linux-aarch64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6581,7 +7138,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.5-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6595,7 +7152,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.5-macos-universal/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6609,7 +7166,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.5-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6623,7 +7180,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.19.5-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6677,7 +7234,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.18.6-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6691,7 +7248,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.18.6-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6705,7 +7262,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.18.6-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6719,7 +7276,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.18.6-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6769,7 +7326,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.17.5-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6783,7 +7340,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.17.5-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6797,7 +7354,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.17.5-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6811,7 +7368,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.17.5-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6861,7 +7418,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.16.9-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6875,7 +7432,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.16.9-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6889,7 +7446,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.16.9-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6903,7 +7460,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.16.9-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6953,7 +7510,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.15.7-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6967,7 +7524,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.15.7-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6981,7 +7538,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.15.7-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -6995,7 +7552,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.15.7-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7045,7 +7602,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.14.7-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7059,7 +7616,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.14.7-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7073,7 +7630,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.14.7-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7087,7 +7644,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.14.7-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7137,7 +7694,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.13.5-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7151,7 +7708,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.13.5-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7165,7 +7722,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.13.5-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7179,7 +7736,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.13.5-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7229,7 +7786,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.12.4-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7243,7 +7800,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.12.4-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7257,7 +7814,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.12.4-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7271,7 +7828,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.12.4-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7321,7 +7878,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.11.4-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7335,7 +7892,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.11.4-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7349,7 +7906,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.11.4-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7363,7 +7920,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.11.4-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7413,7 +7970,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.10.3-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7427,7 +7984,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.10.3-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7441,7 +7998,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.10.3-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7455,7 +8012,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.10.3-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7505,7 +8062,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.9.6-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7519,7 +8076,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.9.6-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7533,7 +8090,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.9.6-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7547,7 +8104,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.9.6-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7597,7 +8154,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.8.2-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7611,7 +8168,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.8.2-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7625,7 +8182,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.8.2-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7639,7 +8196,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.8.2-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7689,7 +8246,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.7.2-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7703,7 +8260,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.7.2-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7717,7 +8274,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.7.2-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7731,7 +8288,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.7.2-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7781,7 +8338,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.6.3-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7795,7 +8352,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.6.3-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7809,7 +8366,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.6.3-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7823,7 +8380,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.6.3-win64-x64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7873,7 +8430,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.5.2-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7887,7 +8444,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.5.2-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7901,7 +8458,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.5.2-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7946,7 +8503,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.4.3-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7960,7 +8517,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.4.3-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -7974,7 +8531,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.4.3-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8019,7 +8576,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.3.2-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8033,7 +8590,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.3.2-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8047,7 +8604,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.3.2-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8092,7 +8649,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.2.3-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8106,7 +8663,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.2.3-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8120,7 +8677,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.2.3-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8165,7 +8722,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.1.3-Darwin-x86_64/CMake.app/Contents",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8179,7 +8736,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.1.3-Linux-x86_64",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8193,7 +8750,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.1.3-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8238,7 +8795,7 @@ def _cmake_toolchains(version, register_toolchains):
             strip_prefix = "cmake-3.0.2-win32-x86",
             build_file_content = _CMAKE_BUILD_FILE.format(
                 bin = "cmake.exe",
-                env = "{}",
+                env = "{\"CMAKE\": \"$(execpath :cmake_bin)\"}",
             ),
         )
 
@@ -8265,6 +8822,117 @@ def _cmake_toolchains(version, register_toolchains):
     fail("Unsupported version: " + str(version))
 
 def _ninja_toolchains(version, register_toolchains):
+    if "1.12.0" == version:
+        maybe(
+            http_archive,
+            name = "ninja_1.12.0_linux",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.12.0/ninja-linux.zip",
+            ],
+            sha256 = "ddc96efa3c7c9d41de733d15e2eda07a8a212555cb43f35d727e080d2ca687ab",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.12.0_linux-aarch64",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.12.0/ninja-linux-aarch64.zip",
+            ],
+            sha256 = "375a49c79095334c88338ff15f90730e08a4d03997ef660f48f11ee7e450db7a",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.12.0_mac",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.12.0/ninja-mac.zip",
+            ],
+            sha256 = "19806019c9623a062c3d9fa0d5f45b633a3d150f88e73fbd6c0ff6ea5534df10",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.12.0_mac_aarch64",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.12.0/ninja-mac.zip",
+            ],
+            sha256 = "19806019c9623a062c3d9fa0d5f45b633a3d150f88e73fbd6c0ff6ea5534df10",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.12.0_win",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.12.0/ninja-win.zip",
+            ],
+            sha256 = "51d99be9ceea8835edf536d52d47fa4c316aa332e57f71a08df5bd059da11417",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja.exe",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "ninja_1.12.0_toolchains",
+            repos = {
+                "ninja_1.12.0_linux": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "ninja_1.12.0_linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "ninja_1.12.0_mac": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "ninja_1.12.0_mac_aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:macos",
+                ],
+                "ninja_1.12.0_win": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "ninja",
+        )
+
+        if register_toolchains:
+            native.register_toolchains(
+                "@ninja_1.12.0_toolchains//:ninja_1.12.0_linux_toolchain",
+                "@ninja_1.12.0_toolchains//:ninja_1.12.0_linux-aarch64_toolchain",
+                "@ninja_1.12.0_toolchains//:ninja_1.12.0_mac_toolchain",
+                "@ninja_1.12.0_toolchains//:ninja_1.12.0_mac_aarch64_toolchain",
+                "@ninja_1.12.0_toolchains//:ninja_1.12.0_win_toolchain",
+            )
+
+        return
+
     if "1.11.1" == version:
         maybe(
             http_archive,
@@ -8283,6 +8951,20 @@ def _ninja_toolchains(version, register_toolchains):
         maybe(
             http_archive,
             name = "ninja_1.11.1_mac",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-mac.zip",
+            ],
+            sha256 = "482ecb23c59ae3d4f158029112de172dd96bb0e97549c4b1ca32d8fad11f873e",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.11.1_mac_aarch64",
             urls = [
                 "https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-mac.zip",
             ],
@@ -8321,6 +9003,10 @@ def _ninja_toolchains(version, register_toolchains):
                     "@platforms//cpu:x86_64",
                     "@platforms//os:macos",
                 ],
+                "ninja_1.11.1_mac_aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:macos",
+                ],
                 "ninja_1.11.1_win": [
                     "@platforms//cpu:x86_64",
                     "@platforms//os:windows",
@@ -8333,6 +9019,7 @@ def _ninja_toolchains(version, register_toolchains):
             native.register_toolchains(
                 "@ninja_1.11.1_toolchains//:ninja_1.11.1_linux_toolchain",
                 "@ninja_1.11.1_toolchains//:ninja_1.11.1_mac_toolchain",
+                "@ninja_1.11.1_toolchains//:ninja_1.11.1_mac_aarch64_toolchain",
                 "@ninja_1.11.1_toolchains//:ninja_1.11.1_win_toolchain",
             )
 
@@ -8356,6 +9043,20 @@ def _ninja_toolchains(version, register_toolchains):
         maybe(
             http_archive,
             name = "ninja_1.11.0_mac",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.11.0/ninja-mac.zip",
+            ],
+            sha256 = "21915277db59756bfc61f6f281c1f5e3897760b63776fd3d360f77dd7364137f",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.11.0_mac_aarch64",
             urls = [
                 "https://github.com/ninja-build/ninja/releases/download/v1.11.0/ninja-mac.zip",
             ],
@@ -8394,6 +9095,10 @@ def _ninja_toolchains(version, register_toolchains):
                     "@platforms//cpu:x86_64",
                     "@platforms//os:macos",
                 ],
+                "ninja_1.11.0_mac_aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:macos",
+                ],
                 "ninja_1.11.0_win": [
                     "@platforms//cpu:x86_64",
                     "@platforms//os:windows",
@@ -8406,6 +9111,7 @@ def _ninja_toolchains(version, register_toolchains):
             native.register_toolchains(
                 "@ninja_1.11.0_toolchains//:ninja_1.11.0_linux_toolchain",
                 "@ninja_1.11.0_toolchains//:ninja_1.11.0_mac_toolchain",
+                "@ninja_1.11.0_toolchains//:ninja_1.11.0_mac_aarch64_toolchain",
                 "@ninja_1.11.0_toolchains//:ninja_1.11.0_win_toolchain",
             )
 
@@ -8429,6 +9135,20 @@ def _ninja_toolchains(version, register_toolchains):
         maybe(
             http_archive,
             name = "ninja_1.10.2_mac",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-mac.zip",
+            ],
+            sha256 = "6fa359f491fac7e5185273c6421a000eea6a2f0febf0ac03ac900bd4d80ed2a5",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.10.2_mac_aarch64",
             urls = [
                 "https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-mac.zip",
             ],
@@ -8467,6 +9187,10 @@ def _ninja_toolchains(version, register_toolchains):
                     "@platforms//cpu:x86_64",
                     "@platforms//os:macos",
                 ],
+                "ninja_1.10.2_mac_aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:macos",
+                ],
                 "ninja_1.10.2_win": [
                     "@platforms//cpu:x86_64",
                     "@platforms//os:windows",
@@ -8479,6 +9203,7 @@ def _ninja_toolchains(version, register_toolchains):
             native.register_toolchains(
                 "@ninja_1.10.2_toolchains//:ninja_1.10.2_linux_toolchain",
                 "@ninja_1.10.2_toolchains//:ninja_1.10.2_mac_toolchain",
+                "@ninja_1.10.2_toolchains//:ninja_1.10.2_mac_aarch64_toolchain",
                 "@ninja_1.10.2_toolchains//:ninja_1.10.2_win_toolchain",
             )
 
