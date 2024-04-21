@@ -15,8 +15,8 @@ load(
     "get_flags_info",
     "get_tools_info",
 )
-load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
+load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
 def _pkgconfig_tool_impl(ctx):
     env = get_env_vars(ctx)
