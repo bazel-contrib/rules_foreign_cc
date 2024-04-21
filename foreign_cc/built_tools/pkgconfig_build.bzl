@@ -45,6 +45,11 @@ def _pkgconfig_tool_impl(ctx):
     if sysroot_ldflags:
         absolute_ld += " " + _join_flags_list(ctx.workspace_name, sysroot_ldflags)
 
+
+    if os_name(ctx) == "macos":
+        absolute_ar = ""
+        non_sysroot_ldflags += ["-undefined", "error"]
+
     # If libtool is used as AR, the output file has to be prefixed with
     # "-o". Since the make Makefile only uses ar-style invocations, the
     # output file always comes first and we can append this argument to the
@@ -53,9 +58,6 @@ def _pkgconfig_tool_impl(ctx):
     arflags = [e for e in frozen_arflags]
     if absolute_ar == "libtool" or absolute_ar.endswith("/libtool"):
         arflags.append("-o")
-
-    if os_name(ctx) == "macos":
-        non_sysroot_ldflags += ["-undefined", "error"]
 
     make_data = get_make_data(ctx)
 
