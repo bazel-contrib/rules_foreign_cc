@@ -241,6 +241,7 @@ filegroup(
             "WORKSPACE.bazel",
             "BUILD",
             "BUILD.bazel",
+            "**/* *",
         ],
     ),
 )
