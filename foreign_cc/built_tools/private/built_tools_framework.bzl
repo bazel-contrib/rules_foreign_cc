@@ -78,6 +78,7 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
     ]
 
     script.append("##enable_tracing##")
+    script.append("##enable_parallel_build##")
     script.extend(script_lines)
     script.append("##disable_tracing##")
 
