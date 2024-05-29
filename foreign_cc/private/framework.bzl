@@ -327,6 +327,12 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     user_vars = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data_dependencies)
     env.update(user_vars)
 
+    if cc_toolchain.compiler == "msvc-cl":
+        if "PATH" in user_vars and "$$EXT_BUILD_ROOT$$" in user_vars["PATH"]:
+            # Convert any $$EXT_BUILD_ROOT$$ in PATH to /${EXT_BUILD_ROOT/$(printf '\072')/}.
+            # This is because PATH needs to be in unix format for MSYS2.
+            user_vars["PATH"] = user_vars["PATH"].replace("$$EXT_BUILD_ROOT$$", "/$${EXT_BUILD_ROOT/$$$(printf '\072')/}")
+
     # If user has defined a PATH variable (e.g. PATH, LD_LIBRARY_PATH, CPATH) prepend it to the existing variable
     for user_var in user_vars:
         is_existing_var = "PATH" in user_var or _is_msvc_var(user_var)
@@ -338,7 +344,7 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
         # Prepend PATH environment variable with the path to the toolchain linker, which prevents MSYS using its linker (/usr/bin/link.exe) rather than the MSVC linker (both are named "link.exe")
         linker_path = paths.dirname(cc_toolchain.ld_executable)
         if linker_path[1] != ":":
-            linker_path = "$EXT_BUILD_ROOT/" + linker_path
+            linker_path = "${EXT_BUILD_ROOT/$(printf '\072')/}/" + linker_path
 
         env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
 
@@ -677,11 +683,17 @@ def _correct_path_variable(toolchain, env):
         for key, value in env.items():
             corrected_env[key] = value
             if _is_msvc_var(key) or key == "PATH":
-                path_paths = value.split(";")
-                for i in range(len(path_paths)):
-                    # external/path becomes $EXT_BUILD_ROOT/external/path
-                    if path_paths[i] and path_paths[i][1] != ":":
-                        path_paths[i] = "$EXT_BUILD_ROOT/" + path_paths[i]
+                if key == "PATH":
+                    # '\072' is ':'. This is unsightly but we cannot use the ':' character
+                    # because we do a search and replace later on. This is required because
+                    # we need PATH to be all unix path (for MSYS2) where as other env (e.g.
+                    # INCLUDE) needs windows path (for passing as arguments to compiler).
+                    prefix = "${EXT_BUILD_ROOT/$(printf '\072')/}/"
+                else:
+                    prefix = "$EXT_BUILD_ROOT/"
+
+                # external/path becomes $EXT_BUILD_ROOT/external/path
+                path_paths = [prefix + path if path and path[1] != ":" else path for path in value.split(";")]
                 corrected_env[key] = ";".join(path_paths)
         env = corrected_env
 
