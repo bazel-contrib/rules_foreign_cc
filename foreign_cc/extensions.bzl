@@ -29,7 +29,7 @@ def _init(module_ctx):
     }
 
     for mod in module_ctx.modules:
-        if mod.is_root:
+        if not mod.is_root:
             for toolchain in mod.tags.cmake:
                 versions["cmake"] = toolchain.version
 
