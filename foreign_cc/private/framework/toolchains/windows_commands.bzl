@@ -27,7 +27,25 @@ def env():
     return "env"
 
 def path(expression):
+    # In windows we cannot add vars like $$EXT_BUILD_DEPS$$ directly to PATH as PATH is
+    # required to be in unix format. This implementation also assumes that the vars
+    # like $$EXT_BUILD_DEPS$$ are exported to the ENV.
+    expression = _path_var_expansion(expression)
     return "export PATH=\"{expression}:$PATH\"".format(expression = expression)
+
+def _path_var_expansion(expression):
+    result = []
+    parts = expression.split("$$")
+    if len(parts) < 3:
+        return expression
+
+    for index, part in enumerate(parts):
+        if index % 2 == 0:
+            result.append(part)
+        else:
+            result.append("${" + part + "/:/}")
+
+    return "/" + "".join(result)
 
 def touch(path):
     return "touch " + path
