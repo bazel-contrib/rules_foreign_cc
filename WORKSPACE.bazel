@@ -72,3 +72,10 @@ load("@bazel_skylib_gazelle_plugin//:setup.bzl", "bazel_skylib_gazelle_plugin_se
 bazel_skylib_gazelle_plugin_setup()
 
 gazelle_dependencies(go_repository_default_config = "//:WORKSPACE.bazel")
+
+http_archive(
+    name = "glib",
+    urls = ["https://gitlab.gnome.org/GNOME/glib/-/archive/2.80.3/glib-2.80.3.zip"],
+    strip_prefix = "glib-2.80.3",
+    patches = ["https://lists.freedesktop.org/archives/pkg-config/attachments/20240503/7e621a18/attachment.bin"],
+)
