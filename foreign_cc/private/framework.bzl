@@ -926,7 +926,8 @@ def get_foreign_cc_dep(dep):
 # consider optimization here to do not iterate both collections
 def _get_headers(compilation_info):
     include_dirs = compilation_info.system_includes.to_list() + \
-                   compilation_info.includes.to_list()
+                   compilation_info.includes.to_list() + \
+                   getattr(compilation_info, "external_includes", depset()).to_list()
 
     # do not use quote includes, currently they do not contain
     # library-specific information
