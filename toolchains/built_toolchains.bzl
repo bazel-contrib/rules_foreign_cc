@@ -320,6 +320,9 @@ cc_import(
 
                 # This patch is required as rules_foreign_cc runs in MSYS2 on Windows and MSYS2's "mkdir" is used
                 Label("//toolchains:pkgconfig-makefile-vc.patch"),
+
+                # This patch fixes explicit integer conversion which causes errors in clang >= 15 and gcc >= 14
+                Label("//toolchains:pkgconfig-builtin-glib-int-conversion.patch"),
             ],
             urls = [
                 "https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",
