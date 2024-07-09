@@ -155,10 +155,6 @@ def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
 
     attrs.update({
-        "setup_args": attr.string_list(
-            doc = "Arguments for the Meson setup command",
-            mandatory = False,
-        ),
         "build_args": attr.string_list(
             doc = "Arguments for the Meson build command",
             mandatory = False,
@@ -177,6 +173,10 @@ def _attrs():
             ),
             mandatory = False,
             default = {},
+        ),
+        "setup_args": attr.string_list(
+            doc = "Arguments for the Meson setup command",
+            mandatory = False,
         ),
     })
     return attrs
