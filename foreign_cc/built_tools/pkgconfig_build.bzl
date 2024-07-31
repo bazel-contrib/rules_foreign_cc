@@ -141,10 +141,10 @@ def pkgconfig_tool(name, srcs, **kwargs):
         args = [
             "-f Makefile.vc",
             "CFG=release",
-            "GLIB_PREFIX=\"$$EXT_BUILD_ROOT/external/glib_dev\"",
+            "GLIB_PREFIX=\"$$EXT_BUILD_ROOT/external/%s\"" % Label("@glib_dev").workspace_name,
         ],
         out_binaries = ["pkg-config.exe"],
-        env = {"INCLUDE": "$$EXT_BUILD_ROOT/external/glib_src"},
+        env = {"INCLUDE": "$$EXT_BUILD_ROOT/external/%s" % Label("@glib_src").workspace_name},
         out_static_libs = [],
         out_shared_libs = [],
         deps = [
@@ -156,7 +156,7 @@ def pkgconfig_tool(name, srcs, **kwargs):
             "@platforms//os:windows": "cp release/x64/pkg-config.exe $$INSTALLDIR$$/bin",
             "//conditions:default": "",
         }),
-        toolchain = "@rules_foreign_cc//toolchains:preinstalled_nmake_toolchain",
+        toolchain = Label("@rules_foreign_cc//toolchains:preinstalled_nmake_toolchain"),
         tags = tags,
         **kwargs
     )
