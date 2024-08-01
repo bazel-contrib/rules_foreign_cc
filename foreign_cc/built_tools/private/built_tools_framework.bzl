@@ -5,6 +5,7 @@ load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:framework.bzl", "get_env_prelude", "wrap_outputs")
 load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script", "shebang")
+load("//foreign_cc/private/framework:platform.bzl", "os_name")
 
 # Common attributes for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_ATTRS = {
@@ -60,7 +61,7 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
 
     root = detect_root(ctx.attr.srcs)
     lib_name = ctx.attr.name
-    env_prelude = get_env_prelude(ctx, lib_name, [], "")
+    env, env_prelude = get_env_prelude(ctx, lib_name, [], "")
 
     cc_toolchain = find_cpp_toolchain(ctx)
 
@@ -105,7 +106,8 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
         inputs = ctx.attr.srcs.files,
         outputs = [out_dir, wrapped_outputs.log_file],
         tools = tools,
-        use_default_shell_env = True,
+        use_default_shell_env = "win" in os_name(ctx),
+        env = None if "win" in os_name(ctx) else env,
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = {"block-network": ""},
     )

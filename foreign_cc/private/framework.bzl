@@ -15,6 +15,7 @@ load(
     "script_extension",
     "shebang",
 )
+load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
@@ -303,6 +304,17 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
 
     env = dict()
 
+    if "win" not in os_name(ctx):
+        # We default to the path from `--incompatible_strict_action_env`.
+        env.update({"PATH": "/bin:/usr/bin:/usr/local/bin"})
+
+    # Add all environment variables from default shell env so that variables
+    # from `--action_env` are available to the action.
+    #
+    # We intentionally do this first so that those set by the `cc_toolchain` and
+    # the env parameter will take precedent over those set via `--action_env`.
+    env.update(ctx.configuration.default_shell_env)
+
     # Add all environment variables from the cc_toolchain
     cc_toolchain = find_cpp_toolchain(ctx)
     cc_env = _correct_path_variable(cc_toolchain, get_env_vars(ctx))
@@ -310,18 +322,8 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
 
     # This logic mirrors XcodeLocalEnvProvider#querySdkRoot in bazel itself
     if "APPLE_SDK_PLATFORM" in cc_env:
-        platform = cc_env["APPLE_SDK_PLATFORM"]
-        version = cc_env["APPLE_SDK_VERSION_OVERRIDE"]
-        sdk = "{}{}".format(platform.lower(), version)
-        env_snippet.extend([
-            # TODO: This path needs to take cc_env["XCODE_VERSION_OVERRIDE"] into account
-            # Declare and export separately so bash doesn't ignore failures from the commands https://github.com/koalaman/shellcheck/wiki/SC2155
-            "developer_dir_tmp=\"$(xcode-select --print-path)\"",
-            "export DEVELOPER_DIR=\"$developer_dir_tmp\"",
-            "sdkroot_tmp=\"$(xcrun --sdk {} --show-sdk-path)\"".format(sdk),
-            "export SDKROOT=\"$sdkroot_tmp\"",
-            "export CMAKE_OSX_ARCHITECTURES={}".format(ctx.fragments.apple.single_arch_cpu),
-        ])
+        # `DEVELOPER_DIR` and `SDKROOT` are set by Bazel.
+        env["CMAKE_OSX_ARCHITECTURES"] = ctx.fragments.apple.single_arch_cpu
 
     # Add all user defined variables
     user_vars = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data_dependencies)
@@ -350,7 +352,7 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
 
     env_snippet.extend(["export {}=\"{}\"".format(key, escape_dquote_bash(val)) for key, val in env.items()])
 
-    return env_snippet
+    return env, env_snippet
 
 def cc_external_rule_impl(ctx, attrs):
     """Framework function for performing external C/C++ building.
@@ -430,7 +432,7 @@ def cc_external_rule_impl(ctx, attrs):
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
 
-    env_prelude = get_env_prelude(ctx, lib_name, data_dependencies, target_root)
+    env, env_prelude = get_env_prelude(ctx, lib_name, data_dependencies, target_root)
 
     postfix_script = [attrs.postfix_script]
     if not attrs.postfix_script:
@@ -511,7 +513,8 @@ def cc_external_rule_impl(ctx, attrs):
             [data[DefaultInfo].files_to_run for data in data_dependencies],
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = execution_requirements,
-        use_default_shell_env = True,
+        use_default_shell_env = "win" in os_name(ctx),
+        env = None if "win" in os_name(ctx) else env,
         progress_message = "Foreign Cc - {configure_name}: Building {lib_name}".format(
             configure_name = attrs.configure_name,
             lib_name = lib_name,
