@@ -99,7 +99,7 @@ def copy_dir_contents_to_dir(source, target):
     # do something more complex for this environment.
     return """\
 if [[ -d "{source}" ]]; then
-  cp -L -R "{source}"/* "{target}"
+  cp -L -R "{source}"/. "{target}"
 else
   cp -L -R "{source}" "{target}"
 fi
