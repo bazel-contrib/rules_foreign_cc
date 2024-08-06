@@ -86,7 +86,7 @@ fi
     )
 
 def copy_dir_contents_to_dir(source, target):
-    # Beause macos `cp` doesn't have `--no-copy-directory`, we have to
+    # Beause macos `cp` doesn't have `--no-target-directory`, we have to
     # do something more complext for this environment.
     return """\
 if [[ -d "{source}" ]]; then
