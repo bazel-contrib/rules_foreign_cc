@@ -18,6 +18,12 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
+  macos_arm64:
+    platform: macos_arm64
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
   windows:
     platform: windows
     build_targets:
@@ -91,7 +97,7 @@ tasks:
     test_targets: *rbe_targets
   macos_examples_standalone:
     name: Examples (spawn_strategy=standalone)
-    platform: macos
+    platform: macos_arm64
     working_directory: examples
     macos_targets: &macos_targets_standalone
       - "//..."
@@ -114,6 +120,19 @@ tasks:
       - "--spawn_strategy=standalone"
       - "--noincompatible_enable_cc_toolchain_resolution"
       - "--noenable_bzlmod"
+  macos_arm64_examples:
+    name: Examples (arm64)
+    platform: macos_arm64
+    working_directory: examples
+    macos_targets: &macos_arm64_targets
+      - "//..."
+      - "//:third_party_examples_macos_tests"
+      - "-//cmake_android/..."
+      # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
+      - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
+      - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
+    build_targets: *macos_arm64_targets
+    test_targets: *macos_arm64_targets
   macos_examples:
     name: Examples
     platform: macos
@@ -183,6 +202,12 @@ tasks:
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
+  macos_arm64_flags:
+    name: Flags (arm64)
+    platform: macos_arm64
+    working_directory: test/standard_cxx_flags_test
+    test_targets:
+      - "//:flags_test"
   windows_flags:
     name: Flags
     platform: windows
@@ -198,6 +223,12 @@ tasks:
   ubuntu2004_detect_root:
     name: Detect root
     platform: ubuntu2004
+    working_directory: test/detect_root_test
+    test_targets:
+      - "//:tests"
+  macos_oarm64_detect_root:
+    name: Detect root (arm64)
+    platform: macos_arm64
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
