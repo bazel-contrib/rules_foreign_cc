@@ -18,6 +18,7 @@ def apr_repositories():
         strip_prefix = "apr-1.7.4",
         urls = [
             "https://mirror.bazel.build/www-eu.apache.org/dist/apr/apr-1.7.4.tar.gz",
+            "https://dlcdn.apache.org/apr/apr-1.7.4.tar.gz",
             "https://www-eu.apache.org/dist/apr/apr-1.7.4.tar.gz",
         ],
     )
