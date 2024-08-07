@@ -14,7 +14,7 @@ cmake(
     name = "zlib",
     cache_entries = select({
         "@platforms//os:linux": {
-            "CMAKE_C_FLAGS": "${CMAKE_C_FLAGS:-} -fPIC",
+            "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
         },
         "//conditions:default": {},
     }),
