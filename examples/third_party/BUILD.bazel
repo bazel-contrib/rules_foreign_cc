@@ -86,7 +86,8 @@ test_suite(
         "//cares:test_c_ares",
         "//cares:test_c_ares_ios",
         "//curl:curl_test_suite",
-        "//glib:glib_build_test",
+        # Fails due to linker error in ffi (https://github.com/mesonbuild/meson/issues/12282)
+        # "//glib:glib_build_test",
         "//gn:gn_launch_test",
         "//gperftools:test",
         "//iconv:iconv_macos_build_test",
