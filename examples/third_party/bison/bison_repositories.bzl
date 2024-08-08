@@ -9,10 +9,10 @@ def bison_repositories():
         http_archive,
         name = "bison",
         build_file = Label("//bison:BUILD.bison.bazel"),
-        strip_prefix = "bison-3.3",
+        strip_prefix = "bison-3.8.2",
         urls = [
-            "https://mirror.bazel.build/ftp.gnu.org/gnu/bison/bison-3.3.tar.gz",
-            "http://ftp.gnu.org/gnu/bison/bison-3.3.tar.gz",
+            "https://mirror.bazel.build/ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz",
+            "https://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz",
         ],
-        sha256 = "fdeafb7fffade05604a61e66b8c040af4b2b5cbb1021dcfe498ed657ac970efd",
+        sha256 = "",
     )
