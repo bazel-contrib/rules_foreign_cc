@@ -96,7 +96,8 @@ test_suite(
         "//libpng:test_libpng",
         "//libssh2:libssh2_build_test",
         "//log4cxx:log4cxx_build_test",
-        "//mesa:mesa_build_test",
+        # Fails due to linker argument error (https://github.com/mesonbuild/meson/issues/12282)
+        # "//mesa:mesa_build_test",
         "//openssl:openssl_test_suite",
         "//pcre:pcre_build_test",
         "//python:python_tests",
