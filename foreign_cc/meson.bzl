@@ -110,10 +110,13 @@ def _create_meson_script(configureParameters):
 
     prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
 
-    script.append("{prefix}{meson} --prefix={install_dir} {options} {source_dir}".format(
+    setup_args_str = " ".join(expand_locations_and_make_variables(ctx, ctx.attr.setup_args, "setup_args", data))
+
+    script.append("{prefix}{meson} setup --prefix={install_dir} {setup_args} {options} {source_dir}".format(
         prefix = prefix,
         meson = attrs.meson_path,
         install_dir = "$$INSTALLDIR$$",
+        setup_args = setup_args_str,
         options = options_str,
         source_dir = "$$EXT_BUILD_ROOT$$/" + root,
     ))
@@ -170,6 +173,10 @@ def _attrs():
             ),
             mandatory = False,
             default = {},
+        ),
+        "setup_args": attr.string_list(
+            doc = "Arguments for the Meson setup command",
+            mandatory = False,
         ),
     })
     return attrs
