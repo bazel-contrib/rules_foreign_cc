@@ -349,6 +349,37 @@ def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
     if flags.cxx_linker_executable:
         dict["CMAKE_EXE_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, flags.cxx_linker_executable)
 
+    # todo this is a kind of hacky way to handle this; I suspect once
+    # https://github.com/bazelbuild/bazel/pull/23204 lands, it will be possible
+    # to do this better.
+    #
+    # The problem being solved here is: if a toolchain wants to link the
+    # toolchain libs statically, there are some flags that need to be passed.
+    # Unfortunately, static linking is notoriously order-sensitive (if an
+    # object needs a symbol, it can only be resolved by libraries _later_ than
+    # it on the command line). This means there are scenarios where:
+    # this works:
+    #   gcc thing.o -o stuff -l:libstdc++.a
+    # this fails with missing symbols (like std::cout):
+    #   gcc -l:libstdc++.a -o stuff thing.o
+    #
+    # In other words, we need these flags to be in "<LINK_LIBRARIES>" and not
+    # just "<LINK_FLAGS>", so they fall after the "<OBJECTS>" that might need
+    # them and that is what this code does, by injecting these indicative flags
+    # into CMAKE_CXX_STANDARD_LIBRARIES_INIT
+    static_flags = []
+    for flag in ("static-libstdc++", "static-libgcc", "l:libstdc++.a"):
+        if flags.cxx_linker_shared and _find_flag_value(flags.cxx_linker_shared, flag):
+            static_flags.append("-" + flag)
+            continue
+
+        if flags.cxx_linker_executable and _find_flag_value(flags.cxx_linker_executable, flag):
+            static_flags.append("-" + flag)
+            continue
+
+    if static_flags:
+        dict["CMAKE_CXX_STANDARD_LIBRARIES_INIT"] = _join_flags_list(workspace_name, static_flags)
+
     return dict
 
 def _find_in_cc_or_cxx(flags, flag_name_no_dashes):
