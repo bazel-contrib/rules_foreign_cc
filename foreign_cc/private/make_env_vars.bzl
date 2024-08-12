@@ -26,7 +26,10 @@ def get_make_env_vars(
 
     # -I flags should be put into preprocessor flags, CPPFLAGS
     # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html
-    vars["CPPFLAGS"] = deps_flags.flags
+    if "CPPFLAGS" in vars.keys():
+        vars["CPPFLAGS"] = vars["CPPFLAGS"] + deps_flags.flags
+    else:
+        vars["CPPFLAGS"] = deps_flags.flags
 
     return " ".join(["{}=\"{}\""
         .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
@@ -84,6 +87,7 @@ _MAKE_FLAGS = {
     "CFLAGS": "cc",
     "CXXFLAGS": "cxx",
     "LDFLAGS": "cxx_linker_executable",
+    "CPPFLAGS": "",
     # missing: cxx_linker_shared
 }
 
