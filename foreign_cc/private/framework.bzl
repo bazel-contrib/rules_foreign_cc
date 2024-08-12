@@ -15,6 +15,7 @@ load(
     "script_extension",
     "shebang",
 )
+load("//foreign_cc/private/framework:platform.bzl", "PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES")
 load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
@@ -209,8 +210,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
-    "_aarch64_constraint": attr.label(default = Label("@platforms//cpu:aarch64")),
-    "_android_constraint": attr.label(default = Label("@platforms//os:android")),
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
@@ -220,9 +219,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
     ),
-    "_linux_constraint": attr.label(default = Label("@platforms//os:linux")),
-    "_x86_64_constraint": attr.label(default = Label("@platforms//cpu:x86_64")),
 }
+
+# this would be cleaner as x | y, but that's not supported in bazel 5.4.0
+CC_EXTERNAL_RULE_ATTRIBUTES.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
 
 # A list of common fragments required by rules using this framework
 CC_EXTERNAL_RULE_FRAGMENTS = [

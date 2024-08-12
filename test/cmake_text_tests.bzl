@@ -242,6 +242,7 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        ctx.label,
         "unknown",
         "unknown",
         "unknown",
@@ -294,6 +295,7 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        ctx.label,
         "unknown",
         "unknown",
         "unknown",
@@ -350,6 +352,7 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        ctx.label,
         "unknown",
         "unknown",
         "unknown",
@@ -402,6 +405,7 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        ctx.label,
         "unknown",
         "unknown",
         "unknown",
@@ -482,6 +486,7 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        ctx.label,
         "unknown",
         "unknown",
         "unknown",
@@ -549,6 +554,7 @@ def _create_cmake_script_android_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        ctx.label,
         "android",
         "x86_64",
         "unknown",
@@ -616,6 +622,7 @@ def _create_cmake_script_linux_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        ctx.label,
         "linux",
         "aarch64",
         "unknown",
@@ -682,6 +689,7 @@ def _create_cmake_script_toolchain_file_test(ctx):
 
     script = create_cmake_script(
         "ws",
+        ctx.label,
         "unknown",
         "unknown",
         "unknown",
