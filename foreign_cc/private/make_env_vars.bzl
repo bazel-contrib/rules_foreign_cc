@@ -99,15 +99,14 @@ def _get_make_variables(workspace_name, tools, flags, user_env_vars, make_comman
     vars = {}
 
     for flag in _MAKE_FLAGS:
-        flag_value = getattr(flags, _MAKE_FLAGS[flag])
-        if flag_value:
-            vars[flag] = flag_value
-
-    # Merge flags lists
-    for user_var in user_env_vars:
-        toolchain_val = vars.get(user_var)
-        if toolchain_val:
-            vars[user_var] = toolchain_val + [user_env_vars[user_var]]
+        toolchain_flags = getattr(flags, _MAKE_FLAGS[flag], [])
+        user_flags = [
+            user_flag
+            for user_flag in user_env_vars.get(flag, "").split(" ")
+            if user_flag
+        ]
+        if toolchain_flags or user_flags:
+            vars[flag] = toolchain_flags + user_flags
 
     tools_dict = {}
     for tool in _MAKE_TOOLS:
