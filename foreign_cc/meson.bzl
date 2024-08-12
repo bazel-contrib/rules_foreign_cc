@@ -87,13 +87,13 @@ def _create_meson_script(configureParameters):
     cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []
 
     if copts:
-        script.append("##export_var## CFLAGS \"{}\"".format(" ".join(copts).replace("\"", "'")))
+        script.append("##export_var## CFLAGS \"{} ${{CFLAGS:-}}\"".format(" ".join(copts).replace("\"", "'")))
     if cxxopts:
-        script.append("##export_var## CXXFLAGS \"{}\"".format(" ".join(cxxopts).replace("\"", "'")))
+        script.append("##export_var## CXXFLAGS \"{} ${{CXXFLAGS:-}}\"".format(" ".join(cxxopts).replace("\"", "'")))
 
     flags = get_flags_info(ctx)
     if flags.cxx_linker_executable:
-        script.append("##export_var## LDFLAGS \"{}\"".format(" ".join(flags.cxx_linker_executable).replace("\"", "'")))
+        script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(" ".join(flags.cxx_linker_executable).replace("\"", "'")))
 
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))

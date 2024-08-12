@@ -47,13 +47,19 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
     sed s@SH_BINARY_FILENAME@{sh_binary_filename}@g tmp > $@
     """
 
+    if hasattr(native, "package_relative_label"):
+        fg_label = native.package_relative_label(name + "_fg")
+    else:
+        # pre Bazel 6.1.0
+        fg_label = full_label(name + "_fg")
+
     native.genrule(
         name = name + "_wrapper",
         srcs = ["@rules_foreign_cc//foreign_cc/private:runnable_binary_wrapper.sh", name + "_fg"],
         outs = [name + "_wrapper.sh"],
         cmd = select({
-            "@platforms//os:windows": wrapper_cmd.format(name = full_label(name + "_fg"), sh_binary_filename = binary + ".exe" if match_binary_name else name),
-            "//conditions:default": wrapper_cmd.format(name = full_label(name + "_fg"), sh_binary_filename = binary if match_binary_name else name),
+            "@platforms//os:windows": wrapper_cmd.format(name = fg_label, sh_binary_filename = binary + ".exe" if match_binary_name else name),
+            "//conditions:default": wrapper_cmd.format(name = fg_label, sh_binary_filename = binary if match_binary_name else name),
         }),
         tags = tags + ["manual"],
     )
