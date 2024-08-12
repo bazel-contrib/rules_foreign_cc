@@ -31,6 +31,9 @@ _TARGET_ARCH_PARAMS = {
     "aarch64": {
         "CMAKE_SYSTEM_PROCESSOR": "aarch64",
     },
+    "s390x": {
+        "CMAKE_SYSTEM_PROCESSOR": "s390x",
+    },
     "x86_64": {
         "CMAKE_SYSTEM_PROCESSOR": "x86_64",
     },
@@ -38,6 +41,7 @@ _TARGET_ARCH_PARAMS = {
 
 def create_cmake_script(
         workspace_name,
+        current_label,
         target_os,
         target_arch,
         host_os,
@@ -59,6 +63,7 @@ def create_cmake_script(
 
     Args:
         workspace_name: current workspace name
+        current_label: The label of the target currently being built
         target_os: The target OS for the build
         target_arch: The target arch for the build
         host_os: The execution OS for the build
@@ -120,7 +125,10 @@ def create_cmake_script(
     # by setting CMAKE_SYSTEM_NAME and CMAKE_SYSTEM_PROCESSOR,
     # see https://github.com/bazelbuild/rules_foreign_cc/issues/289,
     # and https://github.com/bazelbuild/rules_foreign_cc/pull/1062
-    if target_os != host_os and target_os != "unknown":
+    if target_os == "unknown":
+        # buildifier: disable=print
+        print("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+    elif target_os != host_os:
         params.cache.update(_TARGET_OS_PARAMS.get(target_os, {}))
         params.cache.update(_TARGET_ARCH_PARAMS.get(target_arch, {}))
 
@@ -348,6 +356,37 @@ def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
         dict["CMAKE_SHARED_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, flags.cxx_linker_shared)
     if flags.cxx_linker_executable:
         dict["CMAKE_EXE_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, flags.cxx_linker_executable)
+
+    # todo this is a kind of hacky way to handle this; I suspect once
+    # https://github.com/bazelbuild/bazel/pull/23204 lands, it will be possible
+    # to do this better.
+    #
+    # The problem being solved here is: if a toolchain wants to link the
+    # toolchain libs statically, there are some flags that need to be passed.
+    # Unfortunately, static linking is notoriously order-sensitive (if an
+    # object needs a symbol, it can only be resolved by libraries _later_ than
+    # it on the command line). This means there are scenarios where:
+    # this works:
+    #   gcc thing.o -o stuff -l:libstdc++.a
+    # this fails with missing symbols (like std::cout):
+    #   gcc -l:libstdc++.a -o stuff thing.o
+    #
+    # In other words, we need these flags to be in "<LINK_LIBRARIES>" and not
+    # just "<LINK_FLAGS>", so they fall after the "<OBJECTS>" that might need
+    # them and that is what this code does, by injecting these indicative flags
+    # into CMAKE_CXX_STANDARD_LIBRARIES_INIT
+    static_flags = []
+    for flag in ("static-libstdc++", "static-libgcc", "l:libstdc++.a"):
+        if flags.cxx_linker_shared and _find_flag_value(flags.cxx_linker_shared, flag):
+            static_flags.append("-" + flag)
+            continue
+
+        if flags.cxx_linker_executable and _find_flag_value(flags.cxx_linker_executable, flag):
+            static_flags.append("-" + flag)
+            continue
+
+    if static_flags:
+        dict["CMAKE_CXX_STANDARD_LIBRARIES_INIT"] = _join_flags_list(workspace_name, static_flags)
 
     return dict
 

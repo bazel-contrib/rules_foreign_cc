@@ -9,6 +9,7 @@ load(
 )
 load("//foreign_cc/private:configure_script.bzl", "create_configure_script")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
+load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
 load(
     "//foreign_cc/private:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
@@ -77,6 +78,10 @@ def _create_configure_script(configureParameters):
     prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
     configure_prefix = "{} ".format(expand_locations_and_make_variables(ctx, ctx.attr.configure_prefix, "configure_prefix", data)) if ctx.attr.configure_prefix else ""
     configure_options = [expand_locations_and_make_variables(ctx, option, "configure_option", data) for option in ctx.attr.configure_options] if ctx.attr.configure_options else []
+
+    xcompile_options = detect_xcompile(ctx)
+    if xcompile_options:
+        configure_options.extend(xcompile_options)
 
     for target in ctx.attr.targets:
         # Configure will have generated sources into `$BUILD_TMPDIR` so make sure we `cd` there
@@ -186,6 +191,12 @@ def _attrs():
         ),
         "configure_prefix": attr.string(
             doc = "A prefix for the call to the `configure_command`.",
+        ),
+        "configure_xcompile": attr.bool(
+            doc = (
+                "If this is set and an xcompile scenario is detected, pass the necessary autotools flags."
+            ),
+            default = False,
         ),
         "install_prefix": attr.string(
             doc = (

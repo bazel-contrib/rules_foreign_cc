@@ -15,6 +15,7 @@ load(
     "get_flags_info",
     "get_tools_info",
 )
+load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
@@ -61,6 +62,15 @@ def _pkgconfig_tool_impl(ctx):
 
     make_data = get_make_data(ctx)
 
+    configure_options = [
+        "--with-internal-glib",
+        "--prefix=$$INSTALLDIR$$",
+    ]
+
+    xcompile_options = detect_xcompile(ctx)
+    if xcompile_options:
+        configure_options.extend(xcompile_options)
+
     env.update({
         "AR": absolute_ar,
         "ARFLAGS": _join_flags_list(ctx.workspace_name, arflags),
@@ -73,7 +83,7 @@ def _pkgconfig_tool_impl(ctx):
 
     configure_env = " ".join(["%s=\"%s\"" % (key, value) for key, value in env.items()])
     script = [
-        "%s ./configure  --with-internal-glib --prefix=$$INSTALLDIR$$" % configure_env,
+        "%s ./configure %s" % (configure_env, " ".join(configure_options)),
         "%s" % make_data.path,
         "%s install" % make_data.path,
     ]
