@@ -9,6 +9,10 @@ load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_depende
 
 rules_foreign_cc_dependencies()
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
 load("//:stardoc_repository.bzl", "stardoc_repository")
 
 stardoc_repository()
