@@ -190,12 +190,25 @@ def triplet_name(os, arch):
 
     elif os == "macos":
         # These are _not_ what config.guess would return for darwin;
-        # config.guess puts the release version in the field, e.g.
-        # darwin23.4.0. We can't correctly guess the darwin version, so we use
-        # macos instead, which is also recognized/honored by autotools
+        # config.guess puts the release version (the result of uname -r) in the
+        # field, e.g.  darwin23.4.0.
+        #
+        # The OS field is unnormalized and any dev can write a check that does
+        # arbitrary inspection of it. Examples of these:
+        # - libffi has a custom macro
+        #   (https://github.com/libffi/libffi/blob/8e3ef965c2d0015ed129a06d0f11f30c2120a413/acinclude.m4#L40)
+        #   that doesn't handle macos, just darwin, so that's unsafe
+        # - some versions of libtool (like this version in the gcc tree:
+        #   https://github.com/gcc-mirror/gcc/blob/3f1e15e885185ad63a67c7fe423d2a0b4d8da101/libtool.m4#L1071)
+        #   check for darwin2*, not just darwin, so returning it without the version isn't good either.
+        #
+        # Currently, this returns darwin21, which is Monterey, the current
+        # oldest non-eol version of darwin. (You can look that up here:
+        # https://en.wikipedia.org/wiki/Darwin_(operating_system)
+
         if arch == "aarch64":
-            return "aarch64-apple-macos"
+            return "aarch64-apple-darwin21"
         elif arch == "x86_64":
-            return "x86_64-apple-macos"
+            return "x86_64-apple-darwin21"
 
     return "unknown"
