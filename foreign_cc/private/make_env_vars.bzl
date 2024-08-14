@@ -85,7 +85,6 @@ _MAKE_FLAGS = {
     "AR_FLAGS": "cxx_linker_static",
     "ASFLAGS": "assemble",
     "CFLAGS": "cc",
-    "CPPFLAGS": "",
     "CXXFLAGS": "cxx",
     "LDFLAGS": "cxx_linker_executable",
     # missing: cxx_linker_shared
@@ -111,6 +110,11 @@ def _get_make_variables(workspace_name, tools, flags, user_env_vars, make_comman
         ]
         if toolchain_flags or user_flags:
             vars[flag] = toolchain_flags + user_flags
+
+    # Add user defined CPPFLAGS
+    user_cpp_flags = [flag for flag in user_env_vars.get("CPPFLAGS", "").split(" ") if flag]
+    if user_cpp_flags:
+        vars["CPPFLAGS"] = user_cpp_flags
 
     tools_dict = {}
     for tool in _MAKE_TOOLS:
