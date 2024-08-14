@@ -85,9 +85,9 @@ _MAKE_FLAGS = {
     "AR_FLAGS": "cxx_linker_static",
     "ASFLAGS": "assemble",
     "CFLAGS": "cc",
+    "CPPFLAGS": "",
     "CXXFLAGS": "cxx",
     "LDFLAGS": "cxx_linker_executable",
-    "CPPFLAGS": "",
     # missing: cxx_linker_shared
 }
 
