@@ -12,7 +12,7 @@ def rules_foreign_cc_dependencies(
         cmake_version = "3.23.2",
         make_version = "4.4.1",
         ninja_version = "1.12.1",
-        meson_version = "1.1.1",
+        meson_version = "1.5.1",
         pkgconfig_version = "0.29.2",
         register_preinstalled_tools = True,
         register_built_tools = True,
