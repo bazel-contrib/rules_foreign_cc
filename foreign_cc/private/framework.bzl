@@ -2,6 +2,7 @@
  with CMake, configure/make, autotools)
 """
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
@@ -15,6 +16,7 @@ load(
     "script_extension",
     "shebang",
 )
+load("//foreign_cc/private/framework:platform.bzl", "PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES")
 load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
@@ -96,6 +98,14 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = [],
         providers = [CcInfo],
+    ),
+    "dynamic_deps": attr.label_list(
+        doc = (
+            "Same as deps but for cc_shared_library."
+        ),
+        mandatory = False,
+        default = [],
+        # providers = [CcSharedLibraryInfo],
     ),
     "env": attr.string_dict(
         doc = (
@@ -209,8 +219,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
-    "_aarch64_constraint": attr.label(default = Label("@platforms//cpu:aarch64")),
-    "_android_constraint": attr.label(default = Label("@platforms//os:android")),
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
@@ -220,9 +228,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
     ),
-    "_linux_constraint": attr.label(default = Label("@platforms//os:linux")),
-    "_x86_64_constraint": attr.label(default = Label("@platforms//cpu:x86_64")),
 }
+
+# this would be cleaner as x | y, but that's not supported in bazel 5.4.0
+CC_EXTERNAL_RULE_ATTRIBUTES.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
 
 # A list of common fragments required by rules using this framework
 CC_EXTERNAL_RULE_FRAGMENTS = [
@@ -866,6 +875,19 @@ def _define_inputs(attrs):
             bazel_system_includes += headers_info.include_dirs
             bazel_libs += _collect_libs(dep[CcInfo].linking_context)
 
+    for dynamic_dep in attrs.dynamic_deps:
+        if not bazel_features.globals.CcSharedLibraryInfo:
+            fail("CcSharedLibraryInfo is only available in Bazel 7 or greater")
+
+        linker_input = dynamic_dep[bazel_features.globals.CcSharedLibraryInfo].linker_input
+        bazel_libs += _collect_shared_libs(linker_input)
+        linking_context = cc_common.create_linking_context(
+            linker_inputs = depset(direct = [linker_input]),
+        )
+
+        # create a new CcInfo from the CcSharedLibraryInfo linker_input
+        cc_infos.append(CcInfo(linking_context = linking_context))
+
     # Keep the order of the transitive foreign dependencies
     # (the order is important for the correct linking),
     # but filter out repeating directories
@@ -987,6 +1009,14 @@ def _collect_libs(cc_linking):
             for library in _extract_libraries(library_to_link):
                 if library:
                     libs.append(library)
+    return collections.uniq(libs)
+
+def _collect_shared_libs(cc_linker_input):
+    libs = []
+    for library_to_link in cc_linker_input.libraries:
+        for library in _extract_libraries(library_to_link):
+            if library:
+                libs.append(library)
     return collections.uniq(libs)
 
 def expand_locations_and_make_variables(ctx, unexpanded, attr_name, data):
