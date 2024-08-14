@@ -26,7 +26,10 @@ def get_make_env_vars(
 
     # -I flags should be put into preprocessor flags, CPPFLAGS
     # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html
-    vars["CPPFLAGS"] = deps_flags.flags
+    if "CPPFLAGS" in vars.keys():
+        vars["CPPFLAGS"] = vars["CPPFLAGS"] + deps_flags.flags
+    else:
+        vars["CPPFLAGS"] = deps_flags.flags
 
     return " ".join(["{}=\"{}\""
         .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
@@ -107,6 +110,11 @@ def _get_make_variables(workspace_name, tools, flags, user_env_vars, make_comman
         ]
         if toolchain_flags or user_flags:
             vars[flag] = toolchain_flags + user_flags
+
+    # Add user defined CPPFLAGS
+    user_cpp_flags = [flag for flag in user_env_vars.get("CPPFLAGS", "").split(" ") if flag]
+    if user_cpp_flags:
+        vars["CPPFLAGS"] = user_cpp_flags
 
     tools_dict = {}
     for tool in _MAKE_TOOLS:
