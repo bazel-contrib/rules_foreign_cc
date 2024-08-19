@@ -754,7 +754,9 @@ $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, dir_name))
     return lines
 
 def _file_path(file):
-    return file if type(file) == "string" else file.path
+    result = file if type(file) == "string" else file.path
+    print("file: {}, path: {}".format(file, path))
+    return result
 
 _FORBIDDEN_FOR_FILENAME = ["\\", "/", ":", "*", "\"", "<", ">", "|"]
 
