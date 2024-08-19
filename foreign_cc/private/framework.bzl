@@ -871,6 +871,7 @@ def _define_inputs(attrs):
             ext_build_dirs += [artifact.gen_dir for artifact in external_deps.artifacts.to_list()]
         else:
             headers_info = _get_headers(dep[CcInfo].compilation_context)
+            print("debug_info headers_info: {}".format(headers_info))
             bazel_headers += headers_info.headers
             bazel_system_includes += headers_info.include_dirs
             bazel_libs += _collect_libs(dep[CcInfo].linking_context)
