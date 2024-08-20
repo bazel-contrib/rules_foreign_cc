@@ -762,7 +762,7 @@ def _file_path(file):
 
 def _get_dir_name(dir, file):
     if dir == "include":
-        if file.owner != None and file.owner.package != "":
+        if type(file) == "File" and file.owner != None and file.owner.package != "":
             return "{}/{}".format(dir, file.owner.package)
     return dir
 
