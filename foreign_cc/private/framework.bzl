@@ -765,7 +765,7 @@ def _get_dir_name(dir, file):
     if dir == "include":
         if type(file) == "File" and file.owner != None and file.owner.package != "":
             workspace_root = file.owner.workspace_root
-            path = file.path.dirname
+            path = "/".join(file.path.split("/")[:-1])
             prefix = "{}/".format(workspace_root)
             if path.startswith(prefix):
                  return "{}/{}".format(dir, path.removeprefix(prefix))
