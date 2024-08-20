@@ -749,7 +749,7 @@ def _symlink_contents_to_dir(dir_name, files_list):
         path = _file_path(file).strip()
         if path:
             lines.append("##symlink_contents_to_dir## \
-$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, dir_name))
+$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, _get_dir_name(dir_name, file)))
 
     return lines
 
@@ -759,6 +759,12 @@ def _file_path(file):
         package = "" if file.owner == None else file.owner.package
         print("file: {}, path: {}, short_path: {}, root: {}, owner: {}, dirname: {}".format(file, result, file.short_path, file.root.path, package, file.dirname))
     return result
+
+def _get_dir_name(dir, file):
+    if dir == "include":
+        if file.owner != None and file.owner.package != "":
+            return "{}/{}".format(dir, file.owner.package)
+    return dir
 
 _FORBIDDEN_FOR_FILENAME = ["\\", "/", ":", "*", "\"", "<", ">", "|"]
 
