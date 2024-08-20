@@ -757,7 +757,8 @@ def _file_path(file):
     result = file if type(file) == "string" else file.path
     if type(file) == "File":
         package = "" if file.owner == None else file.owner.package
-        print("file: {}, path: {}, short_path: {}, root: {}, owner: {}, dirname: {}".format(file, result, file.short_path, file.root.path, package, file.dirname))
+        workspace_root = "" if file.owner == None else file.owner.workspace_root
+        print("file: {}, path: {}, short_path: {}, root: {}, owner: {}, dirname: {}, workspace_root: {}".format(file, result, file.short_path, file.root.path, package, file.dirname, workspace_root))
     return result
 
 def _get_dir_name(dir, file):
