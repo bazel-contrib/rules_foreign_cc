@@ -756,7 +756,7 @@ $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, dir_name))
 def _file_path(file):
     result = file if type(file) == "string" else file.path
     if type(file) == "File":
-        package = "" if file.owner is None else file.owner.package
+        package = "" if file.owner == None else file.owner.package
         print("file: {}, path: {}, short_path: {}, root: {}, owner: {}, dirname: {}".format(file, result, file.short_path, file.root.path, package, file.dirname))
     return result
 
