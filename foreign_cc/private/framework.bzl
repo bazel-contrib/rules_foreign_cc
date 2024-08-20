@@ -764,7 +764,11 @@ def _file_path(file):
 def _get_dir_name(dir, file):
     if dir == "include":
         if type(file) == "File" and file.owner != None and file.owner.package != "":
-            return "{}/{}".format(dir, file.owner.package)
+            workspace_root = file.owner.workspace_root
+            path = file.path.dirname
+            prefix = "{}/".format(workspace_root)
+            if path.startswith(prefix):
+                 return "{}/{}".format(dir, path.removeprefix(prefix))
     return dir
 
 _FORBIDDEN_FOR_FILENAME = ["\\", "/", ":", "*", "\"", "<", ">", "|"]
