@@ -754,12 +754,7 @@ $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, _get_dir_name(dir
     return lines
 
 def _file_path(file):
-    result = file if type(file) == "string" else file.path
-    if type(file) == "File":
-        package = "" if file.owner == None else file.owner.package
-        workspace_root = "" if file.owner == None else file.owner.workspace_root
-        print("file: {}, path: {}, short_path: {}, root: {}, owner: {}, dirname: {}, workspace_root: {}".format(file, result, file.short_path, file.root.path, package, file.dirname, workspace_root))
-    return result
+    return file if type(file) == "string" else file.path
 
 def _get_dir_name(dir, file):
     if dir == "include":
@@ -886,7 +881,6 @@ def _define_inputs(attrs):
             ext_build_dirs += [artifact.gen_dir for artifact in external_deps.artifacts.to_list()]
         else:
             headers_info = _get_headers(dep[CcInfo].compilation_context)
-            print("debug_info headers_info, headers: {}, include_dirs: {}".format(headers_info.headers, headers_info.include_dirs))
             bazel_headers += headers_info.headers
             bazel_system_includes += headers_info.include_dirs
             bazel_libs += _collect_libs(dep[CcInfo].linking_context)
