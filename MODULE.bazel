@@ -15,6 +15,10 @@ bazel_dep(name = "rules_python", version = "0.23.1")
 bazel_dep(name = "gazelle", version = "0.34.0", dev_dependency = True, repo_name = "bazel_gazelle")
 bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.5.0", dev_dependency = True)
 bazel_dep(name = "stardoc", version = "0.5.6", dev_dependency = True, repo_name = "io_bazel_stardoc")
+bazel_dep(name = "bazel_ci_rules", version = "1.0.0", dev_dependency = True)
+
+# note that this dev_dependency is only needed because bazel_ci_rules
+# depends on it. If you are not using bazel_ci_rules; ideally we'd be able to remove this.
 bazel_dep(name = "rules_cc", version = "0.0.9", dev_dependency = True)
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
