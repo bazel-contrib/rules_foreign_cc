@@ -13,11 +13,11 @@ _CACHE_ENTRIES = {
     "BUILD_SHARED_LIBS": "off",
     "BUILD_TESTING": "off",
     "CMAKE_FIND_DEBUG_MODE": "on",
-    "CMAKE_PREFIX_PATH": "${CMAKE_PREFIX_PATH:-};$$EXT_BUILD_DEPS$$/openssl",
+    "CMAKE_PREFIX_PATH": "$${CMAKE_PREFIX_PATH:-};$$EXT_BUILD_DEPS$$/openssl",
 }
 
 _LINUX_CACHE_ENTRIES = dict(_CACHE_ENTRIES.items() + {
-    "CMAKE_C_FLAGS": "${CMAKE_C_FLAGS:-} -fPIC",
+    "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
 }.items())
 
 cmake(
