@@ -10,7 +10,7 @@ cmake(
         "CMAKE_DISABLE_FIND_PACKAGE_LIBA": "True",
         # as currently we copy all libraries, built with Bazel, into $EXT_BUILD_DEPS/lib
         # and the headers into $EXT_BUILD_DEPS/include
-        "LIBA_DIR": "$EXT_BUILD_DEPS",
+        "LIBA_DIR": "$$EXT_BUILD_DEPS$$",
     },
     generate_args = ["-GNinja"],
     lib_source = "//cmake_with_bazel_transitive/libb:b_srcs",
