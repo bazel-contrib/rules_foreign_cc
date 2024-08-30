@@ -13,7 +13,7 @@ _CACHE_ENTRIES = {
     "BUILD_EXAMPLES": "off",
     "BUILD_FUZZERS": "off",
     "BUILD_SHARED_LIBS": "off",
-    "CMAKE_PREFIX_PATH": "$$EXT_BUILD_DEPS$$/pcre;$$EXT_BUILD_DEPS$$/openssl;$$EXT_BUILD_DEPS$$/libssh2;$$EXT_BUILD_DEPS$$/zlib;$${CMAKE_PREFIX_PATH:-}",
+    "CMAKE_PREFIX_PATH": "$$EXT_BUILD_DEPS/pcre;$$EXT_BUILD_DEPS/openssl;$$EXT_BUILD_DEPS/libssh2;$$EXT_BUILD_DEPS/zlib;$${CMAKE_PREFIX_PATH:-}",
     #"EMBED_SSH_PATH": "$(location @libssh2//:libssh2)",
     "USE_HTTPS": "on",
 }
