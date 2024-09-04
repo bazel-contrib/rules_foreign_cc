@@ -27,10 +27,6 @@ tasks:
       # TODO: https://github.com/bazelbuild/rules_foreign_cc/issues/495
       - "-//test:shell_method_symlink_contents_to_dir_test"
       - "-//test:shell_script_inner_fun_test"
-    build_flags:
-      - "--noenable_bzlmod"
-    test_flags:
-      - "--noenable_bzlmod"
   ubuntu1804_examples_standalone:
     name: Examples (spawn_strategy=standalone)
     platform: ubuntu1804
@@ -161,10 +157,6 @@ tasks:
       - powershell -noexit "& "".\..\.bazelci\windows-update-certs.ps1"""
     build_targets: *windows_targets
     test_targets: *windows_targets
-    build_flags:
-      - "--noenable_bzlmod"
-    test_flags:
-      - "--noenable_bzlmod"
   rbe_ubuntu2004_flags:
     name: Flags
     platform: rbe_ubuntu2004
