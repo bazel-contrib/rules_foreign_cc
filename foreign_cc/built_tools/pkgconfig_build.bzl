@@ -166,7 +166,7 @@ def pkgconfig_tool(name, srcs, **kwargs):
             "@platforms//os:windows": "cp release/x64/pkg-config.exe $$INSTALLDIR$$/bin",
             "//conditions:default": "",
         }),
-        toolchain = "@rules_foreign_cc//toolchains:preinstalled_nmake_toolchain",
+        toolchain = str(Label("//toolchains:preinstalled_nmake_toolchain")),
         tags = tags,
         **kwargs
     )
