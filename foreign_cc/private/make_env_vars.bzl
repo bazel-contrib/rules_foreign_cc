@@ -3,6 +3,12 @@
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 load(":framework.bzl", "get_foreign_cc_dep")
 
+def _escape_dquote_bash(text):
+    """ Escape double quotes in flag lists for use in bash strings that set environment variables """
+
+    # We use a starlark raw string to prevent the need to escape backslashes for starlark as well.
+    return text.replace('"', r'\\\"')
+
 # buildifier: disable=function-docstring
 def get_make_env_vars(
         workspace_name,
@@ -32,7 +38,7 @@ def get_make_env_vars(
         vars["CPPFLAGS"] = deps_flags.flags
 
     return " ".join(["{}=\"{}\""
-        .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
+        .format(key, _escape_dquote_bash(_join_flags_list(workspace_name, vars[key]))) for key in vars])
 
 def _define_deps_flags(deps, inputs):
     # It is very important to keep the order for the linker => put them into list
