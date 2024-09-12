@@ -408,11 +408,11 @@ def _attrs():
         ),
         "set_file_prefix_map": attr.bool(
             doc = (
-                "Use -ffile-prefix-map with the intention to remove the sandbox path from " +\
+                "Use -ffile-prefix-map with the intention to remove the sandbox path from " +
                 "debug symbols"
             ),
             mandatory = False,
-            default = False
+            default = False,
         ),
     })
     return attrs
