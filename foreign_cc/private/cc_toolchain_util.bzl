@@ -307,7 +307,7 @@ def get_flags_info(ctx, link_output_file = None):
         ),
     )
 
-    if ctx.attr.set_file_prefix_map:
+    if "set_file_prefix_map" in dir(ctx.attr) and ctx.attr.set_file_prefix_map:
         copts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
         cxxopts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
 
