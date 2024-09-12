@@ -101,6 +101,14 @@ def _attrs():
                 "directory of the `lib_sources` attribute if this attribute is not set"
             ),
         ),
+        "set_file_prefix_map": attr.bool(
+            doc = (
+                "Use -ffile-prefix-map with the intention to remove the sandbox path from " +
+                "debug symbols"
+            ),
+            mandatory = False,
+            default = False,
+        ),
     })
     return attrs
 
