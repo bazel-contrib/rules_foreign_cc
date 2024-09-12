@@ -184,6 +184,7 @@ def _cmake_impl(ctx):
         create_configure_script = _create_configure_script,
         tools_data = tools_data,
         cmake_path = cmake_data.path,
+        set_file_prefix_map = ctx.attr.set_file_prefix_map,
     )
 
     return cc_external_rule_impl(ctx, attrs)
@@ -202,6 +203,10 @@ def _create_configure_script(configureParameters):
     # CMake will replace <TARGET> with the actual output file
     flags = get_flags_info(ctx, "<TARGET>")
     no_toolchain_file = ctx.attr.cache_entries.get("CMAKE_TOOLCHAIN_FILE") or not ctx.attr.generate_crosstool_file
+
+    if attrs.set_file_prefix_map:
+        flags.cc.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
+        flags.cxx.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
 
     cmake_commands = []
 
@@ -400,6 +405,14 @@ def _attrs():
             ),
             mandatory = False,
             default = "",
+        ),
+        "set_file_prefix_map": attr.bool(
+            doc = (
+                "Use -ffile-prefix-map with the intention to remove the sandbox path from " +\
+                "debug symbols"
+            ),
+            mandatory = False,
+            default = False
         ),
     })
     return attrs
