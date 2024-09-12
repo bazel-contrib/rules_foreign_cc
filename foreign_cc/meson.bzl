@@ -174,10 +174,6 @@ def _attrs():
             mandatory = False,
             default = {},
         ),
-        "setup_args": attr.string_list(
-            doc = "Arguments for the Meson setup command",
-            mandatory = False,
-        ),
         "set_file_prefix_map": attr.bool(
             doc = (
                 "Use -ffile-prefix-map with the intention to remove the sandbox path from " +
@@ -185,6 +181,10 @@ def _attrs():
             ),
             mandatory = False,
             default = False,
+        ),
+        "setup_args": attr.string_list(
+            doc = "Arguments for the Meson setup command",
+            mandatory = False,
         ),
     })
     return attrs

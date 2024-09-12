@@ -393,14 +393,6 @@ def _attrs():
             doc = "Arguments for the CMake install command",
             mandatory = False,
         ),
-        "working_directory": attr.string(
-            doc = (
-                "Working directory, with the main CMakeLists.txt " +
-                "(otherwise, the top directory of the lib_source label files is used.)"
-            ),
-            mandatory = False,
-            default = "",
-        ),
         "set_file_prefix_map": attr.bool(
             doc = (
                 "Use -ffile-prefix-map with the intention to remove the sandbox path from " +
@@ -408,6 +400,14 @@ def _attrs():
             ),
             mandatory = False,
             default = False,
+        ),
+        "working_directory": attr.string(
+            doc = (
+                "Working directory, with the main CMakeLists.txt " +
+                "(otherwise, the top directory of the lib_source label files is used.)"
+            ),
+            mandatory = False,
+            default = "",
         ),
     })
     return attrs
