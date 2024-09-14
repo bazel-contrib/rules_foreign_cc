@@ -1,5 +1,5 @@
 {
-  "homepage": "https://github.com/bazel-contrib/rules_foreign_cc",
+  "homepage": "https://github.com/bazelbuild/rules_foreign_cc",
   "maintainers": [
     {
       "email": "james.sharpe@zenotech.com",
