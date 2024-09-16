@@ -194,8 +194,6 @@ def _create_configure_script(configureParameters):
     inputs = configureParameters.inputs
 
     root = detect_root(ctx.attr.lib_source)
-    if len(ctx.attr.working_directory) > 0:
-        root = root + "/" + ctx.attr.working_directory
 
     tools = get_tools_info(ctx)
 
@@ -268,6 +266,8 @@ def _create_configure_script(configureParameters):
         user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data),
         options = attrs.generate_args,
         cmake_commands = cmake_commands,
+        generate_in_place = ctx.attr.generate_in_place,
+        working_directory = ctx.attr.working_directory,
         cmake_prefix = prefix,
         include_dirs = inputs.include_dirs,
         is_debug_mode = is_debug_mode(ctx),
@@ -384,6 +384,11 @@ def _attrs():
             ),
             mandatory = False,
             default = True,
+        ),
+        "generate_in_place": attr.bool(
+            doc = "If True, the `cmake` should be invoked in place, i.e. from it's enclosing directory and perform an in source build.",
+            mandatory = False,
+            default = False,
         ),
         "install": attr.bool(
             doc = "If True, the `cmake --install` comand will be performed after a build",

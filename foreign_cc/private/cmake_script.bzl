@@ -56,6 +56,8 @@ def create_cmake_script(
         user_env,
         options,
         cmake_commands,
+        generate_in_place,
+        working_directory,
         include_dirs = [],
         cmake_prefix = None,
         is_debug_mode = True):
@@ -78,6 +80,8 @@ def create_cmake_script(
         user_env: dictionary with user's values for CMake environment variables
         options: other CMake options specified by user
         cmake_commands: A list of cmake commands for building and installing targets
+        generate_in_place: if True, the source root will be copied to the build directory and an in-source build will be performed.
+        working_directory: directory containing the main CMakeLists.txt
         include_dirs: Optional additional include directories. Defaults to [].
         cmake_prefix: Optional prefix before the cmake command (without the trailing space).
         is_debug_mode: If the compilation mode is `debug`. Defaults to True.
@@ -145,6 +149,27 @@ def create_cmake_script(
     script = set_env_vars
 
     directory = "$$EXT_BUILD_ROOT$$/" + root
+
+    # normal route - external build dept + /external/cmake
+    # if generate in place
+    # if working with directory -> "."
+    # if working with directory -> "working directory"
+    # if no generate in place
+    # if working with directory -> "external build dept + root + cmake"
+    # if no working with directory -> external build dept + root
+
+    if (generate_in_place):
+        script.append("##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
+        directory = ""
+
+    if len(working_directory) > 0:
+        if len(directory) == 0:
+            directory = working_directory
+        else:
+            directory = (directory + "/" + working_directory)
+
+    if len(directory) == 0:
+        directory = "."
 
     script.append("##enable_tracing##")
 
