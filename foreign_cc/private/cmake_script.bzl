@@ -56,8 +56,8 @@ def create_cmake_script(
         user_env,
         options,
         cmake_commands,
-        generate_in_place,
-        working_directory,
+        generate_in_place = False,
+        working_directory = "",
         include_dirs = [],
         cmake_prefix = None,
         is_debug_mode = True):
