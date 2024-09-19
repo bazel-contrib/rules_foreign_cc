@@ -393,14 +393,6 @@ def _attrs():
             doc = "Arguments for the CMake install command",
             mandatory = False,
         ),
-        "set_file_prefix_map": attr.bool(
-            doc = (
-                "Use -ffile-prefix-map with the intention to remove the sandbox path from " +
-                "debug symbols"
-            ),
-            mandatory = False,
-            default = False,
-        ),
         "working_directory": attr.string(
             doc = (
                 "Working directory, with the main CMakeLists.txt " +

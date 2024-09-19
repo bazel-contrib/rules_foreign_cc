@@ -212,14 +212,6 @@ def _attrs():
             mandatory = False,
             default = "--prefix=",
         ),
-        "set_file_prefix_map": attr.bool(
-            doc = (
-                "Use -ffile-prefix-map with the intention to remove the sandbox path from " +
-                "debug symbols"
-            ),
-            mandatory = False,
-            default = False,
-        ),
         "targets": attr.string_list(
             doc = (
                 "A list of targets within the foreign build system to produce. An empty string (`\"\"`) will result in " +

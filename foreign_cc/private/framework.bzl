@@ -201,6 +201,14 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Optional part of the shell script to be added after the make commands",
         mandatory = False,
     ),
+    "set_file_prefix_map": attr.bool(
+        doc = (
+            "Use -ffile-prefix-map with the intention to remove the sandbox path from " +
+            "debug symbols"
+        ),
+        mandatory = False,
+        default = False,
+    ),
     "targets": attr.string_list(
         doc = (
             "A list of targets with in the foreign build system to produce. An empty string (`\"\"`) will result in " +
