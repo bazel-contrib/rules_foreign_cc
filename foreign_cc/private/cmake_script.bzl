@@ -150,26 +150,15 @@ def create_cmake_script(
 
     directory = "$$EXT_BUILD_ROOT$$/" + root
 
-    # normal route - external build dept + /external/cmake
-    # if generate in place
-    # if working with directory -> "."
-    # if working with directory -> "working directory"
-    # if no generate in place
-    # if working with directory -> "external build dept + root + cmake"
-    # if no working with directory -> external build dept + root
-
     if (generate_in_place):
         script.append("##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
-        directory = ""
 
-    if len(working_directory) > 0:
-        if len(directory) == 0:
+        if len(working_directory) > 0:
             directory = working_directory
         else:
-            directory = (directory + "/" + working_directory)
-
-    if len(directory) == 0:
-        directory = "."
+            directory = "."
+    elif len(working_directory) > 0:
+        directory = (directory + "/" + working_directory)
 
     script.append("##enable_tracing##")
 
