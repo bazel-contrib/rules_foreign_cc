@@ -1,0 +1,47 @@
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+
+package(
+    default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
+)
+
+exports_files(["LICENSE"])
+
+license(
+    name = "license",
+    package_name = "libvpx",
+    license_kinds = [
+        "@rules_license//licenses/spdx:BSD-3-Clause",
+    ],
+    license_text = "LICENSE",
+    package_url = "https://chromium.googlesource.com/libvpx/libvpx",
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+configure_make(
+    name = "libvpx",
+    build_data = [
+        "@yasm//:yasm_bin",
+    ],
+    configure_options = [
+        "--disable-shared",
+        "--enable-static",
+        "--enable-pic",
+        "--disable-examples",
+        "--disable-tools",
+        "--disable-docs",
+        "--disable-unit-tests",
+        "--enable-vp9-highbitdepth",
+        "--as=yasm",
+    ],
+    env = {
+        "PATH": "$$PATH:$$(dirname $(execpath @yasm//:yasm_bin))",
+    },
+    lib_source = ":all_srcs",
+    out_static_libs = ["libvpx.a"],
+)
