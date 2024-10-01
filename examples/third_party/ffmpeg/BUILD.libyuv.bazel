@@ -1,0 +1,36 @@
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+package(
+    default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
+)
+
+exports_files(["LICENSE"])
+
+license(
+    name = "license",
+    package_name = "libyuv",
+    license_kinds = [
+        "@rules_license//licenses/spdx:BSD-3-Clause",
+    ],
+    license_text = "LICENSE",
+    package_url = "https://chromium.googlesource.com/libyuv/libyuv",
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+cmake(
+    name = "libyuv",
+    env = {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_BUILD_PARALLEL_LEVEL": "4",
+    },
+    lib_source = ":all_srcs",
+    out_shared_libs = ["libyuv.so"],
+    out_static_libs = ["libyuv.a"],
+    deps = ["@libjpeg_turbo//:jpeg"],
+)

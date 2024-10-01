@@ -6,6 +6,7 @@ load("//autotools:autotools_repositories.bzl", "autotools_repositories")
 load("//bison:bison_repositories.bzl", "bison_repositories")
 load("//cares:cares_repositories.bzl", "cares_repositories")
 load("//curl:curl_repositories.bzl", "curl_repositories")
+load("//ffmpeg:ffmpeg_repositories.bzl", "ffmpeg_repositories")
 load("//glib:glib_repositories.bzl", "glib_repositories")
 load("//gn:gn_repositories.bzl", "gn_repositories")
 load("//gperftools:gperftools_repositories.bzl", "gperftools_repositories")
@@ -24,7 +25,7 @@ load("//subversion:subversion_repositories.bzl", "subversion_repositories")
 load("//zlib:zlib_repositories.bzl", "zlib_repositories")
 
 # buildifier: disable=unnamed-macro
-def repositories():
+def repositories(ctx = None):
     """Load all repositories needed for the targets of rules_foreign_cc_examples_third_party"""
     apr_repositories()
     apr_util_repositories()
@@ -32,6 +33,7 @@ def repositories():
     bison_repositories()
     cares_repositories()
     curl_repositories()
+    ffmpeg_repositories()
     glib_repositories()
     gn_repositories()
     gperftools_repositories()
@@ -48,3 +50,16 @@ def repositories():
     sqlite_repositories()
     subversion_repositories()
     zlib_repositories()
+
+    maybe(
+        http_archive,
+        name = "com_googleapis_storage_chrome_linux_amd64_sysroot",
+        build_file = Label("//:BUILD.sysroot.bazel"),
+        sha256 = "5df5be9357b425cdd70d92d4697d07e7d55d7a923f037c22dc80a78e85842d2c",
+        urls = [
+            # features.h defines GLIBC 2.31.
+            "https://storage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz",
+        ],
+    )
+
+repositories_ext = module_extension(implementation = repositories)

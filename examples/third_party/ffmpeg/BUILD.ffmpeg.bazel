@@ -1,0 +1,122 @@
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+
+package(
+    default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
+)
+
+exports_files(["LICENSE"])
+
+license(
+    name = "license",
+    package_name = "ffmpeg",
+    license_kinds = [
+        "@rules_license//licenses/spdx:LGPL-3.0-or-later",
+    ],
+    license_text = "LICENSE",
+    package_url = "https://github.com/FFmpeg/FFmpeg",
+)
+
+LGPL_LIBRARIES = [
+    "libavcodec",
+    "libavdevice",
+    "libavfilter",
+    "libavformat",
+    "libavutil",
+    "libswresample",
+    "libswscale",
+]
+
+LGPL_LIBRARY_VERSIONS = {
+    "libavcodec": [
+        "libavcodec.so",
+        "libavcodec.so.61",
+        "libavcodec.so.61.3.100",
+    ],
+    "libavdevice": [
+        "libavdevice.so",
+        "libavdevice.so.61",
+        "libavdevice.so.61.1.100",
+    ],
+    "libavfilter": [
+        "libavfilter.so",
+        "libavfilter.so.10",
+        "libavfilter.so.10.1.100",
+    ],
+    "libavformat": [
+        "libavformat.so",
+        "libavformat.so.61",
+        "libavformat.so.61.1.100",
+    ],
+    "libavutil": [
+        "libavutil.so",
+        "libavutil.so.59",
+        "libavutil.so.59.8.100",
+    ],
+    "libswresample": [
+        "libswresample.so",
+        "libswresample.so.5",
+        "libswresample.so.5.1.100",
+    ],
+    "libswscale": [
+        "libswscale.so",
+        "libswscale.so.8",
+        "libswscale.so.8.1.100",
+    ],
+}
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+config_setting(
+    name = "opt_mode",
+    values = {
+        "compilation_mode": "opt",
+    },
+)
+
+# NOTE FFmpeg's configure script is not autoconf-based: https://trac.ffmpeg.org/ticket/9310
+# NOTE Bazel always uses the C++ compiler: https://github.com/bazelbuild/bazel/issues/4644
+configure_make(
+    name = "ffmpeg",
+    args = [
+        "-j4",
+    ],
+    build_data = [
+        "@yasm//:yasm_bin",
+    ],
+    configure_options = [
+        "--cc=$$EXT_BUILD_ROOT/$(CC)",
+        "--host-cc=$$EXT_BUILD_ROOT/$(CC)",
+        "--cxx=$$EXT_BUILD_ROOT/$(CC)",
+        "--host-cflags=\"--sysroot=$$EXT_BUILD_ROOT/external/_main~repositories_ext~com_googleapis_storage_chrome_linux_amd64_sysroot/\"",
+        "--extra-cflags=\"--sysroot=$$EXT_BUILD_ROOT/external/_main~repositories_ext~com_googleapis_storage_chrome_linux_amd64_sysroot/\"",
+        "--pkg-config-flags=\"--static\"",
+        "--enable-pic",  # TODO base on global config setting?
+        "--disable-stripping",  # TODO define hermetic executable via --strip=
+        "--enable-shared",
+        "--disable-static",
+        "--x86asmexe=$$EXT_BUILD_ROOT/$(execpath @yasm//:yasm_bin)",
+        "--enable-version3",
+        "--enable-libaom",
+        "--enable-libsvtav1",
+        "--enable-libvpx",
+        "--enable-libdav1d",
+        "--disable-programs",
+        "--disable-doc",
+    ] + select({
+      ":opt_mode": ["--disable-debug"],
+      "//conditions:default": [],
+    }),
+    lib_source = ":all_srcs",
+    out_shared_libs = [so for lib in LGPL_LIBRARIES for so in LGPL_LIBRARY_VERSIONS[lib]],
+    deps = [
+        "@libaom",
+        "@libsvtav1",
+        "@libvpx",
+        "@libdav1d",
+    ],
+)

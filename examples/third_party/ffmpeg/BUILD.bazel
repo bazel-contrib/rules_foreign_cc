@@ -1,0 +1,16 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+
+exports_files(
+    [
+        "BUILD.ffmpeg.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+build_test(
+    name = "ffmpeg_build_test",
+    targets = [
+        "@ffmpeg//:ffmpeg",
+    ],
+    visibility = ["//:__pkg__"],
+)

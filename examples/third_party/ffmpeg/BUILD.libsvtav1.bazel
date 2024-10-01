@@ -1,0 +1,46 @@
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+package(
+    default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
+)
+
+exports_files(["LICENSE"])
+
+license(
+    name = "license",
+    package_name = "libsvtav1",
+    license_kinds = [
+        "@rules_license//licenses/spdx:BSD-3-Clause-Clear",
+    ],
+    license_text = "LICENSE",
+    package_url = "https://gitlab.com/AOMediaCodec/SVT-AV1",
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+cmake(
+    name = "libsvtav1",
+    build_data = [
+        "@yasm//:yasm_bin",
+    ],
+    cache_entries = {
+        "BUILD_SHARED_LIBS": "OFF",
+        "BUILD_DEC": "OFF",
+        "BUILD_APPS": "ON",
+        "BUILD_TESTING": "OFF",
+        "ENABLE_AVX512": "ON",
+    },
+    env = {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_BUILD_PARALLEL_LEVEL": "4",
+        "PATH": "$$PATH:$$(dirname $(execpath @yasm//:yasm_bin))",
+    },
+    lib_source = ":all_srcs",
+    out_binaries = ["SvtAv1EncApp"],
+    out_static_libs = ["libSvtAv1Enc.a"],
+)

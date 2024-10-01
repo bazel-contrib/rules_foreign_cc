@@ -1,0 +1,50 @@
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake", "runnable_binary")
+
+package(
+    default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
+)
+
+exports_files(["LICENSE"])
+
+license(
+    name = "license",
+    package_name = "yasm",
+    license_kinds = [
+        "@rules_license//licenses/spdx:BSD-3-Clause",
+    ],
+    license_text = "LICENSE",
+    package_url = "https://github.com/yasm/yasm",
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+cmake(
+    name = "make_yasm",
+    cache_entries = {
+        "BUILD_SHARED_LIBS": "OFF",
+    },
+    env = {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_BUILD_PARALLEL_LEVEL": "4",
+    },
+    lib_source = ":all_srcs",
+    out_binaries = ["yasm"],
+)
+
+runnable_binary(
+    name = "runnable_yasm",
+    binary = "yasm",
+    foreign_cc_target = ":make_yasm",
+    match_binary_name = True,
+)
+
+filegroup(
+    name = "yasm_bin",
+    srcs = [":make_yasm"],
+    output_group = "yasm",
+)

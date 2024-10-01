@@ -1,0 +1,49 @@
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson")
+
+package(
+    default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
+)
+
+exports_files(["LICENSE"])
+
+license(
+    name = "license",
+    package_name = "libdav1d",
+    license_kinds = [
+        "@rules_license//licenses/spdx:BSD-3-Clause-Clear",
+    ],
+    license_text = "LICENSE",
+    package_url = "https://code.videolan.org/videolan/dav1d",
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+meson(
+    name = "libdav1d",
+    build_data = [
+        "@nasm",
+    ],
+    build_args = [
+        "-j4",
+    ],
+    lib_source = ":all_srcs",
+    options = {
+        "enable_tools": "false",
+        "enable_tests": "false",
+    },
+    env = {
+        "PATH": "$$PATH:$$(dirname $(execpath @nasm))",
+    },
+    out_lib_dir = "lib64",
+    #out_shared_libs = ["libdav1d.so", "libdav1d.so.7", "libdav1d.so.7.0.0"],
+    out_static_libs = ["libdav1d.a"],
+    setup_args = [
+        "--buildtype=release",
+        "--default-library=static",
+    ],
+)
