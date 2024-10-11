@@ -9,7 +9,7 @@ This is **not an officially supported Google product**
 
 ## Documentation
 
-Documentation for all rules and providers are available at: https://bazelbuild.github.io/rules_foreign_cc/
+Documentation for all rules and providers are available at: https://bazel-contrib.github.io/rules_foreign_cc/
 
 ## Bazel versions compatibility
 
