@@ -83,6 +83,8 @@ def _create_meson_script(configureParameters):
         script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
     if " " not in tools.cxx_linker_static:
         script.append("##export_var## AR {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_static)))
+    if tools.strip and " " not in tools.strip:
+        script.append("##export_var## STRIP {}".format(_absolutize(ctx.workspace_name, tools.strip)))
 
     copts = flags.cc
     cxxopts = flags.cxx
