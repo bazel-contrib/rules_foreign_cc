@@ -79,6 +79,8 @@ def _create_meson_script(configureParameters):
         script.append("##export_var## CC {}".format(_absolutize(ctx.workspace_name, tools.cc)))
     if " " not in tools.cxx:
         script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
+    if " " not in tools.cxx_linker_static:
+        script.append("##export_var## AR {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_static)))
 
     # set flags same as foreign_cc/private/cc_toolchain_util.bzl
     # cannot use get_flags_info() because bazel adds additional flags that
