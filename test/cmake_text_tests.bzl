@@ -431,8 +431,8 @@ __var_CMAKE_CXX_FLAGS_INIT="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 __var_CMAKE_C_COMPILER="/usr/bin/gcc"
 __var_CMAKE_C_FLAGS_INIT="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 __var_CMAKE_EXE_LINKER_FLAGS_INIT="-fuse-ld=gold -Wl -no-as-needed"
-__var_CMAKE_SHARED_LINKER_FLAGS_INIT="-shared -fuse-ld=gold"
 __var_CMAKE_MODULE_LINKER_FLAGS_INIT="-shared -fuse-ld=gold"
+__var_CMAKE_SHARED_LINKER_FLAGS_INIT="-shared -fuse-ld=gold"
 cat > crosstool_bazel.cmake << EOF
 set(CMAKE_AR "$$__var_CMAKE_AR$$" CACHE FILEPATH "Archiver")
 set(CMAKE_ASM_FLAGS_INIT "$$__var_CMAKE_ASM_FLAGS_INIT$$")
@@ -441,8 +441,8 @@ set(CMAKE_CXX_FLAGS_INIT "$$__var_CMAKE_CXX_FLAGS_INIT$$")
 set(CMAKE_C_COMPILER "$$__var_CMAKE_C_COMPILER$$")
 set(CMAKE_C_FLAGS_INIT "$$__var_CMAKE_C_FLAGS_INIT$$")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "$$__var_CMAKE_EXE_LINKER_FLAGS_INIT$$")
-set(CMAKE_SHARED_LINKER_FLAGS_INIT "$$__var_CMAKE_SHARED_LINKER_FLAGS_INIT$$")
 set(CMAKE_MODULE_LINKER_FLAGS_INIT "$$__var_CMAKE_MODULE_LINKER_FLAGS_INIT$$")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "$$__var_CMAKE_SHARED_LINKER_FLAGS_INIT$$")
 EOF
 
 ##enable_tracing##
