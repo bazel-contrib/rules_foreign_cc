@@ -104,6 +104,7 @@ def _fill_crossfile_from_toolchain_test(ctx):
         "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
         "CMAKE_EXE_LINKER_FLAGS_INIT": "executable",
         "CMAKE_SHARED_LINKER_FLAGS_INIT": "shared1 shared2",
+        "CMAKE_MODULE_LINKER_FLAGS_INIT": "shared1 shared2",
         "CMAKE_SYSROOT": "/abc/sysroot",
     }
 
@@ -173,6 +174,7 @@ def _reverse_descriptor_dict_test(ctx):
         "CMAKE_C_FLAGS_INIT": struct(value = "CMAKE_C_FLAGS", replace = False),
         "CMAKE_EXE_LINKER_FLAGS_INIT": struct(value = "CMAKE_EXE_LINKER_FLAGS", replace = False),
         "CMAKE_SHARED_LINKER_FLAGS_INIT": struct(value = "CMAKE_SHARED_LINKER_FLAGS", replace = False),
+        "CMAKE_MODULE_LINKER_FLAGS_INIT": struct(value = "CMAKE_MODULE_LINKER_FLAGS", replace = False),
         "CMAKE_STATIC_LINKER_FLAGS_INIT": struct(value = "CMAKE_STATIC_LINKER_FLAGS", replace = False),
     }
 
@@ -317,7 +319,7 @@ export CFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 export CXXFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 export ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 ##enable_tracing##
-cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DNOFORTRAN="on" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$;/abc/def" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_MODULE_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DNOFORTRAN="on" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$;/abc/def" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -345,8 +347,9 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
     user_cache = {
         "CMAKE_PREFIX_PATH": "/abc/def",
         # These two flags/CMake cache entries must be wiped,
-        # but the second is not present in toolchain flags.
+        # but the third is not present in toolchain flags.
         "CMAKE_SHARED_LINKER_FLAGS": "",
+        "CMAKE_MODULE_LINKER_FLAGS": "",
         "WIPE_ME_IF_PRESENT": "",
     }
 
@@ -429,6 +432,7 @@ __var_CMAKE_C_COMPILER="/usr/bin/gcc"
 __var_CMAKE_C_FLAGS_INIT="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 __var_CMAKE_EXE_LINKER_FLAGS_INIT="-fuse-ld=gold -Wl -no-as-needed"
 __var_CMAKE_SHARED_LINKER_FLAGS_INIT="-shared -fuse-ld=gold"
+__var_CMAKE_MODULE_LINKER_FLAGS_INIT="-shared -fuse-ld=gold"
 cat > crosstool_bazel.cmake << EOF
 set(CMAKE_AR "$$__var_CMAKE_AR$$" CACHE FILEPATH "Archiver")
 set(CMAKE_ASM_FLAGS_INIT "$$__var_CMAKE_ASM_FLAGS_INIT$$")
@@ -438,6 +442,7 @@ set(CMAKE_C_COMPILER "$$__var_CMAKE_C_COMPILER$$")
 set(CMAKE_C_FLAGS_INIT "$$__var_CMAKE_C_FLAGS_INIT$$")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "$$__var_CMAKE_EXE_LINKER_FLAGS_INIT$$")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "$$__var_CMAKE_SHARED_LINKER_FLAGS_INIT$$")
+set(CMAKE_MODULE_LINKER_FLAGS_INIT "$$__var_CMAKE_MODULE_LINKER_FLAGS_INIT$$")
 EOF
 
 ##enable_tracing##
@@ -509,7 +514,7 @@ export CXXFLAGS="--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain
 export ASMFLAGS="assemble assemble-user"
 export CUSTOM_ENV="YES"
 ##enable_tracing##
-cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -577,7 +582,7 @@ export CXXFLAGS="--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain
 export ASMFLAGS="assemble assemble-user"
 export CUSTOM_ENV="YES"
 ##enable_tracing##
-cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" -DANDROID="YES" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="x86_64" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" -DANDROID="YES" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="x86_64" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -645,7 +650,7 @@ export CXXFLAGS="--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain
 export ASMFLAGS="assemble assemble-user"
 export CUSTOM_ENV="YES"
 ##enable_tracing##
-cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="aarch64" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="aarch64" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -716,6 +721,7 @@ __var_CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN="cc-toolchain"
 __var_CMAKE_C_FLAGS_INIT="-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag"
 __var_CMAKE_EXE_LINKER_FLAGS_INIT="executable"
 __var_CMAKE_SHARED_LINKER_FLAGS_INIT="shared1 shared2"
+__var_CMAKE_MODULE_LINKER_FLAGS_INIT="shared1 shared2"
 __var_CMAKE_SYSROOT="/abc/sysroot"
 cat > crosstool_bazel.cmake << EOF
 set(CMAKE_AR "$$__var_CMAKE_AR$$" CACHE FILEPATH "Archiver")
@@ -729,6 +735,7 @@ set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "$$__var_CMAKE_C_COMPILER_EXTERNAL_TOOLC
 set(CMAKE_C_FLAGS_INIT "$$__var_CMAKE_C_FLAGS_INIT$$")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "$$__var_CMAKE_EXE_LINKER_FLAGS_INIT$$")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "$$__var_CMAKE_SHARED_LINKER_FLAGS_INIT$$")
+set(CMAKE_MODULE_LINKER_FLAGS_INIT "$$__var_CMAKE_MODULE_LINKER_FLAGS_INIT$$")
 set(CMAKE_SYSROOT "$$__var_CMAKE_SYSROOT$$")
 EOF
 
