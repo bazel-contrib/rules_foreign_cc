@@ -720,8 +720,8 @@ __var_CMAKE_C_COMPILER="sink-cc-value"
 __var_CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN="cc-toolchain"
 __var_CMAKE_C_FLAGS_INIT="-cc-flag -gcc_toolchain cc-toolchain --from-env --additional-flag"
 __var_CMAKE_EXE_LINKER_FLAGS_INIT="executable"
-__var_CMAKE_SHARED_LINKER_FLAGS_INIT="shared1 shared2"
 __var_CMAKE_MODULE_LINKER_FLAGS_INIT="shared1 shared2"
+__var_CMAKE_SHARED_LINKER_FLAGS_INIT="shared1 shared2"
 __var_CMAKE_SYSROOT="/abc/sysroot"
 cat > crosstool_bazel.cmake << EOF
 set(CMAKE_AR "$$__var_CMAKE_AR$$" CACHE FILEPATH "Archiver")
