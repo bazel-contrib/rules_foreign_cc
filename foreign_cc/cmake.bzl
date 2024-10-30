@@ -271,6 +271,7 @@ def _create_configure_script(configureParameters):
         cmake_prefix = prefix,
         include_dirs = inputs.include_dirs,
         is_debug_mode = is_debug_mode(ctx),
+        ext_build_dirs = inputs.ext_build_dirs,
     )
     return configure_script
 
