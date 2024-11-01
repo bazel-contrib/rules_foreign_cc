@@ -12,11 +12,9 @@ _CACHE_ENTRIES = {
     "BUILD_CURL_EXE": "off",
     "BUILD_SHARED_LIBS": "off",
     "CMAKE_BUILD_TYPE": "RELEASE",
-    "CMAKE_PREFIX_PATH": "$$EXT_BUILD_DEPS/openssl",
     "CMAKE_USE_OPENSSL": "on",
     # TODO: ldap should likely be enabled
     "CURL_DISABLE_LDAP": "on",
-    "OPENSSL_ROOT_DIR": "$$EXT_BUILD_DEPS/openssl",
 }
 
 _MACOS_CACHE_ENTRIES = dict(_CACHE_ENTRIES.items() + {

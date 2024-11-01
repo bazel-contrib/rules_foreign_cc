@@ -58,7 +58,8 @@ def create_cmake_script(
         cmake_commands,
         include_dirs = [],
         cmake_prefix = None,
-        is_debug_mode = True):
+        is_debug_mode = True,
+        ext_build_dirs = []):
     """Constructs CMake script to be passed to cc_external_rule_impl.
 
     Args:
@@ -81,12 +82,13 @@ def create_cmake_script(
         include_dirs: Optional additional include directories. Defaults to [].
         cmake_prefix: Optional prefix before the cmake command (without the trailing space).
         is_debug_mode: If the compilation mode is `debug`. Defaults to True.
+        ext_build_dirs: A list of gen_dirs for each foreign_cc dep.
 
     Returns:
         list: Lines of bash which make up the build script
     """
 
-    merged_prefix_path = _merge_prefix_path(user_cache, include_dirs)
+    merged_prefix_path = _merge_prefix_path(user_cache, include_dirs, ext_build_dirs)
 
     toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
     params = None
@@ -171,9 +173,12 @@ def _wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
             cache.pop(key)
 
 # From CMake documentation: ;-list of directories specifying installation prefixes to be searched...
-def _merge_prefix_path(user_cache, include_dirs):
+def _merge_prefix_path(user_cache, include_dirs, ext_build_dirs):
     user_prefix = user_cache.get("CMAKE_PREFIX_PATH")
     values = ["$$EXT_BUILD_DEPS$$"] + include_dirs
+    for ext_dir in ext_build_dirs:
+        values.append("$$EXT_BUILD_DEPS$$/{}".format(ext_dir.basename))
+
     if user_prefix != None:
         # remove it, it is gonna be merged specifically
         user_cache.pop("CMAKE_PREFIX_PATH")
