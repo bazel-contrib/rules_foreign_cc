@@ -22,6 +22,7 @@ CxxToolsInfo = provider(
         cxx_linker_static = "C++ linker to link static library",
         cxx_linker_executable = "C++ linker to link executable",
         ld = "linker",
+        strip = "Binary symbol stripper",
     ),
 )
 
@@ -218,6 +219,13 @@ def get_tools_info(ctx):
             action_name = ACTION_NAMES.cpp_link_executable,
         ),
         ld = cc_toolchain.ld_executable,
+        strip = cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = ACTION_NAMES.strip,
+        ) if cc_common.action_is_enabled(
+            feature_configuration = feature_configuration,
+            action_name = ACTION_NAMES.strip,
+        ) else "",
     )
 
 def get_flags_info(ctx, link_output_file = None):
