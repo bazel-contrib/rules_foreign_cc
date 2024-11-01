@@ -335,7 +335,7 @@ def _convert_flags(compiler, flags):
         list: The converted flags
     """
     if compiler == "msvc-cl":
-        return [flag.replace("/", "-") if flag.startswith("/") else flag for flag in flags]
+        return [("-" + flag.removeprefix("/")) if flag.startswith("/") else flag for flag in flags]
     return flags
 
 def _add_if_needed(arr, add_arr):
