@@ -74,7 +74,13 @@ def _create_make_script(configureParameters):
         deps = ctx.attr.deps,
         inputs = inputs,
         env_vars = user_env,
-        make_commands = make_commands,
+        make_prefix = prefix,
+        make_path = attrs.make_path,
+        make_targets = ctx.attr.targets,
+        make_args = args,
+        make_install_prefix = ctx.attr.install_prefix,
+        executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
+        shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
     )
 
 def _attrs():
@@ -83,6 +89,15 @@ def _attrs():
         "args": attr.string_list(
             doc = "A list of arguments to pass to the call to `make`",
         ),
+        "executable_ldflags_vars": attr.string_list(
+            doc = (
+                "A string list of variable names use as LDFLAGS for executables. These variables " +
+                "will be passed to the make command as make vars and overwrite what is defined in " +
+                "the Makefile."
+            ),
+            mandatory = False,
+            default = [],
+        ),
         "install_prefix": attr.string(
             doc = (
                 "Install prefix, i.e. relative path to where to install the result of the build. " +
@@ -90,6 +105,15 @@ def _attrs():
             ),
             mandatory = False,
             default = "$$INSTALLDIR$$",
+        ),
+        "shared_ldflags_vars": attr.string_list(
+            doc = (
+                "A string list of variable names use as LDFLAGS for shared libraries. These variables " +
+                "will be passed to the make command as make vars and overwrite what is defined in " +
+                "the Makefile."
+            ),
+            mandatory = False,
+            default = [],
         ),
         "targets": attr.string_list(
             doc = (
