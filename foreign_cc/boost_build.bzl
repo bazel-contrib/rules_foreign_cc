@@ -30,6 +30,7 @@ def _create_configure_script(configureParameters):
         "##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{}/. .".format(root),
         "chmod -R +w .",
         "##enable_tracing##",
+        "##enable_parallel_build##",
         "./bootstrap.sh {}".format(" ".join(ctx.attr.bootstrap_options)),
         "./b2 install {} --prefix=.".format(" ".join(user_options)),
         "##disable_tracing##",

@@ -56,6 +56,10 @@ def enable_tracing():
 def disable_tracing():
     return "set +x"
 
+def enable_parallel_build():
+    # XXX not implemented
+    return ":"
+
 def mkdirs(path):
     return "mkdir -p " + path
 
@@ -299,6 +303,7 @@ commands = struct(
     define_sandbox_paths = define_sandbox_paths,
     disable_tracing = disable_tracing,
     echo = echo,
+    enable_parallel_build = enable_parallel_build,
     enable_tracing = enable_tracing,
     env = env,
     export_var = export_var,

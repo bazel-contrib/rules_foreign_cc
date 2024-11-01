@@ -149,6 +149,7 @@ def create_cmake_script(
     directory = "$$EXT_BUILD_ROOT$$/" + root
 
     script.append("##enable_tracing##")
+    script.append("##enable_parallel_build##")
 
     # Configure the CMake generate command
     cmake_prefixes = [cmake_prefix] if cmake_prefix else []

@@ -105,6 +105,10 @@ PLATFORM_COMMANDS = {
         arguments = [_argument_info(name = "text", data_type = type(""), doc = "Text to output")],
         doc = "Outputs 'text' to stdout",
     ),
+    "enable_parallel_build": _command_info(
+        arguments = [],
+        doc = "Enable parallization (auto-detect cpu count and set MAKEFLAGS and CMAKE_BUILD_PARALLEL_LEVEL appropriately)",
+    ),
     "enable_tracing": _command_info(
         arguments = [],
         doc = "Enable script tracing. eg: `set -x`",
