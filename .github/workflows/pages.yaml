@@ -90,12 +90,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Fetch artifacts (first root then others so the ordering is correct)
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: main-root
         path: ${{ github.workspace }}/docs/book
     - name: Fetch artifacts (first root then others so the ordering is correct)
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         path: ${{ github.workspace }}/docs/pages
     - name: Install pages
