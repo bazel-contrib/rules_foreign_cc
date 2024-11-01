@@ -298,12 +298,12 @@ dependencies.""",
 def _is_msvc_var(var):
     return var == "INCLUDE" or var == "LIB"
 
-def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
+def get_env_prelude(ctx, lib_basename, data_dependencies, target_root):
     """Generate a bash snippet containing environment variable definitions
 
     Args:
         ctx (ctx): The rule's context object
-        lib_name (str): The name of the target being built
+        lib_basename (str): The basename of the target being built
         data_dependencies (list): A list of targets representing dependencies
         target_root (str): The path from the root target's directory in the build output
 
@@ -313,7 +313,7 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     """
     env_snippet = [
         "export EXT_BUILD_ROOT=##pwd##",
-        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + target_root + "/" + lib_name,
+        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + target_root + "/" + lib_basename,
         "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
         "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
     ]
@@ -422,6 +422,7 @@ def cc_external_rule_impl(ctx, attrs):
     """
     _print_deprecation_warnings(ctx)
     lib_name = attrs.lib_name or ctx.attr.name
+    lib_dirname, lib_separator, lib_basename = lib_name.rpartition("/")
 
     inputs = _define_inputs(attrs)
     outputs = _define_outputs(ctx, attrs, lib_name)
@@ -435,8 +436,8 @@ def cc_external_rule_impl(ctx, attrs):
     # and the install directory as a whole (which is mostly nessesary for chained external builds).
     #
     # We want the install directory output of this rule to have the same name as the library,
-    # so symlink it under the same name but in a subdirectory
-    installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "copy_{}/{}".format(lib_name, lib_name))
+    # so symlink it under the same name but in a subdirectory.
+    installdir_copy = copy_directory(ctx.actions, "$$INSTALLDIR$$", "{}{}copy_{}/{}".format(lib_dirname, lib_separator, lib_basename, lib_basename))
     target_root = paths.dirname(installdir_copy.file.dirname)
 
     data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
@@ -447,7 +448,7 @@ def cc_external_rule_impl(ctx, attrs):
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
 
-    env_prelude = get_env_prelude(ctx, lib_name, data_dependencies, target_root)
+    env_prelude = get_env_prelude(ctx, lib_basename, data_dependencies, target_root)
 
     postfix_script = [attrs.postfix_script]
     if not attrs.postfix_script:
@@ -793,14 +794,15 @@ def _define_outputs(ctx, attrs, lib_name):
     attr_shared_libs = attrs.out_shared_libs
     attr_static_libs = attrs.out_static_libs
 
+    _, _, lib_basename = lib_name.rpartition("/")
     static_libraries = []
     if not attr_headers_only:
         if not attr_static_libs and not attr_shared_libs and not attr_binaries_libs and not attr_interface_libs:
-            static_libraries = [lib_name + (".lib" if targets_windows(ctx, None) else ".a")]
+            static_libraries = [lib_basename + (".lib" if targets_windows(ctx, None) else ".a")]
         else:
             static_libraries = attr_static_libs
 
-    _check_file_name(lib_name)
+    _check_file_name(lib_basename)
 
     out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
 
