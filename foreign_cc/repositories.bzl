@@ -103,6 +103,16 @@ def rules_foreign_cc_dependencies(
 
     maybe(
         http_archive,
+        name = "platforms",
+        sha256 = "5eda539c841265031c2f82d8ae7a3a6490bd62176e0c038fc469eabf91f6149b",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.9/platforms-0.0.9.tar.gz",
+            "https://github.com/bazelbuild/platforms/releases/download/0.0.9/platforms-0.0.9.tar.gz",
+        ],
+    )
+
+    maybe(
+        http_archive,
         name = "rules_python",
         sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
         strip_prefix = "rules_python-0.23.1",
