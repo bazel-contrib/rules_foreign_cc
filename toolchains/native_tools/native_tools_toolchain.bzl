@@ -99,5 +99,4 @@ native_tool_toolchain = rule(
             allow_files = True,
         ),
     },
-    incompatible_use_toolchain_transition = True,
 )

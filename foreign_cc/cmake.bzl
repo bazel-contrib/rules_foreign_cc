@@ -421,9 +421,6 @@ cmake = rule(
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
     provides = [CcInfo],
-    # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
-    # version is updated to a release of Bazel containing the new default for this setting.
-    incompatible_use_toolchain_transition = True,
 )
 
 def cmake_variant(name, toolchain, **kwargs):
