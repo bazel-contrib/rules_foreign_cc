@@ -39,6 +39,6 @@ A file containing a single macro `lib_repositories` that should define the desir
 `BUILD.lib.bazel` file will correctly be installed when the repository is setup. This macro will need to be
 loaded and called in [`third_party/repositories.bzl`](./third_party/repositories.bzl).
 
-[cmake_external]: https://github.com/bazelbuild/rules_foreign_cc/tree/main/docs#cmake_external
-[configure_make]: https://github.com/bazelbuild/rules_foreign_cc/tree/main/docs#configure_make
+[cmake_external]: https://github.com/bazel-contrib/rules_foreign_cc/tree/main/docs#cmake_external
+[configure_make]: https://github.com/bazel-contrib/rules_foreign_cc/tree/main/docs#configure_make
 [test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite

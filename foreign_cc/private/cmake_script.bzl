@@ -125,8 +125,8 @@ def create_cmake_script(
 
     # Avoid CMake passing the wrong linker flags when cross compiling
     # by setting CMAKE_SYSTEM_NAME and CMAKE_SYSTEM_PROCESSOR,
-    # see https://github.com/bazelbuild/rules_foreign_cc/issues/289,
-    # and https://github.com/bazelbuild/rules_foreign_cc/pull/1062
+    # see https://github.com/bazel-contrib/rules_foreign_cc/issues/289,
+    # and https://github.com/bazel-contrib/rules_foreign_cc/pull/1062
     if target_os == "unknown":
         # buildifier: disable=print
         print("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
