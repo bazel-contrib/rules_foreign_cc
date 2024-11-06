@@ -67,7 +67,7 @@ jobs:
         run: ${{ github.workspace }}/bin/mdbook build
         working-directory: ${{ github.workspace }}/docs
       - name: Save the newly built book
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: "${{ matrix.ref }}"
           path: ${{ github.workspace }}/docs/book
@@ -78,7 +78,7 @@ jobs:
         if: ${{ matrix.ref == 'main' }}
         working-directory: ${{ github.workspace }}/docs/root
       - name: Save the newly built book
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: "${{ matrix.ref }}-root"
           path: ${{ github.workspace }}/docs/root/book
