@@ -1,4 +1,4 @@
-"bazelbuild/rules_foreign_cc"
+"bazel-contrib/rules_foreign_cc"
 
 module(
     name = "rules_foreign_cc",

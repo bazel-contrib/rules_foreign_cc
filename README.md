@@ -24,7 +24,7 @@ variable](https://bazel.build/reference/be/make-variables)
 ## News
 
 For more generalized updates, please see [NEWS.md](./NEWS.md) or checkout the
-[release notes](https://github.com/bazelbuild/rules_foreign_cc/releases) of current or previous releases
+[release notes](https://github.com/bazel-contrib/rules_foreign_cc/releases) of current or previous releases
 
 ## Design document
 
