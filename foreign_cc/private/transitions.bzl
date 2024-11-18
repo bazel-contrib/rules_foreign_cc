@@ -3,7 +3,7 @@
 load("//foreign_cc:providers.bzl", "ForeignCcDepsInfo")
 
 def _extra_toolchains_transition_impl(settings, attrs):
-    return {"//command_line_option:extra_toolchains": attrs.extra_toolchains + settings["//command_line_option:extra_toolchains"]}
+    return {"//command_line_option:extra_toolchains": [attrs.extra_toolchain] + settings["//command_line_option:extra_toolchains"]}
 
 _extra_toolchains_transition = transition(
     implementation = _extra_toolchains_transition_impl,
@@ -21,12 +21,13 @@ def _extra_toolchains_transitioned_foreign_cc_target_impl(ctx):
     ]
 
 extra_toolchains_transitioned_foreign_cc_target = rule(
-    doc = "A rule for adding extra toolchains to consider when building the given target",
+    doc = "A rule for adding an extra toolchain to consider when building the given target",
     implementation = _extra_toolchains_transitioned_foreign_cc_target_impl,
     cfg = _extra_toolchains_transition,
     attrs = {
-        "extra_toolchains": attr.string_list(
-            doc = "Additional toolchains to consider",
+        # This attr is singular to make it selectable when used for add make toolchain variant.
+        "extra_toolchain": attr.string(
+            doc = "Additional toolchain to consider. Note, this is singular.",
             mandatory = True,
         ),
         "target": attr.label(
@@ -64,7 +65,7 @@ def foreign_cc_rule_variant(name, rule, toolchain, **kwargs):
 
     extra_toolchains_transitioned_foreign_cc_target(
         name = name,
-        extra_toolchains = [toolchain],
+        extra_toolchain = toolchain,
         target = foreign_cc_rule_target_name,
         tags = tags,
         visibility = visibility,
