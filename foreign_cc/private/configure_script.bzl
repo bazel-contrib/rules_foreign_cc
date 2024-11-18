@@ -38,6 +38,7 @@ def create_configure_script(
 
     script.append("##export_var## MAKE {}".format(make_path))
     script.append("##enable_tracing##")
+    script.append("##enable_parallel_build##")
 
     if autogen:
         # NOCONFIGURE is pseudo standard and tells the script to not invoke configure.
