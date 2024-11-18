@@ -17,6 +17,9 @@ jobs:
         # Create a job for release
         include:
           - ref: main
+          - ref: "0.12.0"
+          - ref: "0.11.1"
+          - ref: "0.11.0"
           - ref: "0.10.1"
           - ref: "0.9.0"
           - ref: "0.8.0"
@@ -41,10 +44,19 @@ jobs:
         if: ${{ matrix.ref == 'main' }}
       - name: Patch older branches
         run: |
+          ref="${{ matrix.ref }}"
+
+          [[ "$ref" == "main" ]] && exit
+
+          v_major="$(echo "$ref" | cut -d. -f1)"
+          v_minor="$(echo "$ref" | cut -d. -f2)"
+          v_patch="$(echo "$ref" | cut -d. -f3)"
+
+          [[ $v_major -gt 10 ]] && exit
+
           mkdir -p ${{ github.workspace }}/.github
           curl https://raw.githubusercontent.com/bazel-contrib/rules_foreign_cc/main/.github/docs-${{ matrix.ref }}.patch > ${{ github.workspace }}/.github/docs-${{ matrix.ref }}.patch
           git apply ${{ github.workspace }}/.github/docs-${{ matrix.ref }}.patch
-        if: ${{ matrix.ref == '0.4.0' || matrix.ref == '0.3.0' || matrix.ref == '0.2.0' || matrix.ref == '0.1.0' }}
       - name: Install bazelisk
         run: |
           curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.9.0/bazelisk-linux-amd64"
@@ -67,7 +79,7 @@ jobs:
         run: ${{ github.workspace }}/bin/mdbook build
         working-directory: ${{ github.workspace }}/docs
       - name: Save the newly built book
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: "${{ matrix.ref }}"
           path: ${{ github.workspace }}/docs/book
@@ -78,7 +90,7 @@ jobs:
         if: ${{ matrix.ref == 'main' }}
         working-directory: ${{ github.workspace }}/docs/root
       - name: Save the newly built book
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: "${{ matrix.ref }}-root"
           path: ${{ github.workspace }}/docs/root/book
