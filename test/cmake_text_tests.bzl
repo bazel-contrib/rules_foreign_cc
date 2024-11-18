@@ -103,8 +103,8 @@ def _fill_crossfile_from_toolchain_test(ctx):
         "CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN": "cc-toolchain",
         "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
         "CMAKE_EXE_LINKER_FLAGS_INIT": "executable",
-        "CMAKE_SHARED_LINKER_FLAGS_INIT": "shared1 shared2",
         "CMAKE_MODULE_LINKER_FLAGS_INIT": "shared1 shared2",
+        "CMAKE_SHARED_LINKER_FLAGS_INIT": "shared1 shared2",
         "CMAKE_SYSROOT": "/abc/sysroot",
     }
 
@@ -173,8 +173,8 @@ def _reverse_descriptor_dict_test(ctx):
         "CMAKE_CXX_LINK_EXECUTABLE": struct(value = "CMAKE_CXX_LINK_EXECUTABLE", replace = True),
         "CMAKE_C_FLAGS_INIT": struct(value = "CMAKE_C_FLAGS", replace = False),
         "CMAKE_EXE_LINKER_FLAGS_INIT": struct(value = "CMAKE_EXE_LINKER_FLAGS", replace = False),
-        "CMAKE_SHARED_LINKER_FLAGS_INIT": struct(value = "CMAKE_SHARED_LINKER_FLAGS", replace = False),
         "CMAKE_MODULE_LINKER_FLAGS_INIT": struct(value = "CMAKE_MODULE_LINKER_FLAGS", replace = False),
+        "CMAKE_SHARED_LINKER_FLAGS_INIT": struct(value = "CMAKE_SHARED_LINKER_FLAGS", replace = False),
         "CMAKE_STATIC_LINKER_FLAGS_INIT": struct(value = "CMAKE_STATIC_LINKER_FLAGS", replace = False),
     }
 

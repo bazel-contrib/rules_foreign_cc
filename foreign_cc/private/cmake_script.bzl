@@ -202,9 +202,9 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_C_ARCHIVE_CREATE": struct(value = "CMAKE_C_ARCHIVE_CREATE", replace = False),
     "CMAKE_C_FLAGS": struct(value = "CMAKE_C_FLAGS_INIT", replace = False),
     "CMAKE_EXE_LINKER_FLAGS": struct(value = "CMAKE_EXE_LINKER_FLAGS_INIT", replace = False),
+    "CMAKE_MODULE_LINKER_FLAGS": struct(value = "CMAKE_MODULE_LINKER_FLAGS_INIT", replace = False),
     "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
     "CMAKE_SHARED_LINKER_FLAGS": struct(value = "CMAKE_SHARED_LINKER_FLAGS_INIT", replace = False),
-    "CMAKE_MODULE_LINKER_FLAGS": struct(value = "CMAKE_MODULE_LINKER_FLAGS_INIT", replace = False),
     "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
 }
 
