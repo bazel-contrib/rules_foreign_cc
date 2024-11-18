@@ -36,7 +36,7 @@ index 0000000..5096728
 +title = "Rules ForeignCc"
 +
 +[output.html]
-+git-repository-url = "https://github.com/bazelbuild/rules_foreign_cc"
++git-repository-url = "https://github.com/bazel-contrib/rules_foreign_cc"
 diff --git a/docs/index.md b/docs/index.md
 index 3a91e41..14c8e3b 100644
 --- a/docs/index.md
@@ -47,13 +47,13 @@ index 3a91e41..14c8e3b 100644
      name = "rules_foreign_cc",
 -    sha256 = "d54742ffbdc6924f222d2179f0e10e911c5c659c4ae74158e9fe827aad862ac6",
 -    strip_prefix = "rules_foreign_cc-0.2.0",
--    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.2.0.tar.gz",
+-    url = "https://github.com/bazel-contrib/rules_foreign_cc/archive/0.2.0.tar.gz",
 +    # TODO: Get the latest sha256 value from the latest release on the releases page
-+    #       https://github.com/bazelbuild/rules_foreign_cc/releases
++    #       https://github.com/bazel-contrib/rules_foreign_cc/releases
 +    #
 +    # sha256 = "...",
 +    strip_prefix = "rules_foreign_cc-0.3.0",
-+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.3.0.tar.gz",
++    url = "https://github.com/bazel-contrib/rules_foreign_cc/archive/0.3.0.tar.gz",
  )
  
  load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
@@ -80,3 +80,16 @@ index 0000000..98bb722
 +"""A module represeting the version of rules_foreign_cc"""
 +
 +VERSION = "0.3.0"
+diff --git a/docs/.bazelrc b/docs/.bazelrc
+new file mode 100644
+index 0000000..9eb0697
+--- /dev/null
++++ b/docs/.bazelrc
+@@ -0,0 +1,7 @@
++# Bazel configuration flags for rules_foreign_cc_docs
++
++# https://github.com/bazelbuild/stardoc/issues/112
++common --incompatible_allow_tags_propagation
++
++common --noenable_bzlmod
++build --workspace_status_command=tools/workspace_status.sh

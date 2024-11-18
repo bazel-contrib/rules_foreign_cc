@@ -21,7 +21,7 @@ index 0000000..5096728
 +title = "Rules ForeignCc"
 +
 +[output.html]
-+git-repository-url = "https://github.com/bazelbuild/rules_foreign_cc"
++git-repository-url = "https://github.com/bazel-contrib/rules_foreign_cc"
 diff --git a/docs/src/SUMMARY.md b/docs/src/SUMMARY.md
 new file mode 100644
 index 0000000..69fbd4d
@@ -40,3 +40,16 @@ index 0000000..98bb722
 +"""A module represeting the version of rules_foreign_cc"""
 +
 +VERSION = "0.2.0"
+diff --git a/docs/.bazelrc b/docs/.bazelrc
+new file mode 100644
+index 0000000..9eb0697
+--- /dev/null
++++ b/docs/.bazelrc
+@@ -0,0 +1,7 @@
++# Bazel configuration flags for rules_foreign_cc_docs
++
++# https://github.com/bazelbuild/stardoc/issues/112
++common --incompatible_allow_tags_propagation
++
++common --noenable_bzlmod
++build --workspace_status_command=tools/workspace_status.sh
