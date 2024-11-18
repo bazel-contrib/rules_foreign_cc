@@ -74,7 +74,6 @@ def _create_configure_script(configureParameters):
 
     user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data)
 
-    make_commands = []
     prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
     configure_prefix = "{} ".format(expand_locations_and_make_variables(ctx, ctx.attr.configure_prefix, "configure_prefix", data)) if ctx.attr.configure_prefix else ""
     configure_options = [expand_locations_and_make_variables(ctx, option, "configure_option", data) for option in ctx.attr.configure_options] if ctx.attr.configure_options else []
@@ -82,15 +81,6 @@ def _create_configure_script(configureParameters):
     xcompile_options = detect_xcompile(ctx)
     if xcompile_options:
         configure_options.extend(xcompile_options)
-
-    for target in ctx.attr.targets:
-        # Configure will have generated sources into `$BUILD_TMPDIR` so make sure we `cd` there
-        make_commands.append("{prefix}{make} {target} {args}".format(
-            prefix = prefix,
-            make = attrs.make_path,
-            args = args,
-            target = target,
-        ))
 
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
@@ -112,8 +102,12 @@ def _create_configure_script(configureParameters):
         autogen = ctx.attr.autogen,
         autogen_command = ctx.attr.autogen_command,
         autogen_options = ctx.attr.autogen_options,
-        make_commands = make_commands,
+        make_prefix = prefix,
         make_path = attrs.make_path,
+        make_targets = ctx.attr.targets,
+        make_args = args,
+        executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
+        shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
     )
     return define_install_prefix + configure
 
@@ -198,6 +192,15 @@ def _attrs():
             ),
             default = False,
         ),
+        "executable_ldflags_vars": attr.string_list(
+            doc = (
+                "A list of variable names use as LDFLAGS for executables. These variables " +
+                "will be passed to the make command as make vars and overwrite what is defined in " +
+                "the Makefile."
+            ),
+            mandatory = False,
+            default = [],
+        ),
         "install_prefix": attr.string(
             doc = (
                 "Install prefix, i.e. relative path to where to install the result of the build. " +
@@ -211,6 +214,15 @@ def _attrs():
             ),
             mandatory = False,
             default = "--prefix=",
+        ),
+        "shared_ldflags_vars": attr.string_list(
+            doc = (
+                "A list of variable names use as LDFLAGS for shared libraries. These variables " +
+                "will be passed to the make command as make vars and overwrite what is defined in " +
+                "the Makefile."
+            ),
+            mandatory = False,
+            default = [],
         ),
         "targets": attr.string_list(
             doc = (
