@@ -31,7 +31,7 @@ http_archive(
     name = "rules_foreign_cc",
     sha256 = "${SHA}",
     strip_prefix = "${PREFIX}",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/releases/download/${TAG}/${ARCHIVE}",
+    url = "https://github.com/bazel-contrib/rules_foreign_cc/releases/download/${TAG}/${ARCHIVE}",
 )
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
