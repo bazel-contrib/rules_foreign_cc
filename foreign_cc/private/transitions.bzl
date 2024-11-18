@@ -38,7 +38,6 @@ extra_toolchains_transitioned_foreign_cc_target = rule(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
-    incompatible_use_toolchain_transition = True,
 )
 
 def foreign_cc_rule_variant(name, rule, toolchain, **kwargs):
