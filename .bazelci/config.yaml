@@ -24,7 +24,7 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
-      # TODO: https://github.com/bazelbuild/rules_foreign_cc/issues/495
+      # TODO: https://github.com/bazel-contrib/rules_foreign_cc/issues/495
       - "-//test:shell_method_symlink_contents_to_dir_test"
       - "-//test:shell_script_inner_fun_test"
     build_flags:
