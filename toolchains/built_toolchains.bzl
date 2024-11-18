@@ -260,8 +260,6 @@ def _pkgconfig_toolchain(version, register_toolchains):
         http_archive,
         name = "glib_dev",
         build_file_content = '''
-load("@rules_cc//cc:defs.bzl", "cc_library")
-
 cc_import(
     name = "glib_dev",
     hdrs = glob(["include/**"]),

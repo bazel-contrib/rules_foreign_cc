@@ -18,6 +18,7 @@ bazel_dep(name = "rules_apple", version = "3.4.0", repo_name = "build_bazel_rule
 bazel_dep(name = "apple_support", version = "1.12.0", repo_name = "build_bazel_apple_support")
 bazel_dep(name = "rules_python", version = "0.35.0")
 
+
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     configure_coverage_tool = True,

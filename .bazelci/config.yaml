@@ -30,13 +30,15 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
-      # TODO: https://github.com/bazelbuild/rules_foreign_cc/issues/495
+      # TODO: https://github.com/bazel-contrib/rules_foreign_cc/issues/495
       - "-//test:shell_method_symlink_contents_to_dir_test"
       - "-//test:shell_script_inner_fun_test"
     build_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   ubuntu1804_examples_standalone:
     name: Examples (spawn_strategy=standalone)
     platform: ubuntu1804
@@ -50,12 +52,14 @@ tasks:
       - "dbg"
       - "--spawn_strategy=standalone"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_targets: *linux_targets_standalone
     test_flags:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   ubuntu2004_examples:
     name: Examples
     platform: ubuntu2004
@@ -67,8 +71,10 @@ tasks:
     test_targets: *linux_targets
     build_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   ubuntu2004_examples_bzlmod:
     name: Examples (bzlmod)
     platform: ubuntu2004
@@ -113,6 +119,7 @@ tasks:
       - "--spawn_strategy=standalone"
       - "--noincompatible_enable_cc_toolchain_resolution"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_targets: *macos_targets_standalone
     test_flags:
       - "-c"
@@ -120,6 +127,7 @@ tasks:
       - "--spawn_strategy=standalone"
       - "--noincompatible_enable_cc_toolchain_resolution"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   macos_arm64_examples:
     name: Examples (arm64)
     platform: macos_arm64
@@ -133,6 +141,10 @@ tasks:
       - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
     build_targets: *macos_arm64_targets
     test_targets: *macos_arm64_targets
+    build_flags:
+      - "--enable_workspace"
+    test_flags:
+      - "--enable_workspace"
   macos_examples:
     name: Examples
     platform: macos
@@ -148,10 +160,12 @@ tasks:
     build_flags:
       - "--noincompatible_enable_cc_toolchain_resolution"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_targets: *macos_targets
     test_flags:
       - "--noincompatible_enable_cc_toolchain_resolution"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   windows_examples:
     name: Examples
     platform: windows
@@ -182,8 +196,10 @@ tasks:
     test_targets: *windows_targets
     build_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   rbe_ubuntu2004_flags:
     name: Flags
     platform: rbe_ubuntu2004

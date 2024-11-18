@@ -88,7 +88,10 @@ def _pkgconfig_tool_impl(ctx):
         "%s install" % make_data.path,
     ]
 
-    additional_tools = depset(transitive = [make_data.target.files])
+    if make_data.target:
+        additional_tools = depset(transitive = [make_data.target.files])
+    else:
+        additional_tools = depset()
 
     return built_tool_rule_impl(
         ctx,
@@ -166,7 +169,7 @@ def pkgconfig_tool(name, srcs, **kwargs):
             "@platforms//os:windows": "cp release/x64/pkg-config.exe $$INSTALLDIR$$/bin",
             "//conditions:default": "",
         }),
-        toolchain = "@rules_foreign_cc//toolchains:preinstalled_nmake_toolchain",
+        toolchain = str(Label("//toolchains:preinstalled_nmake_toolchain")),
         tags = tags,
         **kwargs
     )
