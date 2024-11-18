@@ -52,7 +52,7 @@ jobs:
           v_minor="$(echo "$ref" | cut -d. -f2)"
           v_patch="$(echo "$ref" | cut -d. -f3)"
 
-          [[ $v_major -gt 10 ]] && exit
+          [[ $v_minor -gt 10 ]] && exit
 
           mkdir -p ${{ github.workspace }}/.github
           curl https://raw.githubusercontent.com/bazel-contrib/rules_foreign_cc/main/.github/docs-${{ matrix.ref }}.patch > ${{ github.workspace }}/.github/docs-${{ matrix.ref }}.patch
