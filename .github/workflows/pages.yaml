@@ -1,11 +1,11 @@
 name: Generate docs
 on:
-  pull_request: 
+  pull_request:
     branches:
       - main
     paths:
-      - '.github/**'
-      - 'docs/**'
+      - ".github/**"
+      - "docs/**"
   push:
     branches:
       - main
@@ -29,9 +29,6 @@ jobs:
           - ref: "0.5.1"
           - ref: "0.5.0"
           - ref: "0.4.0"
-          - ref: "0.3.0"
-          - ref: "0.2.0"
-          - ref: "0.1.0"
     steps:
       - uses: actions/checkout@v2
         if: ${{ matrix.ref == 'main' }}
@@ -101,20 +98,20 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
-    - name: Fetch artifacts (first root then others so the ordering is correct)
-      uses: actions/download-artifact@v2
-      with:
-        name: main-root
-        path: ${{ github.workspace }}/docs/book
-    - name: Fetch artifacts (first root then others so the ordering is correct)
-      uses: actions/download-artifact@v2
-      with:
-        path: ${{ github.workspace }}/docs/pages
-    - name: Install pages
-      run: mv ${{ github.workspace }}/docs/pages/* ${{ github.workspace }}/docs/book/
-    - name: publish
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_branch: docs
-        publish_dir: ./docs/book
+      - name: Fetch artifacts (first root then others so the ordering is correct)
+        uses: actions/download-artifact@v2
+        with:
+          name: main-root
+          path: ${{ github.workspace }}/docs/book
+      - name: Fetch artifacts (first root then others so the ordering is correct)
+        uses: actions/download-artifact@v2
+        with:
+          path: ${{ github.workspace }}/docs/pages
+      - name: Install pages
+        run: mv ${{ github.workspace }}/docs/pages/* ${{ github.workspace }}/docs/book/
+      - name: publish
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: docs
+          publish_dir: ./docs/book
