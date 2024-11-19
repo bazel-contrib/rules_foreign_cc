@@ -2,6 +2,7 @@
 build tool
 """
 
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
@@ -82,6 +83,9 @@ def _create_configure_script(configureParameters):
     if xcompile_options:
         configure_options.extend(xcompile_options)
 
+    cc_toolchain = find_cpp_toolchain(ctx)
+    is_msvc = cc_toolchain.compiler == "msvc-cl"
+
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
         tools = tools,
@@ -108,6 +112,7 @@ def _create_configure_script(configureParameters):
         make_args = args,
         executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
         shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
+        is_msvc = is_msvc,
     )
     return define_install_prefix + configure
 

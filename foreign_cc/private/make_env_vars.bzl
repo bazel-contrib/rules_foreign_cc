@@ -11,9 +11,10 @@ def get_make_env_vars(
         user_vars,
         deps,
         inputs,
-        make_commands = []):
+        is_msvc,
+        make_commands):
     vars = _get_make_variables(workspace_name, tools, flags, user_vars, make_commands)
-    deps_flags = _define_deps_flags(deps, inputs)
+    deps_flags = _define_deps_flags(deps, inputs, is_msvc)
 
     # For cross-compilation.
     if "RANLIB" not in vars.keys():
@@ -42,19 +43,23 @@ def get_ldflags_make_vars(
         flags,
         user_vars,
         deps,
-        inputs):
+        inputs,
+        is_msvc):
     vars = _get_ldflags_vars(executable_ldflags_vars, shared_ldflags_vars, flags, user_vars)
 
-    deps_flags = _define_deps_flags(deps, inputs)
+    deps_flags = _define_deps_flags(deps, inputs, is_msvc)
     for key in vars.keys():
         vars[key] = vars[key] + deps_flags.libs
 
     return " ".join(["{}=\"{}\""
         .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
 
-def _define_deps_flags(deps, inputs):
+def _define_deps_flags(deps, inputs, is_msvc):
     # It is very important to keep the order for the linker => put them into list
     lib_dirs = []
+
+    # msvc compiler uses -LIBPATH instead of -L
+    lib_flag = "-LIBPATH:" if is_msvc else "-L"
 
     # Here go libraries built with Bazel
     gen_dirs_set = {}
@@ -62,7 +67,7 @@ def _define_deps_flags(deps, inputs):
         dir_ = lib.dirname
         if not gen_dirs_set.get(dir_):
             gen_dirs_set[dir_] = 1
-            lib_dirs.append("-L$$EXT_BUILD_ROOT$$/" + dir_)
+            lib_dirs.append(lib_flag + "$$EXT_BUILD_ROOT$$/" + dir_)
 
     include_dirs_set = {}
     for include_dir in inputs.include_dirs:
@@ -89,7 +94,7 @@ def _define_deps_flags(deps, inputs):
 
                     dir_name = artifact.gen_dir.basename
                     include_dirs.append("-I$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.include_dir_name))
-                    lib_dirs.append("-L$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name))
+                    lib_dirs.append(lib_flag + "$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name))
 
     return struct(
         libs = lib_dirs,
