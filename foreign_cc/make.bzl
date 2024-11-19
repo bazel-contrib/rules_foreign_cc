@@ -1,5 +1,6 @@
 """A rule for building projects using the [GNU Make](https://www.gnu.org/software/make/) build tool"""
 
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
@@ -66,6 +67,9 @@ def _create_make_script(configureParameters):
             install_prefix = ctx.attr.install_prefix,
         ))
 
+    cc_toolchain = find_cpp_toolchain(ctx)
+    is_msvc = cc_toolchain.compiler == "msvc-cl"
+
     return create_make_script(
         workspace_name = ctx.workspace_name,
         tools = tools,
@@ -81,6 +85,7 @@ def _create_make_script(configureParameters):
         make_install_prefix = ctx.attr.install_prefix,
         executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
         shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
+        is_msvc = is_msvc,
     )
 
 def _attrs():

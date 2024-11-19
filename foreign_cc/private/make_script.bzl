@@ -17,7 +17,8 @@ def create_make_script(
         make_args,
         make_install_prefix,
         executable_ldflags_vars,
-        shared_ldflags_vars):
+        shared_ldflags_vars,
+        is_msvc):
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -26,7 +27,7 @@ def create_make_script(
 
     script.append("##enable_tracing##")
 
-    ldflags_make_vars = get_ldflags_make_vars(executable_ldflags_vars, shared_ldflags_vars, workspace_name, flags, env_vars, deps, inputs)
+    ldflags_make_vars = get_ldflags_make_vars(executable_ldflags_vars, shared_ldflags_vars, workspace_name, flags, env_vars, deps, inputs, is_msvc)
 
     make_commands = []
     for target in make_targets:
@@ -39,7 +40,7 @@ def create_make_script(
             install_prefix = make_install_prefix,
         ))
 
-    configure_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, make_commands)
+    configure_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, is_msvc, make_commands)
 
     script.extend(["{env_vars} {command}".format(
         env_vars = configure_vars,

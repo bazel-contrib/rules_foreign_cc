@@ -28,7 +28,8 @@ def create_configure_script(
         make_targets,
         make_args,
         executable_ldflags_vars,
-        shared_ldflags_vars):
+        shared_ldflags_vars,
+        is_msvc):
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -73,15 +74,17 @@ def create_configure_script(
         ).lstrip())
 
     script.append("##mkdirs## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$")
+
+    make_commands = []
     script.append("{env_vars} {prefix}\"{configure}\" {prefix_flag}$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
-        env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs),
+        env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, is_msvc, make_commands),
         prefix = configure_prefix,
         configure = configure_path,
         prefix_flag = prefix_flag,
         user_options = " ".join(user_options),
     ))
 
-    ldflags_make_vars = get_ldflags_make_vars(executable_ldflags_vars, shared_ldflags_vars, workspace_name, flags, env_vars, deps, inputs)
+    ldflags_make_vars = get_ldflags_make_vars(executable_ldflags_vars, shared_ldflags_vars, workspace_name, flags, env_vars, deps, inputs, is_msvc)
 
     make_commands = []
     for target in make_targets:
