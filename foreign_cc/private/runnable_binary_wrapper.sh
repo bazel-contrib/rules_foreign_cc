@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC1090
+
 # --- begin runfiles.bash initialization v3 ---
 # Copy-pasted from the Bazel Bash runfiles library v3.
 set -uo pipefail; set +e; f=bazel_tools/tools/bash/runfiles/runfiles.bash
@@ -46,7 +48,7 @@ done < <(find . -name "*${SHARED_LIB_SUFFIX}" -print0)
 SHARED_LIBS_DIRS_ARRAY=()
 if [ ${#SHARED_LIBS_ARRAY[@]} -ne 0 ]; then
     for lib in "${SHARED_LIBS_ARRAY[@]}"; do
-        SHARED_LIBS_DIRS_ARRAY+=($(dirname $(realpath $lib)))
+        SHARED_LIBS_DIRS_ARRAY+=("$(dirname "$(realpath "$lib")")")
     done
 fi
 
@@ -57,7 +59,7 @@ if [ ${#SHARED_LIBS_DIRS_ARRAY[@]} -ne 0 ]; then
     # Allow unbound variable here, in case LD_LIBRARY_PATH or similar is not already set
     set +u
     for dir in "${SHARED_LIBS_DIRS_ARRAY[@]}"; do
-        export ${LIB_PATH_VAR}="$dir":"${!LIB_PATH_VAR}"
+        export "${LIB_PATH_VAR}"="${dir}:${!LIB_PATH_VAR}"
     done
     set -u
 fi
