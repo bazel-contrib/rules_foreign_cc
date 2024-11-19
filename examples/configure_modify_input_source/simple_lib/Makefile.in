@@ -1,4 +1,10 @@
+all: simple
+
+.PHONY: all
+
 simple: $(OUTPUT)
+
+.PHONY: simple
 
 $(OUTPUT): ./src/simple.c
 	$(CC) $(CPPFLAGS) -o $(OBJECT) -c ./src/simple.c -I./include -I.
@@ -9,3 +15,5 @@ install: $(OUTPUT)
 	mkdir -p simple/lib
 	cp $(OUTPUT) ./simple/lib/$(OUTPUT)
 	cp -r ./include ./simple
+
+.PHONY: clean test
