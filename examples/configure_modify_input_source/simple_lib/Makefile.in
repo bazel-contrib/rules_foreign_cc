@@ -1,11 +1,11 @@
-simple: $(OUTPUT) 
+simple: $(OUTPUT)
 
 $(OUTPUT): ./src/simple.c
 	$(CC) $(CPPFLAGS) -o $(OBJECT) -c ./src/simple.c -I./include -I.
-	$(AR) $(LDFLAGS) 
+	$(AR) $(LDFLAGS)
 
 install: $(OUTPUT)
-	mkdir -p simple 
+	mkdir -p simple
 	mkdir -p simple/lib
 	cp $(OUTPUT) ./simple/lib/$(OUTPUT)
 	cp -r ./include ./simple

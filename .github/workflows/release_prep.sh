@@ -43,4 +43,4 @@ EOF
 
 # TODO: add example of how to configure for bzlmod
 # awk 'f;/--SNIP--/{f=1}' e2e/smoke/WORKSPACE.bazel
-echo "\`\`\`" 
+echo "\`\`\`"

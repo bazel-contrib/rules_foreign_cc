@@ -25,7 +25,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "rules_foreign_cc",
-    # TODO: Get the latest sha256 value from a bazel debug message or the latest 
+    # TODO: Get the latest sha256 value from a bazel debug message or the latest
     #       release on the releases page: https://github.com/bazel-contrib/rules_foreign_cc/releases
     #
     # sha256 = "...",
