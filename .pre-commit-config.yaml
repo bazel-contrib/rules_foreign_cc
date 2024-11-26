@@ -2,6 +2,11 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+
   - repo: https://github.com/keith/pre-commit-buildifier
     rev: 6.1.0.1
     hooks:
@@ -11,3 +16,21 @@ repos:
           - --warnings=all
       - id: buildifier-lint
         args: *args
+
+  - repo: https://github.com/mpalmer/action-validator
+    rev: v0.6.0
+    hooks:
+      - id: action-validator
+        files: >-
+          (?x)^(
+            .github/workflows/pages.yaml
+          )$
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.4
+    hooks:
+      - id: actionlint
+        files: >-
+          (?x)^(
+            .github/workflows/pages.yaml
+          )$
