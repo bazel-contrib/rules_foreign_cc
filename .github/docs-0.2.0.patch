@@ -53,3 +53,33 @@ index 0000000..9eb0697
 +
 +common --noenable_bzlmod
 +build --workspace_status_command=tools/workspace_status.sh
+diff --git a/docs/stardoc_repository.bzl b/docs/stardoc_repository.bzl
+index 2153aa8..7c63be7 100644
+--- a/docs/stardoc_repository.bzl
++++ b/docs/stardoc_repository.bzl
+@@ -7,9 +7,9 @@ def stardoc_repository():
+     maybe(
+         http_archive,
+         name = "io_bazel_stardoc",
++        sha256 = "3fd8fec4ddec3c670bd810904e2e33170bedfe12f90adf943508184be458c8bb",
+         urls = [
+-            "https://github.com/bazelbuild/stardoc/archive/a0f330bcbae44ffc59d50a86a830a661b8d18acc.zip",
++            "https://mirror.bazel.build/github.com/bazelbuild/stardoc/releases/download/0.5.3/stardoc-0.5.3.tar.gz",
++            "https://github.com/bazelbuild/stardoc/releases/download/0.5.3/stardoc-0.5.3.tar.gz",
+         ],
+-        sha256 = "e12831c6c414325c99325726dd26dabd8ed4c9efa7b4f27b4d1d9594ec7dfc40",
+-        strip_prefix = "stardoc-a0f330bcbae44ffc59d50a86a830a661b8d18acc",
+     )
+diff --git a/docs/tools/workspace_status.sh b/docs/tools/workspace_status.sh
+new file mode 100755
+index 0000000..5ceb3f7
+--- /dev/null
++++ b/docs/tools/workspace_status.sh
+@@ -0,0 +1,7 @@
++#!/usr/bin/env bash
++
++set -euo pipefail
++
++echo STABLE_SCM_SHORT_VERSION "$(git rev-parse --short HEAD)"
++echo STABLE_SCM_VERSION "$(git rev-parse HEAD)"
++echo STABLE_RELEASE "$(cat ../version.bzl | grep VERSION | sed 's/VERSION = "//' | sed 's/"//')"
