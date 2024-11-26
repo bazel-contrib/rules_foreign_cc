@@ -1,5 +1,5 @@
 # buildifier: disable=module-docstring
-load(":make_env_vars.bzl", "get_make_env_vars")
+load(":make_env_vars.bzl", "get_ldflags_make_vars", "get_make_env_vars")
 load(":make_script.bzl", "pkgconfig_script")
 
 # buildifier: disable=function-docstring
@@ -23,8 +23,13 @@ def create_configure_script(
         autogen,
         autogen_command,
         autogen_options,
+        make_prefix,
         make_path,
-        make_commands):
+        make_targets,
+        make_args,
+        executable_ldflags_vars,
+        shared_ldflags_vars,
+        is_msvc):
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -69,13 +74,27 @@ def create_configure_script(
         ).lstrip())
 
     script.append("##mkdirs## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$")
+
+    make_commands = []
     script.append("{env_vars} {prefix}\"{configure}\" {prefix_flag}$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
-        env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs),
+        env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, is_msvc, make_commands),
         prefix = configure_prefix,
         configure = configure_path,
         prefix_flag = prefix_flag,
         user_options = " ".join(user_options),
     ))
+
+    ldflags_make_vars = get_ldflags_make_vars(executable_ldflags_vars, shared_ldflags_vars, workspace_name, flags, env_vars, deps, inputs, is_msvc)
+
+    make_commands = []
+    for target in make_targets:
+        make_commands.append("{prefix}{make} {make_vars} {target} {args}".format(
+            prefix = make_prefix,
+            make = make_path,
+            make_vars = ldflags_make_vars,
+            args = make_args,
+            target = target,
+        ))
 
     script.extend(make_commands)
     script.append("##disable_tracing##")
