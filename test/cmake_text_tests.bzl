@@ -346,12 +346,14 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
     user_env = {}
     user_cache = {
         "CMAKE_PREFIX_PATH": "/abc/def",
+    }
+    user_cache.update({
         # These two flags/CMake cache entries must be wiped,
         # but the third is not present in toolchain flags.
-        "CMAKE_SHARED_LINKER_FLAGS": "",
         "CMAKE_MODULE_LINKER_FLAGS": "",
+        "CMAKE_SHARED_LINKER_FLAGS": "",
         "WIPE_ME_IF_PRESENT": "",
-    }
+    })
 
     script = create_cmake_script(
         "ws",
