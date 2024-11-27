@@ -188,6 +188,24 @@ def is_debug_mode(ctx):
     # https://docs.bazel.build/versions/master/command-line-reference.html#flag--compilation_mode
     return ctx.var.get("COMPILATION_MODE", "fastbuild") == "dbg"
 
+def pick_cpp_toolchain(cxx):
+    """Picks the right toolchain for the given cxx compiler
+
+    Args:
+        cxx: path to the cxx compiler
+
+    Returns:
+        correct path to the cxx compiler
+    """
+    cxx_splitted = cxx.split("/")
+    if (cxx_splitted[-1].startswith("gcc")):
+        cxx_splitted[-1] = cxx_splitted[-1].replace("gcc", "g++")
+        cxx = "/".join(cxx_splitted)
+    if (cxx_splitted[-1].startswith("clang")):
+        cxx_splitted[-1] = cxx_splitted[-1].replace("clang", "clang++")
+        cxx = "/".join(cxx_splitted)
+    return cxx
+
 def get_tools_info(ctx):
     """Takes information about tools paths from cc_toolchain, returns CxxToolsInfo
 
@@ -205,10 +223,10 @@ def get_tools_info(ctx):
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.c_compile,
         ),
-        cxx = cc_common.get_tool_for_action(
+        cxx = pick_cpp_toolchain(cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.cpp_compile,
-        ),
+        )),
         cxx_linker_static = cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.cpp_link_static_library,
