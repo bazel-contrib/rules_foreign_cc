@@ -7,15 +7,106 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@rules_foreign_cc//toolchains:cmake_versions.bzl", _CMAKE_SRCS = "CMAKE_SRCS")
 
-_ALL_CONTENT = """\
+_CMAKE_ALL_CONTENT = """\
+load("@rules_foreign_cc//foreign_cc/built_tools:cmake_build.bzl", "cmake_tool")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+
 filegroup(
     name = "all_srcs",
     srcs = glob(["**"]),
+)
+
+config_setting(
+    name = "msvc_compiler",
+    flag_values = {
+        "@bazel_tools//tools/cpp:compiler": "msvc-cl",
+    },
+)
+
+cmake_tool(
+    name = "cmake_tool",
+    srcs = ":all_srcs",
+    tags = ["manual"],
+)
+
+native_tool_toolchain(
+    name = "built_cmake",
+    env = select({
+        "@platforms//os:windows": {"CMAKE": "$(execpath :cmake_tool)/bin/cmake.exe"},
+        "//conditions:default": {"CMAKE": "$(execpath :cmake_tool)/bin/cmake"},
+    }),
+    path = select({
+        "@platforms//os:windows": "$(execpath :cmake_tool)/bin/cmake.exe",
+        "//conditions:default": "$(execpath :cmake_tool)/bin/cmake",
+    }),
+    target = ":cmake_tool",
+    visibility = ["//visibility:public"],
+)
+"""
+
+_MAKE_BUILD_FILE_CONTENT = """\
+load("@rules_foreign_cc//foreign_cc/built_tools:make_build.bzl", "make_tool")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+make_tool(
+    name = "make_tool",
+    srcs = ":all_srcs",
+    tags = ["manual"],
+)
+
+native_tool_toolchain(
+    name = "built_make",
+    env = select({
+        "@platforms//os:windows": {"MAKE": "$(execpath :make_tool)/bin/make.exe"},
+        "//conditions:default": {"MAKE": "$(execpath :make_tool)/bin/make"},
+    }),
+    path = select({
+        "@platforms//os:windows": "$(execpath :make_tool)/bin/make.exe",
+        "//conditions:default": "$(execpath :make_tool)/bin/make",
+    }),
+    target = ":make_tool",
+    visibility = ["//visibility:public"],
+)
+"""
+
+_NINJA_BUILD_FILE_CONTENT = """\
+load("@rules_foreign_cc//foreign_cc/built_tools:ninja_build.bzl", "ninja_tool")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+ninja_tool(
+    name = "ninja_tool",
+    srcs = ":all_srcs",
+    tags = ["manual"],
+)
+
+native_tool_toolchain(
+    name = "built_ninja",
+    env = select({
+        "@platforms//os:windows": {"NINJA": "$(execpath :ninja_tool)/bin/ninja.exe"},
+        "//conditions:default": {"NINJA": "$(execpath :ninja_tool)/bin/ninja"},
+    }),
+    path = select({
+        "@platforms//os:windows": "$(execpath :ninja_tool)/bin/ninja.exe",
+        "//conditions:default": "$(execpath :ninja_tool)/bin/ninja",
+    }),
+    target = ":ninja_tool",
     visibility = ["//visibility:public"],
 )
 """
 
 _MESON_BUILD_FILE_CONTENT = """\
+load("@rules_foreign_cc//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 exports_files(["meson.py"])
 
 filegroup(
@@ -23,10 +114,54 @@ filegroup(
     srcs = glob(["mesonbuild/**"]),
     visibility = ["//visibility:public"],
 )
+
+meson_tool(
+    name = "meson_tool",
+    data = [":runtime"],
+    main = ":meson.py",
+    tags = ["manual"],
+)
+
+native_tool_toolchain(
+    name = "built_meson",
+    env = {"MESON": "$(execpath :meson_tool)"},
+    path = "$(execpath :meson_tool)",
+    target = ":meson_tool",
+)
+"""
+
+_PKGCONFIG_BUILD_FILE_CONTENT = """\
+load("@rules_foreign_cc//foreign_cc/built_tools:pkgconfig_build.bzl", "pkgconfig_tool")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+pkgconfig_tool(
+    name = "pkgconfig_tool",
+    srcs = ":all_srcs",
+    tags = ["manual"],
+)
+
+native_tool_toolchain(
+    name = "built_pkgconfig",
+    env = select({
+        "@platforms//os:windows": {"PKG_CONFIG": "$(execpath :pkgconfig_tool)"},
+        "//conditions:default": {"PKG_CONFIG": "$(execpath :pkgconfig_tool)/bin/pkg-config"},
+    }),
+    path = select({
+        "@platforms//os:windows": "$(execpath :pkgconfig_tool)",
+        "//conditions:default": "$(execpath :pkgconfig_tool)/bin/pkg-config",
+    }),
+    target = ":pkgconfig_tool",
+    visibility = ["//visibility:public"],
+)
 """
 
 # buildifier: disable=unnamed-macro
-def built_toolchains(cmake_version, make_version, ninja_version, meson_version, pkgconfig_version, register_toolchains, register_built_pkgconfig_toolchain):
+def built_toolchains(cmake_version, make_version, ninja_version, meson_version, pkgconfig_version, register_built_pkgconfig_toolchain):
     """
     Register toolchains for built tools that will be built from source
 
@@ -42,24 +177,18 @@ def built_toolchains(cmake_version, make_version, ninja_version, meson_version, 
 
         pkgconfig_version: The pkg-config version to build
 
-        register_toolchains: If true, registers the toolchains via native.register_toolchains. Used by bzlmod
-
         register_built_pkgconfig_toolchain: If true, the built pkgconfig toolchain will be registered.
     """
-    _cmake_toolchain(cmake_version, register_toolchains)
-    _make_toolchain(make_version, register_toolchains)
-    _ninja_toolchain(ninja_version, register_toolchains)
-    _meson_toolchain(meson_version, register_toolchains)
+    cmake_toolchain(cmake_version)
+    make_toolchain(make_version)
+    ninja_toolchain(ninja_version)
+    meson_toolchain(meson_version)
 
     if register_built_pkgconfig_toolchain:
-        _pkgconfig_toolchain(pkgconfig_version, register_toolchains)
+        pkgconfig_toolchain(pkgconfig_version)
 
-def _cmake_toolchain(version, register_toolchains):
-    if register_toolchains:
-        native.register_toolchains(
-            "@rules_foreign_cc//toolchains:built_cmake_toolchain",
-        )
-
+# buildifier: disable=unnamed-macro
+def cmake_toolchain(version):
     if _CMAKE_SRCS.get(version):
         cmake_meta = _CMAKE_SRCS[version]
         urls = cmake_meta[0]
@@ -67,8 +196,8 @@ def _cmake_toolchain(version, register_toolchains):
         sha256 = cmake_meta[2]
         maybe(
             http_archive,
-            name = "cmake_src",
-            build_file_content = _ALL_CONTENT,
+            name = "cmake_{}_src".format(version),
+            build_file_content = _CMAKE_ALL_CONTENT,
             sha256 = sha256,
             strip_prefix = prefix,
             urls = urls,
@@ -80,17 +209,13 @@ def _cmake_toolchain(version, register_toolchains):
 
     fail("Unsupported cmake version: " + str(version))
 
-def _make_toolchain(version, register_toolchains):
-    if register_toolchains:
-        native.register_toolchains(
-            "@rules_foreign_cc//toolchains:built_make_toolchain",
-        )
-
+# buildifier: disable=unnamed-macro
+def make_toolchain(version):
     if version == "4.4.1":
         maybe(
             http_archive,
-            name = "gnumake_src",
-            build_file_content = _ALL_CONTENT,
+            name = "gnumake_4.4.1_src",
+            build_file_content = _MAKE_BUILD_FILE_CONTENT,
             sha256 = "dd16fb1d67bfab79a72f5e8390735c49e3e8e70b4945a15ab1f81ddb78658fb3",
             strip_prefix = "make-4.4.1",
             urls = [
@@ -103,8 +228,8 @@ def _make_toolchain(version, register_toolchains):
     if version == "4.4":
         maybe(
             http_archive,
-            name = "gnumake_src",
-            build_file_content = _ALL_CONTENT,
+            name = "gnumake_4.4_src",
+            build_file_content = _MAKE_BUILD_FILE_CONTENT,
             sha256 = "581f4d4e872da74b3941c874215898a7d35802f03732bdccee1d4a7979105d18",
             strip_prefix = "make-4.4",
             urls = [
@@ -116,8 +241,8 @@ def _make_toolchain(version, register_toolchains):
     if version == "4.3":
         maybe(
             http_archive,
-            name = "gnumake_src",
-            build_file_content = _ALL_CONTENT,
+            name = "gnumake_4.3_src",
+            build_file_content = _MAKE_BUILD_FILE_CONTENT,
             patches = [Label("//toolchains:make-reproducible-bootstrap.patch")],
             sha256 = "e05fdde47c5f7ca45cb697e973894ff4f5d79e13b750ed57d7b66d8defc78e19",
             strip_prefix = "make-4.3",
@@ -130,16 +255,12 @@ def _make_toolchain(version, register_toolchains):
 
     fail("Unsupported make version: " + str(version))
 
-def _ninja_toolchain(version, register_toolchains):
-    if register_toolchains:
-        native.register_toolchains(
-            "@rules_foreign_cc//toolchains:built_ninja_toolchain",
-        )
+def ninja_toolchain(version):
     if version == "1.12.1":
         maybe(
             http_archive,
-            name = "ninja_build_src",
-            build_file_content = _ALL_CONTENT,
+            name = "ninja_1.12.1_src",
+            build_file_content = _NINJA_BUILD_FILE_CONTENT,
             integrity = "sha256-ghvf9Io/aDvEuztvC1/nstZHz2XVKutjMoyRpsbfKFo=",
             strip_prefix = "ninja-1.12.1",
             urls = [
@@ -151,8 +272,8 @@ def _ninja_toolchain(version, register_toolchains):
     if version == "1.12.0":
         maybe(
             http_archive,
-            name = "ninja_build_src",
-            build_file_content = _ALL_CONTENT,
+            name = "ninja_1.12.0_src",
+            build_file_content = _NINJA_BUILD_FILE_CONTENT,
             integrity = "sha256-iyyGzUg9x/y3l1xexzKRNdIQCZqJvH2wWQoHsLv+SaU=",
             strip_prefix = "ninja-1.12.0",
             urls = [
@@ -164,8 +285,8 @@ def _ninja_toolchain(version, register_toolchains):
     if version == "1.11.1":
         maybe(
             http_archive,
-            name = "ninja_build_src",
-            build_file_content = _ALL_CONTENT,
+            name = "ninja_1.11.1_src",
+            build_file_content = _NINJA_BUILD_FILE_CONTENT,
             sha256 = "31747ae633213f1eda3842686f83c2aa1412e0f5691d1c14dbbcc67fe7400cea",
             strip_prefix = "ninja-1.11.1",
             urls = [
@@ -177,8 +298,8 @@ def _ninja_toolchain(version, register_toolchains):
     if version == "1.11.0":
         maybe(
             http_archive,
-            name = "ninja_build_src",
-            build_file_content = _ALL_CONTENT,
+            name = "ninja_1.11.0_src",
+            build_file_content = _NINJA_BUILD_FILE_CONTENT,
             sha256 = "3c6ba2e66400fe3f1ae83deb4b235faf3137ec20bd5b08c29bfc368db143e4c6",
             strip_prefix = "ninja-1.11.0",
             urls = [
@@ -190,8 +311,8 @@ def _ninja_toolchain(version, register_toolchains):
     if version == "1.10.2":
         maybe(
             http_archive,
-            name = "ninja_build_src",
-            build_file_content = _ALL_CONTENT,
+            name = "ninja_1.10.2_src",
+            build_file_content = _NINJA_BUILD_FILE_CONTENT,
             sha256 = "ce35865411f0490368a8fc383f29071de6690cbadc27704734978221f25e2bed",
             strip_prefix = "ninja-1.10.2",
             urls = [
@@ -203,15 +324,12 @@ def _ninja_toolchain(version, register_toolchains):
 
     fail("Unsupported ninja version: " + str(version))
 
-def _meson_toolchain(version, register_toolchains):
-    if register_toolchains:
-        native.register_toolchains(
-            "@rules_foreign_cc//toolchains:built_meson_toolchain",
-        )
+# buildifier: disable=unnamed-macro
+def meson_toolchain(version):
     if version == "1.5.1":
         maybe(
             http_archive,
-            name = "meson_src",
+            name = "meson_1.5.1_src",
             build_file_content = _MESON_BUILD_FILE_CONTENT,
             sha256 = "567e533adf255de73a2de35049b99923caf872a455af9ce03e01077e0d384bed",
             strip_prefix = "meson-1.5.1",
@@ -224,7 +342,7 @@ def _meson_toolchain(version, register_toolchains):
     if version == "1.1.1":
         maybe(
             http_archive,
-            name = "meson_src",
+            name = "meson_1.1.1_src",
             build_file_content = _MESON_BUILD_FILE_CONTENT,
             sha256 = "d04b541f97ca439fb82fab7d0d480988be4bd4e62563a5ca35fadb5400727b1c",
             strip_prefix = "meson-1.1.1",
@@ -237,7 +355,7 @@ def _meson_toolchain(version, register_toolchains):
     if version == "0.63.0":
         maybe(
             http_archive,
-            name = "meson_src",
+            name = "meson_0.63.0_src",
             build_file_content = _MESON_BUILD_FILE_CONTENT,
             sha256 = "3b51d451744c2bc71838524ec8d96cd4f8c4793d5b8d5d0d0a9c8a4f7c94cd6f",
             strip_prefix = "meson-0.63.0",
@@ -250,12 +368,8 @@ def _meson_toolchain(version, register_toolchains):
 
     fail("Unsupported meson version: " + str(version))
 
-def _pkgconfig_toolchain(version, register_toolchains):
-    if register_toolchains:
-        native.register_toolchains(
-            "@rules_foreign_cc//toolchains:built_pkgconfig_toolchain",
-        )
-
+# buildifier: disable=unnamed-macro
+def pkgconfig_toolchain(version):
     maybe(
         http_archive,
         name = "glib_dev",
@@ -333,8 +447,8 @@ cc_import(
     if version == "0.29.2":
         maybe(
             http_archive,
-            name = "pkgconfig_src",
-            build_file_content = _ALL_CONTENT,
+            name = "pkgconfig_0.29.2_src",
+            build_file_content = _PKGCONFIG_BUILD_FILE_CONTENT,
             sha256 = "6fc69c01688c9458a57eb9a1664c9aba372ccda420a02bf4429fe610e7e7d591",
             strip_prefix = "pkg-config-0.29.2",
             # The patch is required as bazel does not provide the VCINSTALLDIR or WINDOWSSDKDIR vars
