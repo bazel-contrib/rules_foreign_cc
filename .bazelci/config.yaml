@@ -233,7 +233,7 @@ tasks:
       - //...
   min_supported_version:
     name: "Minimum Supported Version"
-    bazel: "5.4.0"
+    bazel: "6.5.0"
     skip_in_bazel_downstream_pipeline: "Duplicates tests in other targets"
     platform: ubuntu1804
     build_targets:
@@ -242,7 +242,7 @@ tasks:
       - "//..."
   min_supported_version_examples:
     name: "Minimum Supported Version Examples"
-    bazel: "5.4.0"
+    bazel: "6.5.0"
     skip_in_bazel_downstream_pipeline: "Duplicates tests in other targets"
     platform: ubuntu1804
     working_directory: examples
