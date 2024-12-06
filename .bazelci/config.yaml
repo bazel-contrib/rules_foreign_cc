@@ -252,6 +252,6 @@ tasks:
     test_targets: *min_supported_targets
 
 buildifier:
-  version: "6.1.0"
+  version: "7.3.1"
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "all"
