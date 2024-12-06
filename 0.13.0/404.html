@@ -3,7 +3,8 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Rules ForeignCc - Rules ForeignCc</title>
+        <title>Page not found - Rules ForeignCc</title>
+        <base href="/">
 
 
         <!-- Custom HTML head -->
@@ -155,49 +156,14 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="rules-foreigncc"><a class="header" href="#rules-foreigncc">Rules ForeignCc</a></h1>
-<p>Rules for building C/C++ projects using foreign build systems (non Bazel) inside Bazel projects.</p>
-<div class="table-wrapper"><table><thead><tr><th>Release</th><th>Commit</th><th>Status</th></tr></thead><tbody>
-<tr><td>0.13.0</td><td><a href="https://github.com/bazel-contrib/rules_foreign_cc/commit/21e463ed4498d1eb7f5eb0ac78302d03f55de92f">21e463e</a></td><td><a href="https://buildkite.com/bazel/rules-foreign-cc/builds?branch=main"><img src="https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=main" alt="Build status" /></a></td></tr>
-</tbody></table>
-</div>
-<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
-<p>Rules ForeignCc is designed to help users build projects that are not built by Bazel and also
-not fully under their control (ie: large and mature open source software). These rules provide
-a mechanism to build these external projects within Bazel's sandbox environment using a variety
-of C/C++ build systems to be later consumed by other rules as though they were normal <a href="https://docs.bazel.build/versions/master/be/c-cpp.html">cc</a>
-rules.</p>
-<h2 id="setup"><a class="header" href="#setup">Setup</a></h2>
-<p>To use the ForeignCc build rules, add the following content to your WORKSPACE file:</p>
-<pre><code class="language-python">load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-http_archive(
-    name = "rules_foreign_cc",
-    # TODO: Get the latest sha256 value from a bazel debug message or the latest
-    #       release on the releases page: https://github.com/bazel-contrib/rules_foreign_cc/releases
-    #
-    # sha256 = "...",
-    strip_prefix = "rules_foreign_cc-0.13.0",
-    url = "https://github.com/bazel-contrib/rules_foreign_cc/archive/0.13.0.tar.gz",
-)
-
-load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
-
-rules_foreign_cc_dependencies()
-</code></pre>
-<p>Please note that there are many different configuration options for
-<a href="./flatten.html#rules_foreign_cc_dependencies">rules_foreign_cc_dependencies</a>
-which offer more control over the toolchains used during the build phase. Please see
-that macro's documentation for more details.</p>
+                        <h1 id="document-not-found-404"><a class="header" href="#document-not-found-404">Document not found (404)</a></h1>
+<p>This URL is invalid, sorry. Please use the navigation bar or search to continue.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
 
-                            <a rel="next prefetch" href="rules.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -206,9 +172,6 @@ that macro's documentation for more details.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
 
-                    <a rel="next prefetch" href="rules.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>

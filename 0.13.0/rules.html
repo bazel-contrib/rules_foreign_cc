@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Rules ForeignCc - Rules ForeignCc</title>
+        <title>Rules - Rules ForeignCc</title>
 
 
         <!-- Custom HTML head -->
@@ -155,47 +155,25 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="rules-foreigncc"><a class="header" href="#rules-foreigncc">Rules ForeignCc</a></h1>
-<p>Rules for building C/C++ projects using foreign build systems (non Bazel) inside Bazel projects.</p>
-<div class="table-wrapper"><table><thead><tr><th>Release</th><th>Commit</th><th>Status</th></tr></thead><tbody>
-<tr><td>0.13.0</td><td><a href="https://github.com/bazel-contrib/rules_foreign_cc/commit/21e463ed4498d1eb7f5eb0ac78302d03f55de92f">21e463e</a></td><td><a href="https://buildkite.com/bazel/rules-foreign-cc/builds?branch=main"><img src="https://badge.buildkite.com/c28afbf846e2077715c753dda1f4b820cdcc46cc6cde16503c.svg?branch=main" alt="Build status" /></a></td></tr>
-</tbody></table>
-</div>
-<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
-<p>Rules ForeignCc is designed to help users build projects that are not built by Bazel and also
-not fully under their control (ie: large and mature open source software). These rules provide
-a mechanism to build these external projects within Bazel's sandbox environment using a variety
-of C/C++ build systems to be later consumed by other rules as though they were normal <a href="https://docs.bazel.build/versions/master/be/c-cpp.html">cc</a>
-rules.</p>
-<h2 id="setup"><a class="header" href="#setup">Setup</a></h2>
-<p>To use the ForeignCc build rules, add the following content to your WORKSPACE file:</p>
-<pre><code class="language-python">load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-http_archive(
-    name = "rules_foreign_cc",
-    # TODO: Get the latest sha256 value from a bazel debug message or the latest
-    #       release on the releases page: https://github.com/bazel-contrib/rules_foreign_cc/releases
-    #
-    # sha256 = "...",
-    strip_prefix = "rules_foreign_cc-0.13.0",
-    url = "https://github.com/bazel-contrib/rules_foreign_cc/archive/0.13.0.tar.gz",
-)
-
-load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
-
-rules_foreign_cc_dependencies()
-</code></pre>
-<p>Please note that there are many different configuration options for
-<a href="./flatten.html#rules_foreign_cc_dependencies">rules_foreign_cc_dependencies</a>
-which offer more control over the toolchains used during the build phase. Please see
-that macro's documentation for more details.</p>
+                        <h1 id="rules"><a class="header" href="#rules">Rules</a></h1>
+<ul>
+<li><a href="./cmake.html">cmake</a></li>
+<li><a href="./configure_make.html">configure_make</a></li>
+<li><a href="./make.html">make</a></li>
+<li><a href="./meson.html">meson</a></li>
+<li><a href="./ninja.html">ninja</a></li>
+</ul>
+<p>For additional rules/macros/providers, see the <a href="./flatten.html">full API in one page</a>.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
 
-                            <a rel="next prefetch" href="rules.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="cmake.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -205,8 +183,11 @@ that macro's documentation for more details.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
 
-                    <a rel="next prefetch" href="rules.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="cmake.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
