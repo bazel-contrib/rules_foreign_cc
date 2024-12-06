@@ -132,4 +132,5 @@ bzl_library(
     name = "utils",
     srcs = ["utils.bzl"],
     visibility = ["//visibility:public"],
+    deps = ["@rules_shell//shell:sh_binary"],
 )
