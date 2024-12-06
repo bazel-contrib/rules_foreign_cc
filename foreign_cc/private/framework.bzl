@@ -484,6 +484,8 @@ def cc_external_rule_impl(ctx, attrs):
             outputs.libraries.shared_libraries +
             outputs.libraries.interface_libraries
         )
+    ] + [
+        "##replace_all_symlinks## $$INSTALLDIR$$",
     ]
 
     script_text = "\n".join([
