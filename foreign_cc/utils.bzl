@@ -1,5 +1,7 @@
 """ This file contains useful utilities """
 
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
 def full_label(label):
     return native.repository_name() + "//" + native.package_name() + ":" + label
 
@@ -61,7 +63,7 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
         tags = tags + ["manual"],
     )
 
-    native.sh_binary(
+    sh_binary(
         name = binary if match_binary_name else name,
         deps = ["@bazel_tools//tools/bash/runfiles"],
         data = [name + "_fg", foreign_cc_target],
