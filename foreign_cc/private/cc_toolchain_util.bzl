@@ -384,7 +384,9 @@ def _prefix(text, from_str, prefix):
     (before, middle, after) = text.partition(from_str)
     if not middle or before.endswith("/"):
         return text
-    return before + prefix + middle + after
+    if before.startswith("--"):
+        return before + prefix + middle + after
+    return prefix + before + middle + after
 
 def _file_name_no_ext(basename):
     (before, _separator, _after) = basename.rpartition(".")
