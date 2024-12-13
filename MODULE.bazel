@@ -7,9 +7,9 @@ module(
 )
 
 bazel_dep(name = "bazel_features", version = "1.15.0")
-bazel_dep(name = "bazel_skylib", version = "1.3.0")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "platforms", version = "0.0.5")
-bazel_dep(name = "rules_python", version = "0.23.1")
+bazel_dep(name = "rules_python", version = "1.0.0")
 bazel_dep(name = "rules_shell", version = "0.3.0")
 
 # Dev dependencies
@@ -22,9 +22,19 @@ bazel_dep(name = "bazel_ci_rules", version = "1.0.0", dev_dependency = True)
 # depends on it. If you are not using bazel_ci_rules; ideally we'd be able to remove this.
 bazel_dep(name = "rules_cc", version = "0.0.9", dev_dependency = True)
 
+rbe_preconfig = use_repo_rule(
+    "@bazel_ci_rules//:rbe_repo.bzl",
+    "rbe_preconfig",
+)
+
+rbe_preconfig(
+    name = "buildkite_config",
+    toolchain = "ubuntu2004",
+)
+
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
-python.toolchain(python_version = "3.9")
-use_repo(python, "python_3_9")
+python.toolchain(python_version = "3.12")
+use_repo(python, "python_3_12")
 
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 use_repo(
@@ -46,6 +56,6 @@ register_toolchains(
     "@rules_foreign_cc_framework_toolchains//:all",
     "@cmake_3.23.2_toolchains//:all",
     "@ninja_1.12.1_toolchains//:all",
-    "@python_3_9//:all",
+    "@python_3_12//:all",
     "@rules_foreign_cc//toolchains:all",
 )
