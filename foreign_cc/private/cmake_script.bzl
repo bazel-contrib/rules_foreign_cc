@@ -90,7 +90,7 @@ def create_cmake_script(
 
     merged_prefix_path = _merge_prefix_path(user_cache, include_dirs, ext_build_dirs)
 
-    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
+    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags, target_os)
     params = None
 
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
@@ -307,7 +307,7 @@ def _move_dict_values(target, source, descriptor_map):
             else:
                 target[existing.value] = target[existing.value] + " " + value
 
-def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
+def _fill_crossfile_from_toolchain(workspace_name, tools, flags, target_os):
     dict = {}
 
     _sysroot = _find_in_cc_or_cxx(flags, "sysroot")
@@ -360,7 +360,17 @@ def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
     #        lines += [_set_list(ctx, "CMAKE_STATIC_LINKER_FLAGS_INIT", flags.cxx_linker_static)]
     if flags.cxx_linker_shared:
         dict["CMAKE_SHARED_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, flags.cxx_linker_shared)
-        dict["CMAKE_MODULE_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, flags.cxx_linker_shared)
+
+        # cxx_linker_shared will contain '-shared' or '-dynamiclib' on macos. This flag conflicts with "-bundle"
+        # that is set by CMAKE based on platform. e.g.
+        # https://gitlab.kitware.com/cmake/cmake/-/blob/master/Modules/Platform/Apple-Intel.cmake#L11
+        # Therefore, for modules aka bundles we want to remove these flags.
+        module_linker_flags = []
+        if target_os == "macos":
+            module_linker_flags = [flag for flag in flags.cxx_linker_shared if flag not in ["-shared", "-dynamiclib"]]
+        else:
+            module_linker_flags = flags.cxx_linker_shared
+        dict["CMAKE_MODULE_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, module_linker_flags)
     if flags.cxx_linker_executable:
         dict["CMAKE_EXE_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, flags.cxx_linker_executable)
 
