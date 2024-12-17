@@ -80,36 +80,44 @@ def _fill_crossfile_from_toolchain_test(ctx):
         cxx_linker_static = "/cxx_linker_static",
         cxx_linker_executable = "ws/cxx_linker_executable",
     )
-    flags = CxxFlagsInfo(
-        cc = ["-cc-flag", "-gcc_toolchain", "cc-toolchain"],
-        cxx = ["--quoted=\"abc def\"", "--sysroot=/abc/sysroot", "--gcc_toolchain", "cxx-toolchain"],
-        cxx_linker_shared = ["shared1", "shared2"],
-        cxx_linker_static = ["static"],
-        cxx_linker_executable = ["executable"],
-        assemble = ["assemble"],
-    )
 
-    res = export_for_test.fill_crossfile_from_toolchain("ws", tools, flags)
-
-    expected = {
-        "CMAKE_AR": "/cxx_linker_static",
-        "CMAKE_ASM_FLAGS_INIT": "assemble",
-        "CMAKE_CXX_COMPILER": "$${EXT_BUILD_ROOT//\\\\//}$$/external/cxx-value",
-        "CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN": "cxx-toolchain",
-        # Quoted args are escaped when crossfile is written to a script in create_cmake_script
-        "CMAKE_CXX_FLAGS_INIT": "--quoted=\"abc def\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain",
-        "CMAKE_CXX_LINK_EXECUTABLE": "$${EXT_BUILD_ROOT//\\\\//}$$/ws/cxx_linker_executable <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>",
-        "CMAKE_C_COMPILER": "/some-cc-value",
-        "CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN": "cc-toolchain",
-        "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
-        "CMAKE_EXE_LINKER_FLAGS_INIT": "executable",
-        "CMAKE_MODULE_LINKER_FLAGS_INIT": "shared1 shared2",
-        "CMAKE_SHARED_LINKER_FLAGS_INIT": "shared1 shared2",
-        "CMAKE_SYSROOT": "/abc/sysroot",
+    cases = {
+        # format: target_os: (input_flags, expected_flags)
+        "macos": (["-shared", "-dynamiclib", "-bundle"], ["-bundle"]),
+        "unknown": (["shared1", "shared2"], ["shared1", "shared2"]),
     }
 
-    for key in expected:
-        asserts.equals(env, expected[key], res[key])
+    for target_os, inputs in cases.items():
+        flags = CxxFlagsInfo(
+            cc = ["-cc-flag", "-gcc_toolchain", "cc-toolchain"],
+            cxx = ["--quoted=\"abc def\"", "--sysroot=/abc/sysroot", "--gcc_toolchain", "cxx-toolchain"],
+            cxx_linker_shared = inputs[0],
+            cxx_linker_static = ["static"],
+            cxx_linker_executable = ["executable"],
+            assemble = ["assemble"],
+        )
+
+        res = export_for_test.fill_crossfile_from_toolchain("ws", tools, flags, target_os)
+
+        expected = {
+            "CMAKE_AR": "/cxx_linker_static",
+            "CMAKE_ASM_FLAGS_INIT": "assemble",
+            "CMAKE_CXX_COMPILER": "$${EXT_BUILD_ROOT//\\\\//}$$/external/cxx-value",
+            "CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN": "cxx-toolchain",
+            # Quoted args are escaped when crossfile is written to a script in create_cmake_script
+            "CMAKE_CXX_FLAGS_INIT": "--quoted=\"abc def\" --sysroot=/abc/sysroot --gcc_toolchain cxx-toolchain",
+            "CMAKE_CXX_LINK_EXECUTABLE": "$${EXT_BUILD_ROOT//\\\\//}$$/ws/cxx_linker_executable <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>",
+            "CMAKE_C_COMPILER": "/some-cc-value",
+            "CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN": "cc-toolchain",
+            "CMAKE_C_FLAGS_INIT": "-cc-flag -gcc_toolchain cc-toolchain",
+            "CMAKE_EXE_LINKER_FLAGS_INIT": "executable",
+            "CMAKE_MODULE_LINKER_FLAGS_INIT": " ".join(inputs[1]),
+            "CMAKE_SHARED_LINKER_FLAGS_INIT": " ".join(inputs[0]),
+            "CMAKE_SYSROOT": "/abc/sysroot",
+        }
+
+        for key in expected:
+            asserts.equals(env, expected[key], res[key])
 
     return unittest.end(env)
 
