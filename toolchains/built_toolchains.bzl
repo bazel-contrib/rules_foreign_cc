@@ -20,7 +20,9 @@ exports_files(["meson.py"])
 
 filegroup(
     name = "runtime",
-    srcs = glob(["mesonbuild/**"]),
+    # NOTE: excluding __pycache__ is important to avoid rebuilding due to pyc
+    # files, see https://github.com/bazel-contrib/rules_foreign_cc/issues/1342
+    srcs = glob(["mesonbuild/**"], exclude = ["**/__pycache__/*"]),
     visibility = ["//visibility:public"],
 )
 """
