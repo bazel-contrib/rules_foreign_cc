@@ -724,11 +724,11 @@ def _correct_path_variable(toolchain, env):
                 corrected_env[key] = ";".join(path_paths)
         env = corrected_env
 
-    value = env.get("PATH", "")
-    if not value:
+    value = env.get("PATH")
+    if value == None:
+        # avoid setting PATH if it isn't set, and vice-versa
         return env
-    value = _normalize_path(env.get("PATH", ""))
-    env["PATH"] = "$PATH:" + value
+    env["PATH"] = _normalize_path(value)
     return env
 
 def _list(item):
