@@ -724,11 +724,23 @@ def _correct_path_variable(toolchain, env):
                 corrected_env[key] = ";".join(path_paths)
         env = corrected_env
 
-    value = env.get("PATH", "")
-    if not value:
+    value = env.get("PATH")
+    if value == None:
+        # avoid setting PATH if it isn't set, and vice-versa
         return env
-    value = _normalize_path(env.get("PATH", ""))
-    env["PATH"] = "$PATH:" + value
+
+    value = _normalize_path(value)
+
+    if "$PATH" not in value:
+        # Since we end up overriding the value of PATH here, we need to make
+        # sure we preserve the current value of the PATH (in case
+        # strict_action_env is not in use).  If one of the toolchains has
+        # already overridden where the PATH self-reference falls (in order to
+        # put toolchain items first, for example) we want to trust that, but
+        # otherwise we need to make sure it's referenced _somewhere_.
+        value = "$PATH:" + value
+
+    env["PATH"] = value
     return env
 
 def _list(item):
