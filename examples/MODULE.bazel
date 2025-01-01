@@ -42,7 +42,7 @@ pip.parse(
 )
 use_repo(pip, "pip")
 
-bazel_dep(name = "rules_android", version = "0.6.0-alpha1.bcr.1")
+bazel_dep(name = "rules_android", version = "0.6.0")
 bazel_dep(name = "rules_android_ndk", version = "0.1.2")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 
