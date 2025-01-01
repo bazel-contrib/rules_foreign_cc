@@ -21,7 +21,7 @@ repos:
       - id: check-yaml
 
   - repo: https://github.com/keith/pre-commit-buildifier
-    rev: 6.1.0.1
+    rev: 7.3.1.1
     hooks:
       - id: buildifier
         args: &args
