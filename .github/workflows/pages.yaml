@@ -133,6 +133,8 @@ jobs:
       - name: bazel run //:generate_docs
         run: |
           "$BIN/bazel" run //:generate_docs
+        env:
+          USE_BAZEL_VERSION: 7.4.1
         working-directory: ${{ github.workspace }}/docs
 
       - name: mdbook build root
