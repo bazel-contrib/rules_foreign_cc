@@ -35,7 +35,9 @@ load("//deps:deps_jvm_external.bzl", "deps_jvm_external")
 
 deps_jvm_external()
 
-load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
+
+py_repositories()
 
 python_register_toolchains(
     name = "python3_10",
