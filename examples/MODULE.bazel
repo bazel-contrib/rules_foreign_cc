@@ -4,12 +4,18 @@ local_path_override(
     path = "..",
 )
 
-tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
-tools.cmake(version = "3.23.1")
-tools.ninja(version = "1.11.1")
+foreign_cc = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "foreign_cc")
+foreign_cc.tools(
+    cmake = "3.23.1",
+    ninja = "1.11.1",
+)
 use_repo(
-    tools,
-    "meson_src",
+    foreign_cc,
+    "rules_foreign_cc_toolchains",
+)
+
+register_toolchains(
+    "@rules_foreign_cc_toolchains//:all",
 )
 
 bazel_dep(name = "platforms", version = "0.0.6")

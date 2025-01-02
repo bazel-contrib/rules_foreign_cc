@@ -212,8 +212,8 @@ def meson_with_requirements(name, requirements, **kwargs):
 
     meson_tool(
         name = "meson_tool_for_{}".format(name),
-        main = "@meson_src//:meson.py",
-        data = ["@meson_src//:runtime"],
+        main = "@rules_foreign_cc_toolchains//:meson.py",
+        data = ["@rules_foreign_cc_toolchains//:meson_runtime"],
         requirements = requirements,
         tags = tags + ["manual"],
     )

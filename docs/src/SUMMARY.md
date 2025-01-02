@@ -7,3 +7,4 @@
         - [make](make.md)
         - [meson](meson.md)
         - [ninja](ninja.md)
+    - [Extensions](extensions.md)
