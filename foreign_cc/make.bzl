@@ -1,5 +1,6 @@
 """A rule for building projects using the [GNU Make](https://www.gnu.org/software/make/) build tool"""
 
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
@@ -66,6 +67,9 @@ def _create_make_script(configureParameters):
             install_prefix = ctx.attr.install_prefix,
         ))
 
+    cc_toolchain = find_cpp_toolchain(ctx)
+    is_msvc = cc_toolchain.compiler == "msvc-cl"
+
     return create_make_script(
         workspace_name = ctx.workspace_name,
         tools = tools,
@@ -74,7 +78,14 @@ def _create_make_script(configureParameters):
         deps = ctx.attr.deps,
         inputs = inputs,
         env_vars = user_env,
-        make_commands = make_commands,
+        make_prefix = prefix,
+        make_path = attrs.make_path,
+        make_targets = ctx.attr.targets,
+        make_args = args,
+        make_install_prefix = ctx.attr.install_prefix,
+        executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
+        shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
+        is_msvc = is_msvc,
     )
 
 def _attrs():
@@ -83,6 +94,15 @@ def _attrs():
         "args": attr.string_list(
             doc = "A list of arguments to pass to the call to `make`",
         ),
+        "executable_ldflags_vars": attr.string_list(
+            doc = (
+                "A string list of variable names use as LDFLAGS for executables. These variables " +
+                "will be passed to the make command as make vars and overwrite what is defined in " +
+                "the Makefile."
+            ),
+            mandatory = False,
+            default = [],
+        ),
         "install_prefix": attr.string(
             doc = (
                 "Install prefix, i.e. relative path to where to install the result of the build. " +
@@ -90,6 +110,15 @@ def _attrs():
             ),
             mandatory = False,
             default = "$$INSTALLDIR$$",
+        ),
+        "shared_ldflags_vars": attr.string_list(
+            doc = (
+                "A string list of variable names use as LDFLAGS for shared libraries. These variables " +
+                "will be passed to the make command as make vars and overwrite what is defined in " +
+                "the Makefile."
+            ),
+            mandatory = False,
+            default = [],
         ),
         "targets": attr.string_list(
             doc = (
@@ -132,9 +161,6 @@ make = rule(
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
-    # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
-    # version is updated to a release of Bazel containing the new default for this setting.
-    incompatible_use_toolchain_transition = True,
 )
 
 def make_variant(name, toolchain, **kwargs):

@@ -58,7 +58,8 @@ def create_cmake_script(
         cmake_commands,
         include_dirs = [],
         cmake_prefix = None,
-        is_debug_mode = True):
+        is_debug_mode = True,
+        ext_build_dirs = []):
     """Constructs CMake script to be passed to cc_external_rule_impl.
 
     Args:
@@ -81,14 +82,15 @@ def create_cmake_script(
         include_dirs: Optional additional include directories. Defaults to [].
         cmake_prefix: Optional prefix before the cmake command (without the trailing space).
         is_debug_mode: If the compilation mode is `debug`. Defaults to True.
+        ext_build_dirs: A list of gen_dirs for each foreign_cc dep.
 
     Returns:
         list: Lines of bash which make up the build script
     """
 
-    merged_prefix_path = _merge_prefix_path(user_cache, include_dirs)
+    merged_prefix_path = _merge_prefix_path(user_cache, include_dirs, ext_build_dirs)
 
-    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
+    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags, target_os)
     params = None
 
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
@@ -123,8 +125,8 @@ def create_cmake_script(
 
     # Avoid CMake passing the wrong linker flags when cross compiling
     # by setting CMAKE_SYSTEM_NAME and CMAKE_SYSTEM_PROCESSOR,
-    # see https://github.com/bazelbuild/rules_foreign_cc/issues/289,
-    # and https://github.com/bazelbuild/rules_foreign_cc/pull/1062
+    # see https://github.com/bazel-contrib/rules_foreign_cc/issues/289,
+    # and https://github.com/bazel-contrib/rules_foreign_cc/pull/1062
     if target_os == "unknown":
         # buildifier: disable=print
         print("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
@@ -171,9 +173,12 @@ def _wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
             cache.pop(key)
 
 # From CMake documentation: ;-list of directories specifying installation prefixes to be searched...
-def _merge_prefix_path(user_cache, include_dirs):
+def _merge_prefix_path(user_cache, include_dirs, ext_build_dirs):
     user_prefix = user_cache.get("CMAKE_PREFIX_PATH")
     values = ["$$EXT_BUILD_DEPS$$"] + include_dirs
+    for ext_dir in ext_build_dirs:
+        values.append("$$EXT_BUILD_DEPS$$/{}".format(ext_dir.basename))
+
     if user_prefix != None:
         # remove it, it is gonna be merged specifically
         user_cache.pop("CMAKE_PREFIX_PATH")
@@ -197,6 +202,7 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_C_ARCHIVE_CREATE": struct(value = "CMAKE_C_ARCHIVE_CREATE", replace = False),
     "CMAKE_C_FLAGS": struct(value = "CMAKE_C_FLAGS_INIT", replace = False),
     "CMAKE_EXE_LINKER_FLAGS": struct(value = "CMAKE_EXE_LINKER_FLAGS_INIT", replace = False),
+    "CMAKE_MODULE_LINKER_FLAGS": struct(value = "CMAKE_MODULE_LINKER_FLAGS_INIT", replace = False),
     "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
     "CMAKE_SHARED_LINKER_FLAGS": struct(value = "CMAKE_SHARED_LINKER_FLAGS_INIT", replace = False),
     "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
@@ -301,7 +307,7 @@ def _move_dict_values(target, source, descriptor_map):
             else:
                 target[existing.value] = target[existing.value] + " " + value
 
-def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
+def _fill_crossfile_from_toolchain(workspace_name, tools, flags, target_os):
     dict = {}
 
     _sysroot = _find_in_cc_or_cxx(flags, "sysroot")
@@ -354,6 +360,17 @@ def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
     #        lines += [_set_list(ctx, "CMAKE_STATIC_LINKER_FLAGS_INIT", flags.cxx_linker_static)]
     if flags.cxx_linker_shared:
         dict["CMAKE_SHARED_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, flags.cxx_linker_shared)
+
+        # cxx_linker_shared will contain '-shared' or '-dynamiclib' on macos. This flag conflicts with "-bundle"
+        # that is set by CMAKE based on platform. e.g.
+        # https://gitlab.kitware.com/cmake/cmake/-/blob/master/Modules/Platform/Apple-Intel.cmake#L11
+        # Therefore, for modules aka bundles we want to remove these flags.
+        module_linker_flags = []
+        if target_os == "macos":
+            module_linker_flags = [flag for flag in flags.cxx_linker_shared if flag not in ["-shared", "-dynamiclib"]]
+        else:
+            module_linker_flags = flags.cxx_linker_shared
+        dict["CMAKE_MODULE_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, module_linker_flags)
     if flags.cxx_linker_executable:
         dict["CMAKE_EXE_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, flags.cxx_linker_executable)
 

@@ -1,5 +1,7 @@
 """ This file contains useful utilities """
 
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
 def full_label(label):
     return native.repository_name() + "//" + native.package_name() + ":" + label
 
@@ -44,7 +46,7 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
 
     wrapper_cmd = """
     sed s@EXECUTABLE@$(rlocationpath {name})@g $(location @rules_foreign_cc//foreign_cc/private:runnable_binary_wrapper.sh) > tmp
-    sed s@SH_BINARY_FILENAME@{sh_binary_filename}@g tmp > $@
+    cp tmp $@
     """
 
     if hasattr(native, "package_relative_label"):
@@ -57,14 +59,11 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
         name = name + "_wrapper",
         srcs = ["@rules_foreign_cc//foreign_cc/private:runnable_binary_wrapper.sh", name + "_fg"],
         outs = [name + "_wrapper.sh"],
-        cmd = select({
-            "@platforms//os:windows": wrapper_cmd.format(name = fg_label, sh_binary_filename = binary + ".exe" if match_binary_name else name),
-            "//conditions:default": wrapper_cmd.format(name = fg_label, sh_binary_filename = binary if match_binary_name else name),
-        }),
+        cmd = wrapper_cmd.format(name = fg_label),
         tags = tags + ["manual"],
     )
 
-    native.sh_binary(
+    sh_binary(
         name = binary if match_binary_name else name,
         deps = ["@bazel_tools//tools/bash/runfiles"],
         data = [name + "_fg", foreign_cc_target],

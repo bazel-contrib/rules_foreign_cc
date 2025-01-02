@@ -18,6 +18,6 @@
 #include <iostream>
 
 int main(int argc, char* argv[]) {
-  std::cout << "Hello! sqrt(time) = " << std::sqrt(time(NULL)) << std::endl;
-  return EXIT_SUCCESS;
+    std::cout << "Hello! sqrt(time) = " << std::sqrt(time(NULL)) << std::endl;
+    return EXIT_SUCCESS;
 }

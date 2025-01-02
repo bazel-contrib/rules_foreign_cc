@@ -8,8 +8,8 @@ TAG=${GITHUB_REF_NAME}
 # The prefix is chosen to match what GitHub generates for source archives
 PREFIX="rules_foreign_cc-${TAG}"
 ARCHIVE="rules_foreign_cc-$TAG.tar.gz"
-git archive --format=tar --prefix=${PREFIX}/ ${TAG} | gzip > $ARCHIVE
-SHA=$(shasum -a 256 $ARCHIVE | awk '{print $1}')
+git archive --format=tar --prefix="${PREFIX}"/ "${TAG}" | gzip > "$ARCHIVE"
+SHA="$(shasum -a 256 "$ARCHIVE" | awk '{print $1}')"
 
 cat << EOF
 ## Using Bzlmod with Bazel 6
@@ -23,7 +23,7 @@ bazel_dep(name = "rules_foreign_cc", version = "${TAG}")
 
 ## Using WORKSPACE
 
-Paste this snippet into your `WORKSPACE.bazel` file:
+Paste this snippet into your \`WORKSPACE.bazel\` file:
 
 \`\`\`starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -31,7 +31,7 @@ http_archive(
     name = "rules_foreign_cc",
     sha256 = "${SHA}",
     strip_prefix = "${PREFIX}",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/releases/download/${TAG}/${ARCHIVE}",
+    url = "https://github.com/bazel-contrib/rules_foreign_cc/releases/download/${TAG}/${ARCHIVE}",
 )
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
@@ -43,4 +43,4 @@ EOF
 
 # TODO: add example of how to configure for bzlmod
 # awk 'f;/--SNIP--/{f=1}' e2e/smoke/WORKSPACE.bazel
-echo "\`\`\`" 
+echo "\`\`\`"
