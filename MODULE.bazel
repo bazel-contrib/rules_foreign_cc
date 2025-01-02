@@ -20,7 +20,7 @@ bazel_dep(name = "bazel_ci_rules", version = "1.0.0", dev_dependency = True)
 
 # note that this dev_dependency is only needed because bazel_ci_rules
 # depends on it. If you are not using bazel_ci_rules; ideally we'd be able to remove this.
-bazel_dep(name = "rules_cc", version = "0.0.9", dev_dependency = True)
+bazel_dep(name = "rules_cc", version = "0.0.17", dev_dependency = True)
 
 rbe_preconfig = use_repo_rule(
     "@bazel_ci_rules//:rbe_repo.bzl",
