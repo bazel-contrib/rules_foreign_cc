@@ -1,5 +1,6 @@
 """This file contains rules for configuration transitions"""
 
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load("//foreign_cc:providers.bzl", "ForeignCcDepsInfo")
 
 def _extra_toolchains_transition_impl(settings, attrs):
