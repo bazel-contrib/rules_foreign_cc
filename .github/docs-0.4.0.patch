@@ -22,7 +22,7 @@ index dc6a3f7..9eb0697 100644
 +# https://github.com/bazelbuild/stardoc/issues/112
 +common --incompatible_allow_tags_propagation
 +
-+common --noenable_bzlmod
++common --noenable_bzlmod --enable_workspace
  build --workspace_status_command=tools/workspace_status.sh
 diff --git a/docs/stardoc_repository.bzl b/docs/stardoc_repository.bzl
 index 2153aa8..7c63be7 100644

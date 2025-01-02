@@ -1,0 +1,24 @@
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_foreign_cc")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../..",
+)
+
+bazel_dep(name = "platforms", version = "0.0.5")
+
+bazel_dep(name = "bazel_ci_rules", version = "1.0.0", dev_dependency = True)
+
+# note that this dev_dependency is only needed because bazel_ci_rules
+# depends on it. If you are not using bazel_ci_rules; ideally we'd be able to remove this.
+bazel_dep(name = "rules_cc", version = "0.0.9", dev_dependency = True)
+
+rbe_preconfig = use_repo_rule(
+    "@bazel_ci_rules//:rbe_repo.bzl",
+    "rbe_preconfig",
+)
+
+rbe_preconfig(
+    name = "buildkite_config",
+    toolchain = "ubuntu2004",
+)
