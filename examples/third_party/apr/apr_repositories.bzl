@@ -14,7 +14,7 @@ def apr_repositories():
             # https://apachelounge.com/viewtopic.php?t=8260
             Label("//apr:windows_winnt.patch"),
         ],
-        sha256 = "",
+        integrity = "sha256-M3X6Nl1nvPlF5StSy6B6vqV+9TD0Cygf++l3qSUTYds=",
         strip_prefix = "apr-1.7.5",
         urls = [
             "https://mirror.bazel.build/www-eu.apache.org/dist/apr/apr-1.7.5.tar.gz",

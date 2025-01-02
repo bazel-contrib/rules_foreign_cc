@@ -184,10 +184,10 @@
         "recordedRepoMappingEntries": []
       }
     },
-    "@@rules_foreign_cc~//foreign_cc:extensions.bzl%tools": {
+    "@@rules_foreign_cc~//foreign_cc:extensions.bzl%foreign_cc": {
       "general": {
-        "bzlTransitiveDigest": "82gl0j2nuUSwR2DhSU4Mejqc+E1d+0SHmnz6jHQGxak=",
-        "usagesDigest": "iWj6btwJ+MsMEUdwPmGRjCwIkOzbbnx8NIo56/soHIM=",
+        "bzlTransitiveDigest": "k8QA+W+hlKmcJnnGCxGGCaDF53yTKXQhXXwdU/e/vyQ=",
+        "usagesDigest": "/c89WcT6buzEO7A3rvu5KY2t4LPwIboWVj3Bz/lMy1o=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -236,165 +236,6 @@
             "bzlFile": "@@rules_foreign_cc~//foreign_cc/private/framework:toolchain.bzl",
             "ruleClassName": "framework_toolchain_repository_hub",
             "attributes": {}
-          },
-          "cmake_src": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "build_file_content": "filegroup(\n    name = \"all_srcs\",\n    srcs = glob([\"**\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
-              "sha256": "f316b40053466f9a416adf981efda41b160ca859e97f6a484b447ea299ff26aa",
-              "strip_prefix": "cmake-3.23.2",
-              "urls": [
-                "https://github.com/Kitware/CMake/releases/download/v3.23.2/cmake-3.23.2.tar.gz"
-              ],
-              "patches": [
-                "@@rules_foreign_cc~//toolchains:cmake-c++11.patch"
-              ]
-            }
-          },
-          "gnumake_src": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "build_file_content": "filegroup(\n    name = \"all_srcs\",\n    srcs = glob([\"**\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
-              "sha256": "dd16fb1d67bfab79a72f5e8390735c49e3e8e70b4945a15ab1f81ddb78658fb3",
-              "strip_prefix": "make-4.4.1",
-              "urls": [
-                "https://mirror.bazel.build/ftpmirror.gnu.org/gnu/make/make-4.4.1.tar.gz",
-                "http://ftpmirror.gnu.org/gnu/make/make-4.4.1.tar.gz"
-              ]
-            }
-          },
-          "ninja_build_src": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "build_file_content": "filegroup(\n    name = \"all_srcs\",\n    srcs = glob([\"**\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
-              "integrity": "sha256-ghvf9Io/aDvEuztvC1/nstZHz2XVKutjMoyRpsbfKFo=",
-              "strip_prefix": "ninja-1.12.1",
-              "urls": [
-                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.12.1.tar.gz",
-                "https://github.com/ninja-build/ninja/archive/v1.12.1.tar.gz"
-              ]
-            }
-          },
-          "meson_src": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "build_file_content": "exports_files([\"meson.py\"])\n\nfilegroup(\n    name = \"runtime\",\n    srcs = glob([\"mesonbuild/**\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
-              "sha256": "567e533adf255de73a2de35049b99923caf872a455af9ce03e01077e0d384bed",
-              "strip_prefix": "meson-1.5.1",
-              "urls": [
-                "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/1.5.1/meson-1.5.1.tar.gz",
-                "https://github.com/mesonbuild/meson/releases/download/1.5.1/meson-1.5.1.tar.gz"
-              ]
-            }
-          },
-          "glib_dev": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "build_file_content": "\ncc_import(\n    name = \"glib_dev\",\n    hdrs = glob([\"include/**\"]),\n    shared_library = \"@glib_runtime//:bin/libglib-2.0-0.dll\",\n    visibility = [\"//visibility:public\"],\n)\n        ",
-              "sha256": "bdf18506df304d38be98a4b3f18055b8b8cca81beabecad0eece6ce95319c369",
-              "urls": [
-                "https://mirror.bazel.build/download.gnome.org/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
-                "https://download.gnome.org/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip"
-              ]
-            }
-          },
-          "glib_src": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "build_file_content": "\ncc_import(\n    name = \"msvc_hdr\",\n    hdrs = [\"msvc_recommended_pragmas.h\"],\n    visibility = [\"//visibility:public\"],\n)\n        ",
-              "sha256": "bc96f63112823b7d6c9f06572d2ad626ddac7eb452c04d762592197f6e07898e",
-              "strip_prefix": "glib-2.26.1",
-              "urls": [
-                "https://mirror.bazel.build/download.gnome.org/sources/glib/2.26/glib-2.26.1.tar.gz",
-                "https://download.gnome.org/sources/glib/2.26/glib-2.26.1.tar.gz"
-              ]
-            }
-          },
-          "glib_runtime": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "build_file_content": "\nexports_files(\n    [\n        \"bin/libgio-2.0-0.dll\",\n        \"bin/libglib-2.0-0.dll\",\n        \"bin/libgmodule-2.0-0.dll\",\n        \"bin/libgobject-2.0-0.dll\",\n        \"bin/libgthread-2.0-0.dll\",\n    ],\n    visibility = [\"//visibility:public\"],\n)\n        ",
-              "sha256": "88d857087e86f16a9be651ee7021880b3f7ba050d34a1ed9f06113b8799cb973",
-              "urls": [
-                "https://mirror.bazel.build/download.gnome.org/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
-                "https://download.gnome.org/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip"
-              ]
-            }
-          },
-          "gettext_runtime": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "build_file_content": "\ncc_import(\n    name = \"gettext_runtime\",\n    shared_library = \"bin/libintl-8.dll\",\n    visibility = [\"//visibility:public\"],\n)\n        ",
-              "sha256": "1f4269c0e021076d60a54e98da6f978a3195013f6de21674ba0edbc339c5b079",
-              "urls": [
-                "https://mirror.bazel.build/download.gnome.org/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip",
-                "https://download.gnome.org/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip"
-              ]
-            }
-          },
-          "pkgconfig_src": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "build_file_content": "filegroup(\n    name = \"all_srcs\",\n    srcs = glob([\"**\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
-              "sha256": "6fc69c01688c9458a57eb9a1664c9aba372ccda420a02bf4429fe610e7e7d591",
-              "strip_prefix": "pkg-config-0.29.2",
-              "patches": [
-                "@@rules_foreign_cc~//toolchains:pkgconfig-detectenv.patch",
-                "@@rules_foreign_cc~//toolchains:pkgconfig-makefile-vc.patch",
-                "@@rules_foreign_cc~//toolchains:pkgconfig-builtin-glib-int-conversion.patch"
-              ],
-              "urls": [
-                "https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",
-                "https://mirror.bazel.build/pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz"
-              ]
-            }
-          },
-          "bazel_features": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "sha256": "ba1282c1aa1d1fffdcf994ab32131d7c7551a9bc960fbf05f42d55a1b930cbfb",
-              "strip_prefix": "bazel_features-1.15.0",
-              "url": "https://github.com/bazel-contrib/bazel_features/releases/download/v1.15.0/bazel_features-v1.15.0.tar.gz"
-            }
-          },
-          "bazel_skylib": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "urls": [
-                "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.2.1/bazel-skylib-1.2.1.tar.gz",
-                "https://github.com/bazelbuild/bazel-skylib/releases/download/1.2.1/bazel-skylib-1.2.1.tar.gz"
-              ],
-              "sha256": "f7be3474d42aae265405a592bb7da8e171919d74c16f082a5457840f06054728"
-            }
-          },
-          "rules_python": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "sha256": "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
-              "strip_prefix": "rules_python-0.23.1",
-              "url": "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.23.1.tar.gz"
-            }
-          },
-          "rules_shell": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "sha256": "d8cd4a3a91fc1dc68d4c7d6b655f09def109f7186437e3f50a9b60ab436a0c53",
-              "strip_prefix": "rules_shell-0.3.0",
-              "url": "https://github.com/bazelbuild/rules_shell/releases/download/v0.3.0/rules_shell-v0.3.0.tar.gz"
-            }
           },
           "cmake-3.23.2-linux-aarch64": {
             "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
@@ -571,6 +412,124 @@
                 ]
               },
               "tool": "ninja"
+            }
+          },
+          "make_4.4.1_src": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "filegroup(\n    name = \"all_srcs\",\n    srcs = glob([\"**\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "sha256": "dd16fb1d67bfab79a72f5e8390735c49e3e8e70b4945a15ab1f81ddb78658fb3",
+              "strip_prefix": "make-4.4.1",
+              "urls": [
+                "https://mirror.bazel.build/ftpmirror.gnu.org/gnu/make/make-4.4.1.tar.gz",
+                "http://ftpmirror.gnu.org/gnu/make/make-4.4.1.tar.gz"
+              ]
+            }
+          },
+          "glib_dev": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "\ncc_import(\n    name = \"glib_dev\",\n    hdrs = glob([\"include/**\"]),\n    shared_library = \"@glib_runtime//:bin/libglib-2.0-0.dll\",\n    visibility = [\"//visibility:public\"],\n)\n        ",
+              "sha256": "bdf18506df304d38be98a4b3f18055b8b8cca81beabecad0eece6ce95319c369",
+              "urls": [
+                "https://mirror.bazel.build/download.gnome.org/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
+                "https://download.gnome.org/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip"
+              ]
+            }
+          },
+          "glib_src": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "\ncc_import(\n    name = \"msvc_hdr\",\n    hdrs = [\"msvc_recommended_pragmas.h\"],\n    visibility = [\"//visibility:public\"],\n)\n        ",
+              "sha256": "bc96f63112823b7d6c9f06572d2ad626ddac7eb452c04d762592197f6e07898e",
+              "strip_prefix": "glib-2.26.1",
+              "urls": [
+                "https://mirror.bazel.build/download.gnome.org/sources/glib/2.26/glib-2.26.1.tar.gz",
+                "https://download.gnome.org/sources/glib/2.26/glib-2.26.1.tar.gz"
+              ]
+            }
+          },
+          "glib_runtime": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "\nexports_files(\n    [\n        \"bin/libgio-2.0-0.dll\",\n        \"bin/libglib-2.0-0.dll\",\n        \"bin/libgmodule-2.0-0.dll\",\n        \"bin/libgobject-2.0-0.dll\",\n        \"bin/libgthread-2.0-0.dll\",\n    ],\n    visibility = [\"//visibility:public\"],\n)\n        ",
+              "sha256": "88d857087e86f16a9be651ee7021880b3f7ba050d34a1ed9f06113b8799cb973",
+              "urls": [
+                "https://mirror.bazel.build/download.gnome.org/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
+                "https://download.gnome.org/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip"
+              ]
+            }
+          },
+          "gettext_runtime": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "\ncc_import(\n    name = \"gettext_runtime\",\n    shared_library = \"bin/libintl-8.dll\",\n    visibility = [\"//visibility:public\"],\n)\n        ",
+              "sha256": "1f4269c0e021076d60a54e98da6f978a3195013f6de21674ba0edbc339c5b079",
+              "urls": [
+                "https://mirror.bazel.build/download.gnome.org/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip",
+                "https://download.gnome.org/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip"
+              ]
+            }
+          },
+          "pkgconfig_0.29.2_src": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "filegroup(\n    name = \"all_srcs\",\n    srcs = glob([\"**\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "sha256": "6fc69c01688c9458a57eb9a1664c9aba372ccda420a02bf4429fe610e7e7d591",
+              "strip_prefix": "pkg-config-0.29.2",
+              "patches": [
+                "@@rules_foreign_cc~//toolchains/patches:pkgconfig-detectenv.patch",
+                "@@rules_foreign_cc~//toolchains/patches:pkgconfig-makefile-vc.patch",
+                "@@rules_foreign_cc~//toolchains/patches:pkgconfig-builtin-glib-int-conversion.patch"
+              ],
+              "urls": [
+                "https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",
+                "https://mirror.bazel.build/pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz"
+              ]
+            }
+          },
+          "meson_1.5.1_src": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "build_file_content": "exports_files([\"meson.py\"])\n\nfilegroup(\n    name = \"runtime\",\n    # NOTE: excluding __pycache__ is important to avoid rebuilding due to pyc\n    # files, see https://github.com/bazel-contrib/rules_foreign_cc/issues/1342\n    srcs = glob([\"mesonbuild/**\"], exclude = [\"**/__pycache__/*\"]),\n    visibility = [\"//visibility:public\"],\n)\n",
+              "sha256": "567e533adf255de73a2de35049b99923caf872a455af9ce03e01077e0d384bed",
+              "strip_prefix": "meson-1.5.1",
+              "urls": [
+                "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/1.5.1/meson-1.5.1.tar.gz",
+                "https://github.com/mesonbuild/meson/releases/download/1.5.1/meson-1.5.1.tar.gz"
+              ]
+            }
+          },
+          "rules_foreign_cc_toolchains": {
+            "bzlFile": "@@rules_foreign_cc~//foreign_cc:extensions.bzl",
+            "ruleClassName": "_foreign_cc_toolchain_repository",
+            "attributes": {
+              "toolchains": [
+                "toolchain(\n    name = \"cmake-3.23.2-linux-aarch64_toolchain\",\n    exec_compatible_with = [\"@platforms//cpu:aarch64\", \"@platforms//os:linux\"],\n    toolchain = \"@cmake-3.23.2-linux-aarch64//:cmake_tool\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:cmake_toolchain\",\n)\n",
+                "toolchain(\n    name = \"cmake-3.23.2-linux-x86_64_toolchain\",\n    exec_compatible_with = [\"@platforms//cpu:x86_64\", \"@platforms//os:linux\"],\n    toolchain = \"@cmake-3.23.2-linux-x86_64//:cmake_tool\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:cmake_toolchain\",\n)\n",
+                "toolchain(\n    name = \"cmake-3.23.2-macos-universal_toolchain\",\n    exec_compatible_with = [\"@platforms//os:macos\"],\n    toolchain = \"@cmake-3.23.2-macos-universal//:cmake_tool\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:cmake_toolchain\",\n)\n",
+                "toolchain(\n    name = \"cmake-3.23.2-windows-i386_toolchain\",\n    exec_compatible_with = [\"@platforms//cpu:x86_32\", \"@platforms//os:windows\"],\n    toolchain = \"@cmake-3.23.2-windows-i386//:cmake_tool\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:cmake_toolchain\",\n)\n",
+                "toolchain(\n    name = \"cmake-3.23.2-windows-x86_64_toolchain\",\n    exec_compatible_with = [\"@platforms//cpu:x86_64\", \"@platforms//os:windows\"],\n    toolchain = \"@cmake-3.23.2-windows-x86_64//:cmake_tool\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:cmake_toolchain\",\n)\n",
+                "toolchain(\n    name = \"ninja_1.12.1_linux_toolchain\",\n    exec_compatible_with = [\"@platforms//cpu:x86_64\", \"@platforms//os:linux\"],\n    toolchain = \"@ninja_1.12.1_linux//:ninja_tool\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:ninja_toolchain\",\n)\n",
+                "toolchain(\n    name = \"ninja_1.12.1_linux-aarch64_toolchain\",\n    exec_compatible_with = [\"@platforms//cpu:aarch64\", \"@platforms//os:linux\"],\n    toolchain = \"@ninja_1.12.1_linux-aarch64//:ninja_tool\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:ninja_toolchain\",\n)\n",
+                "toolchain(\n    name = \"ninja_1.12.1_mac_toolchain\",\n    exec_compatible_with = [\"@platforms//cpu:x86_64\", \"@platforms//os:macos\"],\n    toolchain = \"@ninja_1.12.1_mac//:ninja_tool\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:ninja_toolchain\",\n)\n",
+                "toolchain(\n    name = \"ninja_1.12.1_mac_aarch64_toolchain\",\n    exec_compatible_with = [\"@platforms//cpu:aarch64\", \"@platforms//os:macos\"],\n    toolchain = \"@ninja_1.12.1_mac_aarch64//:ninja_tool\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:ninja_toolchain\",\n)\n",
+                "toolchain(\n    name = \"ninja_1.12.1_win_toolchain\",\n    exec_compatible_with = [\"@platforms//cpu:x86_64\", \"@platforms//os:windows\"],\n    toolchain = \"@ninja_1.12.1_win//:ninja_tool\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:ninja_toolchain\",\n)\n",
+                "load(\"@rules_foreign_cc//foreign_cc/built_tools:make_build.bzl\", \"make_tool\")\nload(\"@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl\", \"native_tool_toolchain\")\n\nmake_tool(\n    name = \"make_tool\",\n    srcs = \"@make_4.4.1_src//:all_srcs\",\n    tags = [\"manual\"],\n)\n\nnative_tool_toolchain(\n    name = \"built_make\",\n    env = select({\n        \"@platforms//os:windows\": {\"MAKE\": \"$(execpath :make_tool)/bin/make.exe\"},\n        \"//conditions:default\": {\"MAKE\": \"$(execpath :make_tool)/bin/make\"},\n    }),\n    path = select({\n        \"@platforms//os:windows\": \"$(execpath :make_tool)/bin/make.exe\",\n        \"//conditions:default\": \"$(execpath :make_tool)/bin/make\",\n    }),\n    target = \":make_tool\",\n)\n\ntoolchain(\n    name = \"built_make_toolchain\",\n    toolchain = \":built_make\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:make_toolchain\",\n)\n",
+                "load(\"@rules_foreign_cc//foreign_cc/built_tools:pkgconfig_build.bzl\", \"pkgconfig_tool\")\nload(\"@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl\", \"native_tool_toolchain\")\n\npkgconfig_tool(\n    name = \"pkgconfig_tool\",\n    srcs = \"@pkgconfig_0.29.2_src//:all_srcs\",\n    tags = [\"manual\"],\n)\n\nnative_tool_toolchain(\n    name = \"built_pkgconfig\",\n    env = select({\n        \"@platforms//os:windows\": {\"PKG_CONFIG\": \"$(execpath :pkgconfig_tool)\"},\n        \"//conditions:default\": {\"PKG_CONFIG\": \"$(execpath :pkgconfig_tool)/bin/pkg-config\"},\n    }),\n    path = select({\n        \"@platforms//os:windows\": \"$(execpath :pkgconfig_tool)\",\n        \"//conditions:default\": \"$(execpath :pkgconfig_tool)/bin/pkg-config\",\n    }),\n    target = \":pkgconfig_tool\",\n)\n\ntoolchain(\n    name = \"built_pkgconfig_toolchain\",\n    toolchain = \":built_pkgconfig\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:pkgconfig_toolchain\",\n)\n",
+                "load(\"@rules_foreign_cc//foreign_cc/built_tools:meson_build.bzl\", \"meson_tool\")\nload(\"@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl\", \"native_tool_toolchain\")\n\nalias(\n    name = \"meson_runtime\",\n    actual = \"@meson_1.5.1_src//:runtime\",\n)\n\nalias(\n    name = \"meson.py\",\n    actual = \"@meson_1.5.1_src//:meson.py\",\n)\n\nmeson_tool(\n    name = \"meson_tool\",\n    data = [\":meson_runtime\"],\n    main = \"//:meson.py\",\n    tags = [\"manual\"],\n)\n\nnative_tool_toolchain(\n    name = \"built_meson\",\n    env = {\"MESON\": \"$(execpath :meson_tool)\"},\n    path = \"$(execpath :meson_tool)\",\n    target = \":meson_tool\",\n)\n\ntoolchain(\n    name = \"built_meson_toolchain\",\n    toolchain = \":built_meson\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:meson_toolchain\",\n)\n",
+                "native_tool_toolchain(\n    name = \"preinstalled_m4\",\n    env = select({\n        \"@platforms//os:windows\": {\"M4\": \"m4.exe\"},\n        \"//conditions:default\": {\"M4\": \"m4\"},\n    }),\n    path = select({\n        \"@platforms//os:windows\": \"m4.exe\",\n        \"//conditions:default\": \"m4\",\n    }),\n)\n\ntoolchain(\n    name = \"preinstalled_m4_toolchain\",\n    toolchain = \":preinstalled_m4\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:m4_toolchain\",\n)\n",
+                "native_tool_toolchain(\n    name = \"preinstalled_autoconf\",\n    env = select({\n        \"@platforms//os:windows\": {\"AUTOCONF\": \"autoconf.exe\"},\n        \"//conditions:default\": {\"AUTOCONF\": \"autoconf\"},\n    }),\n    path = select({\n        \"@platforms//os:windows\": \"autoconf.exe\",\n        \"//conditions:default\": \"autoconf\",\n    }),\n)\n\ntoolchain(\n    name = \"preinstalled_autoconf_toolchain\",\n    toolchain = \":preinstalled_autoconf\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:autoconf_toolchain\",\n)\n",
+                "native_tool_toolchain(\n    name = \"preinstalled_automake\",\n    env = select({\n        \"@platforms//os:windows\": {\"AUTOMAKE\": \"automake.exe\"},\n        \"//conditions:default\": {\"AUTOMAKE\": \"automake\"},\n    }),\n    path = select({\n        \"@platforms//os:windows\": \"automake.exe\",\n        \"//conditions:default\": \"automake\",\n    }),\n)\n\ntoolchain(\n    name = \"preinstalled_automake_toolchain\",\n    toolchain = \":preinstalled_automake\",\n    toolchain_type = \"@rules_foreign_cc//toolchains:automake_toolchain\",\n)\n",
+                "native_tool_toolchain(\n    name = \"preinstalled_nmake\",\n    path = \"nmake.exe\",\n)\n"
+              ]
             }
           }
         },
