@@ -1,3 +1,8 @@
+module(
+    name = "rules_foreign_cc_examples",
+    version = "0.0.0",
+)
+
 bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
 local_path_override(
     module_name = "rules_foreign_cc",
@@ -12,12 +17,12 @@ use_repo(
     "meson_src",
 )
 
-bazel_dep(name = "platforms", version = "0.0.6")
-bazel_dep(name = "rules_swift", version = "1.6.0", repo_name = "build_bazel_rules_swift")
+bazel_dep(name = "platforms", version = "0.0.10")
+bazel_dep(name = "rules_swift", version = "1.17.0", repo_name = "build_bazel_rules_swift")
 bazel_dep(name = "rules_apple", version = "3.4.0", repo_name = "build_bazel_rules_apple")
-bazel_dep(name = "apple_support", version = "1.12.0", repo_name = "build_bazel_apple_support")
-bazel_dep(name = "rules_python", version = "0.23.0")
-bazel_dep(name = "rules_cc", version = "0.0.9")
+bazel_dep(name = "apple_support", version = "1.14.0", repo_name = "build_bazel_apple_support")
+bazel_dep(name = "rules_python", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.0.16")
 bazel_dep(name = "rules_shell", version = "0.3.0")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
@@ -25,14 +30,14 @@ python.toolchain(
     configure_coverage_tool = True,
     # Only set when you have mulitple toolchain versions.
     is_default = True,
-    python_version = "3.10",
+    python_version = "3.11",
 )
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
-    name = "pip",
+    hub_name = "pip",
+    python_version = "3.11",
     requirements_lock = "//:requirements_lock.txt",
-    requirements_windows = "//:requirements_windows.txt",
 )
 use_repo(pip, "pip")
 

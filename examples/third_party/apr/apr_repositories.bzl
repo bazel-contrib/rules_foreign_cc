@@ -8,6 +8,7 @@ def apr_repositories():
         http_archive,
         name = "apr",
         build_file = Label("//apr:BUILD.apr.bazel"),
+        integrity = "sha256-M3X6Nl1nvPlF5StSy6B6vqV+9TD0Cygf++l3qSUTYds=",
         patches = [
             # https://bz.apache.org/bugzilla/show_bug.cgi?id=64753
             Label("//apr:macos_pid_t.patch"),
