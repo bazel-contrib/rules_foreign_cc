@@ -45,12 +45,11 @@ python_register_toolchains(
     python_version = "3.10",
 )
 
-load("@python3_10//:defs.bzl", py3_interpreter = "interpreter")
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 pip_parse(
-    name = "pip",
-    python_interpreter_target = py3_interpreter,
+    hub_name = "pip",
+    python_version = "3.10",
     requirements_lock = "//:requirements_lock.txt",
 )
 
