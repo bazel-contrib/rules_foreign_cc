@@ -205,7 +205,8 @@ def _create_configure_script(configureParameters):
 
     cmake_commands = []
 
-    configuration = "Debug" if is_debug_mode(ctx) else "Release"
+    default_configuration = "Debug" if is_debug_mode(ctx) else "Release"
+    configuration = default_configuration if not ctx.attr.configuration else ctx.attr.configuration
 
     data = ctx.attr.data + ctx.attr.build_data
 
@@ -363,6 +364,15 @@ def _attrs():
             ),
             mandatory = False,
             default = {},
+        ),
+        "configuration": attr.string(
+            doc = (
+                "Override the `cmake --build` and `cmake --install` `--config` configuration. " +
+                "If left empty, the value of this arg will be determined by the COMPILATION_MODE env var: " +
+                "dbg will set `--config Debug` and all other modes will set --config Release."
+            ),
+            mandatory = False,
+            default = "",
         ),
         "generate_args": attr.string_list(
             doc = (
