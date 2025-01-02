@@ -49,7 +49,7 @@ load("@rules_python//python:pip.bzl", "pip_parse")
 
 pip_parse(
     name = "pip",
-    python_version = "3.10",
+    python_interpreter_target = "@python3_10//:python",
     requirements_lock = "//:requirements_lock.txt",
 )
 
