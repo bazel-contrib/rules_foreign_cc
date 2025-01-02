@@ -3,11 +3,14 @@
 SUPPORTED_CPU = [
     "aarch64",
     "s390x",
+    "wasm32",
+    "wasm64",
     "x86_64",
 ]
 
 SUPPORTED_OS = [
     "android",
+    "emscripten",
     "freebsd",
     "ios",
     "linux",
@@ -16,6 +19,7 @@ SUPPORTED_OS = [
     "openbsd",
     "qnx",
     "tvos",
+    "wasi",
     "watchos",
     "windows",
 ]
@@ -210,5 +214,17 @@ def triplet_name(os, arch):
             return "aarch64-apple-darwin21"
         elif arch == "x86_64":
             return "x86_64-apple-darwin21"
+
+    elif os == "emscripten":
+        if arch == "wasm32":
+            return "wasm32-unknown-emscripten"
+        if arch == "wasm64":
+            return "wasm64-unknown-emscripten"
+
+    elif os == "wasi":
+        if arch == "wasm32":
+            return "wasm32-unknown-wasi"
+        if arch == "wasm64":
+            return "wasm64-unknown-wasi"
 
     return "unknown"
