@@ -1,0 +1,293 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>configure_make - Rules ForeignCc</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Rules ForeignCc</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/bazel-contrib/rules_foreign_cc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!-- Generated with Stardoc: http://skydoc.bazel.build -->
+<p>A rule for building projects using the <a href="https://www.gnu.org/prep/standards/html_node/Configuration.html">Configure+Make</a>
+build tool</p>
+<p><a id="configure_make"></a></p>
+<h2 id="configure_make"><a class="header" href="#configure_make">configure_make</a></h2>
+<pre>
+load("@rules_foreign_cc//foreign_cc:configure.bzl", "configure_make")
+
+configure_make(<a href="#configure_make-name">name</a>, <a href="#configure_make-deps">deps</a>, <a href="#configure_make-data">data</a>, <a href="#configure_make-additional_inputs">additional_inputs</a>, <a href="#configure_make-additional_tools">additional_tools</a>, <a href="#configure_make-alwayslink">alwayslink</a>, <a href="#configure_make-args">args</a>, <a href="#configure_make-autoconf">autoconf</a>,
+               <a href="#configure_make-autoconf_options">autoconf_options</a>, <a href="#configure_make-autogen">autogen</a>, <a href="#configure_make-autogen_command">autogen_command</a>, <a href="#configure_make-autogen_options">autogen_options</a>, <a href="#configure_make-autoreconf">autoreconf</a>,
+               <a href="#configure_make-autoreconf_options">autoreconf_options</a>, <a href="#configure_make-build_data">build_data</a>, <a href="#configure_make-configure_command">configure_command</a>, <a href="#configure_make-configure_in_place">configure_in_place</a>,
+               <a href="#configure_make-configure_options">configure_options</a>, <a href="#configure_make-configure_prefix">configure_prefix</a>, <a href="#configure_make-configure_xcompile">configure_xcompile</a>, <a href="#configure_make-copts">copts</a>, <a href="#configure_make-defines">defines</a>, <a href="#configure_make-dynamic_deps">dynamic_deps</a>,
+               <a href="#configure_make-env">env</a>, <a href="#configure_make-executable_ldflags_vars">executable_ldflags_vars</a>, <a href="#configure_make-includes">includes</a>, <a href="#configure_make-install_prefix">install_prefix</a>, <a href="#configure_make-lib_name">lib_name</a>, <a href="#configure_make-lib_source">lib_source</a>, <a href="#configure_make-linkopts">linkopts</a>,
+               <a href="#configure_make-out_bin_dir">out_bin_dir</a>, <a href="#configure_make-out_binaries">out_binaries</a>, <a href="#configure_make-out_data_dirs">out_data_dirs</a>, <a href="#configure_make-out_dll_dir">out_dll_dir</a>, <a href="#configure_make-out_headers_only">out_headers_only</a>,
+               <a href="#configure_make-out_include_dir">out_include_dir</a>, <a href="#configure_make-out_interface_libs">out_interface_libs</a>, <a href="#configure_make-out_lib_dir">out_lib_dir</a>, <a href="#configure_make-out_shared_libs">out_shared_libs</a>, <a href="#configure_make-out_static_libs">out_static_libs</a>,
+               <a href="#configure_make-postfix_script">postfix_script</a>, <a href="#configure_make-prefix_flag">prefix_flag</a>, <a href="#configure_make-set_file_prefix_map">set_file_prefix_map</a>, <a href="#configure_make-shared_ldflags_vars">shared_ldflags_vars</a>, <a href="#configure_make-targets">targets</a>,
+               <a href="#configure_make-tool_prefix">tool_prefix</a>, <a href="#configure_make-tools_deps">tools_deps</a>)
+</pre>
+<p>Rule for building external libraries with configure-make pattern. Some 'configure' script is invoked with --prefix=install (by default), and other parameters for compilation and linking, taken from Bazel C/C++ toolchain and passed dependencies. After configuration, GNU Make is called.</p>
+<p><strong>ATTRIBUTES</strong></p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: left">Name</th><th style="text-align: left">Description</th><th style="text-align: left">Type</th><th style="text-align: left">Mandatory</th><th style="text-align: left">Default</th></tr></thead><tbody>
+<tr><td style="text-align: left"><a id="configure_make-name"></a>name</td><td style="text-align: left">A unique name for this target.</td><td style="text-align: left"><a href="https://bazel.build/concepts/labels#target-names">Name</a></td><td style="text-align: left">required</td><td style="text-align: left"></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-deps"></a>deps</td><td style="text-align: left">Optional dependencies to be copied into the directory structure. Typically those directly required for the external building of the library/binaries. (i.e. those that the external build system will be looking for and paths to which are provided by the calling rule)</td><td style="text-align: left"><a href="https://bazel.build/concepts/labels">List of labels</a></td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-data"></a>data</td><td style="text-align: left">Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.</td><td style="text-align: left"><a href="https://bazel.build/concepts/labels">List of labels</a></td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-additional_inputs"></a>additional_inputs</td><td style="text-align: left"><strong>deprecated</strong>: Please use the <code>build_data</code> attribute.</td><td style="text-align: left"><a href="https://bazel.build/concepts/labels">List of labels</a></td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-additional_tools"></a>additional_tools</td><td style="text-align: left"><strong>deprecated</strong>: Please use the <code>build_data</code> attribute.</td><td style="text-align: left"><a href="https://bazel.build/concepts/labels">List of labels</a></td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-alwayslink"></a>alwayslink</td><td style="text-align: left">Optional. if true, link all the object files from the static library, even if they are not used.</td><td style="text-align: left">Boolean</td><td style="text-align: left">optional</td><td style="text-align: left"><code>False</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-args"></a>args</td><td style="text-align: left">A list of arguments to pass to the call to <code>make</code></td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-autoconf"></a>autoconf</td><td style="text-align: left">Set to True if 'autoconf' should be invoked before 'configure', currently requires <code>configure_in_place</code> to be True.</td><td style="text-align: left">Boolean</td><td style="text-align: left">optional</td><td style="text-align: left"><code>False</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-autoconf_options"></a>autoconf_options</td><td style="text-align: left">Any options to be put in the 'autoconf.sh' command line.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-autogen"></a>autogen</td><td style="text-align: left">Set to True if 'autogen.sh' should be invoked before 'configure', currently requires <code>configure_in_place</code> to be True.</td><td style="text-align: left">Boolean</td><td style="text-align: left">optional</td><td style="text-align: left"><code>False</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-autogen_command"></a>autogen_command</td><td style="text-align: left">The name of the autogen script file, default: autogen.sh. Many projects use autogen.sh however the Autotools FAQ recommends bootstrap so we provide this option to support that.</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>"autogen.sh"</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-autogen_options"></a>autogen_options</td><td style="text-align: left">Any options to be put in the 'autogen.sh' command line.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-autoreconf"></a>autoreconf</td><td style="text-align: left">Set to True if 'autoreconf' should be invoked before 'configure.', currently requires <code>configure_in_place</code> to be True.</td><td style="text-align: left">Boolean</td><td style="text-align: left">optional</td><td style="text-align: left"><code>False</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-autoreconf_options"></a>autoreconf_options</td><td style="text-align: left">Any options to be put in the 'autoreconf.sh' command line.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-build_data"></a>build_data</td><td style="text-align: left">Files needed by this rule only during build/compile time. May list file or rule targets. Generally allows any target.</td><td style="text-align: left"><a href="https://bazel.build/concepts/labels">List of labels</a></td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-configure_command"></a>configure_command</td><td style="text-align: left">The name of the configuration script file, default: configure. The file must be in the root of the source directory.</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>"configure"</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-configure_in_place"></a>configure_in_place</td><td style="text-align: left">Set to True if 'configure' should be invoked in place, i.e. from its enclosing directory.</td><td style="text-align: left">Boolean</td><td style="text-align: left">optional</td><td style="text-align: left"><code>False</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-configure_options"></a>configure_options</td><td style="text-align: left">Any options to be put on the 'configure' command line.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-configure_prefix"></a>configure_prefix</td><td style="text-align: left">A prefix for the call to the <code>configure_command</code>.</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>""</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-configure_xcompile"></a>configure_xcompile</td><td style="text-align: left">If this is set and an xcompile scenario is detected, pass the necessary autotools flags.</td><td style="text-align: left">Boolean</td><td style="text-align: left">optional</td><td style="text-align: left"><code>False</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-copts"></a>copts</td><td style="text-align: left">Optional. Add these options to the compile flags passed to the foreign build system. The flags only take affect for compiling this target, not its dependencies.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-defines"></a>defines</td><td style="text-align: left">Optional compilation definitions to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-dynamic_deps"></a>dynamic_deps</td><td style="text-align: left">Same as deps but for cc_shared_library.</td><td style="text-align: left"><a href="https://bazel.build/concepts/labels">List of labels</a></td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-env"></a>env</td><td style="text-align: left">Environment variables to set during the build. <code>$(execpath)</code> macros may be used to point at files which are listed as <code>data</code>, <code>deps</code>, or <code>build_data</code>, but unlike with other rules, these will be replaced with absolute paths to those files, because the build does not run in the exec root. This attribute is subject to make variable substitution. No other macros are supported.Variables containing <code>PATH</code> (e.g. <code>PATH</code>, <code>LD_LIBRARY_PATH</code>, <code>CPATH</code>) entries will be prepended to the existing variable.</td><td style="text-align: left"><a href="https://bazel.build/rules/lib/dict">Dictionary: String -&gt; String</a></td><td style="text-align: left">optional</td><td style="text-align: left"><code>{}</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-executable_ldflags_vars"></a>executable_ldflags_vars</td><td style="text-align: left">A list of variable names use as LDFLAGS for executables. These variables will be passed to the make command as make vars and overwrite what is defined in the Makefile.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-includes"></a>includes</td><td style="text-align: left">Optional list of include dirs to be passed to the dependencies of this library. They are NOT passed to the compiler, you should duplicate them in the configuration options.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-install_prefix"></a>install_prefix</td><td style="text-align: left">Install prefix, i.e. relative path to where to install the result of the build. Passed to the 'configure' script with the flag specified by prefix_flag.</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>""</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-lib_name"></a>lib_name</td><td style="text-align: left">Library name. Defines the name of the install directory and the name of the static library, if no output files parameters are defined (any of static_libraries, shared_libraries, interface_libraries, binaries_names) Optional. If not defined, defaults to the target's name.</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>""</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-lib_source"></a>lib_source</td><td style="text-align: left">Label with source code to build. Typically a filegroup for the source of remote repository. Mandatory.</td><td style="text-align: left"><a href="https://bazel.build/concepts/labels">Label</a></td><td style="text-align: left">required</td><td style="text-align: left"></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-linkopts"></a>linkopts</td><td style="text-align: left">Optional link options to be passed up to the dependencies of this library</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-out_bin_dir"></a>out_bin_dir</td><td style="text-align: left">Optional name of the output subdirectory with the binary files, defaults to 'bin'.</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>"bin"</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-out_binaries"></a>out_binaries</td><td style="text-align: left">Optional names of the resulting binaries.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-out_data_dirs"></a>out_data_dirs</td><td style="text-align: left">Optional names of additional directories created by the build that should be declared as bazel action outputs</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-out_dll_dir"></a>out_dll_dir</td><td style="text-align: left">Optional name of the output subdirectory with the dll files, defaults to 'bin'.</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>"bin"</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-out_headers_only"></a>out_headers_only</td><td style="text-align: left">Flag variable to indicate that the library produces only headers</td><td style="text-align: left">Boolean</td><td style="text-align: left">optional</td><td style="text-align: left"><code>False</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-out_include_dir"></a>out_include_dir</td><td style="text-align: left">Optional name of the output subdirectory with the header files, defaults to 'include'.</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>"include"</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-out_interface_libs"></a>out_interface_libs</td><td style="text-align: left">Optional names of the resulting interface libraries.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-out_lib_dir"></a>out_lib_dir</td><td style="text-align: left">Optional name of the output subdirectory with the library files, defaults to 'lib'.</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>"lib"</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-out_shared_libs"></a>out_shared_libs</td><td style="text-align: left">Optional names of the resulting shared libraries.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-out_static_libs"></a>out_static_libs</td><td style="text-align: left">Optional names of the resulting static libraries. Note that if <code>out_headers_only</code>, <code>out_static_libs</code>, <code>out_shared_libs</code>, and <code>out_binaries</code> are not set, default <code>lib_name.a</code>/<code>lib_name.lib</code> static library is assumed</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-postfix_script"></a>postfix_script</td><td style="text-align: left">Optional part of the shell script to be added after the make commands</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>""</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-prefix_flag"></a>prefix_flag</td><td style="text-align: left">The flag to specify the install directory prefix with.</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>"--prefix="</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-set_file_prefix_map"></a>set_file_prefix_map</td><td style="text-align: left">Use -ffile-prefix-map with the intention to remove the sandbox path from debug symbols</td><td style="text-align: left">Boolean</td><td style="text-align: left">optional</td><td style="text-align: left"><code>False</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-shared_ldflags_vars"></a>shared_ldflags_vars</td><td style="text-align: left">A list of variable names use as LDFLAGS for shared libraries. These variables will be passed to the make command as make vars and overwrite what is defined in the Makefile.</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-targets"></a>targets</td><td style="text-align: left">A list of targets within the foreign build system to produce. An empty string (<code>""</code>) will result in a call to the underlying build system with no explicit target set</td><td style="text-align: left">List of strings</td><td style="text-align: left">optional</td><td style="text-align: left"><code>["", "install"]</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-tool_prefix"></a>tool_prefix</td><td style="text-align: left">A prefix for build commands</td><td style="text-align: left">String</td><td style="text-align: left">optional</td><td style="text-align: left"><code>""</code></td></tr>
+<tr><td style="text-align: left"><a id="configure_make-tools_deps"></a>tools_deps</td><td style="text-align: left"><strong>deprecated</strong>: Please use the <code>build_data</code> attribute.</td><td style="text-align: left"><a href="https://bazel.build/concepts/labels">List of labels</a></td><td style="text-align: left">optional</td><td style="text-align: left"><code>[]</code></td></tr>
+</tbody></table>
+</div>
+<p><a id="configure_make_variant"></a></p>
+<h2 id="configure_make_variant"><a class="header" href="#configure_make_variant">configure_make_variant</a></h2>
+<pre>
+load("@rules_foreign_cc//foreign_cc:configure.bzl", "configure_make_variant")
+
+configure_make_variant(<a href="#configure_make_variant-name">name</a>, <a href="#configure_make_variant-toolchain">toolchain</a>, <a href="#configure_make_variant-kwargs">kwargs</a>)
+</pre>
+<p>Wrapper macro around the configure_make() rule to force usage of the given make variant toolchain.</p>
+<p><strong>PARAMETERS</strong></p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: left">Name</th><th style="text-align: left">Description</th><th style="text-align: left">Default Value</th></tr></thead><tbody>
+<tr><td style="text-align: left"><a id="configure_make_variant-name"></a>name</td><td style="text-align: left">The target name</td><td style="text-align: left">none</td></tr>
+<tr><td style="text-align: left"><a id="configure_make_variant-toolchain"></a>toolchain</td><td style="text-align: left">The desired make variant toolchain to use, e.g. @rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</td><td style="text-align: left">none</td></tr>
+<tr><td style="text-align: left"><a id="configure_make_variant-kwargs"></a>kwargs</td><td style="text-align: left">Remaining keyword arguments</td><td style="text-align: left">none</td></tr>
+</tbody></table>
+</div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="cmake.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="make.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="cmake.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="make.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
