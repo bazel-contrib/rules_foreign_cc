@@ -33,6 +33,10 @@ python_register_toolchains(
     python_version = "3.12",
 )
 
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
 load("//:docs/stardoc_repository.bzl", "stardoc_repository")
 
 stardoc_repository()
