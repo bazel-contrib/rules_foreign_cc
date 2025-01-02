@@ -37,10 +37,16 @@ http_archive(
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 # This sets up some common toolchains for building targets. For more details, please see
-# https://bazelbuild.github.io/rules_foreign_cc/${TAG}/flatten.html#rules_foreign_cc_dependencies
+# https://bazel-contrib.github.io/rules_foreign_cc/${TAG}/flatten.html#rules_foreign_cc_dependencies
 rules_foreign_cc_dependencies()
 
-# If you're not already using bazel_features or rules_python, you'll need to add these calls as well.
+# If you're not already using bazel_skylib, bazel_features or rules_python,
+# you'll need to add these calls as well.
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
 
 bazel_features_deps()
@@ -48,8 +54,6 @@ bazel_features_deps()
 load("@rules_python//python:repositories.bzl", "py_repositories")
 
 py_repositories()
-
-
 
 EOF
 
