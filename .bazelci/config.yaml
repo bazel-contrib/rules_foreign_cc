@@ -230,7 +230,7 @@ tasks:
       - "--enable_workspace"
     test_flags:
       - "--enable_workspace"
-  macos_oarm64_detect_root:
+  macos_arm64_detect_root:
     name: Detect root (arm64)
     platform: macos_arm64
     working_directory: test/detect_root_test
