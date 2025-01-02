@@ -35,19 +35,20 @@ load("//deps:deps_jvm_external.bzl", "deps_jvm_external")
 
 deps_jvm_external()
 
-load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
+
+py_repositories()
 
 python_register_toolchains(
-    name = "python3_10",
-    python_version = "3.10",
+    name = "python_3_12",
+    python_version = "3.12",
 )
 
-load("@python3_10//:defs.bzl", py3_interpreter = "interpreter")
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 pip_parse(
     name = "pip",
-    python_interpreter_target = py3_interpreter,
+    python_interpreter_target = "@python_3_12//:python",
     requirements_lock = "//:requirements_lock.txt",
 )
 
