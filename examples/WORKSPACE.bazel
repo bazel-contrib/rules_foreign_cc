@@ -34,15 +34,15 @@ load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 protobuf_deps()
 
 python_register_toolchains(
-    name = "python_3_11",
-    python_version = "3.11",
+    name = "python_3_10",
+    python_version = "3.10",
 )
 
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 pip_parse(
     name = "pip",
-    python_interpreter_target = "@python_3_11_host//:python",
+    python_interpreter_target = "@python_3_10_host//:python",
     requirements_lock = "//:requirements_lock.txt",
 )
 
