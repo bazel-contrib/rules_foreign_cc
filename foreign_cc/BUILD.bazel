@@ -123,14 +123,14 @@ bzl_library(
 )
 
 bzl_library(
-    name = "providers",
-    srcs = ["providers.bzl"],
-    visibility = ["//visibility:public"],
-)
-
-bzl_library(
     name = "utils",
     srcs = ["utils.bzl"],
     visibility = ["//visibility:public"],
     deps = ["@rules_shell//shell:rules_bzl"],
+)
+
+bzl_library(
+    name = "providers",
+    srcs = ["providers.bzl"],
+    visibility = ["//visibility:public"],
 )

@@ -1,5 +1,6 @@
 """ Rule for building Boost from sources. """
 
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load(
     "//foreign_cc/private:framework.bzl",
