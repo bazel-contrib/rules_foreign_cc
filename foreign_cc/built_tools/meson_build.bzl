@@ -1,11 +1,11 @@
 """ Rule for building meson from source. """
 
-load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python_internal//:rules_python_config.bzl", "config")
 
 def meson_tool(name, main, data, requirements = [], **kwargs):
     kwargs.pop("precompile", None)
-    if bazel_features.external_deps.is_bzlmod_enabled:
+    if config.enable_pystar:
         kwargs["precompile"] = "disabled"
     py_binary(
         name = name,
