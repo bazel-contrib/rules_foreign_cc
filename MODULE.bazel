@@ -23,6 +23,9 @@ python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(python_version = "3.12")
 use_repo(python, "python_3_12")
 
+internal_deps = use_extension("@rules_python//python/private:internal_deps.bzl", "internal_deps")
+use_repo(internal_deps, "rules_python_internal")
+
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 use_repo(
     tools,
