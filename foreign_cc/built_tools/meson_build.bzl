@@ -1,6 +1,6 @@
 """ Rule for building meson from source. """
 
-load("@bazel_features//features.bzl", "bazel_features")
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_python//python:defs.bzl", "py_binary")
 
 def meson_tool(name, main, data, requirements = [], **kwargs):
