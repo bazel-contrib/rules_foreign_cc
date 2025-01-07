@@ -1,5 +1,7 @@
 """A module defining a repository rule for housing toolchain definitions"""
 
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+
 _BUILD_FILE = """\
 load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 
@@ -70,3 +72,30 @@ prebuilt_toolchains_repository = repository_rule(
         ),
     },
 )
+
+def maybe_prebuilt_toolchains_repository(name, repos, tool):
+    """A wrapper for `prebuilt_toolchains_repository` used to support bzlmod.
+
+    Args:
+        name (str): The name of the repository
+        repos (list): See `prebuilt_toolchains_repository`
+        tool (string): See `prebuilt_toolchains_repository`
+
+    Returns:
+        list: A list of fully rendered toolchains.
+    """
+    maybe(
+        prebuilt_toolchains_repository,
+        name = name,
+        repos = repos,
+        tool = tool,
+    )
+
+    return [
+        _TOOLCHAIN.format(
+            repo = repo,
+            tool = tool,
+            exec_compatible_with = compat,
+        )
+        for repo, compat in repos.items()
+    ]

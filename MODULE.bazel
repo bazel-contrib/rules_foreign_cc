@@ -1,4 +1,4 @@
-"bazel-contrib/rules_foreign_cc"
+"""bazel-contrib/rules_foreign_cc"""
 
 module(
     name = "rules_foreign_cc",
@@ -26,26 +26,15 @@ python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(python_version = "3.9")
 use_repo(python, "python_3_9")
 
-tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+foreign_cc = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "foreign_cc")
 use_repo(
-    tools,
-    "cmake_3.23.2_toolchains",
-    "cmake_src",
-    "gettext_runtime",
-    "glib_dev",
-    "glib_src",
-    "gnumake_src",
-    "meson_src",
-    "ninja_1.12.1_toolchains",
-    "ninja_build_src",
-    "pkgconfig_src",
+    foreign_cc,
     "rules_foreign_cc_framework_toolchains",
+    "rules_foreign_cc_toolchains",
 )
 
 register_toolchains(
     "@rules_foreign_cc_framework_toolchains//:all",
-    "@cmake_3.23.2_toolchains//:all",
-    "@ninja_1.12.1_toolchains//:all",
+    "@rules_foreign_cc_toolchains//:all",
     "@python_3_9//:all",
-    "@rules_foreign_cc//toolchains:all",
 )

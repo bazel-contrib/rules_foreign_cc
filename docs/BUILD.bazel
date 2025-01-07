@@ -45,6 +45,13 @@ stardoc(
     deps = ["@rules_foreign_cc//foreign_cc:providers"],
 )
 
+stardoc(
+    name = "extensions_docs",
+    out = "src/extensions.md",
+    input = "@rules_foreign_cc//foreign_cc:extensions.bzl",
+    deps = ["@rules_foreign_cc//foreign_cc:extensions"],
+)
+
 DOCS_TARGETS = [
     ":cmake_docs",
     ":ninja_docs",
@@ -52,6 +59,7 @@ DOCS_TARGETS = [
     ":configure_make_docs",
     ":meson_docs",
     ":providers_docs",
+    ":extensions_docs",
 ]
 
 build_test(
