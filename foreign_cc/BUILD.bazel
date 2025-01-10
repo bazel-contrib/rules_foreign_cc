@@ -27,6 +27,10 @@ bzl_library(
         "//foreign_cc/private:transitions",
         "//foreign_cc/private/framework:platform",
         "//toolchains/native_tools:tool_access",
+        "@com_google_protobuf//bazel:cc_proto_library_bzl",
+        "@rules_cc//cc:bzl_srcs",
+        "@rules_cc//cc/common",
+        "@rules_cc//cc/toolchains:toolchain_rules",
     ],
 )
 
@@ -41,6 +45,7 @@ bzl_library(
         "//foreign_cc/private:framework",
         "//foreign_cc/private:transitions",
         "//toolchains/native_tools:tool_access",
+        "@com_google_protobuf//bazel:cc_proto_library_bzl",
         "@rules_cc//cc:bzl_srcs",
         "@rules_cc//cc/common",
         "@rules_cc//cc/toolchains:toolchain_rules",
@@ -83,6 +88,10 @@ bzl_library(
         "//foreign_cc/private:make_script",
         "//foreign_cc/private:transitions",
         "//toolchains/native_tools:tool_access",
+        "@com_google_protobuf//bazel:cc_proto_library_bzl",
+        "@rules_cc//cc:bzl_srcs",
+        "@rules_cc//cc/common",
+        "@rules_cc//cc/toolchains:toolchain_rules",
     ],
 )
 
@@ -99,6 +108,11 @@ bzl_library(
         "//foreign_cc/private:transitions",
         "//toolchains/native_tools:native_tools_toolchain",
         "//toolchains/native_tools:tool_access",
+        "@com_google_protobuf//bazel:cc_proto_library_bzl",
+        "@rules_cc//cc:bzl_srcs",
+        "@rules_cc//cc/common",
+        "@rules_cc//cc/toolchains:toolchain_rules",
+        "@rules_python//python:features_bzl",
     ],
 )
 
@@ -110,6 +124,10 @@ bzl_library(
         "//foreign_cc/private:detect_root",
         "//foreign_cc/private:framework",
         "//toolchains/native_tools:tool_access",
+        "@com_google_protobuf//bazel:cc_proto_library_bzl",
+        "@rules_cc//cc:bzl_srcs",
+        "@rules_cc//cc/common",
+        "@rules_cc//cc/toolchains:toolchain_rules",
     ],
 )
 
