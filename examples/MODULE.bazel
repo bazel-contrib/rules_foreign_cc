@@ -31,9 +31,9 @@ python.toolchain(
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
-    name = "pip",
+    hub_name = "pip",
+    python_version = "3.10",
     requirements_lock = "//:requirements_lock.txt",
-    requirements_windows = "//:requirements_windows.txt",
 )
 use_repo(pip, "pip")
 
