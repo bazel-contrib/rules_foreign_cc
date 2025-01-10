@@ -1,5 +1,6 @@
 """A rule for building projects using the [Meson](https://mesonbuild.com/) build system"""
 
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load("//foreign_cc:utils.bzl", "full_label")
 load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load(

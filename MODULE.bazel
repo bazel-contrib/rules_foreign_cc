@@ -9,21 +9,22 @@ module(
 bazel_dep(name = "bazel_features", version = "1.15.0")
 bazel_dep(name = "bazel_skylib", version = "1.3.0")
 bazel_dep(name = "platforms", version = "0.0.5")
-bazel_dep(name = "rules_python", version = "0.23.1")
+bazel_dep(name = "rules_cc", version = "0.0.17")
+bazel_dep(name = "rules_python", version = "1.1.0-rc0")
+bazel_dep(name = "rules_shell", version = "0.3.0")
+
+# This is only here because of the docs generation!
+bazel_dep(name = "protobuf", version = "29.3", repo_name = "com_google_protobuf")
 
 # Dev dependencies
-bazel_dep(name = "gazelle", version = "0.34.0", dev_dependency = True, repo_name = "bazel_gazelle")
-bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.5.0", dev_dependency = True)
+bazel_dep(name = "gazelle", version = "0.41.0", dev_dependency = True, repo_name = "bazel_gazelle")
+bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.7.1", dev_dependency = True)
 bazel_dep(name = "stardoc", version = "0.5.6", dev_dependency = True, repo_name = "io_bazel_stardoc")
 bazel_dep(name = "bazel_ci_rules", version = "1.0.0", dev_dependency = True)
 
-# note that this dev_dependency is only needed because bazel_ci_rules
-# depends on it. If you are not using bazel_ci_rules; ideally we'd be able to remove this.
-bazel_dep(name = "rules_cc", version = "0.0.9", dev_dependency = True)
-
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
-python.toolchain(python_version = "3.9")
-use_repo(python, "python_3_9")
+python.toolchain(python_version = "3.12")
+use_repo(python, "python_3_12")
 
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 use_repo(
@@ -45,6 +46,6 @@ register_toolchains(
     "@rules_foreign_cc_framework_toolchains//:all",
     "@cmake_3.23.2_toolchains//:all",
     "@ninja_1.12.1_toolchains//:all",
-    "@python_3_9//:all",
+    "@python_3_12//:all",
     "@rules_foreign_cc//toolchains:all",
 )
