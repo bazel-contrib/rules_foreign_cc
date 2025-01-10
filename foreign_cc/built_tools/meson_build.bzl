@@ -12,6 +12,7 @@ def meson_tool(name, main, data, requirements = [], **kwargs):
         srcs = [main],
         data = data,
         deps = requirements,
+        precompile = precompile,
         python_version = "PY3",
         main = main,
         **kwargs
