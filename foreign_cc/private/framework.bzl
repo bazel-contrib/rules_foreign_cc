@@ -328,10 +328,14 @@ def get_env_prelude(ctx, lib_name, data_dependencies, target_root):
     env.update(user_vars)
 
     if cc_toolchain.compiler == "msvc-cl":
-        if "PATH" in user_vars and "$$EXT_BUILD_ROOT$$" in user_vars["PATH"]:
-            # Convert any $$EXT_BUILD_ROOT$$ in PATH to /${EXT_BUILD_ROOT/$(printf '\072')/}.
-            # This is because PATH needs to be in unix format for MSYS2.
-            user_vars["PATH"] = user_vars["PATH"].replace("$$EXT_BUILD_ROOT$$", "/$${EXT_BUILD_ROOT/$$$(printf '\072')/}")
+        # Convert any $$EXT_BUILD_ROOT$$ or $EXT_BUILD_ROOT in PATH to
+        # /${EXT_BUILD_ROOT/$(printf '\072')/}. This is because PATH needs to be in unix
+        # format for MSYS2.
+        # Note: $$EXT_BUILD_ROOT becomes $EXT_BUILD_ROOT after
+        # expand_locations_and_make_variables above.
+        for build_root in ["$$EXT_BUILD_ROOT$$", "$EXT_BUILD_ROOT"]:
+            if "PATH" in user_vars and build_root in user_vars["PATH"]:
+                user_vars["PATH"] = user_vars["PATH"].replace(build_root, "/$${EXT_BUILD_ROOT/$$$(printf '\072')/}")
 
     # If user has defined a PATH variable (e.g. PATH, LD_LIBRARY_PATH, CPATH) prepend it to the existing variable
     for user_var in user_vars:
