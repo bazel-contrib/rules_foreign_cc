@@ -4,7 +4,7 @@ load("//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 load("//toolchains:prebuilt_toolchains.bzl", "prebuilt_toolchains")
 
 _DEFAULT_CMAKE_VERSION = "3.23.2"
-_DEFAULT_NINJA_VERSION = "1.11.1"
+_DEFAULT_NINJA_VERSION = "1.12.1"
 
 cmake_toolchain_version = tag_class(attrs = {
     "version": attr.string(doc = "The cmake version", default = _DEFAULT_CMAKE_VERSION),

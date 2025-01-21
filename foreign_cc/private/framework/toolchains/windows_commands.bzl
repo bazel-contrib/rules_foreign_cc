@@ -9,7 +9,7 @@ def script_extension():
     return ".sh"
 
 def pwd():
-    return "$(type -t cygpath > /dev/null && cygpath $(pwd) -w || pwd -W)"
+    return "$(type -t cygpath > /dev/null && cygpath $(pwd) -m || pwd -W)"
 
 def echo(text):
     return "echo \"{text}\"".format(text = text)
@@ -27,7 +27,25 @@ def env():
     return "env"
 
 def path(expression):
+    # In windows we cannot add vars like $$EXT_BUILD_DEPS$$ directly to PATH as PATH is
+    # required to be in unix format. This implementation also assumes that the vars
+    # like $$EXT_BUILD_DEPS$$ are exported to the ENV.
+    expression = _path_var_expansion(expression)
     return "export PATH=\"{expression}:$PATH\"".format(expression = expression)
+
+def _path_var_expansion(expression):
+    result = []
+    parts = expression.split("$$")
+    if len(parts) < 3:
+        return expression
+
+    for index, part in enumerate(parts):
+        if index % 2 == 0:
+            result.append(part)
+        else:
+            result.append("${" + part + "/:/}")
+
+    return "/" + "".join(result)
 
 def touch(path):
     return "touch " + path
@@ -78,7 +96,7 @@ if [ -d "$1" ]; then
   for file in ${files[@]+"${files[@]}"}; do
     local backup=$(mktemp)
     touch -r "${file}" "${backup}"
-    sed -i 's@'"${argv2}"'@'"${argv3}"'@g' "${file}"
+    sed -i 's'$'\001'"${argv2}"$'\001'"${argv3}"$'\001''g' "${file}"
     if [[ "$?" -ne "0" ]]; then
       exit 1
     fi

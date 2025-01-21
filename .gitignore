@@ -38,6 +38,9 @@
 # CMake
 cmake-build-*/
 
+# Python
+/*venv/
+
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml
 

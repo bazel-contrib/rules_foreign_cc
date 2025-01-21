@@ -5,9 +5,16 @@ load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:framework.bzl", "get_env_prelude", "wrap_outputs")
 load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script", "shebang")
+load("//foreign_cc/private/framework:platform.bzl", "PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES")
 
 # Common attributes for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_ATTRS = {
+    "configure_xcompile": attr.bool(
+        doc = (
+            "If this is set and an xcompile scenario is detected, pass the necessary autotools flags. (Only applies if autotools is used)"
+        ),
+        default = False,
+    ),
     "env": attr.string_dict(
         doc = "Environment variables to set during the build. This attribute is subject to make variable substitution.",
         default = {},
@@ -25,6 +32,9 @@ FOREIGN_CC_BUILT_TOOLS_ATTRS = {
         default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
     ),
 }
+
+# this would be cleaner as x | y, but that's not supported in bazel 5.4.0
+FOREIGN_CC_BUILT_TOOLS_ATTRS.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
 
 # Common fragments for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_FRAGMENTS = [
@@ -60,15 +70,13 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
 
     root = detect_root(ctx.attr.srcs)
     lib_name = ctx.attr.name
-    env_prelude = get_env_prelude(ctx, lib_name, [], "")
+    env_prelude = get_env_prelude(ctx, out_dir.path, [])
 
     cc_toolchain = find_cpp_toolchain(ctx)
 
-    script = env_prelude + [
+    script = [
         "##script_prelude##",
-        "export EXT_BUILD_ROOT=##pwd##",
-        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/{}".format(out_dir.path),
-        "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
+    ] + env_prelude + [
         "##rm_rf## $$INSTALLDIR$$",
         "##rm_rf## $$BUILD_TMPDIR$$",
         "##mkdirs## $$INSTALLDIR$$",
@@ -87,7 +95,13 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
         "",
     ])
 
-    wrapped_outputs = wrap_outputs(ctx, lib_name, mnemonic, script_text)
+    wrapped_outputs = wrap_outputs(
+        ctx,
+        lib_name = lib_name,
+        configure_name = mnemonic,
+        env_prelude = env_prelude,
+        script_text = script_text,
+    )
 
     tools = depset(
         [wrapped_outputs.wrapper_script_file, wrapped_outputs.script_file],

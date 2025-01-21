@@ -15,6 +15,7 @@ load(
     "get_flags_info",
     "get_tools_info",
 )
+load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 
 def _make_tool_impl(ctx):
@@ -74,6 +75,25 @@ def _make_tool_impl(ctx):
         if os_name(ctx) == "macos":
             non_sysroot_ldflags += ["-undefined", "error"]
 
+        configure_options = [
+            "--without-guile",
+            "--with-guile=no",
+            "--disable-dependency-tracking",
+            "--prefix=$$INSTALLDIR$$",
+        ]
+
+        install_cmd = ["./make install"]
+
+        xcompile_options = detect_xcompile(ctx)
+        if xcompile_options:
+            configure_options.extend(xcompile_options)
+
+            # We can't use make to install make when cross-compiling
+            install_cmd = [
+                "mkdir -p $$INSTALLDIR$$/bin",
+                "cp -p make $$INSTALLDIR$$/bin/make",
+            ]
+
         env.update({
             "AR": absolute_ar,
             "ARFLAGS": _join_flags_list(ctx.workspace_name, arflags),
@@ -85,11 +105,10 @@ def _make_tool_impl(ctx):
 
         configure_env = " ".join(["%s=\"%s\"" % (key, value) for key, value in env.items()])
         script = [
-            "%s ./configure --without-guile --with-guile=no --disable-dependency-tracking --prefix=$$INSTALLDIR$$" % configure_env,
+            "%s ./configure %s" % (configure_env, " ".join(configure_options)),
             "cat build.cfg",
             "./build.sh",
-            "./make install",
-        ]
+        ] + install_cmd
 
     return built_tool_rule_impl(
         ctx,

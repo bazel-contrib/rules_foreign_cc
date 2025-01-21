@@ -24,13 +24,15 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
-      # TODO: https://github.com/bazelbuild/rules_foreign_cc/issues/495
+      # TODO: https://github.com/bazel-contrib/rules_foreign_cc/issues/495
       - "-//test:shell_method_symlink_contents_to_dir_test"
       - "-//test:shell_script_inner_fun_test"
     build_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   ubuntu1804_examples_standalone:
     name: Examples (spawn_strategy=standalone)
     platform: ubuntu1804
@@ -44,12 +46,14 @@ tasks:
       - "dbg"
       - "--spawn_strategy=standalone"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_targets: *linux_targets_standalone
     test_flags:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   ubuntu2004_examples:
     name: Examples
     platform: ubuntu2004
@@ -61,8 +65,10 @@ tasks:
     test_targets: *linux_targets
     build_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   ubuntu2004_examples_bzlmod:
     name: Examples (bzlmod)
     platform: ubuntu2004
@@ -107,6 +113,7 @@ tasks:
       - "--spawn_strategy=standalone"
       - "--noincompatible_enable_cc_toolchain_resolution"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_targets: *macos_targets_standalone
     test_flags:
       - "-c"
@@ -114,6 +121,7 @@ tasks:
       - "--spawn_strategy=standalone"
       - "--noincompatible_enable_cc_toolchain_resolution"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   macos_examples:
     name: Examples
     platform: macos
@@ -129,10 +137,12 @@ tasks:
     build_flags:
       - "--noincompatible_enable_cc_toolchain_resolution"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_targets: *macos_targets
     test_flags:
       - "--noincompatible_enable_cc_toolchain_resolution"
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   windows_examples:
     name: Examples
     platform: windows
@@ -157,12 +167,17 @@ tasks:
       - "-//cmake_hello_world_lib/static:libhello_example"
       - "-//cmake_hello_world_lib/static:test_hello"
       - "-//cmake_with_data/..."
+      - "-//rust/..."
+    batch_commands:
+      - powershell -noexit "& "".\..\.bazelci\windows-update-certs.ps1"""
     build_targets: *windows_targets
     test_targets: *windows_targets
     build_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
     test_flags:
       - "--noenable_bzlmod"
+      - "--enable_workspace"
   rbe_ubuntu2004_flags:
     name: Flags
     platform: rbe_ubuntu2004
@@ -219,7 +234,8 @@ tasks:
       - //...
   min_supported_version:
     name: "Minimum Supported Version"
-    bazel: "5.4.0"
+    bazel: "6.5.0"
+    skip_in_bazel_downstream_pipeline: "Duplicates tests in other targets"
     platform: ubuntu1804
     build_targets:
       - "//..."
@@ -227,15 +243,19 @@ tasks:
       - "//..."
   min_supported_version_examples:
     name: "Minimum Supported Version Examples"
-    bazel: "5.4.0"
+    bazel: "6.5.0"
+    skip_in_bazel_downstream_pipeline: "Duplicates tests in other targets"
     platform: ubuntu1804
     working_directory: examples
     min_supported_targets: &min_supported_targets
+      - "--"
       - "//..."
+      # The min supported version of rules_rust is `>=7`
+      - "-//rust/..."
     build_targets: *min_supported_targets
     test_targets: *min_supported_targets
 
 buildifier:
-  version: "6.1.0"
+  version: "7.3.1"
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "all"

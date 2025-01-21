@@ -1,5 +1,6 @@
 """A rule for building projects using the [Meson](https://mesonbuild.com/) build system"""
 
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load("//foreign_cc:utils.bzl", "full_label")
 load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load(
@@ -87,13 +88,13 @@ def _create_meson_script(configureParameters):
     cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []
 
     if copts:
-        script.append("##export_var## CFLAGS \"{}\"".format(" ".join(copts).replace("\"", "'")))
+        script.append("##export_var## CFLAGS \"{} ${{CFLAGS:-}}\"".format(" ".join(copts).replace("\"", "'")))
     if cxxopts:
-        script.append("##export_var## CXXFLAGS \"{}\"".format(" ".join(cxxopts).replace("\"", "'")))
+        script.append("##export_var## CXXFLAGS \"{} ${{CXXFLAGS:-}}\"".format(" ".join(cxxopts).replace("\"", "'")))
 
     flags = get_flags_info(ctx)
     if flags.cxx_linker_executable:
-        script.append("##export_var## LDFLAGS \"{}\"".format(" ".join(flags.cxx_linker_executable).replace("\"", "'")))
+        script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(" ".join(flags.cxx_linker_executable).replace("\"", "'")))
 
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
@@ -110,10 +111,13 @@ def _create_meson_script(configureParameters):
 
     prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
 
-    script.append("{prefix}{meson} --prefix={install_dir} {options} {source_dir}".format(
+    setup_args_str = " ".join(expand_locations_and_make_variables(ctx, ctx.attr.setup_args, "setup_args", data))
+
+    script.append("{prefix}{meson} setup --prefix={install_dir} {setup_args} {options} {source_dir}".format(
         prefix = prefix,
         meson = attrs.meson_path,
         install_dir = "$$INSTALLDIR$$",
+        setup_args = setup_args_str,
         options = options_str,
         source_dir = "$$EXT_BUILD_ROOT$$/" + root,
     ))
@@ -171,6 +175,10 @@ def _attrs():
             mandatory = False,
             default = {},
         ),
+        "setup_args": attr.string_list(
+            doc = "Arguments for the Meson setup command",
+            mandatory = False,
+        ),
     })
     return attrs
 
@@ -191,9 +199,6 @@ meson = rule(
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
-    # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
-    # version is updated to a release of Bazel containing the new default for this setting.
-    incompatible_use_toolchain_transition = True,
 )
 
 def meson_with_requirements(name, requirements, **kwargs):

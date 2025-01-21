@@ -21,8 +21,8 @@ cmake(
 cmake(
     name = "lib_with_duplicate_transitive_bazel_deps",
     cache_entries = {
-        "LIBA_DIR": "$$EXT_BUILD_DEPS$$",
-        "LIBB_DIR": "$$EXT_BUILD_DEPS$$",
+        "LIBA_DIR": "$$EXT_BUILD_DEPS",
+        "LIBB_DIR": "$$EXT_BUILD_DEPS",
     },
     generate_args = ["-GNinja"],
     lib_name = "libc",
