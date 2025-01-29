@@ -114,6 +114,7 @@ def _fill_crossfile_from_toolchain_test(ctx):
             "CMAKE_MODULE_LINKER_FLAGS_INIT": " ".join(inputs[1]),
             "CMAKE_SHARED_LINKER_FLAGS_INIT": " ".join(inputs[0]),
             "CMAKE_SYSROOT": "/abc/sysroot",
+            "CMAKE_OSX_SYSROOT": "/abc/sysroot",
         }
 
         for key in expected:
@@ -733,6 +734,7 @@ __var_CMAKE_EXE_LINKER_FLAGS_INIT="executable"
 __var_CMAKE_MODULE_LINKER_FLAGS_INIT="shared1 shared2"
 __var_CMAKE_SHARED_LINKER_FLAGS_INIT="shared1 shared2"
 __var_CMAKE_SYSROOT="/abc/sysroot"
+__var_CMAKE_OSX_SYSROOT="/abc/sysroot"
 cat > crosstool_bazel.cmake << EOF
 set(CMAKE_AR "$$__var_CMAKE_AR$$" CACHE FILEPATH "Archiver")
 set(CMAKE_ASM_FLAGS_INIT "$$__var_CMAKE_ASM_FLAGS_INIT$$")
@@ -747,6 +749,7 @@ set(CMAKE_EXE_LINKER_FLAGS_INIT "$$__var_CMAKE_EXE_LINKER_FLAGS_INIT$$")
 set(CMAKE_MODULE_LINKER_FLAGS_INIT "$$__var_CMAKE_MODULE_LINKER_FLAGS_INIT$$")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "$$__var_CMAKE_SHARED_LINKER_FLAGS_INIT$$")
 set(CMAKE_SYSROOT "$$__var_CMAKE_SYSROOT$$")
+set(CMAKE_OSX_SYSROOT "$$__var_CMAKE_OSX_SYSROOT$$")
 EOF
 
 export CUSTOM_ENV="YES"
