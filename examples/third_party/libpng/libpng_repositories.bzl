@@ -8,10 +8,9 @@ def libpng_repositories():
         http_archive,
         name = "libpng",
         build_file = Label("//libpng:BUILD.libpng.bazel"),
-        sha256 = "2f1e960d92ce3b3abd03d06dfec9637dfbd22febf107a536b44f7a47c60659f6",
-        strip_prefix = "libpng-1.6.34",
+        sha256 = "",
+        strip_prefix = "libpng-1.6.43",
         urls = [
-            "https://mirror.bazel.build/ftp-osl.osuosl.org/pub/libpng/src/libpng16/libpng-1.6.34.tar.xz",
-            "http://ftp-osl.osuosl.org/pub/libpng/src/libpng16/libpng-1.6.34.tar.xz",
+            "https://downloads.sourceforge.net/project/libpng/libpng16/1.6.43/libpng-1.6.43.tar.xz",
         ],
     )
