@@ -8,6 +8,8 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
     "absolutize",
     "built_tool_rule_impl",
+    "extract_non_sysroot_flags",
+    "extract_sysroot_flags",
 )
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
@@ -46,13 +48,13 @@ def _make_tool_impl(ctx):
 
         cc_path = tools_info.cc
         cflags = flags_info.cc
-        sysroot_cflags = [flag for flag in cflags if flag.startswith("--sysroot=")]
-        non_sysroot_cflags = [flag for flag in cflags if not flag.startswith("--sysroot=")]
+        sysroot_cflags = extract_sysroot_flags(cflags)
+        non_sysroot_cflags = extract_non_sysroot_flags(cflags)
 
         ld_path = tools_info.cxx_linker_executable
         ldflags = flags_info.cxx_linker_executable
-        sysroot_ldflags = [flag for flag in ldflags if flag.startswith("--sysroot=")]
-        non_sysroot_ldflags = [flag for flag in ldflags if not flag.startswith("--sysroot=")]
+        sysroot_ldflags = extract_sysroot_flags(ldflags)
+        non_sysroot_ldflags = extract_non_sysroot_flags(ldflags)
 
         # Make's build script does not forward CFLAGS to all compiler and linker
         # invocations, so we append --sysroot flags directly to CC and LD.
