@@ -39,9 +39,12 @@ bzl_library(
     deps = [
         ":cc_toolchain_util",
         ":detect_root",
+        ":detect_xcompile.bzl",
         ":run_shell_file_utils",
         "//foreign_cc:providers",
         "//foreign_cc/private/framework:helpers",
+        "//foreign_cc/private/framework:platform",
+        "@bazel_features//:features",
         "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:paths",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
@@ -73,12 +76,16 @@ bzl_library(
 )
 
 bzl_library(
+    name = "detect_xcompile",
+    srcs = ["detect_xcompile.bzl"],
+    visibility = ["//foreign_cc:__subpackages__"],
+    deps = ["//foreign_cc/private/framework:platform"],
+)
+
+bzl_library(
     name = "detect_root",
     srcs = ["detect_root.bzl"],
-    visibility = [
-        "//foreign_cc:__subpackages__",
-        "//test:__subpackages__",
-    ],
+    visibility = ["//foreign_cc:__subpackages__"],
 )
 
 bzl_library(

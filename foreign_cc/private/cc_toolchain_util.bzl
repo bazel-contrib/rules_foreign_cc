@@ -4,6 +4,7 @@
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
@@ -306,6 +307,11 @@ def get_flags_info(ctx, link_output_file = None):
             ),
         ),
     )
+
+    if "set_file_prefix_map" in dir(ctx.attr) and ctx.attr.set_file_prefix_map:
+        copts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
+        cxxopts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
+
     return CxxFlagsInfo(
         cc = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cc, copts)),
         cxx = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cxx, cxxopts)),
@@ -330,7 +336,7 @@ def _convert_flags(compiler, flags):
         list: The converted flags
     """
     if compiler == "msvc-cl":
-        return [flag.replace("/", "-") if flag.startswith("/") else flag for flag in flags]
+        return [("-" + flag.removeprefix("/")) if flag.startswith("/") else flag for flag in flags]
     return flags
 
 def _add_if_needed(arr, add_arr):

@@ -11,9 +11,10 @@ def get_make_env_vars(
         user_vars,
         deps,
         inputs,
-        make_commands = []):
+        is_msvc,
+        make_commands):
     vars = _get_make_variables(workspace_name, tools, flags, user_vars, make_commands)
-    deps_flags = _define_deps_flags(deps, inputs)
+    deps_flags = _define_deps_flags(deps, inputs, is_msvc)
 
     # For cross-compilation.
     if "RANLIB" not in vars.keys():
@@ -26,14 +27,39 @@ def get_make_env_vars(
 
     # -I flags should be put into preprocessor flags, CPPFLAGS
     # https://www.gnu.org/software/autoconf/manual/autoconf-2.63/html_node/Preset-Output-Variables.html
-    vars["CPPFLAGS"] = deps_flags.flags
+    if "CPPFLAGS" in vars.keys():
+        vars["CPPFLAGS"] = vars["CPPFLAGS"] + deps_flags.flags
+    else:
+        vars["CPPFLAGS"] = deps_flags.flags
 
     return " ".join(["{}=\"{}\""
         .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
 
-def _define_deps_flags(deps, inputs):
+# buildifier: disable=function-docstring
+def get_ldflags_make_vars(
+        executable_ldflags_vars,
+        shared_ldflags_vars,
+        workspace_name,
+        flags,
+        user_vars,
+        deps,
+        inputs,
+        is_msvc):
+    vars = _get_ldflags_vars(executable_ldflags_vars, shared_ldflags_vars, flags, user_vars)
+
+    deps_flags = _define_deps_flags(deps, inputs, is_msvc)
+    for key in vars.keys():
+        vars[key] = vars[key] + deps_flags.libs
+
+    return " ".join(["{}=\"{}\""
+        .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
+
+def _define_deps_flags(deps, inputs, is_msvc):
     # It is very important to keep the order for the linker => put them into list
     lib_dirs = []
+
+    # msvc compiler uses -LIBPATH instead of -L
+    lib_flag = "-LIBPATH:" if is_msvc else "-L"
 
     # Here go libraries built with Bazel
     gen_dirs_set = {}
@@ -41,7 +67,7 @@ def _define_deps_flags(deps, inputs):
         dir_ = lib.dirname
         if not gen_dirs_set.get(dir_):
             gen_dirs_set[dir_] = 1
-            lib_dirs.append("-L$$EXT_BUILD_ROOT$$/" + dir_)
+            lib_dirs.append(lib_flag + "$$EXT_BUILD_ROOT$$/" + dir_)
 
     include_dirs_set = {}
     for include_dir in inputs.include_dirs:
@@ -68,7 +94,7 @@ def _define_deps_flags(deps, inputs):
 
                     dir_name = artifact.gen_dir.basename
                     include_dirs.append("-I$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.include_dir_name))
-                    lib_dirs.append("-L$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name))
+                    lib_dirs.append(lib_flag + "$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name))
 
     return struct(
         libs = lib_dirs,
@@ -96,18 +122,12 @@ _MAKE_TOOLS = {
 }
 
 def _get_make_variables(workspace_name, tools, flags, user_env_vars, make_commands):
-    vars = {}
+    vars = _merge_env_vars(flags, _MAKE_FLAGS, user_env_vars)
 
-    for flag in _MAKE_FLAGS:
-        flag_value = getattr(flags, _MAKE_FLAGS[flag])
-        if flag_value:
-            vars[flag] = flag_value
-
-    # Merge flags lists
-    for user_var in user_env_vars:
-        toolchain_val = vars.get(user_var)
-        if toolchain_val:
-            vars[user_var] = toolchain_val + [user_env_vars[user_var]]
+    # Add user defined CPPFLAGS
+    user_cpp_flags = [flag for flag in user_env_vars.get("CPPFLAGS", "").split(" ") if flag]
+    if user_cpp_flags:
+        vars["CPPFLAGS"] = user_cpp_flags
 
     tools_dict = {}
     for tool in _MAKE_TOOLS:
@@ -137,6 +157,34 @@ def _get_make_variables(workspace_name, tools, flags, user_env_vars, make_comman
     # Do not put in the other user-defined env variables at this point as they
     # have already been exported globally by the prelude.
 
+    return vars
+
+def _get_ldflags_vars(
+        executable_ldflags_vars,
+        shared_ldflags_vars,
+        flags,
+        user_env_vars):
+    executable_ldflags = {var: "cxx_linker_executable" for var in executable_ldflags_vars}
+    shared_ldflags = {var: "cxx_linker_shared" for var in shared_ldflags_vars}
+
+    linker_make_flags = {}
+    for ldflags in [executable_ldflags, shared_ldflags]:
+        linker_make_flags.update(ldflags)
+
+    return _merge_env_vars(flags, linker_make_flags, user_env_vars)
+
+def _merge_env_vars(flags, make_flags, user_env_vars):
+    vars = {}
+
+    for flag in make_flags:
+        toolchain_flags = getattr(flags, make_flags[flag], [])
+        user_flags = [
+            user_flag
+            for user_flag in user_env_vars.get(flag, "").split(" ")
+            if user_flag
+        ]
+        if toolchain_flags or user_flags:
+            vars[flag] = toolchain_flags + user_flags
     return vars
 
 def _absolutize(workspace_name, text, force = False):

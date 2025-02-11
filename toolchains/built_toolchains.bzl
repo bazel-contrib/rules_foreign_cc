@@ -20,7 +20,9 @@ exports_files(["meson.py"])
 
 filegroup(
     name = "runtime",
-    srcs = glob(["mesonbuild/**"]),
+    # NOTE: excluding __pycache__ is important to avoid rebuilding due to pyc
+    # files, see https://github.com/bazel-contrib/rules_foreign_cc/issues/1342
+    srcs = glob(["mesonbuild/**"], exclude = ["**/__pycache__/*"]),
     visibility = ["//visibility:public"],
 )
 """
@@ -33,17 +35,11 @@ def built_toolchains(cmake_version, make_version, ninja_version, meson_version, 
 
     Args:
         cmake_version: The CMake version to build
-
         make_version: The Make version to build
-
         ninja_version: The Ninja version to build
-
         meson_version: The Meson version to build
-
         pkgconfig_version: The pkg-config version to build
-
         register_toolchains: If true, registers the toolchains via native.register_toolchains. Used by bzlmod
-
         register_built_pkgconfig_toolchain: If true, the built pkgconfig toolchain will be registered.
     """
     _cmake_toolchain(cmake_version, register_toolchains)
@@ -73,7 +69,7 @@ def _cmake_toolchain(version, register_toolchains):
             strip_prefix = prefix,
             urls = urls,
             patches = [
-                Label("//toolchains:cmake-c++11.patch"),
+                Label("//toolchains/patches:cmake-c++11.patch"),
             ],
         )
         return
@@ -118,7 +114,7 @@ def _make_toolchain(version, register_toolchains):
             http_archive,
             name = "gnumake_src",
             build_file_content = _ALL_CONTENT,
-            patches = [Label("//toolchains:make-reproducible-bootstrap.patch")],
+            patches = [Label("//toolchains/patches:make-reproducible-bootstrap.patch")],
             sha256 = "e05fdde47c5f7ca45cb697e973894ff4f5d79e13b750ed57d7b66d8defc78e19",
             strip_prefix = "make-4.3",
             urls = [
@@ -135,6 +131,19 @@ def _ninja_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_ninja_toolchain",
         )
+    if version == "1.12.1":
+        maybe(
+            http_archive,
+            name = "ninja_build_src",
+            build_file_content = _ALL_CONTENT,
+            integrity = "sha256-ghvf9Io/aDvEuztvC1/nstZHz2XVKutjMoyRpsbfKFo=",
+            strip_prefix = "ninja-1.12.1",
+            urls = [
+                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.12.1.tar.gz",
+                "https://github.com/ninja-build/ninja/archive/v1.12.1.tar.gz",
+            ],
+        )
+        return
     if version == "1.12.0":
         maybe(
             http_archive,
@@ -195,6 +204,19 @@ def _meson_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_meson_toolchain",
         )
+    if version == "1.5.1":
+        maybe(
+            http_archive,
+            name = "meson_src",
+            build_file_content = _MESON_BUILD_FILE_CONTENT,
+            sha256 = "567e533adf255de73a2de35049b99923caf872a455af9ce03e01077e0d384bed",
+            strip_prefix = "meson-1.5.1",
+            urls = [
+                "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/1.5.1/meson-1.5.1.tar.gz",
+                "https://github.com/mesonbuild/meson/releases/download/1.5.1/meson-1.5.1.tar.gz",
+            ],
+        )
+        return
     if version == "1.1.1":
         maybe(
             http_archive,
@@ -234,8 +256,6 @@ def _pkgconfig_toolchain(version, register_toolchains):
         http_archive,
         name = "glib_dev",
         build_file_content = '''
-load("@rules_cc//cc:defs.bzl", "cc_library")
-
 cc_import(
     name = "glib_dev",
     hdrs = glob(["include/**"]),
@@ -316,13 +336,13 @@ cc_import(
             # The patch is required as bazel does not provide the VCINSTALLDIR or WINDOWSSDKDIR vars
             patches = [
                 # This patch is required as bazel does not provide the VCINSTALLDIR or WINDOWSSDKDIR vars
-                Label("//toolchains:pkgconfig-detectenv.patch"),
+                Label("//toolchains/patches:pkgconfig-detectenv.patch"),
 
                 # This patch is required as rules_foreign_cc runs in MSYS2 on Windows and MSYS2's "mkdir" is used
-                Label("//toolchains:pkgconfig-makefile-vc.patch"),
+                Label("//toolchains/patches:pkgconfig-makefile-vc.patch"),
 
                 # This patch fixes explicit integer conversion which causes errors in clang >= 15 and gcc >= 14
-                Label("//toolchains:pkgconfig-builtin-glib-int-conversion.patch"),
+                Label("//toolchains/patches:pkgconfig-builtin-glib-int-conversion.patch"),
             ],
             urls = [
                 "https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",

@@ -2,6 +2,8 @@
 build tool
 """
 
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
@@ -9,6 +11,7 @@ load(
 )
 load("//foreign_cc/private:configure_script.bzl", "create_configure_script")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
+load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
 load(
     "//foreign_cc/private:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
@@ -73,19 +76,16 @@ def _create_configure_script(configureParameters):
 
     user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data)
 
-    make_commands = []
     prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
     configure_prefix = "{} ".format(expand_locations_and_make_variables(ctx, ctx.attr.configure_prefix, "configure_prefix", data)) if ctx.attr.configure_prefix else ""
     configure_options = [expand_locations_and_make_variables(ctx, option, "configure_option", data) for option in ctx.attr.configure_options] if ctx.attr.configure_options else []
 
-    for target in ctx.attr.targets:
-        # Configure will have generated sources into `$BUILD_TMPDIR` so make sure we `cd` there
-        make_commands.append("{prefix}{make} {target} {args}".format(
-            prefix = prefix,
-            make = attrs.make_path,
-            args = args,
-            target = target,
-        ))
+    xcompile_options = detect_xcompile(ctx)
+    if xcompile_options:
+        configure_options.extend(xcompile_options)
+
+    cc_toolchain = find_cpp_toolchain(ctx)
+    is_msvc = cc_toolchain.compiler == "msvc-cl"
 
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
@@ -107,8 +107,13 @@ def _create_configure_script(configureParameters):
         autogen = ctx.attr.autogen,
         autogen_command = ctx.attr.autogen_command,
         autogen_options = ctx.attr.autogen_options,
-        make_commands = make_commands,
+        make_prefix = prefix,
         make_path = attrs.make_path,
+        make_targets = ctx.attr.targets,
+        make_args = args,
+        executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
+        shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
+        is_msvc = is_msvc,
     )
     return define_install_prefix + configure
 
@@ -187,6 +192,21 @@ def _attrs():
         "configure_prefix": attr.string(
             doc = "A prefix for the call to the `configure_command`.",
         ),
+        "configure_xcompile": attr.bool(
+            doc = (
+                "If this is set and an xcompile scenario is detected, pass the necessary autotools flags."
+            ),
+            default = False,
+        ),
+        "executable_ldflags_vars": attr.string_list(
+            doc = (
+                "A list of variable names use as LDFLAGS for executables. These variables " +
+                "will be passed to the make command as make vars and overwrite what is defined in " +
+                "the Makefile."
+            ),
+            mandatory = False,
+            default = [],
+        ),
         "install_prefix": attr.string(
             doc = (
                 "Install prefix, i.e. relative path to where to install the result of the build. " +
@@ -200,6 +220,15 @@ def _attrs():
             ),
             mandatory = False,
             default = "--prefix=",
+        ),
+        "shared_ldflags_vars": attr.string_list(
+            doc = (
+                "A list of variable names use as LDFLAGS for shared libraries. These variables " +
+                "will be passed to the make command as make vars and overwrite what is defined in " +
+                "the Makefile."
+            ),
+            mandatory = False,
+            default = [],
         ),
         "targets": attr.string_list(
             doc = (
@@ -235,9 +264,6 @@ configure_make = rule(
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
-    # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
-    # version is updated to a release of Bazel containing the new default for this setting.
-    incompatible_use_toolchain_transition = True,
 )
 
 def configure_make_variant(name, toolchain, **kwargs):

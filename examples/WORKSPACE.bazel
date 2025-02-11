@@ -13,16 +13,6 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-
-maybe(
-    http_archive,
-    name = "rules_cc",
-    sha256 = "4dccbfd22c0def164c8f47458bd50e0c7148f3d92002cdb459c2a96a68498241",
-    urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.1/rules_cc-0.0.1.tar.gz"],
-)
-
 load("//deps:repositories.bzl", "repositories")
 
 repositories()
@@ -35,19 +25,24 @@ load("//deps:deps_jvm_external.bzl", "deps_jvm_external")
 
 deps_jvm_external()
 
-load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
+
+py_repositories()
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
 
 python_register_toolchains(
-    name = "python3_10",
+    name = "python_3_10",
     python_version = "3.10",
 )
 
-load("@python3_10//:defs.bzl", py3_interpreter = "interpreter")
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 pip_parse(
     name = "pip",
-    python_interpreter_target = py3_interpreter,
+    python_interpreter_target = "@python_3_10_host//:python",
     requirements_lock = "//:requirements_lock.txt",
 )
 
@@ -67,6 +62,8 @@ examples_third_party_repositories()
 load("@rules_foreign_cc_examples_third_party//:setup.bzl", examples_third_party_setup = "setup")
 
 examples_third_party_setup()
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazelci_rules",
@@ -124,3 +121,59 @@ load(
 )
 
 apple_support_dependencies()
+
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+
+maybe(
+    http_archive,
+    name = "rules_rust",
+    integrity = "sha256-8TBqrAsli3kN8BrZq8arsN8LZUFsdLTvJ/Sqsph4CmQ=",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.56.0/rules_rust-0.56.0.tar.gz"],
+)
+
+load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
+
+rules_rust_dependencies()
+
+rust_register_toolchains()
+
+load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
+
+crate_universe_dependencies()
+
+load("@rules_rust//crate_universe:defs.bzl", "crate", "crates_repository", "splicing_config")
+
+crates_repository(
+    name = "rust_example",
+    annotations = {
+        # zlib-ng-sys's build script invokes cmake, so we need to make cmake available.
+        # Fortunately, rules_foreign_cc has a cmake toolchain we can use.
+        "libz-ng-sys": [crate.annotation(
+            # Setting build_script_data makes the files available on disk when the rule runs.
+            build_script_data = ["@rules_foreign_cc//toolchains:current_cmake_toolchain"],
+            build_script_env = {
+                # The toolchain supplies a value of $(CMAKE) which is an execroot-relative path, so we need to prefix it with $${pwd}/ because build scripts don't typically run in the execroot unlike most bazel rules, for improved compatibility with Cargo.
+                "CMAKE": "$${pwd}/$(CMAKE)",
+            },
+            # Setting build_script_toolchains makes makefile variable substitution work so that we can reference $(CNAME) in attributes.
+            build_script_toolchains = ["@rules_foreign_cc//toolchains:current_cmake_toolchain"],
+        )],
+    },
+    cargo_lockfile = "//rust:Cargo.Bazel.lock",
+    lockfile = "//rust:cargo-bazel-lock.json",
+    packages = {
+        "libz-ng-sys": crate.spec(
+            version = "=1.1.20",
+        ),
+    },
+    splicing_config = splicing_config(
+        resolver_version = "2",
+    ),
+)
+
+load(
+    "@rust_example//:defs.bzl",
+    rust_example_crate_repositories = "crate_repositories",
+)
+
+rust_example_crate_repositories()
