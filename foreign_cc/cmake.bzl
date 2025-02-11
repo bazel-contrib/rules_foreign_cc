@@ -128,6 +128,7 @@ cmake(
 [cct]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain
 """
 
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
