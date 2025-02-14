@@ -148,6 +148,7 @@ load(
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//foreign_cc/private/framework:platform.bzl",
+    "arch_name",
     "os_name",
     "target_arch_name",
     "target_os_name",
@@ -259,6 +260,7 @@ def _create_configure_script(configureParameters):
         target_os = target_os_name(ctx),
         target_arch = target_arch_name(ctx),
         host_os = os_name(ctx),
+        host_arch = arch_name(ctx),
         generator = attrs.generator,
         cmake_path = attrs.cmake_path,
         tools = tools,
