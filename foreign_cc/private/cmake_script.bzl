@@ -1,6 +1,7 @@
 """ Contains all logic for calling CMake for building external libraries/binaries """
 
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
+load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
 
 def _escape_dquote_bash(text):
     """ Escape double quotes in flag lists for use in bash strings that set environment variables """
@@ -153,6 +154,8 @@ def create_cmake_script(
 
     # Add definitions for all environment variables
     script = set_env_vars
+
+    script += pkgconfig_script(ext_build_dirs)
 
     directory = "$$EXT_BUILD_ROOT$$/" + root
 
