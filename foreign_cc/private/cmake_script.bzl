@@ -128,6 +128,7 @@ def create_cmake_script(
         "CMAKE_BUILD_TYPE": build_type,
         "CMAKE_INSTALL_PREFIX": install_prefix,
         "CMAKE_PREFIX_PATH": merged_prefix_path,
+        "PKG_CONFIG_ARGN": '--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$',
     })
 
     # Give user the ability to suppress some value, taken from Bazel's toolchain,
