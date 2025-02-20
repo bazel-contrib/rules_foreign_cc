@@ -361,7 +361,8 @@ def _attrs():
             doc = (
                 "CMake cache entries to initialize (they will be passed with `-Dkey=value`) " +
                 "Values, defined by the toolchain, will be joined with the values, passed here. " +
-                "(Toolchain values come first)"
+                "(Toolchain values come first). Note that specifying an empty string value, \"\"" +
+                "causes the key to be unset. Use \"<empty>\" to set the key to the empty string."
             ),
             mandatory = False,
             default = {},

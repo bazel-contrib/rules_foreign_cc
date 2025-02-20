@@ -93,7 +93,11 @@ def create_cmake_script(
     toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags, target_os)
     params = None
 
+    # Collect the keys that are "" in order to suppress them below.
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
+
+    # Allow user to actually set a key to "" by specifying "<empty>".
+    user_cache.update([(key, "") for key in user_cache if user_cache.get(key) == "<empty>"])
 
     if no_toolchain_file:
         params = _create_cache_entries_env_vars(toolchain_dict, user_cache, user_env)
