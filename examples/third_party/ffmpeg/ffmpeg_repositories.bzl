@@ -1,17 +1,23 @@
 """A module defining the third party dependency ffmpeg"""
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:local.bzl", "local_repository")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 # buildifier: disable=function-docstring
 def ffmpeg_repositories():
+    # maybe(
+    #     http_archive,
+    #     name = "ffmpeg",
+    #     build_file = Label("//ffmpeg:BUILD.ffmpeg.bazel"),
+    #     strip_prefix = "FFmpeg-n7.0.2",
+    #     urls = ["https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n7.0.2.tar.gz"],
+    #     integrity = "sha256-XrRtGNZkoMyt97Ct7gO9O3+nKJPWZ/NsaeICqAfm1TM=",
+    # )
     maybe(
-        http_archive,
+        local_repository,
         name = "ffmpeg",
-        build_file = Label("//ffmpeg:BUILD.ffmpeg.bazel"),
-        strip_prefix = "FFmpeg-n7.0.2",
-        urls = ["https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n7.0.2.tar.gz"],
-        integrity = "sha256-XrRtGNZkoMyt97Ct7gO9O3+nKJPWZ/NsaeICqAfm1TM=",
+        path = "../../third_party/ffmpeg",
     )
 
     YASM_COMMMIT = "121ab150b3577b666c79a79f4a511798d7ad2432"
