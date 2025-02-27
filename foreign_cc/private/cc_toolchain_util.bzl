@@ -383,7 +383,7 @@ def absolutize_path_in_str(workspace_name, root_str, text, force = False):
 
 def _prefix(text, from_str, prefix):
     (before, middle, after) = text.partition(from_str)
-    if not middle or before.endswith("/"):
+    if not middle or before.endswith("/") or before.endswith("\\"):
         return text
     return before + prefix + middle + after
 
