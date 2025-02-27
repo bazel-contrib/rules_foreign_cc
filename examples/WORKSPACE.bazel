@@ -13,16 +13,6 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-
-maybe(
-    http_archive,
-    name = "rules_cc",
-    sha256 = "4dccbfd22c0def164c8f47458bd50e0c7148f3d92002cdb459c2a96a68498241",
-    urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.1/rules_cc-0.0.1.tar.gz"],
-)
-
 load("//deps:repositories.bzl", "repositories")
 
 repositories()
@@ -35,19 +25,24 @@ load("//deps:deps_jvm_external.bzl", "deps_jvm_external")
 
 deps_jvm_external()
 
-load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
+
+py_repositories()
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
 
 python_register_toolchains(
-    name = "python3_10",
+    name = "python_3_10",
     python_version = "3.10",
 )
 
-load("@python3_10//:defs.bzl", py3_interpreter = "interpreter")
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 pip_parse(
     name = "pip",
-    python_interpreter_target = py3_interpreter,
+    python_interpreter_target = "@python_3_10_host//:python",
     requirements_lock = "//:requirements_lock.txt",
 )
 
@@ -67,6 +62,8 @@ examples_third_party_repositories()
 load("@rules_foreign_cc_examples_third_party//:setup.bzl", examples_third_party_setup = "setup")
 
 examples_third_party_setup()
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazelci_rules",
@@ -124,6 +121,8 @@ load(
 )
 
 apple_support_dependencies()
+
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 maybe(
     http_archive,

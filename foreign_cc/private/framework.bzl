@@ -6,6 +6,7 @@ load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load(
@@ -344,10 +345,14 @@ def get_env_prelude(ctx, installdir, data_dependencies):
     env.update(user_vars)
 
     if cc_toolchain.compiler == "msvc-cl":
-        if "PATH" in user_vars and "$$EXT_BUILD_ROOT$$" in user_vars["PATH"]:
-            # Convert any $$EXT_BUILD_ROOT$$ in PATH to /${EXT_BUILD_ROOT/$(printf '\072')/}.
-            # This is because PATH needs to be in unix format for MSYS2.
-            user_vars["PATH"] = user_vars["PATH"].replace("$$EXT_BUILD_ROOT$$", "/$${EXT_BUILD_ROOT/$$$(printf '\072')/}")
+        # Convert any $$EXT_BUILD_ROOT$$ or $EXT_BUILD_ROOT in PATH to
+        # /${EXT_BUILD_ROOT/$(printf '\072')/}. This is because PATH needs to be in unix
+        # format for MSYS2.
+        # Note: $$EXT_BUILD_ROOT becomes $EXT_BUILD_ROOT after
+        # expand_locations_and_make_variables above.
+        for build_root in ["$$EXT_BUILD_ROOT$$", "$EXT_BUILD_ROOT"]:
+            if "PATH" in user_vars and build_root in user_vars["PATH"]:
+                user_vars["PATH"] = user_vars["PATH"].replace(build_root, "/$${EXT_BUILD_ROOT/$$$(printf '\072')/}")
 
     # If user has defined a PATH variable (e.g. PATH, LD_LIBRARY_PATH, CPATH) prepend it to the existing variable
     for user_var in user_vars:

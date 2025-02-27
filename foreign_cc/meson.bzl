@@ -1,5 +1,6 @@
 """A rule for building projects using the [Meson](https://mesonbuild.com/) build system"""
 
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load("//foreign_cc:utils.bzl", "full_label")
 load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load(
@@ -68,6 +69,7 @@ def _create_meson_script(configureParameters):
     inputs = configureParameters.inputs
 
     tools = get_tools_info(ctx)
+    flags = get_flags_info(ctx)
     script = pkgconfig_script(inputs.ext_build_dirs)
 
     # CFLAGS and CXXFLAGS are also set in foreign_cc/private/cmake_script.bzl, so that meson
@@ -80,20 +82,15 @@ def _create_meson_script(configureParameters):
     if " " not in tools.cxx:
         script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
 
-    # set flags same as foreign_cc/private/cc_toolchain_util.bzl
-    # cannot use get_flags_info() because bazel adds additional flags that
-    # aren't compatible with compiler or linker above
-    copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + getattr(ctx.attr, "copts", [])) or []
-    cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []
-
+    copts = flags.cc
+    cxxopts = flags.cxx
     if copts:
-        script.append("##export_var## CFLAGS \"{} ${{CFLAGS:-}}\"".format(" ".join(copts).replace("\"", "'")))
+        script.append("##export_var## CFLAGS \"{} ${{CFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, copts).replace("\"", "'")))
     if cxxopts:
-        script.append("##export_var## CXXFLAGS \"{} ${{CXXFLAGS:-}}\"".format(" ".join(cxxopts).replace("\"", "'")))
+        script.append("##export_var## CXXFLAGS \"{} ${{CXXFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, cxxopts).replace("\"", "'")))
 
-    flags = get_flags_info(ctx)
     if flags.cxx_linker_executable:
-        script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(" ".join(flags.cxx_linker_executable).replace("\"", "'")))
+        script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, flags.cxx_linker_executable).replace("\"", "'")))
 
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
@@ -239,7 +236,7 @@ def meson_with_requirements(name, requirements, **kwargs):
     )
 
 def _absolutize(workspace_name, text, force = False):
-    if text.strip(" ").startswith("C:") or text.strip(" ").startswith("c:"):
-        return "\"{}\"".format(text)
-
     return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text, force)
+
+def _join_flags_list(workspace_name, flags):
+    return " ".join([_absolutize(workspace_name, flag) for flag in flags])

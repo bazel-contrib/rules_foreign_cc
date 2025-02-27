@@ -1,5 +1,6 @@
 """A rule for building projects using the [Ninja](https://ninja-build.org/) build tool"""
 
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",

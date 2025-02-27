@@ -256,6 +256,7 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
         "unknown",
         "unknown",
         "unknown",
+        "unknown",
         "Unix Makefiles",
         "cmake",
         tools,
@@ -306,6 +307,7 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
     script = create_cmake_script(
         "ws",
         ctx.label,
+        "unknown",
         "unknown",
         "unknown",
         "unknown",
@@ -369,6 +371,7 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
         "unknown",
         "unknown",
         "unknown",
+        "unknown",
         "Ninja",
         "cmake",
         tools,
@@ -419,6 +422,7 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
     script = create_cmake_script(
         "ws",
         ctx.label,
+        "unknown",
         "unknown",
         "unknown",
         "unknown",
@@ -505,6 +509,7 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
         "unknown",
         "unknown",
         "unknown",
+        "unknown",
         "Ninja",
         "cmake",
         tools,
@@ -573,6 +578,7 @@ def _create_cmake_script_android_test(ctx):
         "android",
         "x86_64",
         "unknown",
+        "unknown",
         "Ninja",
         "cmake",
         tools,
@@ -592,7 +598,7 @@ export CXXFLAGS="--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain
 export ASMFLAGS="assemble assemble-user"
 export CUSTOM_ENV="YES"
 ##enable_tracing##
-cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" -DANDROID="YES" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="x86_64" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DANDROID="YES" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="x86_64" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -641,6 +647,7 @@ def _create_cmake_script_linux_test(ctx):
         "linux",
         "aarch64",
         "unknown",
+        "unknown",
         "Ninja",
         "cmake",
         tools,
@@ -660,7 +667,7 @@ export CXXFLAGS="--quoted=\\\"abc def\\\" --sysroot=/abc/sysroot --gcc_toolchain
 export ASMFLAGS="assemble assemble-user"
 export CUSTOM_ENV="YES"
 ##enable_tracing##
-cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="aarch64" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="aarch64" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -705,6 +712,7 @@ def _create_cmake_script_toolchain_file_test(ctx):
     script = create_cmake_script(
         "ws",
         ctx.label,
+        "unknown",
         "unknown",
         "unknown",
         "unknown",
