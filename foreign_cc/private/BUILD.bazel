@@ -19,7 +19,10 @@ bzl_library(
     name = "cmake_script",
     srcs = ["cmake_script.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
-    deps = [":cc_toolchain_util"],
+    deps = [
+        ":cc_toolchain_util",
+        "//foreign_cc/private:make_script",
+    ],
 )
 
 bzl_library(
