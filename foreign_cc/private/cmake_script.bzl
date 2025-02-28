@@ -1,7 +1,7 @@
 """ Contains all logic for calling CMake for building external libraries/binaries """
 
-load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
+load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
 def _escape_dquote_bash(text):
     """ Escape double quotes in flag lists for use in bash strings that set environment variables """
@@ -128,7 +128,7 @@ def create_cmake_script(
         "CMAKE_BUILD_TYPE": build_type,
         "CMAKE_INSTALL_PREFIX": install_prefix,
         "CMAKE_PREFIX_PATH": merged_prefix_path,
-        "PKG_CONFIG_ARGN": '--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$',
+        "PKG_CONFIG_ARGN": "--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$",
     })
 
     # Give user the ability to suppress some value, taken from Bazel's toolchain,
