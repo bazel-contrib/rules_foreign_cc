@@ -210,6 +210,13 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = False,
     ),
+    "static_suffix": attr.string(
+        doc = (
+            "Optional suffix used by static libs." +
+            "Ensures correct association of static and shared libs."
+        ),
+        mandatory = False,
+    ),
     "targets": attr.string_list(
         doc = (
             "A list of targets with in the foreign build system to produce. An empty string (`\"\"`) will result in " +
