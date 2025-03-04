@@ -67,7 +67,7 @@ def _configure_features(ctx, cc_toolchain):
 def _create_libraries_to_link(ctx, files):
     libs = []
 
-    static_map = _files_map(_filter(files.static_libraries or [], _is_position_independent, True))
+    static_map = _files_map(_filter(files.static_libraries or [], _is_position_independent, True), suffix = ctx.attr.static_suffix)
     pic_static_map = _files_map(_filter(files.static_libraries or [], _is_position_independent, False))
     shared_map = _files_map(files.shared_libraries or [])
     interface_map = _files_map(files.interface_libraries or [])
@@ -106,10 +106,10 @@ def _filter(list_, predicate, inverse):
             result.append(elem)
     return result
 
-def _files_map(files_list):
+def _files_map(files_list, suffix = ""):
     by_names_map = {}
     for file_ in files_list:
-        name_ = _file_name_no_ext(file_.basename)
+        name_ = _removesuffix(_file_name_no_ext(file_.basename), suffix)
         value = by_names_map.get(name_)
         if value:
             fail("Can not have libraries with the same name in the same category")
@@ -390,3 +390,6 @@ def _prefix(text, from_str, prefix):
 def _file_name_no_ext(basename):
     (before, _separator, _after) = basename.rpartition(".")
     return before
+
+def _removesuffix(s, sub):
+    return s[:-len(sub)] if sub and s.endswith(sub) else s
