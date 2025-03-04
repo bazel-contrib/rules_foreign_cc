@@ -31,6 +31,9 @@ _TARGET_ARCH_PARAMS = {
     "aarch64": {
         "CMAKE_SYSTEM_PROCESSOR": "aarch64",
     },
+    "ppc64le": {
+        "CMAKE_SYSTEM_PROCESSOR": "ppc64le",
+    },
     "s390x": {
         "CMAKE_SYSTEM_PROCESSOR": "s390x",
     },
