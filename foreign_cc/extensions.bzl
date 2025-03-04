@@ -21,6 +21,8 @@ def _init(module_ctx):
         register_default_tools = False,
         register_preinstalled_tools = False,
         register_built_pkgconfig_toolchain = True,
+        # These should be registered via bzlmod entries instead
+        register_repos = False,
     )
 
     versions = {
