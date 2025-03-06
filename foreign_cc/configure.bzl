@@ -44,13 +44,10 @@ def _configure_make(ctx):
             ctx.label,
         ))
 
-    copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
-
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Configure",
         create_configure_script = _create_configure_script,
-        postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
         tools_data = tools_data,
         make_path = make_data.path,
     )
