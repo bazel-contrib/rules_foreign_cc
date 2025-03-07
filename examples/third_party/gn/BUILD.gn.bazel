@@ -32,12 +32,12 @@ ninja(
     # gn has no install step, manually grab the artifacts
     postfix_script = select({
         ":windows": " && ".join([
-            "cp -a out/gn_lib.lib $$INSTALLDIR$$/lib",
-            "cp -a out/gn.exe $$INSTALLDIR$$/bin",
+            "cp -a out/gn_lib.lib $$INSTALLDIR/lib",
+            "cp -a out/gn.exe $$INSTALLDIR/bin",
         ]),
         "//conditions:default": " && ".join([
-            "cp -a out/gn_lib.a $$INSTALLDIR$$/lib",
-            "cp -a out/gn $$INSTALLDIR$$/bin",
+            "cp -a out/gn_lib.a $$INSTALLDIR/lib",
+            "cp -a out/gn $$INSTALLDIR/bin",
         ]),
     }),
 )

@@ -17,7 +17,8 @@ def rules_foreign_cc_dependencies(
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True,
-        register_built_pkgconfig_toolchain = True):
+        register_built_pkgconfig_toolchain = True,
+        register_repos = True):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
     dependencies and let neccesary code generation happen \
     (Code generation is needed to support different variants of the C++ Starlark API.).
@@ -59,6 +60,10 @@ def rules_foreign_cc_dependencies(
             startup --windows_enable_symlinks -> This is required to enable symlinking to avoid long runfile paths
             build --action_env=MSYS=winsymlinks:nativestrict -> This is required to enable symlinking to avoid long runfile paths
             startup --output_user_root=C:/b  -> This is required to keep paths as short as possible
+
+        register_repos: If true, use repository rules to register the required
+            dependencies. (If you are using bzlmod, you probably do not want to set
+            this since it will create shadow copies of these repos)
     """
 
     register_framework_toolchains(register_toolchains = register_toolchains)
@@ -82,6 +87,19 @@ def rules_foreign_cc_dependencies(
 
     if register_preinstalled_tools:
         preinstalled_toolchains()
+
+    if not register_repos:
+        return
+
+    maybe(
+        http_archive,
+        name = "platforms",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.11/platforms-0.0.11.tar.gz",
+            "https://github.com/bazelbuild/platforms/releases/download/0.0.11/platforms-0.0.11.tar.gz",
+        ],
+        sha256 = "29742e87275809b5e598dc2f04d86960cc7a55b3067d97221c9abbc9926bff0f",
+    )
 
     maybe(
         http_archive,

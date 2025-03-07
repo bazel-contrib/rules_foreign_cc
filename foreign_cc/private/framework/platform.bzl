@@ -2,6 +2,7 @@
 
 SUPPORTED_CPU = [
     "aarch64",
+    "ppc64le",
     "s390x",
     "x86_64",
 ]
@@ -183,6 +184,8 @@ def triplet_name(os, arch):
         # consistently, I don't think this will break alpine.
         if arch == "aarch64":
             return "aarch64-unknown-linux-gnu"
+        elif arch == "ppc64le":
+            return "powerpc64le-unknown-linux-gnu"
         elif arch == "s390x":
             return "s390x-ibm-linux-gnu"
         elif arch == "x86_64":
