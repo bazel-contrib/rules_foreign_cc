@@ -104,6 +104,7 @@ tasks:
   macos_examples_standalone:
     name: Examples (spawn_strategy=standalone)
     platform: macos
+    shards: 4
     working_directory: examples
     macos_targets: &macos_targets_standalone
       - "//..."
@@ -131,6 +132,7 @@ tasks:
   macos_examples:
     name: Examples
     platform: macos
+    shards: 4
     working_directory: examples
     macos_targets: &macos_targets
       - "//..."
