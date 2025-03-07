@@ -31,6 +31,9 @@ _TARGET_ARCH_PARAMS = {
     "aarch64": {
         "CMAKE_SYSTEM_PROCESSOR": "aarch64",
     },
+    "ppc64le": {
+        "CMAKE_SYSTEM_PROCESSOR": "ppc64le",
+    },
     "s390x": {
         "CMAKE_SYSTEM_PROCESSOR": "s390x",
     },
@@ -45,6 +48,7 @@ def create_cmake_script(
         target_os,
         target_arch,
         host_os,
+        host_arch,
         generator,
         cmake_path,
         tools,
@@ -68,6 +72,7 @@ def create_cmake_script(
         target_os: The target OS for the build
         target_arch: The target arch for the build
         host_os: The execution OS for the build
+        host_arch: The execution arch for the build
         generator: The generator target for cmake to use
         cmake_path: The path to the cmake executable
         tools: cc_toolchain tools (CxxToolsInfo)
@@ -92,6 +97,23 @@ def create_cmake_script(
 
     toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags, target_os)
     params = None
+
+    # Avoid CMake passing the wrong linker flags when cross compiling
+    # by setting CMAKE_SYSTEM_NAME and CMAKE_SYSTEM_PROCESSOR,
+    # see https://github.com/bazel-contrib/rules_foreign_cc/issues/289,
+    # and https://github.com/bazel-contrib/rules_foreign_cc/pull/1062
+    # note: these parameters must be set in the toolchain file, not just in the
+    # cache, and CMAKE_SYSTEM_PROCESSOR is ignored unless CMAKE_SYSTEM_NAME is
+    # also set.
+    if target_os == "unknown":
+        # buildifier: disable=print
+        print("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+    elif target_arch == "unknown":
+        # buildifier: disable=print
+        print("target_arch is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+    elif target_os != host_os or target_arch != host_arch:
+        toolchain_dict.update(_TARGET_OS_PARAMS.get(target_os, {}))
+        toolchain_dict.update(_TARGET_ARCH_PARAMS.get(target_arch, {}))
 
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
 
@@ -122,17 +144,6 @@ def create_cmake_script(
     # see https://github.com/envoyproxy/envoy/pull/6991
     if not params.cache.get("CMAKE_RANLIB"):
         params.cache.update({"CMAKE_RANLIB": ""})
-
-    # Avoid CMake passing the wrong linker flags when cross compiling
-    # by setting CMAKE_SYSTEM_NAME and CMAKE_SYSTEM_PROCESSOR,
-    # see https://github.com/bazel-contrib/rules_foreign_cc/issues/289,
-    # and https://github.com/bazel-contrib/rules_foreign_cc/pull/1062
-    if target_os == "unknown":
-        # buildifier: disable=print
-        print("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
-    elif target_os != host_os:
-        params.cache.update(_TARGET_OS_PARAMS.get(target_os, {}))
-        params.cache.update(_TARGET_ARCH_PARAMS.get(target_arch, {}))
 
     set_env_vars = [
         "export {}=\"{}\"".format(key, _escape_dquote_bash(params.env[key]))
@@ -194,6 +205,7 @@ _CMAKE_ENV_VARS_FOR_CROSSTOOL = {
 }
 
 _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
+    "ANDROID": struct(value = "ANDROID", replace = False),
     "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
     "CMAKE_ASM_FLAGS": struct(value = "CMAKE_ASM_FLAGS_INIT", replace = False),
     "CMAKE_CXX_ARCHIVE_CREATE": struct(value = "CMAKE_CXX_ARCHIVE_CREATE", replace = False),
@@ -206,6 +218,8 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
     "CMAKE_SHARED_LINKER_FLAGS": struct(value = "CMAKE_SHARED_LINKER_FLAGS_INIT", replace = False),
     "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
+    "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = False),
+    "CMAKE_SYSTEM_PROCESSOR": struct(value = "CMAKE_SYSTEM_PROCESSOR", replace = False),
 }
 
 def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
