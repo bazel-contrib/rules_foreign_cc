@@ -21,8 +21,7 @@ bazel_dep(name = "apple_support", version = "1.17.1", repo_name = "build_bazel_a
 bazel_dep(name = "rules_python", version = "1.2.0")
 bazel_dep(name = "rules_cc", version = "0.1.1")
 bazel_dep(name = "rules_shell", version = "0.3.0")
-bazel_dep(name = "rules_java", version = "8.6.3")
-bazel_dep(name = "rules_perl", version = "0.2.4")
+bazel_dep(name = "rules_perl", version = "0.2.5")
 
 apple_cc_configure = use_extension("@build_bazel_apple_support//crosstool:setup.bzl", "apple_cc_configure_extension")
 use_repo(apple_cc_configure, "local_config_apple_cc")
