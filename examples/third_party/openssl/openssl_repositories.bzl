@@ -8,12 +8,10 @@ def openssl_repositories():
         http_archive,
         name = "openssl",
         build_file = Label("//openssl:BUILD.openssl.bazel"),
-        sha256 = "9384a2b0570dd80358841464677115df785edb941c71211f75076d72fe6b438f",
-        strip_prefix = "openssl-1.1.1o",
+        sha256 = "",
+        strip_prefix = "openssl-1.1.1w",
         urls = [
-            "https://mirror.bazel.build/www.openssl.org/source/openssl-1.1.1o.tar.gz",
-            "https://www.openssl.org/source/openssl-1.1.1o.tar.gz",
-            "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1o.tar.gz",
+            "https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1w/openssl-1.1.1w.tar.gz",
         ],
     )
 
@@ -32,9 +30,8 @@ def openssl_repositories():
     maybe(
         http_archive,
         name = "rules_perl",
-        sha256 = "5cefadbf2a49bf3421ede009f2c5a2c9836abae792620ed2ff99184133755325",
-        strip_prefix = "rules_perl-0.1.0",
+        strip_prefix = "rules_perl-0.2.3",
         urls = [
-            "https://github.com/bazelbuild/rules_perl/archive/refs/tags/0.1.0.tar.gz",
+            "https://github.com/bazelbuild/rules_perl/archive/refs/tags/0.2.3.tar.gz",
         ],
     )
