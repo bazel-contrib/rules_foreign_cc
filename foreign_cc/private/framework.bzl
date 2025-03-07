@@ -461,9 +461,10 @@ def cc_external_rule_impl(ctx, attrs):
     installdir = target_root + "/" + lib_name
     env_prelude = get_env_prelude(ctx, installdir, data_dependencies)
 
-    postfix_script = [attrs.postfix_script]
     if not attrs.postfix_script:
         postfix_script = []
+    else:
+        postfix_script = [expand_locations_and_make_variables(ctx, attrs.postfix_script, "postfix_script", data_dependencies)]
 
     script_lines = [
         "##echo## \"\"",

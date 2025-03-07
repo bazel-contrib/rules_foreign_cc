@@ -168,7 +168,7 @@ def pkgconfig_tool(name, srcs, **kwargs):
             "@gettext_runtime",
         ],
         postfix_script = select({
-            "@platforms//os:windows": "cp release/x64/pkg-config.exe $$INSTALLDIR$$/bin",
+            "@platforms//os:windows": "cp release/x64/pkg-config.exe $$INSTALLDIR/bin",
             "//conditions:default": "",
         }),
         toolchain = str(Label("//toolchains:preinstalled_nmake_toolchain")),

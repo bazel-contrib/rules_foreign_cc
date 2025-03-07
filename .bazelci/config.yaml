@@ -18,6 +18,12 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
+  macos_arm64:
+    platform: macos_arm64
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
   windows:
     platform: windows
     build_targets:

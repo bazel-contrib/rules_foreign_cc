@@ -98,6 +98,7 @@ def create_configure_script(
 
     script.extend(make_commands)
     script.append("##disable_tracing##")
+    script.append("##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n")
 
     return script
 
