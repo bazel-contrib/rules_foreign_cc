@@ -130,9 +130,9 @@ def rules_foreign_cc_dependencies(
     maybe(
         http_archive,
         name = "rules_python",
-        sha256 = "0a158f883fc494724f25e2ce6a5c3d31fd52163a92d4b7180aef0ff9a0622f70",
-        strip_prefix = "rules_python-1.1.0-rc0",
-        url = "https://github.com/bazelbuild/rules_python/releases/download/1.1.0-rc0/rules_python-1.1.0-rc0.tar.gz",
+        sha256 = "2ef40fdcd797e07f0b6abda446d1d84e2d9570d234fddf8fcd2aa262da852d1c",
+        strip_prefix = "rules_python-1.2.0",
+        url = "https://github.com/bazelbuild/rules_python/releases/download/1.2.0/rules_python-1.2.0.tar.gz",
     )
 
     maybe(
