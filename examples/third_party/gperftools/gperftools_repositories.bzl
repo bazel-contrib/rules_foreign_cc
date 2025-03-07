@@ -9,6 +9,6 @@ def gperftools_repositories():
         name = "gperftools",
         build_file = Label("//gperftools:BUILD.gperftools.bazel"),
         sha256 = "",
-        strip_prefix = "gperftools-2.15",
-        urls = ["https://github.com/gperftools/gperftools/releases/download/gperftools-2.15/gperftools-2.15.tar.gz"],
+        strip_prefix = "gperftools-2.16",
+        urls = ["https://github.com/gperftools/gperftools/releases/download/gperftools-2.16/gperftools-2.16.tar.gz"],
     )
