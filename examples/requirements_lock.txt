@@ -4,9 +4,9 @@
 #
 #    bazel run //:requirements.update
 #
-mako==1.3.9 \
-    --hash=sha256:95920acccb578427a9aa38e37a186b1e43156c87260d7ba18ca63aa4c7cbd3a1 \
-    --hash=sha256:b5d65ff3462870feec922dbccf38f6efb44e5714d7b593a656be86663d8600ac
+mako==1.2.2 \
+    --hash=sha256:3724869b363ba630a272a5f89f68c070352137b8fd1757650017b7e06fda163f \
+    --hash=sha256:8efcb8004681b5f71d09c983ad5a9e6f5c40601a6ec469148753292abc0da534
     # via -r requirements.txt
 markupsafe==2.1.1 \
     --hash=sha256:0212a68688482dc52b2d45013df70d169f542b7394fc744c02a57374a4207003 \
