@@ -37,9 +37,9 @@ tasks:
       - "--enable_workspace"
     test_flags:
       - "--enable_workspace"
-  ubuntu1804_examples_standalone:
+  ubuntu2004_examples_standalone:
     name: Examples (spawn_strategy=standalone)
-    platform: ubuntu1804
+    platform: ubuntu2004
     working_directory: examples
     linux_targets: &linux_targets_standalone
       - "//..."
