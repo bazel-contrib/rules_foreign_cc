@@ -29,6 +29,7 @@ sh_test(
     srcs = ["test_zlib.sh"],
     data = [":zlib_usage_example"],
     visibility = ["//:__pkg__"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
 )
 
 cmake(
@@ -50,4 +51,5 @@ sh_test(
     srcs = ["test_shared_zlib.sh"],
     data = [":run-zlib-example"],
     visibility = ["//:__pkg__"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
 )
