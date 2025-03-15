@@ -34,10 +34,8 @@ tasks:
       - "-//test:shell_method_symlink_contents_to_dir_test"
       - "-//test:shell_script_inner_fun_test"
     build_flags:
-      - "--noenable_bzlmod"
       - "--enable_workspace"
     test_flags:
-      - "--noenable_bzlmod"
       - "--enable_workspace"
   ubuntu1804_examples_standalone:
     name: Examples (spawn_strategy=standalone)
@@ -160,10 +158,8 @@ tasks:
     build_targets: *windows_targets
     test_targets: *windows_targets
     build_flags:
-      - "--noenable_bzlmod"
       - "--enable_workspace"
     test_flags:
-      - "--noenable_bzlmod"
       - "--enable_workspace"
   rbe_ubuntu2004_flags:
     name: Flags
