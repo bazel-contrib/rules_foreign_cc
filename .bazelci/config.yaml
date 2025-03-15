@@ -41,7 +41,6 @@ tasks:
       - "--enable_workspace"
   ubuntu1804_examples_standalone:
     name: Examples (spawn_strategy=standalone)
-    bazel: "7.4.1"
     platform: ubuntu1804
     working_directory: examples
     linux_targets: &linux_targets_standalone
@@ -61,7 +60,6 @@ tasks:
       - "--enable_workspace"
   ubuntu2004_examples:
     name: Examples
-    bazel: "7.4.1"
     platform: ubuntu2004
     working_directory: examples
     linux_targets: &linux_targets
@@ -75,7 +73,6 @@ tasks:
       - "--enable_workspace"
   rbe_ubuntu2004_examples:
     name: Examples
-    bazel: "7.4.1"
     platform: rbe_ubuntu2004
     working_directory: examples
     rbe_targets: &rbe_targets
@@ -91,7 +88,6 @@ tasks:
       - "--enable_workspace"
   macos_examples_standalone:
     name: Examples (spawn_strategy=standalone)
-    bazel: "7.4.1"
     platform: macos
     working_directory: examples
     macos_targets: &macos_targets_standalone
@@ -117,7 +113,6 @@ tasks:
       - "--enable_workspace"
   macos_examples:
     name: Examples
-    bazel: "7.4.1"
     platform: macos
     working_directory: examples
     macos_targets: &macos_targets
@@ -137,7 +132,6 @@ tasks:
       - "--enable_workspace"
   windows_examples:
     name: Examples
-    bazel: "7.4.1"
     platform: windows
     working_directory: examples
     windows_targets: &windows_targets
