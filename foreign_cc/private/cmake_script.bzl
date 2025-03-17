@@ -23,11 +23,11 @@ _TARGET_OS_PARAMS = {
         "ANDROID": "YES",
         "CMAKE_SYSTEM_NAME": "Linux",
     },
-    "linux": {
-        "CMAKE_SYSTEM_NAME": "Linux",
-    },
     "emscripten": {
         "CMAKE_SYSTEM_NAME": "Emscripten",
+    },
+    "linux": {
+        "CMAKE_SYSTEM_NAME": "Linux",
     },
 }
 
