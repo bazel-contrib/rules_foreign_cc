@@ -162,6 +162,30 @@ def _create_meson_script(configureParameters):
     ]
     # --- TODO: DEPRECATED, delete on a future release ------------------------
 
+    # NOTE:
+    # introspect has an "old API" and doesn't work like other commands.
+    # It requires a builddir argument and it doesn't have a flag to output to a
+    # file, so it requires a redirect. And, most probably, it will remain like
+    # this for the foreseable future (see
+    # https://github.com/mesonbuild/meson/issues/8182#issuecomment-758183324).
+    #
+    # To keep things simple, we provide a basic API: users must supply the
+    # introspection JSON file in `out_data_files`, and we offer a sensible
+    # default for the introspect command that users can override if needed.
+    if "introspect" in targets:
+        if len(ctx.attr.out_data_files) != 1:
+            msg = "Meson introspect expects a single JSON filename via "
+            msg += "out_data_files; only one filename should be provided."
+            fail(msg)
+
+        introspect_file = ctx.attr.out_data_files[0]
+
+        introspect_args = ["$$BUILD_TMPDIR$$"]
+        introspect_args += target_args.get("introspect", ["--all", "--indent"])
+        introspect_args += [">", "$$INSTALLDIR$$/{}".format(introspect_file)]
+
+        target_args["introspect"] = introspect_args
+
     for target_name in targets:
         script.append("{meson} {target} {args}".format(
             meson = meson_path,
