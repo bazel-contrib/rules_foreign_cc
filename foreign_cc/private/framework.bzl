@@ -162,6 +162,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Optional names of additional directories created by the build that should be declared as bazel action outputs",
         mandatory = False,
     ),
+    "out_data_files": attr.string_list(
+        doc = "Optional names of additional files created by the build that should be declared as bazel action outputs",
+        mandatory = False,
+    ),
     "out_dll_dir": attr.string(
         doc = "Optional name of the output subdirectory with the dll files, defaults to 'bin'.",
         mandatory = False,
@@ -579,7 +583,13 @@ def cc_external_rule_impl(ctx, attrs):
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
     )
-    output_groups = _declare_output_groups(installdir_copy.file, outputs.out_binary_files + outputs.libraries.static_libraries + outputs.libraries.shared_libraries + [outputs.out_include_dir])
+    output_groups = (
+        outputs.out_binary_files +
+        outputs.libraries.static_libraries +
+        outputs.libraries.shared_libraries +
+        [outputs.out_include_dir] if outputs.out_include_dir else []
+    )
+    output_groups = _declare_output_groups(installdir_copy.file, output_groups)
     wrapped_files = [
         wrapped_outputs.script_file,
         wrapped_outputs.log_file,
@@ -828,23 +838,35 @@ def _define_outputs(ctx, attrs, lib_name):
     attr_headers_only = attrs.out_headers_only
     attr_interface_libs = attrs.out_interface_libs
     attr_out_data_dirs = attrs.out_data_dirs
+    attr_out_data_files = attrs.out_data_files
     attr_shared_libs = attrs.out_shared_libs
     attr_static_libs = attrs.out_static_libs
 
     static_libraries = []
     if not attr_headers_only:
-        if not attr_static_libs and not attr_shared_libs and not attr_binaries_libs and not attr_interface_libs:
+        if not (
+            attr_static_libs or
+            attr_shared_libs or
+            attr_binaries_libs or
+            attr_interface_libs or
+            attr_out_data_files
+        ):
             static_libraries = [lib_name + (".lib" if targets_windows(ctx, None) else ".a")]
         else:
             static_libraries = attr_static_libs
 
     _check_file_name(lib_name)
 
-    out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
+    if attrs.out_include_dir:
+        out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
+    else:
+        out_include_dir = ""
 
     out_data_dirs = []
     for dir in attr_out_data_dirs:
         out_data_dirs.append(ctx.actions.declare_directory(lib_name + "/" + dir.lstrip("/")))
+
+    out_data_files = _declare_out(ctx, lib_name, "/", attr_out_data_files)
 
     out_binary_files = _declare_out(ctx, lib_name, attrs.out_bin_dir, attr_binaries_libs)
 
@@ -854,7 +876,8 @@ def _define_outputs(ctx, attrs, lib_name):
         interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attr_interface_libs),
     )
 
-    declared_outputs = [out_include_dir] + out_data_dirs + out_binary_files
+    declared_outputs = [out_include_dir] if out_include_dir else []
+    declared_outputs += out_data_dirs + out_binary_files + out_data_files
     declared_outputs += libraries.static_libraries
     declared_outputs += libraries.shared_libraries + libraries.interface_libraries
 
@@ -1017,11 +1040,11 @@ def _get_headers(compilation_info):
 
 def _define_out_cc_info(ctx, attrs, inputs, outputs):
     compilation_info = cc_common.create_compilation_context(
-        headers = depset([outputs.out_include_dir]),
+        headers = depset([outputs.out_include_dir]) if outputs.out_include_dir else depset([]),
         system_includes = depset([outputs.out_include_dir.path] + [
             outputs.out_include_dir.path + "/" + include
             for include in attrs.includes
-        ]),
+        ]) if outputs.out_include_dir else depset([]),
         includes = depset([]),
         quote_includes = depset([]),
         defines = depset(attrs.defines),
