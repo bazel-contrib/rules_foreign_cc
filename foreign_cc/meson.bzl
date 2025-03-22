@@ -162,6 +162,19 @@ def _create_meson_script(configureParameters):
     ]
     # --- TODO: DEPRECATED, delete on a future release ------------------------
 
+    # NOTE:
+    # introspect has an "old API" and doesn't work like other commands.
+    # It requires a builddir argument and it doesn't have a flag to output to a
+    # file, so it requires a redirect. And, most probably, it will remain like
+    # this for the foreseable future (see
+    # https://github.com/mesonbuild/meson/issues/8182#issuecomment-758183324).
+    #
+    # Thus, let's provide a "sane default" so that users don't have to remember
+    # / memorize "the right incantation args"
+    if "introspect" in targets and not target_args.get("introspect", False):
+        args = ["$$BUILD_TMPDIR$$", "--all", "--indent", ">", "$$INSTALLDIR$$/introspect.json"]
+        target_args["introspect"] = args
+
     for target_name in targets:
         script.append("{meson} {target} {args}".format(
             meson = meson_path,
