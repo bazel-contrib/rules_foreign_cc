@@ -171,11 +171,11 @@ def _cmake_impl(ctx):
     if "Unix Makefiles" == generator:
         make_data = get_make_data(ctx)
         tools_data.append(make_data)
-        generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(make_data.path))
+        generate_args.append("-DCMAKE_MAKE_PROGRAM=\"{}\"".format(make_data.path))
     elif "Ninja" in generator:
         ninja_data = get_ninja_data(ctx)
         tools_data.append(ninja_data)
-        generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(ninja_data.path))
+        generate_args.append("-DCMAKE_MAKE_PROGRAM=\"{}\"".format(ninja_data.path))
 
     attrs = create_attrs(
         ctx.attr,
@@ -230,7 +230,7 @@ def _create_configure_script(configureParameters):
 
         # Note that even though directory is always passed, the
         # following arguments can take precedence.
-        cmake_commands.append("{cmake} --build {dir} --config {config} {target} {args}".format(
+        cmake_commands.append("\"{cmake}\" --build \"{dir}\" --config {config} {target} {args}".format(
             cmake = attrs.cmake_path,
             dir = ".",
             args = build_args,
@@ -245,7 +245,7 @@ def _create_configure_script(configureParameters):
             for arg in ctx.attr.install_args
         ])
 
-        cmake_commands.append("{cmake} --install {dir} --config {config} {args}".format(
+        cmake_commands.append("\"{cmake}\" --install \"{dir}\" --config {config} {args}".format(
             cmake = attrs.cmake_path,
             dir = ".",
             args = install_args,

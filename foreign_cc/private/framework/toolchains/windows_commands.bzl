@@ -9,7 +9,7 @@ def script_extension():
     return ".sh"
 
 def pwd():
-    return "$(type -t cygpath > /dev/null && cygpath $(pwd) -m || pwd -W)"
+    return "\"$(type -t cygpath > /dev/null && cygpath \"$(pwd)\" -m || pwd -W)\""
 
 def echo(text):
     return "echo \"{text}\"".format(text = text)
@@ -108,7 +108,7 @@ fi
     )
 
 def copy_dir_contents_to_dir(source, target):
-    return """cp -L -r --no-target-directory "{source}" "{target}" && $REAL_FIND "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+    return """cp -L -r --no-target-directory {source} {target} && $REAL_FIND {target} -type f -exec touch -r {source} "{{}}" \\;""".format(
         source = source,
         target = target,
     )
@@ -253,28 +253,28 @@ fi""".format(dir_ = dir_)
     return FunctionAndCallInfo(text = text)
 
 def define_absolute_paths(dir_, abs_path):
-    return "##replace_in_files## {dir_} {REPLACE_VALUE} {abs_path}".format(
+    return "##replace_in_files## \"{dir_}\" \"{REPLACE_VALUE}\" \"{abs_path}\"".format(
         dir_ = dir_,
         REPLACE_VALUE = "\\${EXT_BUILD_DEPS}",
         abs_path = abs_path,
     )
 
 def replace_absolute_paths(dir_, abs_path):
-    return "##replace_in_files## {dir_} {abs_path} {REPLACE_VALUE}".format(
+    return "##replace_in_files## \"{dir_}\" \"{abs_path}\" \"{REPLACE_VALUE}\"".format(
         dir_ = dir_,
         REPLACE_VALUE = "\\${EXT_BUILD_DEPS}",
         abs_path = abs_path,
     )
 
 def define_sandbox_paths(dir_, abs_path):
-    return "##replace_in_files## {dir_} {REPLACE_VALUE} {abs_path}".format(
+    return "##replace_in_files## \"{dir_}\" \"{REPLACE_VALUE}\" \"{abs_path}\"".format(
         dir_ = dir_,
         REPLACE_VALUE = "\\${EXT_BUILD_ROOT}",
         abs_path = abs_path,
     )
 
 def replace_sandbox_paths(dir_, abs_path):
-    return "##replace_in_files## {dir_} {abs_path} {REPLACE_VALUE}".format(
+    return "##replace_in_files## \"{dir_}\" \"{abs_path}\" \"{REPLACE_VALUE}\"".format(
         dir_ = dir_,
         REPLACE_VALUE = "\\${EXT_BUILD_ROOT}",
         abs_path = abs_path,

@@ -320,9 +320,9 @@ def get_env_prelude(ctx, installdir, data_dependencies):
     """
     env_snippet = [
         "export EXT_BUILD_ROOT=##pwd##",
-        "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + installdir,
-        "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
-        "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
+        "export INSTALLDIR=\"$$EXT_BUILD_ROOT$$/" + installdir + "\"",
+        "export BUILD_TMPDIR=\"$$INSTALLDIR$$.build_tmpdir" + "\"",
+        "export EXT_BUILD_DEPS=\"$$INSTALLDIR$$.ext_build_deps" + "\"",
     ]
 
     env = dict()
@@ -472,14 +472,14 @@ def cc_external_rule_impl(ctx, attrs):
         "##echo## \"\"",
         "##script_prelude##",
     ] + env_prelude + [
-        "##path## $$EXT_BUILD_ROOT$$",
-        "##rm_rf## $$BUILD_TMPDIR$$",
-        "##rm_rf## $$EXT_BUILD_DEPS$$",
-        "##mkdirs## $$INSTALLDIR$$",
-        "##mkdirs## $$BUILD_TMPDIR$$",
-        "##mkdirs## $$EXT_BUILD_DEPS$$",
+        "##path## \"$$EXT_BUILD_ROOT$$\"",
+        "##rm_rf## \"$$BUILD_TMPDIR$$\"",
+        "##rm_rf## \"$$EXT_BUILD_DEPS$$\"",
+        "##mkdirs## \"$$INSTALLDIR$$\"",
+        "##mkdirs## \"$$BUILD_TMPDIR$$\"",
+        "##mkdirs## \"$$EXT_BUILD_DEPS$$\"",
     ] + _print_env() + _copy_deps_and_tools(inputs) + [
-        "cd $$BUILD_TMPDIR$$",
+        "cd \"$$BUILD_TMPDIR$$\"",
     ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + postfix_script + [
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
@@ -488,7 +488,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##replace_absolute_paths## $$INSTALLDIR$$ $$EXT_BUILD_DEPS$$",
         "##replace_sandbox_paths## $$INSTALLDIR$$ $$EXT_BUILD_ROOT$$",
         installdir_copy.script,
-        "cd $$EXT_BUILD_ROOT$$",
+        "cd \"$$EXT_BUILD_ROOT$$\"",
     ] + [
         "##replace_symlink## {}".format(file.path)
         for file in (
@@ -704,9 +704,9 @@ def _get_transitive_artifacts(deps):
 
 def _print_env():
     return [
-        "##echo## \"Environment:______________\"",
+        "##echo## Environment:______________",
         "##env##",
-        "##echo## \"__________________________\"",
+        "##echo## __________________________",
     ]
 
 def _normalize_path(path):
@@ -767,14 +767,14 @@ def _copy_deps_and_tools(files):
     lines += _symlink_contents_to_dir("include", files.headers + files.include_dirs)
 
     if files.tools_files:
-        lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
+        lines.append("##mkdirs## \"$$EXT_BUILD_DEPS$$/bin\"")
     for tool in files.tools_files:
         tool_prefix = "$EXT_BUILD_ROOT/"
         tool = tool[len(tool_prefix):] if tool.startswith(tool_prefix) else tool
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool))
+        lines.append("##symlink_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/bin/\" False".format(tool))
 
     for ext_dir in files.ext_build_dirs:
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
+        lines.append("##symlink_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$\" True".format(_file_path(ext_dir)))
 
     lines.append("##path## $$EXT_BUILD_DEPS$$/bin")
 
@@ -786,13 +786,13 @@ def _symlink_contents_to_dir(dir_name, files_list):
     files_list = collections.uniq(files_list)
     if len(files_list) == 0:
         return []
-    lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
+    lines = ["##mkdirs## \"$$EXT_BUILD_DEPS$$/" + dir_name + "\""]
 
     for file in files_list:
         path = _file_path(file).strip()
         if path:
             lines.append("##symlink_contents_to_dir## \
-$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, dir_name))
+\"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/{}\" True".format(path, dir_name))
 
     return lines
 
@@ -1121,4 +1121,4 @@ def _expand_locations_in_string(ctx, expandable, data):
     if "EXT_BUILD_ROOT" in expandable:
         return ctx.expand_location(expandable, data)
     else:
-        return ctx.expand_location(expandable.replace("$(execpath ", "$$EXT_BUILD_ROOT$$/$(execpath "), data)
+        return ctx.expand_location(expandable.replace("$(execpath ", "\"$$EXT_BUILD_ROOT$$\"/$(execpath "), data)

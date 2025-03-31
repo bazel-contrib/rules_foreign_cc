@@ -161,14 +161,14 @@ def create_cmake_script(
 
     script += pkgconfig_script(ext_build_dirs)
 
-    directory = "$$EXT_BUILD_ROOT$$/" + root
+    directory = "\"$$EXT_BUILD_ROOT$$/" + root + "\""
 
     script.append("##enable_tracing##")
 
     # Configure the CMake generate command
     cmake_prefixes = [cmake_prefix] if cmake_prefix else []
     script.append(" ".join(cmake_prefixes + [
-        cmake_path,
+        "\"{}\"".format(cmake_path),
         str_cmake_cache_entries,
         " ".join(options),
         # Generator is always set last and will override anything specified by the user
