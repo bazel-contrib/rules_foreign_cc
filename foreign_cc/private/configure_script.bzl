@@ -73,7 +73,7 @@ def create_configure_script(
             options = " ".join(autoreconf_options),
         ).lstrip())
 
-    script.append("##mkdirs## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$")
+    script.append("##mkdirs## \"$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$\"")
 
     make_commands = []
     script.append("{env_vars} {prefix}\"{configure}\" {prefix_flag}$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
