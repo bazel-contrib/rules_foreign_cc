@@ -109,7 +109,7 @@ def _filter(list_, predicate, inverse):
 def _files_map(files_list, suffix = ""):
     by_names_map = {}
     for file_ in files_list:
-        name_ = _removesuffix(_file_name_no_ext(file_.basename), suffix)
+        name_ = _file_name_no_ext(file_.basename).removesuffix(suffix)
         value = by_names_map.get(name_)
         if value:
             fail("Can not have libraries with the same name in the same category")
@@ -390,6 +390,3 @@ def _prefix(text, from_str, prefix):
 def _file_name_no_ext(basename):
     (before, _separator, _after) = basename.rpartition(".")
     return before
-
-def _removesuffix(s, sub):
-    return s[:-len(sub)] if sub and s.endswith(sub) else s
