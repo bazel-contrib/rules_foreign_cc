@@ -124,7 +124,7 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
         "##copy_dir_contents_to_dir## ./{} $$BUILD_TMPDIR$$".format(root),
-        "cd $$BUILD_TMPDIR$$",
+        "cd \"$$BUILD_TMPDIR$$\"",
     ]
 
     script.append("##enable_tracing##")

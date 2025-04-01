@@ -629,7 +629,10 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
     cleanup_on_success_function = create_function(
         ctx,
         "cleanup_on_success",
-        "rm -rf $$BUILD_TMPDIR$$ $$EXT_BUILD_DEPS$$",
+        "\n".join([
+            "##rm_rf## $$BUILD_TMPDIR$$",
+            "##rm_rf## $$EXT_BUILD_DEPS$$",
+        ]),
     )
     cleanup_on_failure_function = create_function(
         ctx,
@@ -665,8 +668,8 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
         "export BUILD_LOG=\"{}\"".format(build_log_file.path),
         # sometimes the log file is not created, we do not want our script to fail because of this
-        "##touch## $$BUILD_LOG$$",
-        "##redirect_out_err## $$BUILD_SCRIPT$$ $$BUILD_LOG$$",
+        "##touch## \"$$BUILD_LOG$$\"",
+        "##redirect_out_err## \"$$BUILD_SCRIPT$$\" \"$$BUILD_LOG$$\"",
     ]
     build_command = "\n".join([
         shebang(ctx),
@@ -730,7 +733,7 @@ def _correct_path_variable(toolchain, env):
                     # INCLUDE) needs windows path (for passing as arguments to compiler).
                     prefix = "${EXT_BUILD_ROOT/$(printf '\072')/}/"
                 else:
-                    prefix = "$EXT_BUILD_ROOT/"
+                    prefix = "\"$EXT_BUILD_ROOT\"/"
 
                 # external/path becomes $EXT_BUILD_ROOT/external/path
                 path_paths = [prefix + path if path and path[1] != ":" else path for path in value.split(";")]

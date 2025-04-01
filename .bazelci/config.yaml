@@ -6,24 +6,32 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
+    test_flags:
+      - "--@aspect_rules_lint//lint:fail_on_violation"
   rbe_ubuntu2004:
     platform: rbe_ubuntu2004
     build_targets:
       - "//..."
     test_targets:
       - "//..."
+    test_flags:
+      - "--@aspect_rules_lint//lint:fail_on_violation"
   macos:
     platform: macos
     build_targets:
       - "//..."
     test_targets:
       - "//..."
+    test_flags:
+      - "--@aspect_rules_lint//lint:fail_on_violation"
   macos_arm64:
     platform: macos_arm64
     build_targets:
       - "//..."
     test_targets:
       - "//..."
+    test_flags:
+      - "--@aspect_rules_lint//lint:fail_on_violation"
   windows:
     platform: windows
     build_targets:
@@ -39,6 +47,7 @@ tasks:
     test_flags:
       - "--noenable_bzlmod"
       - "--enable_workspace"
+      - "--@aspect_rules_lint//lint:fail_on_violation"
   ubuntu1804_examples_standalone:
     name: Examples (spawn_strategy=standalone)
     platform: ubuntu1804
