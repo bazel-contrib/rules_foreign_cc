@@ -22,6 +22,7 @@ test_suite(
         "//libgit2:libgit2_build_test",
         "//libjpeg_turbo:libjpeg_turbo_build_test",
         "//libpng:test_libpng",
+        "//libsodium:libsodium_build_test",
         "//libssh2:libssh2_build_test",
         "//log4cxx:log4cxx_build_test",
         "//mesa:mesa_build_test",
