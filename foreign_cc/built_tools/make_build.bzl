@@ -18,6 +18,10 @@ load(
     "get_tools_info",
 )
 load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
+load(
+    "//foreign_cc/private/framework:helpers.bzl",
+    "escape_dquote_bash",
+)
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 
 def _make_tool_impl(ctx):
@@ -35,8 +39,8 @@ def _make_tool_impl(ctx):
 
         script = [
             build_str,
-            "mkdir -p $$INSTALLDIR$$/bin",
-            "cp -p ./{}/gnumake.exe $$INSTALLDIR$$/bin/make.exe".format(dist_dir),
+            "mkdir -p \"$$INSTALLDIR$$/bin\"",
+            "cp -p ./{}/gnumake.exe \"$$INSTALLDIR$$/bin/make.exe\"".format(dist_dir),
         ]
     else:
         env = get_env_vars(ctx)
@@ -81,7 +85,7 @@ def _make_tool_impl(ctx):
             "--without-guile",
             "--with-guile=no",
             "--disable-dependency-tracking",
-            "--prefix=$$INSTALLDIR$$",
+            "--prefix=\"$$INSTALLDIR$$\"",
         ]
 
         install_cmd = ["./make install"]
@@ -92,8 +96,8 @@ def _make_tool_impl(ctx):
 
             # We can't use make to install make when cross-compiling
             install_cmd = [
-                "mkdir -p $$INSTALLDIR$$/bin",
-                "cp -p make $$INSTALLDIR$$/bin/make",
+                "mkdir -p \"$$INSTALLDIR$$/bin\"",
+                "cp -p make \"$$INSTALLDIR$$/bin/make\"",
             ]
 
         env.update({
@@ -133,4 +137,4 @@ make_tool = rule(
 )
 
 def _join_flags_list(workspace_name, flags):
-    return " ".join([absolutize(workspace_name, flag) for flag in flags])
+    return " ".join([escape_dquote_bash(absolutize(workspace_name, flag)) for flag in flags])

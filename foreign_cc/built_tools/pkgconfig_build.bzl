@@ -18,6 +18,10 @@ load(
     "get_tools_info",
 )
 load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
+load(
+    "//foreign_cc/private/framework:helpers.bzl",
+    "escape_dquote_bash",
+)
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
@@ -66,7 +70,7 @@ def _pkgconfig_tool_impl(ctx):
 
     configure_options = [
         "--with-internal-glib",
-        "--prefix=$$INSTALLDIR$$",
+        "--prefix=\"$$INSTALLDIR$$\"",
     ]
 
     xcompile_options = detect_xcompile(ctx)
@@ -86,8 +90,8 @@ def _pkgconfig_tool_impl(ctx):
     configure_env = " ".join(["%s=\"%s\"" % (key, value) for key, value in env.items()])
     script = [
         "%s ./configure %s" % (configure_env, " ".join(configure_options)),
-        "%s" % make_data.path,
-        "%s install" % make_data.path,
+        "\"%s\"" % make_data.path,
+        "\"%s\" install" % make_data.path,
     ]
 
     if make_data.target:
@@ -186,4 +190,4 @@ def pkgconfig_tool(name, srcs, **kwargs):
     )
 
 def _join_flags_list(workspace_name, flags):
-    return " ".join([absolutize(workspace_name, flag) for flag in flags])
+    return " ".join([escape_dquote_bash(absolutize(workspace_name, flag)) for flag in flags])
