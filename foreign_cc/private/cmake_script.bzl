@@ -23,6 +23,9 @@ _TARGET_OS_PARAMS = {
         "ANDROID": "YES",
         "CMAKE_SYSTEM_NAME": "Linux",
     },
+    "emscripten": {
+        "CMAKE_SYSTEM_NAME": "Emscripten",
+    },
     "linux": {
         "CMAKE_SYSTEM_NAME": "Linux",
     },
@@ -37,6 +40,14 @@ _TARGET_ARCH_PARAMS = {
     },
     "s390x": {
         "CMAKE_SYSTEM_PROCESSOR": "s390x",
+    },
+    # Emscripten configures CMAKE_SYSTEM_PROCESSOR as follows for compatibility with libraries such as OpenCV
+    # https://github.com/emscripten-core/emscripten/blob/79ee3d1/cmake/Modules/Platform/Emscripten.cmake#L23-L30
+    "wasm32": {
+        "CMAKE_SYSTEM_PROCESSOR": "x86",
+    },
+    "wasm64": {
+        "CMAKE_SYSTEM_PROCESSOR": "x86_64",
     },
     "x86_64": {
         "CMAKE_SYSTEM_PROCESSOR": "x86_64",
