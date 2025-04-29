@@ -7,4 +7,3 @@
         - [make](make.md)
         - [meson](meson.md)
         - [ninja](ninja.md)
-- [Full API](flatten.md)

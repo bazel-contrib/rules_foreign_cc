@@ -12,10 +12,10 @@ def pwd():
     return "$(type -t cygpath > /dev/null && cygpath $(pwd) -m || pwd -W)"
 
 def echo(text):
-    return "echo \"{text}\"".format(text = text)
+    return "echo {text}".format(text = text)
 
 def export_var(name, value):
-    return "export {name}={value}".format(name = name, value = value)
+    return "{name}={value}; export {name}".format(name = name, value = value)
 
 def local_var(name, value):
     return "local {name}={value}".format(name = name, value = value)
@@ -48,7 +48,7 @@ def _path_var_expansion(expression):
     return "/" + "".join(result)
 
 def touch(path):
-    return "touch " + path
+    return "touch \"{path}\"".format(path = path)
 
 def enable_tracing():
     return "set -x"
@@ -57,10 +57,10 @@ def disable_tracing():
     return "set +x"
 
 def mkdirs(path):
-    return "mkdir -p " + path
+    return "mkdir -p \"{path}\"".format(path = path)
 
 def rm_rf(path):
-    return "rm -rf " + path
+    return "rm -rf \"{path}\"".format(path = path)
 
 def if_else(condition, if_text, else_text):
     return """\

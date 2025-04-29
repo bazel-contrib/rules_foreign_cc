@@ -4,6 +4,7 @@
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
@@ -66,7 +67,7 @@ def _configure_features(ctx, cc_toolchain):
 def _create_libraries_to_link(ctx, files):
     libs = []
 
-    static_map = _files_map(_filter(files.static_libraries or [], _is_position_independent, True))
+    static_map = _files_map(_filter(files.static_libraries or [], _is_position_independent, True), suffix = ctx.attr.static_suffix)
     pic_static_map = _files_map(_filter(files.static_libraries or [], _is_position_independent, False))
     shared_map = _files_map(files.shared_libraries or [])
     interface_map = _files_map(files.interface_libraries or [])
@@ -105,10 +106,10 @@ def _filter(list_, predicate, inverse):
             result.append(elem)
     return result
 
-def _files_map(files_list):
+def _files_map(files_list, suffix = ""):
     by_names_map = {}
     for file_ in files_list:
-        name_ = _file_name_no_ext(file_.basename)
+        name_ = _file_name_no_ext(file_.basename).removesuffix(suffix)
         value = by_names_map.get(name_)
         if value:
             fail("Can not have libraries with the same name in the same category")
@@ -352,9 +353,10 @@ def _add_if_needed(arr, add_arr):
 def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     """Replaces relative paths in [the middle of] 'text', prepending them with 'root_str'. If there is nothing to replace, returns the 'text'.
 
-    We only will replace relative paths starting with either 'external/' or '<top-package-name>/',
-    because we only want to point with absolute paths to external repositories or inside our
-    current workspace. (And also to limit the possibility of error with such not exact replacing.)
+    We only will replace relative paths starting with either 'external/', 'bazel-out/', or
+    '<top-package-name>/', because we only want to point with absolute paths to external
+    repositories or inside our current workspace. (And also to limit the possibility of error with
+    such not exact replacing.)
 
     Args:
         workspace_name: workspace name
@@ -367,7 +369,9 @@ def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     """
     new_text = _prefix(text, "external/", root_str)
     if new_text == text:
-        new_text = _prefix(text, workspace_name + "/", root_str)
+        new_text = _prefix(text, "bazel-out/", root_str)
+        if new_text == text:
+            new_text = _prefix(text, workspace_name + "/", root_str)
 
     # Check to see if the text is already absolute on a unix and windows system
     is_already_absolute = text.startswith("/") or \
@@ -382,7 +386,7 @@ def absolutize_path_in_str(workspace_name, root_str, text, force = False):
 
 def _prefix(text, from_str, prefix):
     (before, middle, after) = text.partition(from_str)
-    if not middle or before.endswith("/"):
+    if not middle or before.endswith("/") or before.endswith("\\"):
         return text
     return before + prefix + middle + after
 

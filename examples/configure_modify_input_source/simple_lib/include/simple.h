@@ -3,4 +3,4 @@
 
 int simpleFun(void);
 
-#endif // SIMPLE_H_
+#endif  // SIMPLE_H_

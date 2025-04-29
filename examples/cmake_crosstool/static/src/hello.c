@@ -1,7 +1,7 @@
 #include "hello.h"
 
 void hello_func(void) {
-	printf("Hello World!\n");
+    printf("Hello World!\n");
 
-	return;
+    return;
 }

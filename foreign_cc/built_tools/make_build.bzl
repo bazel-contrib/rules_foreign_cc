@@ -8,6 +8,8 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
     "absolutize",
     "built_tool_rule_impl",
+    "extract_non_sysroot_flags",
+    "extract_sysroot_flags",
 )
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
@@ -16,6 +18,10 @@ load(
     "get_tools_info",
 )
 load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
+load(
+    "//foreign_cc/private/framework:helpers.bzl",
+    "escape_dquote_bash",
+)
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 
 def _make_tool_impl(ctx):
@@ -33,8 +39,8 @@ def _make_tool_impl(ctx):
 
         script = [
             build_str,
-            "mkdir -p $$INSTALLDIR$$/bin",
-            "cp -p ./{}/gnumake.exe $$INSTALLDIR$$/bin/make.exe".format(dist_dir),
+            "mkdir -p \"$$INSTALLDIR$$/bin\"",
+            "cp -p ./{}/gnumake.exe \"$$INSTALLDIR$$/bin/make.exe\"".format(dist_dir),
         ]
     else:
         env = get_env_vars(ctx)
@@ -46,13 +52,13 @@ def _make_tool_impl(ctx):
 
         cc_path = tools_info.cc
         cflags = flags_info.cc
-        sysroot_cflags = [flag for flag in cflags if flag.startswith("--sysroot=")]
-        non_sysroot_cflags = [flag for flag in cflags if not flag.startswith("--sysroot=")]
+        sysroot_cflags = extract_sysroot_flags(cflags)
+        non_sysroot_cflags = extract_non_sysroot_flags(cflags)
 
         ld_path = tools_info.cxx_linker_executable
         ldflags = flags_info.cxx_linker_executable
-        sysroot_ldflags = [flag for flag in ldflags if flag.startswith("--sysroot=")]
-        non_sysroot_ldflags = [flag for flag in ldflags if not flag.startswith("--sysroot=")]
+        sysroot_ldflags = extract_sysroot_flags(ldflags)
+        non_sysroot_ldflags = extract_non_sysroot_flags(ldflags)
 
         # Make's build script does not forward CFLAGS to all compiler and linker
         # invocations, so we append --sysroot flags directly to CC and LD.
@@ -79,7 +85,7 @@ def _make_tool_impl(ctx):
             "--without-guile",
             "--with-guile=no",
             "--disable-dependency-tracking",
-            "--prefix=$$INSTALLDIR$$",
+            "--prefix=\"$$INSTALLDIR$$\"",
         ]
 
         install_cmd = ["./make install"]
@@ -90,8 +96,8 @@ def _make_tool_impl(ctx):
 
             # We can't use make to install make when cross-compiling
             install_cmd = [
-                "mkdir -p $$INSTALLDIR$$/bin",
-                "cp -p make $$INSTALLDIR$$/bin/make",
+                "mkdir -p \"$$INSTALLDIR$$/bin\"",
+                "cp -p make \"$$INSTALLDIR$$/bin/make\"",
             ]
 
         env.update({
@@ -131,4 +137,4 @@ make_tool = rule(
 )
 
 def _join_flags_list(workspace_name, flags):
-    return " ".join([absolutize(workspace_name, flag) for flag in flags])
+    return " ".join([escape_dquote_bash(absolutize(workspace_name, flag)) for flag in flags])

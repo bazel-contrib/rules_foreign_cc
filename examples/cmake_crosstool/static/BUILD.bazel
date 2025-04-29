@@ -3,6 +3,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 filegroup(
     name = "srcs",

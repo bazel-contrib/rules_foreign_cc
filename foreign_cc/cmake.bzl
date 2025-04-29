@@ -128,6 +128,7 @@ cmake(
 [cct]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain
 """
 
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
@@ -147,6 +148,7 @@ load(
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//foreign_cc/private/framework:platform.bzl",
+    "arch_name",
     "os_name",
     "target_arch_name",
     "target_os_name",
@@ -205,7 +207,8 @@ def _create_configure_script(configureParameters):
 
     cmake_commands = []
 
-    configuration = "Debug" if is_debug_mode(ctx) else "Release"
+    default_configuration = "Debug" if is_debug_mode(ctx) else "Release"
+    configuration = default_configuration if not ctx.attr.configuration else ctx.attr.configuration
 
     data = ctx.attr.data + ctx.attr.build_data
 
@@ -257,6 +260,7 @@ def _create_configure_script(configureParameters):
         target_os = target_os_name(ctx),
         target_arch = target_arch_name(ctx),
         host_os = os_name(ctx),
+        host_arch = arch_name(ctx),
         generator = attrs.generator,
         cmake_path = attrs.cmake_path,
         tools = tools,
@@ -363,6 +367,15 @@ def _attrs():
             ),
             mandatory = False,
             default = {},
+        ),
+        "configuration": attr.string(
+            doc = (
+                "Override the `cmake --build` and `cmake --install` `--config` configuration. " +
+                "If left empty, the value of this arg will be determined by the COMPILATION_MODE env var: " +
+                "dbg will set `--config Debug` and all other modes will set --config Release."
+            ),
+            mandatory = False,
+            default = "",
         ),
         "generate_args": attr.string_list(
             doc = (

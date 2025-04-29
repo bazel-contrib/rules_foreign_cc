@@ -6,6 +6,7 @@ load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load(
@@ -209,6 +210,13 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = False,
     ),
+    "static_suffix": attr.string(
+        doc = (
+            "Optional suffix used by static libs." +
+            "Ensures correct association of static and shared libs."
+        ),
+        mandatory = False,
+    ),
     "targets": attr.string_list(
         doc = (
             "A list of targets with in the foreign build system to produce. An empty string (`\"\"`) will result in " +
@@ -344,10 +352,14 @@ def get_env_prelude(ctx, installdir, data_dependencies):
     env.update(user_vars)
 
     if cc_toolchain.compiler == "msvc-cl":
-        if "PATH" in user_vars and "$$EXT_BUILD_ROOT$$" in user_vars["PATH"]:
-            # Convert any $$EXT_BUILD_ROOT$$ in PATH to /${EXT_BUILD_ROOT/$(printf '\072')/}.
-            # This is because PATH needs to be in unix format for MSYS2.
-            user_vars["PATH"] = user_vars["PATH"].replace("$$EXT_BUILD_ROOT$$", "/$${EXT_BUILD_ROOT/$$$(printf '\072')/}")
+        # Convert any $$EXT_BUILD_ROOT$$ or $EXT_BUILD_ROOT in PATH to
+        # /${EXT_BUILD_ROOT/$(printf '\072')/}. This is because PATH needs to be in unix
+        # format for MSYS2.
+        # Note: $$EXT_BUILD_ROOT becomes $EXT_BUILD_ROOT after
+        # expand_locations_and_make_variables above.
+        for build_root in ["$$EXT_BUILD_ROOT$$", "$EXT_BUILD_ROOT"]:
+            if "PATH" in user_vars and build_root in user_vars["PATH"]:
+                user_vars["PATH"] = user_vars["PATH"].replace(build_root, "/$${EXT_BUILD_ROOT/$$$(printf '\072')/}")
 
     # If user has defined a PATH variable (e.g. PATH, LD_LIBRARY_PATH, CPATH) prepend it to the existing variable
     for user_var in user_vars:
@@ -449,9 +461,10 @@ def cc_external_rule_impl(ctx, attrs):
     installdir = target_root + "/" + lib_name
     env_prelude = get_env_prelude(ctx, installdir, data_dependencies)
 
-    postfix_script = [attrs.postfix_script]
     if not attrs.postfix_script:
         postfix_script = []
+    else:
+        postfix_script = [expand_locations_and_make_variables(ctx, attrs.postfix_script, "postfix_script", data_dependencies)]
 
     script_lines = [
         "##echo## \"\"",
@@ -616,7 +629,10 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
     cleanup_on_success_function = create_function(
         ctx,
         "cleanup_on_success",
-        "rm -rf $$BUILD_TMPDIR$$ $$EXT_BUILD_DEPS$$",
+        "\n".join([
+            "##rm_rf## $$BUILD_TMPDIR$$",
+            "##rm_rf## $$EXT_BUILD_DEPS$$",
+        ]),
     )
     cleanup_on_failure_function = create_function(
         ctx,
@@ -652,8 +668,8 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
         "export BUILD_LOG=\"{}\"".format(build_log_file.path),
         # sometimes the log file is not created, we do not want our script to fail because of this
-        "##touch## $$BUILD_LOG$$",
-        "##redirect_out_err## $$BUILD_SCRIPT$$ $$BUILD_LOG$$",
+        "##touch## \"$$BUILD_LOG$$\"",
+        "##redirect_out_err## \"$$BUILD_SCRIPT$$\" \"$$BUILD_LOG$$\"",
     ]
     build_command = "\n".join([
         shebang(ctx),
@@ -717,18 +733,30 @@ def _correct_path_variable(toolchain, env):
                     # INCLUDE) needs windows path (for passing as arguments to compiler).
                     prefix = "${EXT_BUILD_ROOT/$(printf '\072')/}/"
                 else:
-                    prefix = "$EXT_BUILD_ROOT/"
+                    prefix = "\"$EXT_BUILD_ROOT\"/"
 
                 # external/path becomes $EXT_BUILD_ROOT/external/path
                 path_paths = [prefix + path if path and path[1] != ":" else path for path in value.split(";")]
                 corrected_env[key] = ";".join(path_paths)
         env = corrected_env
 
-    value = env.get("PATH", "")
-    if not value:
+    value = env.get("PATH")
+    if value == None:
+        # avoid setting PATH if it isn't set, and vice-versa
         return env
-    value = _normalize_path(env.get("PATH", ""))
-    env["PATH"] = "$PATH:" + value
+
+    value = _normalize_path(value)
+
+    if "$PATH" not in value:
+        # Since we end up overriding the value of PATH here, we need to make
+        # sure we preserve the current value of the PATH (in case
+        # strict_action_env is not in use).  If one of the toolchains has
+        # already overridden where the PATH self-reference falls (in order to
+        # put toolchain items first, for example) we want to trust that, but
+        # otherwise we need to make sure it's referenced _somewhere_.
+        value = "$PATH:" + value
+
+    env["PATH"] = value
     return env
 
 def _list(item):

@@ -111,7 +111,9 @@ exports_files(["meson.py"])
 
 filegroup(
     name = "runtime",
-    srcs = glob(["mesonbuild/**"]),
+    # NOTE: excluding __pycache__ is important to avoid rebuilding due to pyc
+    # files, see https://github.com/bazel-contrib/rules_foreign_cc/issues/1342
+    srcs = glob(["mesonbuild/**"], exclude = ["**/__pycache__/*"]),
     visibility = ["//visibility:public"],
 )
 
@@ -168,13 +170,9 @@ def built_toolchains(cmake_version, make_version, ninja_version, meson_version, 
 
     Args:
         cmake_version: The CMake version to build
-
         make_version: The Make version to build
-
         ninja_version: The Ninja version to build
-
         meson_version: The Meson version to build
-
         pkgconfig_version: The pkg-config version to build
 
         register_built_pkgconfig_toolchain: If true, the built pkgconfig toolchain will be registered.
@@ -189,6 +187,12 @@ def built_toolchains(cmake_version, make_version, ninja_version, meson_version, 
 
 # buildifier: disable=unnamed-macro
 def cmake_toolchain(version):
+    """
+    Create the cmake toolchain definition for building from source
+
+    Args:
+       version: The CMake version to build
+    """
     if _CMAKE_SRCS.get(version):
         cmake_meta = _CMAKE_SRCS[version]
         urls = cmake_meta[0]
@@ -202,7 +206,7 @@ def cmake_toolchain(version):
             strip_prefix = prefix,
             urls = urls,
             patches = [
-                Label("//toolchains:cmake-c++11.patch"),
+                Label("//toolchains/patches:cmake-c++11.patch"),
             ],
         )
         return
@@ -211,6 +215,12 @@ def cmake_toolchain(version):
 
 # buildifier: disable=unnamed-macro
 def make_toolchain(version):
+    """
+    Create the make toolchain definition for building from source
+
+    Args:
+      version: The Make version to build
+    """
     if version == "4.4.1":
         maybe(
             http_archive,
@@ -256,6 +266,12 @@ def make_toolchain(version):
     fail("Unsupported make version: " + str(version))
 
 def ninja_toolchain(version):
+    """
+    Create the ninja toolchain definition for building from source
+
+    Args:
+      version: The Ninja version to build
+    """
     if version == "1.12.1":
         maybe(
             http_archive,
@@ -326,6 +342,12 @@ def ninja_toolchain(version):
 
 # buildifier: disable=unnamed-macro
 def meson_toolchain(version):
+    """
+    Create the meson toolchain definitions
+
+    Args:
+      version: The Meson version to build
+    """
     if version == "1.5.1":
         maybe(
             http_archive,
@@ -370,6 +392,12 @@ def meson_toolchain(version):
 
 # buildifier: disable=unnamed-macro
 def pkgconfig_toolchain(version):
+    """
+    The pkgconfig toolchain definition for building from source
+
+    Args:
+      version: The pkg-config version to build
+    """
     maybe(
         http_archive,
         name = "glib_dev",
@@ -454,13 +482,13 @@ cc_import(
             # The patch is required as bazel does not provide the VCINSTALLDIR or WINDOWSSDKDIR vars
             patches = [
                 # This patch is required as bazel does not provide the VCINSTALLDIR or WINDOWSSDKDIR vars
-                Label("//toolchains:pkgconfig-detectenv.patch"),
+                Label("//toolchains/patches:pkgconfig-detectenv.patch"),
 
                 # This patch is required as rules_foreign_cc runs in MSYS2 on Windows and MSYS2's "mkdir" is used
-                Label("//toolchains:pkgconfig-makefile-vc.patch"),
+                Label("//toolchains/patches:pkgconfig-makefile-vc.patch"),
 
                 # This patch fixes explicit integer conversion which causes errors in clang >= 15 and gcc >= 14
-                Label("//toolchains:pkgconfig-builtin-glib-int-conversion.patch"),
+                Label("//toolchains/patches:pkgconfig-builtin-glib-int-conversion.patch"),
             ],
             urls = [
                 "https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",

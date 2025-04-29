@@ -1,5 +1,3 @@
 #include "simple.h"
 
-int main(int argc, char **argv) {
-  return simpleFun();
-}
+int main(int argc, char **argv) { return simpleFun(); }
