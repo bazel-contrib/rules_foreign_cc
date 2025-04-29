@@ -353,9 +353,10 @@ def _add_if_needed(arr, add_arr):
 def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     """Replaces relative paths in [the middle of] 'text', prepending them with 'root_str'. If there is nothing to replace, returns the 'text'.
 
-    We only will replace relative paths starting with either 'external/' or '<top-package-name>/',
-    because we only want to point with absolute paths to external repositories or inside our
-    current workspace. (And also to limit the possibility of error with such not exact replacing.)
+    We only will replace relative paths starting with either 'external/', 'bazel-out/', or
+    '<top-package-name>/', because we only want to point with absolute paths to external
+    repositories or inside our current workspace. (And also to limit the possibility of error with
+    such not exact replacing.)
 
     Args:
         workspace_name: workspace name
@@ -368,7 +369,9 @@ def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     """
     new_text = _prefix(text, "external/", root_str)
     if new_text == text:
-        new_text = _prefix(text, workspace_name + "/", root_str)
+        new_text = _prefix(text, "bazel-out/", root_str)
+        if new_text == text:
+            new_text = _prefix(text, workspace_name + "/", root_str)
 
     # Check to see if the text is already absolute on a unix and windows system
     is_already_absolute = text.startswith("/") or \
