@@ -156,14 +156,18 @@ load(
 load(
     "//toolchains/native_tools:tool_access.bzl",
     "get_cmake_data",
+    "get_m4_data",
     "get_make_data",
     "get_ninja_data",
+    "get_pkgconfig_data",
 )
 
 def _cmake_impl(ctx):
     cmake_data = get_cmake_data(ctx)
+    pkgconfig_data = get_pkgconfig_data(ctx)
+    m4_data = get_m4_data(ctx)
 
-    tools_data = [cmake_data]
+    tools_data = [cmake_data, pkgconfig_data, m4_data]
 
     env = dict(ctx.attr.env)
 

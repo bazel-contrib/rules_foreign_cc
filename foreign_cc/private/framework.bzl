@@ -306,13 +306,14 @@ dependencies.""",
 def _is_msvc_var(var):
     return var == "INCLUDE" or var == "LIB"
 
-def get_env_prelude(ctx, installdir, data_dependencies):
+def get_env_prelude(ctx, installdir, data_dependencies, tools_env):
     """Generate a bash snippet containing environment variable definitions
 
     Args:
         ctx (ctx): The rule's context object
         installdir (str): The path from the root target's directory in the build output
         data_dependencies (list): A list of targets representing dependencies
+        tools_env (dict): A dictionary of environment variables from toolchain
 
     Returns:
         tuple: A list of environment variables to define in the build script and a dict
@@ -326,6 +327,7 @@ def get_env_prelude(ctx, installdir, data_dependencies):
     ]
 
     env = dict()
+    env.update(tools_env)
 
     # Add all environment variables from the cc_toolchain
     cc_toolchain = find_cpp_toolchain(ctx)
@@ -451,15 +453,18 @@ def cc_external_rule_impl(ctx, attrs):
     target_root = paths.dirname(installdir_copy.file.dirname)
 
     data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
+    tools_env = {}
     for tool in attrs.tools_data:
         if tool.target:
             data_dependencies.append(tool.target)
+        if tool.env:
+            tools_env.update(tool.env)
 
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
 
     installdir = target_root + "/" + lib_name
-    env_prelude = get_env_prelude(ctx, installdir, data_dependencies)
+    env_prelude = get_env_prelude(ctx, installdir, data_dependencies, tools_env)
 
     if not attrs.postfix_script:
         postfix_script = []
