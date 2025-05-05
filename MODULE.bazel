@@ -24,6 +24,7 @@ python.toolchain(python_version = "3.12")
 use_repo(python, "python_3_12")
 
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.30.2")
 use_repo(
     tools,
     "prebuilt_cmake_toolchains",
@@ -33,10 +34,10 @@ use_repo(
 )
 
 register_toolchains(
-    "@toolchain_hub//:all",
     "@prebuilt_cmake_toolchains//:all",
     "@prebuilt_ninja_toolchains//:all",
     "@rules_foreign_cc_framework_toolchains//:all",
     "@python_3_12//:all",
     "@rules_foreign_cc//toolchains:all",
+    "@toolchain_hub//:all",
 )
