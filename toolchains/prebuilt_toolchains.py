@@ -10,8 +10,9 @@ CMAKE_SHA256_URL_TEMPLATE = "https://cmake.org/files/v{minor}/cmake-{full}-SHA-2
 CMAKE_URL_TEMPLATE = "https://github.com/Kitware/CMake/releases/download/v{full}/{file}"
 
 CMAKE_VERSIONS = (
-    [f"3.31.{x}" for x in range(2)]
-    + [f"3.30.{x}" for x in range(7)]
+    [f"4.0.{x}" for x in range(3)]
+    + [f"3.31.{x}" for x in range(8)]
+    + [f"3.30.{x}" for x in range(9)]
     + [f"3.29.{x}" for x in range(10)]
     + [f"3.28.{x}" for x in range(7)]
     + [f"3.27.{x}" for x in range(10)]
@@ -250,6 +251,7 @@ def get_cmake_definitions() -> str:
         version_archives = []
         version_toolchains = {}
 
+        print(f"fetching cmake {version}")
         minor_version = "{}.{}".format(major, minor)
         for line in urllib.request.urlopen(
             CMAKE_SHA256_URL_TEMPLATE.format(minor=minor_version, full=version)
