@@ -99,46 +99,98 @@ def _create_meson_script(configureParameters):
     root = detect_root(ctx.attr.lib_source)
     data = ctx.attr.data + ctx.attr.build_data
 
-    # Generate a list of arguments for meson
-    options_str = " ".join([
-        "-D{}=\"{}\"".format(key, ctx.attr.options[key])
-        for key in ctx.attr.options
-    ])
+    if attrs.tool_prefix:
+        tool_prefix = "{} ".format(
+            expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data),
+        )
+    else:
+        tool_prefix = ""
 
-    prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
+    meson_path = "{tool_prefix}{meson_path}".format(
+        tool_prefix = tool_prefix,
+        meson_path = attrs.meson_path,
+    )
 
-    setup_args_str = " ".join(expand_locations_and_make_variables(ctx, ctx.attr.setup_args, "setup_args", data))
+    target_args = dict(ctx.attr.target_args)
 
-    script.append("{prefix}{meson} setup --prefix={install_dir} {setup_args} {options} {source_dir}".format(
-        prefix = prefix,
-        meson = attrs.meson_path,
+    # --- TODO: DEPRECATED, delete on a future release ------------------------
+    # Convert the deprecated arguments into the new target_args argument. Fail
+    # if there's a deprecated argument being used together with its new
+    # target_args (e.g. setup_args and a "setup" target_args).
+
+    deprecated = [
+        ("setup", ctx.attr.setup_args),
+        ("compile", ctx.attr.build_args),
+        ("install", ctx.attr.install_args),
+    ]
+
+    for target_name, args_ in deprecated:
+        if args_ and target_name in target_args:
+            fail("Please migrate '{t}_args' to 'target_args[\"{t}\"]'".format(t = target_name))
+
+        target_args[target_name] = args_
+
+    # --- TODO: DEPRECATED, delete on a future release ------------------------
+
+    # Expand target args
+    for target_name, args_ in target_args.items():
+        if target_name == "setup":
+            args = expand_locations_and_make_variables(ctx, args_, "setup_args", data)
+        else:
+            args = [ctx.expand_location(arg, data) for arg in args_]
+
+        target_args[target_name] = args
+
+    script.append("{meson} setup --prefix={install_dir} {setup_args} {options} {source_dir}".format(
+        meson = meson_path,
         install_dir = "$$INSTALLDIR$$",
-        setup_args = setup_args_str,
-        options = options_str,
+        setup_args = " ".join(target_args.get("setup", [])),
+        options = " ".join([
+            "-D{}=\"{}\"".format(key, ctx.attr.options[key])
+            for key in ctx.attr.options
+        ]),
         source_dir = "$$EXT_BUILD_ROOT$$/" + root,
     ))
 
-    build_args = [] + ctx.attr.build_args
-    build_args_str = " ".join([
-        ctx.expand_location(arg, data)
-        for arg in build_args
-    ])
+    targets = ctx.attr.targets
 
-    script.append("{prefix}{meson} compile {args}".format(
-        prefix = prefix,
-        meson = attrs.meson_path,
-        args = build_args_str,
-    ))
+    # --- TODO: DEPRECATED, delete on a future release ------------------------
+    targets = [
+        t
+        for t in targets
+        if t != "install" or ctx.attr.install
+    ]
+    # --- TODO: DEPRECATED, delete on a future release ------------------------
 
-    if ctx.attr.install:
-        install_args = " ".join([
-            ctx.expand_location(arg, data)
-            for arg in ctx.attr.install_args
-        ])
-        script.append("{prefix}{meson} install {args}".format(
-            prefix = prefix,
-            meson = attrs.meson_path,
-            args = install_args,
+    # NOTE:
+    # introspect has an "old API" and doesn't work like other commands.
+    # It requires a builddir argument and it doesn't have a flag to output to a
+    # file, so it requires a redirect. And, most probably, it will remain like
+    # this for the foreseable future (see
+    # https://github.com/mesonbuild/meson/issues/8182#issuecomment-758183324).
+    #
+    # To keep things simple, we provide a basic API: users must supply the
+    # introspection JSON file in `out_data_files`, and we offer a sensible
+    # default for the introspect command that users can override if needed.
+    if "introspect" in targets:
+        if len(ctx.attr.out_data_files) != 1:
+            msg = "Meson introspect expects a single JSON filename via "
+            msg += "out_data_files; only one filename should be provided."
+            fail(msg)
+
+        introspect_file = ctx.attr.out_data_files[0]
+
+        introspect_args = ["$$BUILD_TMPDIR$$"]
+        introspect_args += target_args.get("introspect", ["--all", "--indent"])
+        introspect_args += [">", "$$INSTALLDIR$$/{}".format(introspect_file)]
+
+        target_args["introspect"] = introspect_args
+
+    for target_name in targets:
+        script.append("{meson} {target} {args}".format(
+            meson = meson_path,
+            target = target_name,
+            args = " ".join(target_args.get(target_name, [])),
         ))
 
     return script
@@ -153,26 +205,34 @@ def _attrs():
 
     attrs.update({
         "build_args": attr.string_list(
-            doc = "Arguments for the Meson build command",
+            doc = "__deprecated__: please use `target_args` with `'build'` target key.",
             mandatory = False,
         ),
         "install": attr.bool(
-            doc = "If True, the `meson install` comand will be performed after a build",
+            doc = "__deprecated__: please use `targets` if you want to skip install.",
             default = True,
         ),
         "install_args": attr.string_list(
-            doc = "Arguments for the meson install command",
+            doc = "__deprecated__: please use `target_args` with `'install'` target key.",
             mandatory = False,
         ),
         "options": attr.string_dict(
-            doc = (
-                "Meson option entries to initialize (they will be passed with `-Dkey=value`)"
-            ),
+            doc = "Meson `setup` options (converted to `-Dkey=value`)",
             mandatory = False,
             default = {},
         ),
         "setup_args": attr.string_list(
-            doc = "Arguments for the Meson setup command",
+            doc = "__deprecated__: please use `target_args` with `'setup'` target key.",
+            mandatory = False,
+        ),
+        "target_args": attr.string_list_dict(
+            doc = "Dict of arguments for each of the Meson targets. The " +
+                  "target name is the key and the list of args is the value.",
+            mandatory = False,
+        ),
+        "targets": attr.string_list(
+            doc = "A list of targets to run. Defaults to ['compile', 'install']",
+            default = ["compile", "install"],
             mandatory = False,
         ),
     })
