@@ -266,6 +266,21 @@ if [[ -L "{file}" ]]; then
 fi
 """.format(file = file)
 
+def replace_all_symlinks(dir):
+    return """\
+function realpath() {{
+  local previous="$1"
+  local next=$(readlink "${{previous}}")
+  while [ -n "${{next}}" ]; do
+    previous="${{next}}"
+    next=$(readlink "${{previous}}")
+  done
+  echo "${{previous}}"
+}}
+find "{dir}" -type l -exec bash -c 'for i in "$@"; do cp -af "$(realpath "$i")" "$i"; done' bash "{{}}" +""".format(
+        dir = dir,
+    )
+
 commands = struct(
     assert_script_errors = assert_script_errors,
     cat = cat,
@@ -291,6 +306,7 @@ commands = struct(
     replace_in_files = replace_in_files,
     replace_sandbox_paths = replace_sandbox_paths,
     replace_symlink = replace_symlink,
+    replace_all_symlinks = replace_all_symlinks,
     rm_rf = rm_rf,
     script_extension = script_extension,
     script_prelude = script_prelude,
