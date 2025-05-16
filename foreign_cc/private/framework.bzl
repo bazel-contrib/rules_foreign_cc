@@ -748,7 +748,9 @@ def _correct_path_variable(toolchain, env):
                     # INCLUDE) needs windows path (for passing as arguments to compiler).
                     prefix = "${EXT_BUILD_ROOT/$(printf '\072')/}/"
                 else:
-                    prefix = "\"$EXT_BUILD_ROOT\"/"
+                    # Don't add extra quotes for shellcheck. The place where it gets used
+                    # should be quoted instead.
+                    prefix = "$EXT_BUILD_ROOT/"
 
                 # external/path becomes $EXT_BUILD_ROOT/external/path
                 path_paths = [prefix + path if path and path[1] != ":" else path for path in value.split(";")]
