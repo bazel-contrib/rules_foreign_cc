@@ -76,6 +76,7 @@ fabric.properties
 
 # Bazel CI
 bazelci.py
+MODULE.bazel.lock
 
 #####
 # Bazel: https://github.com/github/gitignore/blob/master/community/Bazel.gitignore
