@@ -90,7 +90,8 @@ def _create_meson_script(configureParameters):
         script.append("##export_var## CXXFLAGS \"{} ${{CXXFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, cxxopts).replace("\"", "'")))
 
     if flags.cxx_linker_executable:
-        script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, flags.cxx_linker_executable).replace("\"", "'")))
+        ldflags = _filter_flags(flags.cxx_linker_executable, ctx.attr.linkopts_exclude)
+        script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, ldflags).replace("\"", "'")))
 
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
@@ -216,6 +217,10 @@ def _attrs():
             doc = "__deprecated__: please use `target_args` with `'install'` target key.",
             mandatory = False,
         ),
+        "linkopts_exclude": attr.string_list(
+            doc = "Optional link options to be excluded from the common set of flags passed from the Bazel toolchain to Meson.",
+            mandatory = False,
+        ),
         "options": attr.string_dict(
             doc = "Meson `setup` options (converted to `-Dkey=value`)",
             mandatory = False,
@@ -300,3 +305,8 @@ def _absolutize(workspace_name, text, force = False):
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+
+def _filter_flags(flags, exclude_list):
+    if len(exclude_list):
+        return [flag for flag in flags if flag not in exclude_list]
+    return flags
