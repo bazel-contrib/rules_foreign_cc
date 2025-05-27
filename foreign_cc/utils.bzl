@@ -2,8 +2,12 @@
 
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
-def full_label(label):
-    return native.repository_name() + "//" + native.package_name() + ":" + label
+def full_label(name):
+    if hasattr(native, "package_relative_label"):
+        return native.package_relative_label(name)
+    else:
+        # pre Bazel 6.1.0
+        return Label(native.repository_name() + "//" + native.package_name() + ":" + name)
 
 def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, **kwargs):
     """
@@ -49,11 +53,7 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
     cp tmp $@
     """
 
-    if hasattr(native, "package_relative_label"):
-        fg_label = native.package_relative_label(name + "_fg")
-    else:
-        # pre Bazel 6.1.0
-        fg_label = full_label(name + "_fg")
+    fg_label = full_label(name + "_fg")
 
     native.genrule(
         name = name + "_wrapper",
