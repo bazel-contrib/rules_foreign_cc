@@ -52,22 +52,22 @@ def foreign_cc_rule_variant(name, rule, toolchain, **kwargs):
         **kwargs: Remaining keyword arguments
     """
 
-    extra_toolchains_target_name = name + "_"
+    foreign_cc_rule_target_name = name + "_"
 
     tags = kwargs.pop("tags", [])
     visibility = kwargs.pop("visibility", [])
 
     rule(
-        name = name,
+        name = foreign_cc_rule_target_name,
         tags = tags + ["manual"],
         visibility = visibility,
         **kwargs
     )
 
     extra_toolchains_transitioned_foreign_cc_target(
-        name = extra_toolchains_target_name,
+        name = name,
         extra_toolchain = toolchain,
-        target = name,
+        target = foreign_cc_rule_target_name,
         tags = tags,
         visibility = visibility,
     )
