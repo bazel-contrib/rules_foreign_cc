@@ -1,0 +1,58 @@
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson")
+
+package(
+    default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
+)
+
+exports_files(["LICENSE"])
+
+license(
+    name = "license",
+    package_name = "libdav1d",
+    license_kinds = [
+        "@rules_license//licenses/spdx:BSD-3-Clause-Clear",
+    ],
+    license_text = "LICENSE",
+    package_url = "https://code.videolan.org/videolan/dav1d",
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+meson(
+    name = "libdav1d",
+    build_data = [
+        "@nasm",
+    ],
+    build_args = [
+        "-j4",
+    ],
+    lib_source = ":all_srcs",
+    options = {
+        "enable_tools": "false",
+        "enable_tests": "false",
+    },
+    env = {
+        # TODO toolchains_llvm also set other env vars: CC= CXX= LD= AR= CCAS= RANLIB= STRIP= CPPFLAGS= CFLAGS= CXXFLAGS= LDFLAGS=
+        #"CC": "$(CC)",
+        #"CXX": "$(CC)",
+        #"AR": "$$EXT_BUILD_ROOT/external/toolchains_llvm~~llvm~llvm_toolchain/bin/llvm-ar",
+        #"STRIP": "$$EXT_BUILD_ROOT/external/toolchains_llvm~~llvm~llvm_toolchain/bin/llvm-strip",
+        #"AR": "$$EXT_BUILD_ROOT/$$(dirname $(LD))/llvm-ar",
+        #"STRIP": "$$EXT_BUILD_ROOT/$$(dirname $(LD))/llvm-strip",
+        # TODO try -Dc_link_args=-L/path/to/lib insteadhg update
+        #"LIBRARY_PATH": "$$EXT_BUILD_ROOT/external/_main~repositories_ext~com_googleapis_storage_chrome_linux_amd64_sysroot/usr/lib/x86_64-linux-gnu",
+        "PATH": "$$PATH:$$(dirname $(execpath @nasm))",
+    },
+    out_lib_dir = "lib64",
+    #out_shared_libs = ["libdav1d.so", "libdav1d.so.7", "libdav1d.so.7.0.0"],
+    out_static_libs = ["libdav1d.a"],
+    setup_args = [
+        "--buildtype=release",
+        "--default-library=static",
+    ],
+)
