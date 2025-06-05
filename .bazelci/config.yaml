@@ -1,15 +1,15 @@
 ---
 tasks:
-  ubuntu2004:
-    platform: ubuntu2004
+  ubuntu2204:
+    platform: ubuntu2204
     build_targets:
       - "//..."
     test_targets:
       - "//..."
     test_flags:
       - "--@aspect_rules_lint//lint:fail_on_violation"
-  rbe_ubuntu2004:
-    platform: rbe_ubuntu2004
+  rbe_ubuntu2204:
+    platform: rbe_ubuntu2204
     build_targets:
       - "//..."
     test_targets:
@@ -69,9 +69,9 @@ tasks:
       - "--spawn_strategy=standalone"
       - "--noenable_bzlmod"
       - "--enable_workspace"
-  ubuntu2004_examples:
+  ubuntu2204_examples:
     name: Examples
-    platform: ubuntu2004
+    platform: ubuntu2204
     working_directory: examples
     linux_targets: &linux_targets
       - "//..."
@@ -84,9 +84,9 @@ tasks:
     test_flags:
       - "--noenable_bzlmod"
       - "--enable_workspace"
-  ubuntu2004_examples_bzlmod:
+  ubuntu2204_examples_bzlmod:
     name: Examples (bzlmod)
-    platform: ubuntu2004
+    platform: ubuntu2204
     working_directory: examples
     linux_targets: &linux_targets_bzlmod
       - "//..."
@@ -97,9 +97,9 @@ tasks:
     test_targets: *linux_targets_bzlmod
     build_flags:
       - "--enable_bzlmod"
-  rbe_ubuntu2004_examples:
+  rbe_ubuntu2204_examples:
     name: Examples
-    platform: rbe_ubuntu2004
+    platform: rbe_ubuntu2204
     working_directory: examples
     rbe_targets: &rbe_targets
       - "//..."
@@ -193,15 +193,15 @@ tasks:
     test_flags:
       - "--noenable_bzlmod"
       - "--enable_workspace"
-  rbe_ubuntu2004_flags:
+  rbe_ubuntu2204_flags:
     name: Flags
-    platform: rbe_ubuntu2004
+    platform: rbe_ubuntu2204
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
-  ubuntu2004_flags:
+  ubuntu2204_flags:
     name: Flags
-    platform: ubuntu2004
+    platform: ubuntu2204
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
@@ -217,15 +217,15 @@ tasks:
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
-  rbe_ubuntu2004_detect_root:
+  rbe_ubuntu2204_detect_root:
     name: Detect root
-    platform: rbe_ubuntu2004
+    platform: rbe_ubuntu2204
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
-  ubuntu2004_detect_root:
+  ubuntu2204_detect_root:
     name: Detect root
-    platform: ubuntu2004
+    platform: ubuntu2204
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
@@ -243,7 +243,7 @@ tasks:
       - "//:tests"
   docs_linux:
     name: Docs
-    platform: ubuntu2004
+    platform: ubuntu2204
     working_directory: docs
     build_targets:
       - //...
@@ -251,7 +251,7 @@ tasks:
     name: "Minimum Supported Version"
     bazel: "7.4.1"
     skip_in_bazel_downstream_pipeline: "Duplicates tests in other targets"
-    platform: ubuntu1804
+    platform: ubuntu2204
     build_targets:
       - "//..."
     test_targets:
@@ -260,7 +260,7 @@ tasks:
     name: "Minimum Supported Version Examples"
     bazel: "6.5.0"
     skip_in_bazel_downstream_pipeline: "Duplicates tests in other targets"
-    platform: ubuntu1804
+    platform: ubuntu2204
     working_directory: examples
     min_supported_targets: &min_supported_targets
       - "--"
