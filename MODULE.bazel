@@ -27,7 +27,7 @@ rbe_preconfig = use_repo_rule(
 
 rbe_preconfig(
     name = "buildkite_config",
-    toolchain = "ubuntu2004",
+    toolchain = "ubuntu2204",
 )
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
