@@ -162,6 +162,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Optional names of additional directories created by the build that should be declared as bazel action outputs",
         mandatory = False,
     ),
+    "out_data_files": attr.string_list(
+        doc = "Optional names of additional files created by the build that should be declared as bazel action outputs",
+        mandatory = False,
+    ),
     "out_dll_dir": attr.string(
         doc = "Optional name of the output subdirectory with the dll files, defaults to 'bin'.",
         mandatory = False,
@@ -306,13 +310,14 @@ dependencies.""",
 def _is_msvc_var(var):
     return var == "INCLUDE" or var == "LIB"
 
-def get_env_prelude(ctx, installdir, data_dependencies):
+def get_env_prelude(ctx, installdir, data_dependencies, tools_env):
     """Generate a bash snippet containing environment variable definitions
 
     Args:
         ctx (ctx): The rule's context object
         installdir (str): The path from the root target's directory in the build output
         data_dependencies (list): A list of targets representing dependencies
+        tools_env (dict): A dictionary of environment variables from toolchain
 
     Returns:
         tuple: A list of environment variables to define in the build script and a dict
@@ -326,6 +331,7 @@ def get_env_prelude(ctx, installdir, data_dependencies):
     ]
 
     env = dict()
+    env.update(tools_env)
 
     # Add all environment variables from the cc_toolchain
     cc_toolchain = find_cpp_toolchain(ctx)
@@ -451,15 +457,18 @@ def cc_external_rule_impl(ctx, attrs):
     target_root = paths.dirname(installdir_copy.file.dirname)
 
     data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
+    tools_env = {}
     for tool in attrs.tools_data:
         if tool.target:
             data_dependencies.append(tool.target)
+        if tool.env:
+            tools_env.update(tool.env)
 
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
 
     installdir = target_root + "/" + lib_name
-    env_prelude = get_env_prelude(ctx, installdir, data_dependencies)
+    env_prelude = get_env_prelude(ctx, installdir, data_dependencies, tools_env)
 
     if not attrs.postfix_script:
         postfix_script = []
@@ -579,7 +588,13 @@ def cc_external_rule_impl(ctx, attrs):
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
     )
-    output_groups = _declare_output_groups(installdir_copy.file, outputs.out_binary_files + outputs.libraries.static_libraries + outputs.libraries.shared_libraries + [outputs.out_include_dir])
+    output_groups = (
+        outputs.out_binary_files +
+        outputs.libraries.static_libraries +
+        outputs.libraries.shared_libraries +
+        [outputs.out_include_dir] if outputs.out_include_dir else []
+    )
+    output_groups = _declare_output_groups(installdir_copy.file, output_groups)
     wrapped_files = [
         wrapped_outputs.script_file,
         wrapped_outputs.log_file,
@@ -629,7 +644,10 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
     cleanup_on_success_function = create_function(
         ctx,
         "cleanup_on_success",
-        "rm -rf $$BUILD_TMPDIR$$ $$EXT_BUILD_DEPS$$",
+        "\n".join([
+            "##rm_rf## $$BUILD_TMPDIR$$",
+            "##rm_rf## $$EXT_BUILD_DEPS$$",
+        ]),
     )
     cleanup_on_failure_function = create_function(
         ctx,
@@ -665,8 +683,8 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
         "export BUILD_LOG=\"{}\"".format(build_log_file.path),
         # sometimes the log file is not created, we do not want our script to fail because of this
-        "##touch## $$BUILD_LOG$$",
-        "##redirect_out_err## $$BUILD_SCRIPT$$ $$BUILD_LOG$$",
+        "##touch## \"$$BUILD_LOG$$\"",
+        "##redirect_out_err## \"$$BUILD_SCRIPT$$\" \"$$BUILD_LOG$$\"",
     ]
     build_command = "\n".join([
         shebang(ctx),
@@ -730,6 +748,8 @@ def _correct_path_variable(toolchain, env):
                     # INCLUDE) needs windows path (for passing as arguments to compiler).
                     prefix = "${EXT_BUILD_ROOT/$(printf '\072')/}/"
                 else:
+                    # Don't add extra quotes for shellcheck. The place where it gets used
+                    # should be quoted instead.
                     prefix = "$EXT_BUILD_ROOT/"
 
                 # external/path becomes $EXT_BUILD_ROOT/external/path
@@ -825,23 +845,35 @@ def _define_outputs(ctx, attrs, lib_name):
     attr_headers_only = attrs.out_headers_only
     attr_interface_libs = attrs.out_interface_libs
     attr_out_data_dirs = attrs.out_data_dirs
+    attr_out_data_files = attrs.out_data_files
     attr_shared_libs = attrs.out_shared_libs
     attr_static_libs = attrs.out_static_libs
 
     static_libraries = []
     if not attr_headers_only:
-        if not attr_static_libs and not attr_shared_libs and not attr_binaries_libs and not attr_interface_libs:
+        if not (
+            attr_static_libs or
+            attr_shared_libs or
+            attr_binaries_libs or
+            attr_interface_libs or
+            attr_out_data_files
+        ):
             static_libraries = [lib_name + (".lib" if targets_windows(ctx, None) else ".a")]
         else:
             static_libraries = attr_static_libs
 
     _check_file_name(lib_name)
 
-    out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
+    if attrs.out_include_dir:
+        out_include_dir = ctx.actions.declare_directory(lib_name + "/" + attrs.out_include_dir)
+    else:
+        out_include_dir = ""
 
     out_data_dirs = []
     for dir in attr_out_data_dirs:
         out_data_dirs.append(ctx.actions.declare_directory(lib_name + "/" + dir.lstrip("/")))
+
+    out_data_files = _declare_out(ctx, lib_name, "/", attr_out_data_files)
 
     out_binary_files = _declare_out(ctx, lib_name, attrs.out_bin_dir, attr_binaries_libs)
 
@@ -851,7 +883,8 @@ def _define_outputs(ctx, attrs, lib_name):
         interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attr_interface_libs),
     )
 
-    declared_outputs = [out_include_dir] + out_data_dirs + out_binary_files
+    declared_outputs = [out_include_dir] if out_include_dir else []
+    declared_outputs += out_data_dirs + out_binary_files + out_data_files
     declared_outputs += libraries.static_libraries
     declared_outputs += libraries.shared_libraries + libraries.interface_libraries
 
@@ -1014,11 +1047,11 @@ def _get_headers(compilation_info):
 
 def _define_out_cc_info(ctx, attrs, inputs, outputs):
     compilation_info = cc_common.create_compilation_context(
-        headers = depset([outputs.out_include_dir]),
+        headers = depset([outputs.out_include_dir]) if outputs.out_include_dir else depset([]),
         system_includes = depset([outputs.out_include_dir.path] + [
             outputs.out_include_dir.path + "/" + include
             for include in attrs.includes
-        ]),
+        ]) if outputs.out_include_dir else depset([]),
         includes = depset([]),
         quote_includes = depset([]),
         defines = depset(attrs.defines),

@@ -84,3 +84,73 @@ load("@bazel_skylib_gazelle_plugin//:setup.bzl", "bazel_skylib_gazelle_plugin_se
 bazel_skylib_gazelle_plugin_setup()
 
 gazelle_dependencies(go_repository_default_config = "//:WORKSPACE.bazel")
+
+http_archive(
+    name = "aspect_rules_lint",
+    sha256 = "c90501db2548f4af27ed873e40adc6524fcd8472c25ff9946ba13aa77c767249",
+    strip_prefix = "rules_lint-1.2.2",
+    url = "https://github.com/aspect-build/rules_lint/releases/download/v1.2.2/rules_lint-v1.2.2.tar.gz",
+)
+
+# aspect_rules_lint depends on aspect_bazel_lib.
+http_archive(
+    name = "aspect_bazel_lib",
+    sha256 = "6d758a8f646ecee7a3e294fbe4386daafbe0e5966723009c290d493f227c390b",
+    strip_prefix = "bazel-lib-2.7.7",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.7.7/bazel-lib-v2.7.7.tar.gz",
+)
+
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
+
+# aspect_bazel_lib depends on bazel_skylib
+aspect_bazel_lib_dependencies()
+
+load(
+    "@aspect_rules_lint//format:repositories.bzl",
+    # Fetch additional formatter binaries you need:
+    "fetch_java_format",
+    "fetch_ktfmt",
+    "fetch_swiftformat",
+    "rules_lint_dependencies",
+)
+
+rules_lint_dependencies()
+
+fetch_java_format()
+
+fetch_ktfmt()
+
+fetch_swiftformat()
+
+load("@aspect_rules_lint//lint:checkstyle.bzl", "fetch_checkstyle")
+
+fetch_checkstyle()
+
+load("@aspect_rules_lint//lint:pmd.bzl", "fetch_pmd")
+
+fetch_pmd()
+
+load("@aspect_rules_lint//lint:vale.bzl", "fetch_vale")
+
+fetch_vale()
+
+load("@aspect_rules_lint//lint:ktlint.bzl", "fetch_ktlint")
+
+fetch_ktlint()
+
+load("@aspect_rules_lint//lint:spotbugs.bzl", "fetch_spotbugs")
+
+fetch_spotbugs()
+
+########################
+# Optional: multitool provides defaults for some tools such as yamlfmt
+# If you do not set up multitool, you must provide these tools yourself
+load("@rules_multitool//multitool:multitool.bzl", "multitool")
+
+multitool(
+    name = "multitool",
+    lockfiles = [
+        "@aspect_rules_lint//format:multitool.lock.json",
+        "@aspect_rules_lint//lint:multitool.lock.json",
+    ],
+)

@@ -109,7 +109,7 @@ def _filter(list_, predicate, inverse):
 def _files_map(files_list, suffix = ""):
     by_names_map = {}
     for file_ in files_list:
-        name_ = _removesuffix(_file_name_no_ext(file_.basename), suffix)
+        name_ = _file_name_no_ext(file_.basename).removesuffix(suffix)
         value = by_names_map.get(name_)
         if value:
             fail("Can not have libraries with the same name in the same category")
@@ -353,9 +353,10 @@ def _add_if_needed(arr, add_arr):
 def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     """Replaces relative paths in [the middle of] 'text', prepending them with 'root_str'. If there is nothing to replace, returns the 'text'.
 
-    We only will replace relative paths starting with either 'external/' or '<top-package-name>/',
-    because we only want to point with absolute paths to external repositories or inside our
-    current workspace. (And also to limit the possibility of error with such not exact replacing.)
+    We only will replace relative paths starting with either 'external/', 'bazel-out/', or
+    '<top-package-name>/', because we only want to point with absolute paths to external
+    repositories or inside our current workspace. (And also to limit the possibility of error with
+    such not exact replacing.)
 
     Args:
         workspace_name: workspace name
@@ -368,7 +369,9 @@ def absolutize_path_in_str(workspace_name, root_str, text, force = False):
     """
     new_text = _prefix(text, "external/", root_str)
     if new_text == text:
-        new_text = _prefix(text, workspace_name + "/", root_str)
+        new_text = _prefix(text, "bazel-out/", root_str)
+        if new_text == text:
+            new_text = _prefix(text, workspace_name + "/", root_str)
 
     # Check to see if the text is already absolute on a unix and windows system
     is_already_absolute = text.startswith("/") or \
@@ -390,6 +393,3 @@ def _prefix(text, from_str, prefix):
 def _file_name_no_ext(basename):
     (before, _separator, _after) = basename.rpartition(".")
     return before
-
-def _removesuffix(s, sub):
-    return s[:-len(sub)] if sub and s.endswith(sub) else s

@@ -1,29 +1,37 @@
 ---
 tasks:
-  ubuntu2004:
-    platform: ubuntu2004
+  ubuntu2204:
+    platform: ubuntu2204
     build_targets:
       - "//..."
     test_targets:
       - "//..."
-  rbe_ubuntu2004:
-    platform: rbe_ubuntu2004
+    test_flags:
+      - "--@aspect_rules_lint//lint:fail_on_violation"
+  rbe_ubuntu2204:
+    platform: rbe_ubuntu2204
     build_targets:
       - "//..."
     test_targets:
       - "//..."
+    test_flags:
+      - "--@aspect_rules_lint//lint:fail_on_violation"
   macos:
     platform: macos
     build_targets:
       - "//..."
     test_targets:
       - "//..."
+    test_flags:
+      - "--@aspect_rules_lint//lint:fail_on_violation"
   macos_arm64:
     platform: macos_arm64
     build_targets:
       - "//..."
     test_targets:
       - "//..."
+    test_flags:
+      - "--@aspect_rules_lint//lint:fail_on_violation"
   windows:
     platform: windows
     build_targets:
@@ -37,9 +45,9 @@ tasks:
       - "--enable_workspace"
     test_flags:
       - "--enable_workspace"
-  ubuntu2004_examples_standalone:
+  ubuntu2204_examples_standalone:
     name: Examples (spawn_strategy=standalone)
-    platform: ubuntu2004
+    platform: ubuntu2204
     working_directory: examples
     linux_targets: &linux_targets_standalone
       - "//..."
@@ -56,9 +64,9 @@ tasks:
       - "dbg"
       - "--spawn_strategy=standalone"
       - "--enable_workspace"
-  ubuntu2004_examples:
+  ubuntu2204_examples:
     name: Examples
-    platform: ubuntu2004
+    platform: ubuntu2204
     working_directory: examples
     linux_targets: &linux_targets
       - "//..."
@@ -69,9 +77,22 @@ tasks:
       - "--enable_workspace"
     test_flags:
       - "--enable_workspace"
-  rbe_ubuntu2004_examples:
+  ubuntu2204_examples_bzlmod:
+    name: Examples (bzlmod)
+    platform: ubuntu2204
+    working_directory: examples
+    linux_targets: &linux_targets_bzlmod
+      - "//..."
+      - "//:third_party_examples_linux_tests"
+      # gives error '//external:databinding_annotation_processor': target 'databinding_annotation_processor' not declared in package 'external' defined by /workdir/examples/WORKSPACE.bazel (Tip: use `query "//external:*"` to see all the targets in that package) and referenced by '@bazel_tools//tools/android:databinding_annotation_processor'
+      - "-//cmake_android/..."
+    build_targets: *linux_targets_bzlmod
+    test_targets: *linux_targets_bzlmod
+    build_flags:
+      - "--enable_bzlmod"
+  rbe_ubuntu2204_examples:
     name: Examples
-    platform: rbe_ubuntu2004
+    platform: rbe_ubuntu2204
     working_directory: examples
     rbe_targets: &rbe_targets
       - "//..."
@@ -161,15 +182,15 @@ tasks:
       - "--enable_workspace"
     test_flags:
       - "--enable_workspace"
-  rbe_ubuntu2004_flags:
+  rbe_ubuntu2204_flags:
     name: Flags
-    platform: rbe_ubuntu2004
+    platform: rbe_ubuntu2204
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
-  ubuntu2004_flags:
+  ubuntu2204_flags:
     name: Flags
-    platform: ubuntu2004
+    platform: ubuntu2204
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
@@ -191,9 +212,9 @@ tasks:
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
-  rbe_ubuntu2004_detect_root:
+  rbe_ubuntu2204_detect_root:
     name: Detect root
-    platform: rbe_ubuntu2004
+    platform: rbe_ubuntu2204
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
@@ -201,9 +222,9 @@ tasks:
       - "--enable_workspace"
     test_flags:
       - "--enable_workspace"
-  ubuntu2004_detect_root:
+  ubuntu2204_detect_root:
     name: Detect root
-    platform: ubuntu2004
+    platform: ubuntu2204
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
@@ -243,8 +264,7 @@ tasks:
       - "--enable_workspace"
   docs_linux:
     name: Docs
-    bazel: "7.4.1"
-    platform: ubuntu2004
+    platform: ubuntu2204
     working_directory: docs
     build_targets:
       - //...
@@ -252,7 +272,7 @@ tasks:
     name: "Minimum Supported Version"
     bazel: "7.4.1"
     skip_in_bazel_downstream_pipeline: "Duplicates tests in other targets"
-    platform: ubuntu1804
+    platform: ubuntu2204
     build_targets:
       - "//..."
     test_targets:
@@ -261,7 +281,7 @@ tasks:
     name: "Minimum Supported Version Examples"
     bazel: "6.5.0"
     skip_in_bazel_downstream_pipeline: "Duplicates tests in other targets"
-    platform: ubuntu1804
+    platform: ubuntu2204
     working_directory: examples
     min_supported_targets: &min_supported_targets
       - "--"
