@@ -291,7 +291,7 @@ def meson_with_requirements(name, requirements, **kwargs):
     foreign_cc_rule_variant(
         name = name,
         rule = meson,
-        toolchain = full_label("built_meson_toolchain_for_{}".format(name)),
+        toolchain = str(full_label("built_meson_toolchain_for_{}".format(name))),
         **kwargs
     )
 

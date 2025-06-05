@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
 
     assertm(std::string(data->version) == std::string("7.74.0"),
             "The version of curl does not match the expected version");
-    assertm(std::string(data->ssl_version) == std::string("OpenSSL/1.1.1o"),
+    assertm(std::string(data->ssl_version) == std::string("OpenSSL/1.1.1w"),
             "The version of openssl does not match the expected version");
 
     return 0;
