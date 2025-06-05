@@ -41,10 +41,17 @@ sh_library(
 )
 
 shellcheck_test(
-    name = "shellcheck",
+    name = "shellcheck_linux",
     srcs = [":tool_build_scripts"],
     target_compatible_with = [
         "@platforms//os:linux",
+    ],
+)
+
+shellcheck_test(
+    name = "shellcheck_macos",
+    srcs = [":tool_build_scripts"],
+    target_compatible_with = [
         "@platforms//os:macos",
     ],
 )
