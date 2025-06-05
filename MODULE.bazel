@@ -26,7 +26,7 @@ use_repo(python, "python_3_12")
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 use_repo(
     tools,
-    "cmake_3.23.2_toolchains",
+    "cmake_3.31.7_toolchains",
     "cmake_src",
     "gettext_runtime",
     "glib_dev",
@@ -41,7 +41,7 @@ use_repo(
 
 register_toolchains(
     "@rules_foreign_cc_framework_toolchains//:all",
-    "@cmake_3.23.2_toolchains//:all",
+    "@cmake_3.31.7_toolchains//:all",
     "@ninja_1.12.1_toolchains//:all",
     "@python_3_12//:all",
     "@rules_foreign_cc//toolchains:all",
