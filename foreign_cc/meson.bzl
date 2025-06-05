@@ -90,7 +90,14 @@ def _create_meson_script(configureParameters):
         script.append("##export_var## CXXFLAGS \"{} ${{CXXFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, cxxopts).replace("\"", "'")))
 
     if flags.cxx_linker_executable:
-        script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, flags.cxx_linker_executable).replace("\"", "'")))
+        ldflags = flags.cxx_linker_executable
+
+        # meson does not seem to have a concept like CMAKE_CXX_LINK_EXECUTABLE
+        # if we're setting the same flags for all targets, filter out target-specific flags eg. -pie or -shared
+        if flags.cxx_linker_shared:
+            ldflags = _intersect_flags(flags.cxx_linker_executable, flags.cxx_linker_shared)
+
+        script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, ldflags).replace("\"", "'")))
 
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
@@ -300,3 +307,6 @@ def _absolutize(workspace_name, text, force = False):
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+
+def _intersect_flags(flags1, flags2):
+    return [flag for flag in flags1 if flag in flags2]
