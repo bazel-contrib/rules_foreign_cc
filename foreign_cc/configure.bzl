@@ -21,13 +21,29 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
-load("//toolchains/native_tools:tool_access.bzl", "get_make_data", "get_pkgconfig_data")
+load(
+    "//toolchains/native_tools:tool_access.bzl",
+    "get_autoconf_data",
+    "get_automake_data",
+    "get_m4_data",
+    "get_make_data",
+    "get_pkgconfig_data",
+)
 
 def _configure_make(ctx):
     make_data = get_make_data(ctx)
     pkg_config_data = get_pkgconfig_data(ctx)
+    autoconf_data = get_autoconf_data(ctx)
+    automake_data = get_automake_data(ctx)
+    m4_data = get_m4_data(ctx)
 
-    tools_data = [make_data, pkg_config_data]
+    tools_data = [
+        make_data,
+        pkg_config_data,
+        autoconf_data,
+        automake_data,
+        m4_data,
+    ]
 
     if ctx.attr.autogen and not ctx.attr.configure_in_place:
         fail("`autogen` requires `configure_in_place = True`. Please update {}".format(

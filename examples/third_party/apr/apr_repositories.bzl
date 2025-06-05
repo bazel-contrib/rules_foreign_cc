@@ -15,10 +15,10 @@ def apr_repositories():
             Label("//apr:windows_winnt.patch"),
         ],
         sha256 = "",
-        strip_prefix = "apr-1.7.5",
+        strip_prefix = "apr-1.7.6",
         urls = [
-            "https://mirror.bazel.build/www-eu.apache.org/dist/apr/apr-1.7.5.tar.gz",
-            "https://dlcdn.apache.org/apr/apr-1.7.5.tar.gz",
-            "https://www-eu.apache.org/dist/apr/apr-1.7.5.tar.gz",
+            "https://mirror.bazel.build/www-eu.apache.org/dist/apr/apr-1.7.6.tar.gz",
+            "https://dlcdn.apache.org/apr/apr-1.7.6.tar.gz",
+            "https://www-eu.apache.org/dist/apr/apr-1.7.6.tar.gz",
         ],
     )
