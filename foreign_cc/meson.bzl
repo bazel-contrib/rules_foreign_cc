@@ -94,6 +94,7 @@ def _create_meson_script(configureParameters):
 
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
+    script.append("##export_var## MESON {}".format(attrs.meson_path))
     script.append("##export_var## PKG_CONFIG {}".format(attrs.pkg_config_path))
 
     root = detect_root(ctx.attr.lib_source)
@@ -269,8 +270,8 @@ def meson_with_requirements(name, requirements, **kwargs):
 
     meson_tool(
         name = "meson_tool_for_{}".format(name),
-        main = "@meson_src//:meson.py",
-        data = ["@meson_src//:runtime"],
+        main = "@meson_1.5.1_src//:meson.py",
+        data = ["@meson_1.5.1_src//:runtime"],
         requirements = requirements,
         tags = tags + ["manual"],
     )

@@ -67,36 +67,6 @@ current_autoconf_toolchain(
     name = "current_autoconf_toolchain",
 )
 
-toolchain(
-    name = "built_cmake_toolchain",
-    toolchain = "//toolchains/private:built_cmake",
-    toolchain_type = ":cmake_toolchain",
-)
-
-toolchain(
-    name = "built_ninja_toolchain",
-    toolchain = "//toolchains/private:built_ninja",
-    toolchain_type = ":ninja_toolchain",
-)
-
-toolchain(
-    name = "built_make_toolchain",
-    toolchain = "//toolchains/private:built_make",
-    toolchain_type = ":make_toolchain",
-)
-
-toolchain(
-    name = "built_meson_toolchain",
-    toolchain = "//toolchains/private:built_meson",
-    toolchain_type = ":meson_toolchain",
-)
-
-toolchain(
-    name = "built_pkgconfig_toolchain",
-    toolchain = "//toolchains/private:built_pkgconfig",
-    toolchain_type = ":pkgconfig_toolchain",
-)
-
 # Preinstalled cmake will always be the default, if toolchain with more exact constraints
 # is not defined before; registered from workspace_definitions.bzl#rules_foreign_cc_dependencies
 toolchain(

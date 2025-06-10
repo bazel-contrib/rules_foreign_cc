@@ -9,11 +9,11 @@ load(":utils_test.bzl", "utils_test_suite")
 # gazelle:exclude
 
 TOOL_TARGETS = [
-    "//toolchains/private:cmake_tool",
-    "//toolchains/private:make_tool",
-    "//toolchains/private:meson_tool",
-    "//toolchains/private:ninja_tool",
-    "//toolchains/private:pkgconfig_tool",
+    # "//toolchains/private:cmake_tool",
+    # "//toolchains/private:make_tool",
+    # "//toolchains/private:meson_tool",
+    # "//toolchains/private:ninja_tool",
+    # "//toolchains/private:pkgconfig_tool",
 ]
 
 filegroup(

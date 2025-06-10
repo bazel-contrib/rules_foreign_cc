@@ -17,10 +17,6 @@ load("//deps:repositories.bzl", "repositories")
 
 repositories()
 
-load("//deps:deps_android.bzl", "deps_android")
-
-deps_android()
-
 load("//deps:deps_jvm_external.bzl", "deps_jvm_external")
 
 deps_jvm_external()

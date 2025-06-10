@@ -62,18 +62,18 @@ native_tool_toolchain(
 """
 
 # buildifier: disable=unnamed-macro
-def prebuilt_toolchains(cmake_version, ninja_version, register_toolchains):
+def prebuilt_toolchains(cmake_version, ninja_version):
     """Register toolchains for pre-built cmake and ninja binaries
 
     Args:
         cmake_version (string): The target cmake version
         ninja_version (string): The target ninja-build version
-        register_toolchains (boolean): Whether to call native.register_toolchains or not
     """
-    _cmake_toolchains(cmake_version, register_toolchains)
-    _ninja_toolchains(ninja_version, register_toolchains)
+    cmake_toolchains(cmake_version)
+    ninja_toolchains(ninja_version)
 
-def _cmake_toolchains(version, register_toolchains):
+# buildifier: disable=function-docstring
+def cmake_toolchains(version):
     if "4.0.0" == version:
         maybe(
             http_archive,
@@ -148,7 +148,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_4.0.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-4.0.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -172,15 +172,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_4.0.0_toolchains//:cmake-4.0.0-linux-aarch64_toolchain",
-                "@cmake_4.0.0_toolchains//:cmake-4.0.0-linux-x86_64_toolchain",
-                "@cmake_4.0.0_toolchains//:cmake-4.0.0-macos-universal_toolchain",
-                "@cmake_4.0.0_toolchains//:cmake-4.0.0-windows-i386_toolchain",
-                "@cmake_4.0.0_toolchains//:cmake-4.0.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -258,7 +249,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_4.0.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-4.0.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -282,15 +273,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_4.0.1_toolchains//:cmake-4.0.1-linux-aarch64_toolchain",
-                "@cmake_4.0.1_toolchains//:cmake-4.0.1-linux-x86_64_toolchain",
-                "@cmake_4.0.1_toolchains//:cmake-4.0.1-macos-universal_toolchain",
-                "@cmake_4.0.1_toolchains//:cmake-4.0.1-windows-i386_toolchain",
-                "@cmake_4.0.1_toolchains//:cmake-4.0.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -368,7 +350,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_4.0.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-4.0.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -392,15 +374,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_4.0.2_toolchains//:cmake-4.0.2-linux-aarch64_toolchain",
-                "@cmake_4.0.2_toolchains//:cmake-4.0.2-linux-x86_64_toolchain",
-                "@cmake_4.0.2_toolchains//:cmake-4.0.2-macos-universal_toolchain",
-                "@cmake_4.0.2_toolchains//:cmake-4.0.2-windows-i386_toolchain",
-                "@cmake_4.0.2_toolchains//:cmake-4.0.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -478,7 +451,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.31.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.31.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -502,15 +475,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.31.0_toolchains//:cmake-3.31.0-linux-aarch64_toolchain",
-                "@cmake_3.31.0_toolchains//:cmake-3.31.0-linux-x86_64_toolchain",
-                "@cmake_3.31.0_toolchains//:cmake-3.31.0-macos-universal_toolchain",
-                "@cmake_3.31.0_toolchains//:cmake-3.31.0-windows-i386_toolchain",
-                "@cmake_3.31.0_toolchains//:cmake-3.31.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -588,7 +552,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.31.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.31.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -612,15 +576,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.31.1_toolchains//:cmake-3.31.1-linux-aarch64_toolchain",
-                "@cmake_3.31.1_toolchains//:cmake-3.31.1-linux-x86_64_toolchain",
-                "@cmake_3.31.1_toolchains//:cmake-3.31.1-macos-universal_toolchain",
-                "@cmake_3.31.1_toolchains//:cmake-3.31.1-windows-i386_toolchain",
-                "@cmake_3.31.1_toolchains//:cmake-3.31.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -698,7 +653,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.31.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.31.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -722,15 +677,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.31.2_toolchains//:cmake-3.31.2-linux-aarch64_toolchain",
-                "@cmake_3.31.2_toolchains//:cmake-3.31.2-linux-x86_64_toolchain",
-                "@cmake_3.31.2_toolchains//:cmake-3.31.2-macos-universal_toolchain",
-                "@cmake_3.31.2_toolchains//:cmake-3.31.2-windows-i386_toolchain",
-                "@cmake_3.31.2_toolchains//:cmake-3.31.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -808,7 +754,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.31.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.31.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -832,15 +778,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.31.3_toolchains//:cmake-3.31.3-linux-aarch64_toolchain",
-                "@cmake_3.31.3_toolchains//:cmake-3.31.3-linux-x86_64_toolchain",
-                "@cmake_3.31.3_toolchains//:cmake-3.31.3-macos-universal_toolchain",
-                "@cmake_3.31.3_toolchains//:cmake-3.31.3-windows-i386_toolchain",
-                "@cmake_3.31.3_toolchains//:cmake-3.31.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -918,7 +855,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.31.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.31.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -942,15 +879,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.31.4_toolchains//:cmake-3.31.4-linux-aarch64_toolchain",
-                "@cmake_3.31.4_toolchains//:cmake-3.31.4-linux-x86_64_toolchain",
-                "@cmake_3.31.4_toolchains//:cmake-3.31.4-macos-universal_toolchain",
-                "@cmake_3.31.4_toolchains//:cmake-3.31.4-windows-i386_toolchain",
-                "@cmake_3.31.4_toolchains//:cmake-3.31.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -1028,7 +956,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.31.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.31.5-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -1052,15 +980,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.31.5_toolchains//:cmake-3.31.5-linux-aarch64_toolchain",
-                "@cmake_3.31.5_toolchains//:cmake-3.31.5-linux-x86_64_toolchain",
-                "@cmake_3.31.5_toolchains//:cmake-3.31.5-macos-universal_toolchain",
-                "@cmake_3.31.5_toolchains//:cmake-3.31.5-windows-i386_toolchain",
-                "@cmake_3.31.5_toolchains//:cmake-3.31.5-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -1138,7 +1057,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.31.6_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.31.6-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -1162,15 +1081,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.31.6_toolchains//:cmake-3.31.6-linux-aarch64_toolchain",
-                "@cmake_3.31.6_toolchains//:cmake-3.31.6-linux-x86_64_toolchain",
-                "@cmake_3.31.6_toolchains//:cmake-3.31.6-macos-universal_toolchain",
-                "@cmake_3.31.6_toolchains//:cmake-3.31.6-windows-i386_toolchain",
-                "@cmake_3.31.6_toolchains//:cmake-3.31.6-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -1248,7 +1158,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.31.7_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.31.7-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -1272,15 +1182,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.31.7_toolchains//:cmake-3.31.7-linux-aarch64_toolchain",
-                "@cmake_3.31.7_toolchains//:cmake-3.31.7-linux-x86_64_toolchain",
-                "@cmake_3.31.7_toolchains//:cmake-3.31.7-macos-universal_toolchain",
-                "@cmake_3.31.7_toolchains//:cmake-3.31.7-windows-i386_toolchain",
-                "@cmake_3.31.7_toolchains//:cmake-3.31.7-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -1358,7 +1259,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.30.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.30.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -1382,15 +1283,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.30.0_toolchains//:cmake-3.30.0-linux-aarch64_toolchain",
-                "@cmake_3.30.0_toolchains//:cmake-3.30.0-linux-x86_64_toolchain",
-                "@cmake_3.30.0_toolchains//:cmake-3.30.0-macos-universal_toolchain",
-                "@cmake_3.30.0_toolchains//:cmake-3.30.0-windows-i386_toolchain",
-                "@cmake_3.30.0_toolchains//:cmake-3.30.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -1468,7 +1360,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.30.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.30.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -1492,15 +1384,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.30.1_toolchains//:cmake-3.30.1-linux-aarch64_toolchain",
-                "@cmake_3.30.1_toolchains//:cmake-3.30.1-linux-x86_64_toolchain",
-                "@cmake_3.30.1_toolchains//:cmake-3.30.1-macos-universal_toolchain",
-                "@cmake_3.30.1_toolchains//:cmake-3.30.1-windows-i386_toolchain",
-                "@cmake_3.30.1_toolchains//:cmake-3.30.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -1578,7 +1461,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.30.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.30.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -1602,15 +1485,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.30.2_toolchains//:cmake-3.30.2-linux-aarch64_toolchain",
-                "@cmake_3.30.2_toolchains//:cmake-3.30.2-linux-x86_64_toolchain",
-                "@cmake_3.30.2_toolchains//:cmake-3.30.2-macos-universal_toolchain",
-                "@cmake_3.30.2_toolchains//:cmake-3.30.2-windows-i386_toolchain",
-                "@cmake_3.30.2_toolchains//:cmake-3.30.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -1688,7 +1562,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.30.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.30.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -1712,15 +1586,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.30.3_toolchains//:cmake-3.30.3-linux-aarch64_toolchain",
-                "@cmake_3.30.3_toolchains//:cmake-3.30.3-linux-x86_64_toolchain",
-                "@cmake_3.30.3_toolchains//:cmake-3.30.3-macos-universal_toolchain",
-                "@cmake_3.30.3_toolchains//:cmake-3.30.3-windows-i386_toolchain",
-                "@cmake_3.30.3_toolchains//:cmake-3.30.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -1798,7 +1663,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.30.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.30.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -1822,15 +1687,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.30.4_toolchains//:cmake-3.30.4-linux-aarch64_toolchain",
-                "@cmake_3.30.4_toolchains//:cmake-3.30.4-linux-x86_64_toolchain",
-                "@cmake_3.30.4_toolchains//:cmake-3.30.4-macos-universal_toolchain",
-                "@cmake_3.30.4_toolchains//:cmake-3.30.4-windows-i386_toolchain",
-                "@cmake_3.30.4_toolchains//:cmake-3.30.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -1908,7 +1764,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.30.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.30.5-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -1932,15 +1788,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.30.5_toolchains//:cmake-3.30.5-linux-aarch64_toolchain",
-                "@cmake_3.30.5_toolchains//:cmake-3.30.5-linux-x86_64_toolchain",
-                "@cmake_3.30.5_toolchains//:cmake-3.30.5-macos-universal_toolchain",
-                "@cmake_3.30.5_toolchains//:cmake-3.30.5-windows-i386_toolchain",
-                "@cmake_3.30.5_toolchains//:cmake-3.30.5-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -2018,7 +1865,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.30.6_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.30.6-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -2042,15 +1889,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.30.6_toolchains//:cmake-3.30.6-linux-aarch64_toolchain",
-                "@cmake_3.30.6_toolchains//:cmake-3.30.6-linux-x86_64_toolchain",
-                "@cmake_3.30.6_toolchains//:cmake-3.30.6-macos-universal_toolchain",
-                "@cmake_3.30.6_toolchains//:cmake-3.30.6-windows-i386_toolchain",
-                "@cmake_3.30.6_toolchains//:cmake-3.30.6-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -2128,7 +1966,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.30.7_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.30.7-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -2152,15 +1990,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.30.7_toolchains//:cmake-3.30.7-linux-aarch64_toolchain",
-                "@cmake_3.30.7_toolchains//:cmake-3.30.7-linux-x86_64_toolchain",
-                "@cmake_3.30.7_toolchains//:cmake-3.30.7-macos-universal_toolchain",
-                "@cmake_3.30.7_toolchains//:cmake-3.30.7-windows-i386_toolchain",
-                "@cmake_3.30.7_toolchains//:cmake-3.30.7-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -2238,7 +2067,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.30.8_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.30.8-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -2262,15 +2091,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.30.8_toolchains//:cmake-3.30.8-linux-aarch64_toolchain",
-                "@cmake_3.30.8_toolchains//:cmake-3.30.8-linux-x86_64_toolchain",
-                "@cmake_3.30.8_toolchains//:cmake-3.30.8-macos-universal_toolchain",
-                "@cmake_3.30.8_toolchains//:cmake-3.30.8-windows-i386_toolchain",
-                "@cmake_3.30.8_toolchains//:cmake-3.30.8-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -2348,7 +2168,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.29.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.29.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -2372,15 +2192,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.29.0_toolchains//:cmake-3.29.0-linux-aarch64_toolchain",
-                "@cmake_3.29.0_toolchains//:cmake-3.29.0-linux-x86_64_toolchain",
-                "@cmake_3.29.0_toolchains//:cmake-3.29.0-macos-universal_toolchain",
-                "@cmake_3.29.0_toolchains//:cmake-3.29.0-windows-i386_toolchain",
-                "@cmake_3.29.0_toolchains//:cmake-3.29.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -2458,7 +2269,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.29.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.29.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -2482,15 +2293,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.29.1_toolchains//:cmake-3.29.1-linux-aarch64_toolchain",
-                "@cmake_3.29.1_toolchains//:cmake-3.29.1-linux-x86_64_toolchain",
-                "@cmake_3.29.1_toolchains//:cmake-3.29.1-macos-universal_toolchain",
-                "@cmake_3.29.1_toolchains//:cmake-3.29.1-windows-i386_toolchain",
-                "@cmake_3.29.1_toolchains//:cmake-3.29.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -2568,7 +2370,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.29.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.29.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -2592,15 +2394,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.29.2_toolchains//:cmake-3.29.2-linux-aarch64_toolchain",
-                "@cmake_3.29.2_toolchains//:cmake-3.29.2-linux-x86_64_toolchain",
-                "@cmake_3.29.2_toolchains//:cmake-3.29.2-macos-universal_toolchain",
-                "@cmake_3.29.2_toolchains//:cmake-3.29.2-windows-i386_toolchain",
-                "@cmake_3.29.2_toolchains//:cmake-3.29.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -2678,7 +2471,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.29.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.29.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -2702,15 +2495,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.29.3_toolchains//:cmake-3.29.3-linux-aarch64_toolchain",
-                "@cmake_3.29.3_toolchains//:cmake-3.29.3-linux-x86_64_toolchain",
-                "@cmake_3.29.3_toolchains//:cmake-3.29.3-macos-universal_toolchain",
-                "@cmake_3.29.3_toolchains//:cmake-3.29.3-windows-i386_toolchain",
-                "@cmake_3.29.3_toolchains//:cmake-3.29.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -2788,7 +2572,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.29.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.29.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -2812,15 +2596,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.29.4_toolchains//:cmake-3.29.4-linux-aarch64_toolchain",
-                "@cmake_3.29.4_toolchains//:cmake-3.29.4-linux-x86_64_toolchain",
-                "@cmake_3.29.4_toolchains//:cmake-3.29.4-macos-universal_toolchain",
-                "@cmake_3.29.4_toolchains//:cmake-3.29.4-windows-i386_toolchain",
-                "@cmake_3.29.4_toolchains//:cmake-3.29.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -2898,7 +2673,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.29.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.29.5-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -2922,15 +2697,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.29.5_toolchains//:cmake-3.29.5-linux-aarch64_toolchain",
-                "@cmake_3.29.5_toolchains//:cmake-3.29.5-linux-x86_64_toolchain",
-                "@cmake_3.29.5_toolchains//:cmake-3.29.5-macos-universal_toolchain",
-                "@cmake_3.29.5_toolchains//:cmake-3.29.5-windows-i386_toolchain",
-                "@cmake_3.29.5_toolchains//:cmake-3.29.5-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -3008,7 +2774,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.29.6_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.29.6-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -3032,15 +2798,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.29.6_toolchains//:cmake-3.29.6-linux-aarch64_toolchain",
-                "@cmake_3.29.6_toolchains//:cmake-3.29.6-linux-x86_64_toolchain",
-                "@cmake_3.29.6_toolchains//:cmake-3.29.6-macos-universal_toolchain",
-                "@cmake_3.29.6_toolchains//:cmake-3.29.6-windows-i386_toolchain",
-                "@cmake_3.29.6_toolchains//:cmake-3.29.6-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -3118,7 +2875,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.29.7_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.29.7-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -3142,15 +2899,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.29.7_toolchains//:cmake-3.29.7-linux-aarch64_toolchain",
-                "@cmake_3.29.7_toolchains//:cmake-3.29.7-linux-x86_64_toolchain",
-                "@cmake_3.29.7_toolchains//:cmake-3.29.7-macos-universal_toolchain",
-                "@cmake_3.29.7_toolchains//:cmake-3.29.7-windows-i386_toolchain",
-                "@cmake_3.29.7_toolchains//:cmake-3.29.7-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -3228,7 +2976,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.29.8_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.29.8-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -3252,15 +3000,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.29.8_toolchains//:cmake-3.29.8-linux-aarch64_toolchain",
-                "@cmake_3.29.8_toolchains//:cmake-3.29.8-linux-x86_64_toolchain",
-                "@cmake_3.29.8_toolchains//:cmake-3.29.8-macos-universal_toolchain",
-                "@cmake_3.29.8_toolchains//:cmake-3.29.8-windows-i386_toolchain",
-                "@cmake_3.29.8_toolchains//:cmake-3.29.8-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -3338,7 +3077,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.29.9_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.29.9-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -3362,15 +3101,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.29.9_toolchains//:cmake-3.29.9-linux-aarch64_toolchain",
-                "@cmake_3.29.9_toolchains//:cmake-3.29.9-linux-x86_64_toolchain",
-                "@cmake_3.29.9_toolchains//:cmake-3.29.9-macos-universal_toolchain",
-                "@cmake_3.29.9_toolchains//:cmake-3.29.9-windows-i386_toolchain",
-                "@cmake_3.29.9_toolchains//:cmake-3.29.9-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -3448,7 +3178,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.28.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.28.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -3472,15 +3202,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.28.0_toolchains//:cmake-3.28.0-linux-aarch64_toolchain",
-                "@cmake_3.28.0_toolchains//:cmake-3.28.0-linux-x86_64_toolchain",
-                "@cmake_3.28.0_toolchains//:cmake-3.28.0-macos-universal_toolchain",
-                "@cmake_3.28.0_toolchains//:cmake-3.28.0-windows-i386_toolchain",
-                "@cmake_3.28.0_toolchains//:cmake-3.28.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -3558,7 +3279,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.28.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.28.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -3582,15 +3303,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.28.1_toolchains//:cmake-3.28.1-linux-aarch64_toolchain",
-                "@cmake_3.28.1_toolchains//:cmake-3.28.1-linux-x86_64_toolchain",
-                "@cmake_3.28.1_toolchains//:cmake-3.28.1-macos-universal_toolchain",
-                "@cmake_3.28.1_toolchains//:cmake-3.28.1-windows-i386_toolchain",
-                "@cmake_3.28.1_toolchains//:cmake-3.28.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -3668,7 +3380,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.28.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.28.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -3692,15 +3404,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.28.2_toolchains//:cmake-3.28.2-linux-aarch64_toolchain",
-                "@cmake_3.28.2_toolchains//:cmake-3.28.2-linux-x86_64_toolchain",
-                "@cmake_3.28.2_toolchains//:cmake-3.28.2-macos-universal_toolchain",
-                "@cmake_3.28.2_toolchains//:cmake-3.28.2-windows-i386_toolchain",
-                "@cmake_3.28.2_toolchains//:cmake-3.28.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -3778,7 +3481,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.28.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.28.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -3802,15 +3505,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.28.3_toolchains//:cmake-3.28.3-linux-aarch64_toolchain",
-                "@cmake_3.28.3_toolchains//:cmake-3.28.3-linux-x86_64_toolchain",
-                "@cmake_3.28.3_toolchains//:cmake-3.28.3-macos-universal_toolchain",
-                "@cmake_3.28.3_toolchains//:cmake-3.28.3-windows-i386_toolchain",
-                "@cmake_3.28.3_toolchains//:cmake-3.28.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -3888,7 +3582,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.28.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.28.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -3912,15 +3606,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.28.4_toolchains//:cmake-3.28.4-linux-aarch64_toolchain",
-                "@cmake_3.28.4_toolchains//:cmake-3.28.4-linux-x86_64_toolchain",
-                "@cmake_3.28.4_toolchains//:cmake-3.28.4-macos-universal_toolchain",
-                "@cmake_3.28.4_toolchains//:cmake-3.28.4-windows-i386_toolchain",
-                "@cmake_3.28.4_toolchains//:cmake-3.28.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -3998,7 +3683,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.28.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.28.5-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -4022,15 +3707,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.28.5_toolchains//:cmake-3.28.5-linux-aarch64_toolchain",
-                "@cmake_3.28.5_toolchains//:cmake-3.28.5-linux-x86_64_toolchain",
-                "@cmake_3.28.5_toolchains//:cmake-3.28.5-macos-universal_toolchain",
-                "@cmake_3.28.5_toolchains//:cmake-3.28.5-windows-i386_toolchain",
-                "@cmake_3.28.5_toolchains//:cmake-3.28.5-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -4108,7 +3784,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.28.6_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.28.6-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -4132,15 +3808,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.28.6_toolchains//:cmake-3.28.6-linux-aarch64_toolchain",
-                "@cmake_3.28.6_toolchains//:cmake-3.28.6-linux-x86_64_toolchain",
-                "@cmake_3.28.6_toolchains//:cmake-3.28.6-macos-universal_toolchain",
-                "@cmake_3.28.6_toolchains//:cmake-3.28.6-windows-i386_toolchain",
-                "@cmake_3.28.6_toolchains//:cmake-3.28.6-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -4218,7 +3885,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.27.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.27.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -4242,15 +3909,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.27.0_toolchains//:cmake-3.27.0-linux-aarch64_toolchain",
-                "@cmake_3.27.0_toolchains//:cmake-3.27.0-linux-x86_64_toolchain",
-                "@cmake_3.27.0_toolchains//:cmake-3.27.0-macos-universal_toolchain",
-                "@cmake_3.27.0_toolchains//:cmake-3.27.0-windows-i386_toolchain",
-                "@cmake_3.27.0_toolchains//:cmake-3.27.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -4328,7 +3986,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.27.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.27.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -4352,15 +4010,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.27.1_toolchains//:cmake-3.27.1-linux-aarch64_toolchain",
-                "@cmake_3.27.1_toolchains//:cmake-3.27.1-linux-x86_64_toolchain",
-                "@cmake_3.27.1_toolchains//:cmake-3.27.1-macos-universal_toolchain",
-                "@cmake_3.27.1_toolchains//:cmake-3.27.1-windows-i386_toolchain",
-                "@cmake_3.27.1_toolchains//:cmake-3.27.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -4438,7 +4087,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.27.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.27.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -4462,15 +4111,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.27.2_toolchains//:cmake-3.27.2-linux-aarch64_toolchain",
-                "@cmake_3.27.2_toolchains//:cmake-3.27.2-linux-x86_64_toolchain",
-                "@cmake_3.27.2_toolchains//:cmake-3.27.2-macos-universal_toolchain",
-                "@cmake_3.27.2_toolchains//:cmake-3.27.2-windows-i386_toolchain",
-                "@cmake_3.27.2_toolchains//:cmake-3.27.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -4548,7 +4188,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.27.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.27.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -4572,15 +4212,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.27.3_toolchains//:cmake-3.27.3-linux-aarch64_toolchain",
-                "@cmake_3.27.3_toolchains//:cmake-3.27.3-linux-x86_64_toolchain",
-                "@cmake_3.27.3_toolchains//:cmake-3.27.3-macos-universal_toolchain",
-                "@cmake_3.27.3_toolchains//:cmake-3.27.3-windows-i386_toolchain",
-                "@cmake_3.27.3_toolchains//:cmake-3.27.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -4658,7 +4289,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.27.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.27.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -4682,15 +4313,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.27.4_toolchains//:cmake-3.27.4-linux-aarch64_toolchain",
-                "@cmake_3.27.4_toolchains//:cmake-3.27.4-linux-x86_64_toolchain",
-                "@cmake_3.27.4_toolchains//:cmake-3.27.4-macos-universal_toolchain",
-                "@cmake_3.27.4_toolchains//:cmake-3.27.4-windows-i386_toolchain",
-                "@cmake_3.27.4_toolchains//:cmake-3.27.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -4768,7 +4390,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.27.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.27.5-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -4792,15 +4414,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.27.5_toolchains//:cmake-3.27.5-linux-aarch64_toolchain",
-                "@cmake_3.27.5_toolchains//:cmake-3.27.5-linux-x86_64_toolchain",
-                "@cmake_3.27.5_toolchains//:cmake-3.27.5-macos-universal_toolchain",
-                "@cmake_3.27.5_toolchains//:cmake-3.27.5-windows-i386_toolchain",
-                "@cmake_3.27.5_toolchains//:cmake-3.27.5-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -4878,7 +4491,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.27.6_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.27.6-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -4902,15 +4515,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.27.6_toolchains//:cmake-3.27.6-linux-aarch64_toolchain",
-                "@cmake_3.27.6_toolchains//:cmake-3.27.6-linux-x86_64_toolchain",
-                "@cmake_3.27.6_toolchains//:cmake-3.27.6-macos-universal_toolchain",
-                "@cmake_3.27.6_toolchains//:cmake-3.27.6-windows-i386_toolchain",
-                "@cmake_3.27.6_toolchains//:cmake-3.27.6-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -4988,7 +4592,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.27.7_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.27.7-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -5012,15 +4616,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.27.7_toolchains//:cmake-3.27.7-linux-aarch64_toolchain",
-                "@cmake_3.27.7_toolchains//:cmake-3.27.7-linux-x86_64_toolchain",
-                "@cmake_3.27.7_toolchains//:cmake-3.27.7-macos-universal_toolchain",
-                "@cmake_3.27.7_toolchains//:cmake-3.27.7-windows-i386_toolchain",
-                "@cmake_3.27.7_toolchains//:cmake-3.27.7-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -5098,7 +4693,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.27.8_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.27.8-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -5122,15 +4717,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.27.8_toolchains//:cmake-3.27.8-linux-aarch64_toolchain",
-                "@cmake_3.27.8_toolchains//:cmake-3.27.8-linux-x86_64_toolchain",
-                "@cmake_3.27.8_toolchains//:cmake-3.27.8-macos-universal_toolchain",
-                "@cmake_3.27.8_toolchains//:cmake-3.27.8-windows-i386_toolchain",
-                "@cmake_3.27.8_toolchains//:cmake-3.27.8-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -5208,7 +4794,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.27.9_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.27.9-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -5232,15 +4818,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.27.9_toolchains//:cmake-3.27.9-linux-aarch64_toolchain",
-                "@cmake_3.27.9_toolchains//:cmake-3.27.9-linux-x86_64_toolchain",
-                "@cmake_3.27.9_toolchains//:cmake-3.27.9-macos-universal_toolchain",
-                "@cmake_3.27.9_toolchains//:cmake-3.27.9-windows-i386_toolchain",
-                "@cmake_3.27.9_toolchains//:cmake-3.27.9-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -5318,7 +4895,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.26.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.26.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -5342,15 +4919,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.26.0_toolchains//:cmake-3.26.0-linux-aarch64_toolchain",
-                "@cmake_3.26.0_toolchains//:cmake-3.26.0-linux-x86_64_toolchain",
-                "@cmake_3.26.0_toolchains//:cmake-3.26.0-macos-universal_toolchain",
-                "@cmake_3.26.0_toolchains//:cmake-3.26.0-windows-i386_toolchain",
-                "@cmake_3.26.0_toolchains//:cmake-3.26.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -5428,7 +4996,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.26.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.26.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -5452,15 +5020,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.26.1_toolchains//:cmake-3.26.1-linux-aarch64_toolchain",
-                "@cmake_3.26.1_toolchains//:cmake-3.26.1-linux-x86_64_toolchain",
-                "@cmake_3.26.1_toolchains//:cmake-3.26.1-macos-universal_toolchain",
-                "@cmake_3.26.1_toolchains//:cmake-3.26.1-windows-i386_toolchain",
-                "@cmake_3.26.1_toolchains//:cmake-3.26.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -5538,7 +5097,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.26.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.26.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -5562,15 +5121,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.26.2_toolchains//:cmake-3.26.2-linux-aarch64_toolchain",
-                "@cmake_3.26.2_toolchains//:cmake-3.26.2-linux-x86_64_toolchain",
-                "@cmake_3.26.2_toolchains//:cmake-3.26.2-macos-universal_toolchain",
-                "@cmake_3.26.2_toolchains//:cmake-3.26.2-windows-i386_toolchain",
-                "@cmake_3.26.2_toolchains//:cmake-3.26.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -5648,7 +5198,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.26.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.26.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -5672,15 +5222,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.26.3_toolchains//:cmake-3.26.3-linux-aarch64_toolchain",
-                "@cmake_3.26.3_toolchains//:cmake-3.26.3-linux-x86_64_toolchain",
-                "@cmake_3.26.3_toolchains//:cmake-3.26.3-macos-universal_toolchain",
-                "@cmake_3.26.3_toolchains//:cmake-3.26.3-windows-i386_toolchain",
-                "@cmake_3.26.3_toolchains//:cmake-3.26.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -5758,7 +5299,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.26.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.26.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -5782,15 +5323,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.26.4_toolchains//:cmake-3.26.4-linux-aarch64_toolchain",
-                "@cmake_3.26.4_toolchains//:cmake-3.26.4-linux-x86_64_toolchain",
-                "@cmake_3.26.4_toolchains//:cmake-3.26.4-macos-universal_toolchain",
-                "@cmake_3.26.4_toolchains//:cmake-3.26.4-windows-i386_toolchain",
-                "@cmake_3.26.4_toolchains//:cmake-3.26.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -5868,7 +5400,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.26.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.26.5-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -5892,15 +5424,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.26.5_toolchains//:cmake-3.26.5-linux-aarch64_toolchain",
-                "@cmake_3.26.5_toolchains//:cmake-3.26.5-linux-x86_64_toolchain",
-                "@cmake_3.26.5_toolchains//:cmake-3.26.5-macos-universal_toolchain",
-                "@cmake_3.26.5_toolchains//:cmake-3.26.5-windows-i386_toolchain",
-                "@cmake_3.26.5_toolchains//:cmake-3.26.5-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -5978,7 +5501,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.26.6_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.26.6-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -6002,15 +5525,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.26.6_toolchains//:cmake-3.26.6-linux-aarch64_toolchain",
-                "@cmake_3.26.6_toolchains//:cmake-3.26.6-linux-x86_64_toolchain",
-                "@cmake_3.26.6_toolchains//:cmake-3.26.6-macos-universal_toolchain",
-                "@cmake_3.26.6_toolchains//:cmake-3.26.6-windows-i386_toolchain",
-                "@cmake_3.26.6_toolchains//:cmake-3.26.6-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -6088,7 +5602,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.25.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.25.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -6112,15 +5626,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.25.0_toolchains//:cmake-3.25.0-linux-aarch64_toolchain",
-                "@cmake_3.25.0_toolchains//:cmake-3.25.0-linux-x86_64_toolchain",
-                "@cmake_3.25.0_toolchains//:cmake-3.25.0-macos-universal_toolchain",
-                "@cmake_3.25.0_toolchains//:cmake-3.25.0-windows-i386_toolchain",
-                "@cmake_3.25.0_toolchains//:cmake-3.25.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -6198,7 +5703,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.25.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.25.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -6222,15 +5727,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.25.1_toolchains//:cmake-3.25.1-linux-aarch64_toolchain",
-                "@cmake_3.25.1_toolchains//:cmake-3.25.1-linux-x86_64_toolchain",
-                "@cmake_3.25.1_toolchains//:cmake-3.25.1-macos-universal_toolchain",
-                "@cmake_3.25.1_toolchains//:cmake-3.25.1-windows-i386_toolchain",
-                "@cmake_3.25.1_toolchains//:cmake-3.25.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -6308,7 +5804,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.25.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.25.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -6332,15 +5828,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.25.2_toolchains//:cmake-3.25.2-linux-aarch64_toolchain",
-                "@cmake_3.25.2_toolchains//:cmake-3.25.2-linux-x86_64_toolchain",
-                "@cmake_3.25.2_toolchains//:cmake-3.25.2-macos-universal_toolchain",
-                "@cmake_3.25.2_toolchains//:cmake-3.25.2-windows-i386_toolchain",
-                "@cmake_3.25.2_toolchains//:cmake-3.25.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -6418,7 +5905,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.25.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.25.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -6442,15 +5929,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.25.3_toolchains//:cmake-3.25.3-linux-aarch64_toolchain",
-                "@cmake_3.25.3_toolchains//:cmake-3.25.3-linux-x86_64_toolchain",
-                "@cmake_3.25.3_toolchains//:cmake-3.25.3-macos-universal_toolchain",
-                "@cmake_3.25.3_toolchains//:cmake-3.25.3-windows-i386_toolchain",
-                "@cmake_3.25.3_toolchains//:cmake-3.25.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -6528,7 +6006,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.24.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.24.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -6552,15 +6030,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.24.0_toolchains//:cmake-3.24.0-linux-aarch64_toolchain",
-                "@cmake_3.24.0_toolchains//:cmake-3.24.0-linux-x86_64_toolchain",
-                "@cmake_3.24.0_toolchains//:cmake-3.24.0-macos-universal_toolchain",
-                "@cmake_3.24.0_toolchains//:cmake-3.24.0-windows-i386_toolchain",
-                "@cmake_3.24.0_toolchains//:cmake-3.24.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -6638,7 +6107,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.24.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.24.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -6662,15 +6131,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.24.1_toolchains//:cmake-3.24.1-linux-aarch64_toolchain",
-                "@cmake_3.24.1_toolchains//:cmake-3.24.1-linux-x86_64_toolchain",
-                "@cmake_3.24.1_toolchains//:cmake-3.24.1-macos-universal_toolchain",
-                "@cmake_3.24.1_toolchains//:cmake-3.24.1-windows-i386_toolchain",
-                "@cmake_3.24.1_toolchains//:cmake-3.24.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -6748,7 +6208,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.24.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.24.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -6772,15 +6232,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.24.2_toolchains//:cmake-3.24.2-linux-aarch64_toolchain",
-                "@cmake_3.24.2_toolchains//:cmake-3.24.2-linux-x86_64_toolchain",
-                "@cmake_3.24.2_toolchains//:cmake-3.24.2-macos-universal_toolchain",
-                "@cmake_3.24.2_toolchains//:cmake-3.24.2-windows-i386_toolchain",
-                "@cmake_3.24.2_toolchains//:cmake-3.24.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -6858,7 +6309,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.24.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.24.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -6882,15 +6333,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.24.3_toolchains//:cmake-3.24.3-linux-aarch64_toolchain",
-                "@cmake_3.24.3_toolchains//:cmake-3.24.3-linux-x86_64_toolchain",
-                "@cmake_3.24.3_toolchains//:cmake-3.24.3-macos-universal_toolchain",
-                "@cmake_3.24.3_toolchains//:cmake-3.24.3-windows-i386_toolchain",
-                "@cmake_3.24.3_toolchains//:cmake-3.24.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -6968,7 +6410,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.24.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.24.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -6992,15 +6434,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.24.4_toolchains//:cmake-3.24.4-linux-aarch64_toolchain",
-                "@cmake_3.24.4_toolchains//:cmake-3.24.4-linux-x86_64_toolchain",
-                "@cmake_3.24.4_toolchains//:cmake-3.24.4-macos-universal_toolchain",
-                "@cmake_3.24.4_toolchains//:cmake-3.24.4-windows-i386_toolchain",
-                "@cmake_3.24.4_toolchains//:cmake-3.24.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -7078,7 +6511,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.23.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.23.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -7102,15 +6535,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.23.0_toolchains//:cmake-3.23.0-linux-aarch64_toolchain",
-                "@cmake_3.23.0_toolchains//:cmake-3.23.0-linux-x86_64_toolchain",
-                "@cmake_3.23.0_toolchains//:cmake-3.23.0-macos-universal_toolchain",
-                "@cmake_3.23.0_toolchains//:cmake-3.23.0-windows-i386_toolchain",
-                "@cmake_3.23.0_toolchains//:cmake-3.23.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -7188,7 +6612,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.23.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.23.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -7212,15 +6636,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.23.1_toolchains//:cmake-3.23.1-linux-aarch64_toolchain",
-                "@cmake_3.23.1_toolchains//:cmake-3.23.1-linux-x86_64_toolchain",
-                "@cmake_3.23.1_toolchains//:cmake-3.23.1-macos-universal_toolchain",
-                "@cmake_3.23.1_toolchains//:cmake-3.23.1-windows-i386_toolchain",
-                "@cmake_3.23.1_toolchains//:cmake-3.23.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -7298,7 +6713,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.23.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.23.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -7322,15 +6737,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.23.2_toolchains//:cmake-3.23.2-linux-aarch64_toolchain",
-                "@cmake_3.23.2_toolchains//:cmake-3.23.2-linux-x86_64_toolchain",
-                "@cmake_3.23.2_toolchains//:cmake-3.23.2-macos-universal_toolchain",
-                "@cmake_3.23.2_toolchains//:cmake-3.23.2-windows-i386_toolchain",
-                "@cmake_3.23.2_toolchains//:cmake-3.23.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -7408,7 +6814,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.23.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.23.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -7432,15 +6838,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.23.3_toolchains//:cmake-3.23.3-linux-aarch64_toolchain",
-                "@cmake_3.23.3_toolchains//:cmake-3.23.3-linux-x86_64_toolchain",
-                "@cmake_3.23.3_toolchains//:cmake-3.23.3-macos-universal_toolchain",
-                "@cmake_3.23.3_toolchains//:cmake-3.23.3-windows-i386_toolchain",
-                "@cmake_3.23.3_toolchains//:cmake-3.23.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -7518,7 +6915,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.23.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.23.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -7542,15 +6939,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.23.4_toolchains//:cmake-3.23.4-linux-aarch64_toolchain",
-                "@cmake_3.23.4_toolchains//:cmake-3.23.4-linux-x86_64_toolchain",
-                "@cmake_3.23.4_toolchains//:cmake-3.23.4-macos-universal_toolchain",
-                "@cmake_3.23.4_toolchains//:cmake-3.23.4-windows-i386_toolchain",
-                "@cmake_3.23.4_toolchains//:cmake-3.23.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -7628,7 +7016,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.23.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.23.5-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -7652,15 +7040,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.23.5_toolchains//:cmake-3.23.5-linux-aarch64_toolchain",
-                "@cmake_3.23.5_toolchains//:cmake-3.23.5-linux-x86_64_toolchain",
-                "@cmake_3.23.5_toolchains//:cmake-3.23.5-macos-universal_toolchain",
-                "@cmake_3.23.5_toolchains//:cmake-3.23.5-windows-i386_toolchain",
-                "@cmake_3.23.5_toolchains//:cmake-3.23.5-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -7738,7 +7117,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.22.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.22.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -7762,15 +7141,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.22.0_toolchains//:cmake-3.22.0-linux-aarch64_toolchain",
-                "@cmake_3.22.0_toolchains//:cmake-3.22.0-linux-x86_64_toolchain",
-                "@cmake_3.22.0_toolchains//:cmake-3.22.0-macos-universal_toolchain",
-                "@cmake_3.22.0_toolchains//:cmake-3.22.0-windows-i386_toolchain",
-                "@cmake_3.22.0_toolchains//:cmake-3.22.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -7848,7 +7218,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.22.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.22.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -7872,15 +7242,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.22.1_toolchains//:cmake-3.22.1-linux-aarch64_toolchain",
-                "@cmake_3.22.1_toolchains//:cmake-3.22.1-linux-x86_64_toolchain",
-                "@cmake_3.22.1_toolchains//:cmake-3.22.1-macos-universal_toolchain",
-                "@cmake_3.22.1_toolchains//:cmake-3.22.1-windows-i386_toolchain",
-                "@cmake_3.22.1_toolchains//:cmake-3.22.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -7958,7 +7319,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.22.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.22.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -7982,15 +7343,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.22.2_toolchains//:cmake-3.22.2-linux-aarch64_toolchain",
-                "@cmake_3.22.2_toolchains//:cmake-3.22.2-linux-x86_64_toolchain",
-                "@cmake_3.22.2_toolchains//:cmake-3.22.2-macos-universal_toolchain",
-                "@cmake_3.22.2_toolchains//:cmake-3.22.2-windows-i386_toolchain",
-                "@cmake_3.22.2_toolchains//:cmake-3.22.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -8068,7 +7420,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.22.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.22.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -8092,15 +7444,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.22.3_toolchains//:cmake-3.22.3-linux-aarch64_toolchain",
-                "@cmake_3.22.3_toolchains//:cmake-3.22.3-linux-x86_64_toolchain",
-                "@cmake_3.22.3_toolchains//:cmake-3.22.3-macos-universal_toolchain",
-                "@cmake_3.22.3_toolchains//:cmake-3.22.3-windows-i386_toolchain",
-                "@cmake_3.22.3_toolchains//:cmake-3.22.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -8178,7 +7521,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.22.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.22.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -8202,15 +7545,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.22.4_toolchains//:cmake-3.22.4-linux-aarch64_toolchain",
-                "@cmake_3.22.4_toolchains//:cmake-3.22.4-linux-x86_64_toolchain",
-                "@cmake_3.22.4_toolchains//:cmake-3.22.4-macos-universal_toolchain",
-                "@cmake_3.22.4_toolchains//:cmake-3.22.4-windows-i386_toolchain",
-                "@cmake_3.22.4_toolchains//:cmake-3.22.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -8288,7 +7622,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.22.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.22.5-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -8312,15 +7646,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.22.5_toolchains//:cmake-3.22.5-linux-aarch64_toolchain",
-                "@cmake_3.22.5_toolchains//:cmake-3.22.5-linux-x86_64_toolchain",
-                "@cmake_3.22.5_toolchains//:cmake-3.22.5-macos-universal_toolchain",
-                "@cmake_3.22.5_toolchains//:cmake-3.22.5-windows-i386_toolchain",
-                "@cmake_3.22.5_toolchains//:cmake-3.22.5-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -8398,7 +7723,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.22.6_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.22.6-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -8422,15 +7747,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.22.6_toolchains//:cmake-3.22.6-linux-aarch64_toolchain",
-                "@cmake_3.22.6_toolchains//:cmake-3.22.6-linux-x86_64_toolchain",
-                "@cmake_3.22.6_toolchains//:cmake-3.22.6-macos-universal_toolchain",
-                "@cmake_3.22.6_toolchains//:cmake-3.22.6-windows-i386_toolchain",
-                "@cmake_3.22.6_toolchains//:cmake-3.22.6-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -8508,7 +7824,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.21.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.21.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -8532,15 +7848,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.21.0_toolchains//:cmake-3.21.0-linux-aarch64_toolchain",
-                "@cmake_3.21.0_toolchains//:cmake-3.21.0-linux-x86_64_toolchain",
-                "@cmake_3.21.0_toolchains//:cmake-3.21.0-macos-universal_toolchain",
-                "@cmake_3.21.0_toolchains//:cmake-3.21.0-windows-i386_toolchain",
-                "@cmake_3.21.0_toolchains//:cmake-3.21.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -8618,7 +7925,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.21.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.21.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -8642,15 +7949,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.21.1_toolchains//:cmake-3.21.1-linux-aarch64_toolchain",
-                "@cmake_3.21.1_toolchains//:cmake-3.21.1-linux-x86_64_toolchain",
-                "@cmake_3.21.1_toolchains//:cmake-3.21.1-macos-universal_toolchain",
-                "@cmake_3.21.1_toolchains//:cmake-3.21.1-windows-i386_toolchain",
-                "@cmake_3.21.1_toolchains//:cmake-3.21.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -8728,7 +8026,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.21.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.21.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -8752,15 +8050,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.21.2_toolchains//:cmake-3.21.2-linux-aarch64_toolchain",
-                "@cmake_3.21.2_toolchains//:cmake-3.21.2-linux-x86_64_toolchain",
-                "@cmake_3.21.2_toolchains//:cmake-3.21.2-macos-universal_toolchain",
-                "@cmake_3.21.2_toolchains//:cmake-3.21.2-windows-i386_toolchain",
-                "@cmake_3.21.2_toolchains//:cmake-3.21.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -8838,7 +8127,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.21.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.21.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -8862,15 +8151,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.21.3_toolchains//:cmake-3.21.3-linux-aarch64_toolchain",
-                "@cmake_3.21.3_toolchains//:cmake-3.21.3-linux-x86_64_toolchain",
-                "@cmake_3.21.3_toolchains//:cmake-3.21.3-macos-universal_toolchain",
-                "@cmake_3.21.3_toolchains//:cmake-3.21.3-windows-i386_toolchain",
-                "@cmake_3.21.3_toolchains//:cmake-3.21.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -8948,7 +8228,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.21.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.21.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -8972,15 +8252,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.21.4_toolchains//:cmake-3.21.4-linux-aarch64_toolchain",
-                "@cmake_3.21.4_toolchains//:cmake-3.21.4-linux-x86_64_toolchain",
-                "@cmake_3.21.4_toolchains//:cmake-3.21.4-macos-universal_toolchain",
-                "@cmake_3.21.4_toolchains//:cmake-3.21.4-windows-i386_toolchain",
-                "@cmake_3.21.4_toolchains//:cmake-3.21.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -9058,7 +8329,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.21.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.21.5-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -9082,15 +8353,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.21.5_toolchains//:cmake-3.21.5-linux-aarch64_toolchain",
-                "@cmake_3.21.5_toolchains//:cmake-3.21.5-linux-x86_64_toolchain",
-                "@cmake_3.21.5_toolchains//:cmake-3.21.5-macos-universal_toolchain",
-                "@cmake_3.21.5_toolchains//:cmake-3.21.5-windows-i386_toolchain",
-                "@cmake_3.21.5_toolchains//:cmake-3.21.5-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -9168,7 +8430,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.21.6_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.21.6-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -9192,15 +8454,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.21.6_toolchains//:cmake-3.21.6-linux-aarch64_toolchain",
-                "@cmake_3.21.6_toolchains//:cmake-3.21.6-linux-x86_64_toolchain",
-                "@cmake_3.21.6_toolchains//:cmake-3.21.6-macos-universal_toolchain",
-                "@cmake_3.21.6_toolchains//:cmake-3.21.6-windows-i386_toolchain",
-                "@cmake_3.21.6_toolchains//:cmake-3.21.6-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -9278,7 +8531,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.21.7_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.21.7-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -9302,15 +8555,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.21.7_toolchains//:cmake-3.21.7-linux-aarch64_toolchain",
-                "@cmake_3.21.7_toolchains//:cmake-3.21.7-linux-x86_64_toolchain",
-                "@cmake_3.21.7_toolchains//:cmake-3.21.7-macos-universal_toolchain",
-                "@cmake_3.21.7_toolchains//:cmake-3.21.7-windows-i386_toolchain",
-                "@cmake_3.21.7_toolchains//:cmake-3.21.7-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -9388,7 +8632,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.20.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.20.0-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -9412,15 +8656,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.20.0_toolchains//:cmake-3.20.0-linux-aarch64_toolchain",
-                "@cmake_3.20.0_toolchains//:cmake-3.20.0-linux-x86_64_toolchain",
-                "@cmake_3.20.0_toolchains//:cmake-3.20.0-macos-universal_toolchain",
-                "@cmake_3.20.0_toolchains//:cmake-3.20.0-windows-i386_toolchain",
-                "@cmake_3.20.0_toolchains//:cmake-3.20.0-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -9498,7 +8733,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.20.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.20.1-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -9522,15 +8757,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.20.1_toolchains//:cmake-3.20.1-linux-aarch64_toolchain",
-                "@cmake_3.20.1_toolchains//:cmake-3.20.1-linux-x86_64_toolchain",
-                "@cmake_3.20.1_toolchains//:cmake-3.20.1-macos-universal_toolchain",
-                "@cmake_3.20.1_toolchains//:cmake-3.20.1-windows-i386_toolchain",
-                "@cmake_3.20.1_toolchains//:cmake-3.20.1-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -9608,7 +8834,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.20.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.20.2-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -9632,15 +8858,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.20.2_toolchains//:cmake-3.20.2-linux-aarch64_toolchain",
-                "@cmake_3.20.2_toolchains//:cmake-3.20.2-linux-x86_64_toolchain",
-                "@cmake_3.20.2_toolchains//:cmake-3.20.2-macos-universal_toolchain",
-                "@cmake_3.20.2_toolchains//:cmake-3.20.2-windows-i386_toolchain",
-                "@cmake_3.20.2_toolchains//:cmake-3.20.2-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -9718,7 +8935,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.20.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.20.3-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -9742,15 +8959,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.20.3_toolchains//:cmake-3.20.3-linux-aarch64_toolchain",
-                "@cmake_3.20.3_toolchains//:cmake-3.20.3-linux-x86_64_toolchain",
-                "@cmake_3.20.3_toolchains//:cmake-3.20.3-macos-universal_toolchain",
-                "@cmake_3.20.3_toolchains//:cmake-3.20.3-windows-i386_toolchain",
-                "@cmake_3.20.3_toolchains//:cmake-3.20.3-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -9828,7 +9036,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.20.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.20.4-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -9852,15 +9060,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.20.4_toolchains//:cmake-3.20.4-linux-aarch64_toolchain",
-                "@cmake_3.20.4_toolchains//:cmake-3.20.4-linux-x86_64_toolchain",
-                "@cmake_3.20.4_toolchains//:cmake-3.20.4-macos-universal_toolchain",
-                "@cmake_3.20.4_toolchains//:cmake-3.20.4-windows-i386_toolchain",
-                "@cmake_3.20.4_toolchains//:cmake-3.20.4-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -9938,7 +9137,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.20.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.20.5-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -9962,15 +9161,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.20.5_toolchains//:cmake-3.20.5-linux-aarch64_toolchain",
-                "@cmake_3.20.5_toolchains//:cmake-3.20.5-linux-x86_64_toolchain",
-                "@cmake_3.20.5_toolchains//:cmake-3.20.5-macos-universal_toolchain",
-                "@cmake_3.20.5_toolchains//:cmake-3.20.5-windows-i386_toolchain",
-                "@cmake_3.20.5_toolchains//:cmake-3.20.5-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -10048,7 +9238,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.20.6_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.20.6-linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -10072,15 +9262,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.20.6_toolchains//:cmake-3.20.6-linux-aarch64_toolchain",
-                "@cmake_3.20.6_toolchains//:cmake-3.20.6-linux-x86_64_toolchain",
-                "@cmake_3.20.6_toolchains//:cmake-3.20.6-macos-universal_toolchain",
-                "@cmake_3.20.6_toolchains//:cmake-3.20.6-windows-i386_toolchain",
-                "@cmake_3.20.6_toolchains//:cmake-3.20.6-windows-x86_64_toolchain",
-            )
 
         return
 
@@ -10144,7 +9325,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.19.0_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.19.0-Darwin-x86_64": [
                     "@platforms//cpu:x86_64",
@@ -10165,14 +9346,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.19.0_toolchains//:cmake-3.19.0-Darwin-x86_64_toolchain",
-                "@cmake_3.19.0_toolchains//:cmake-3.19.0-Linux-x86_64_toolchain",
-                "@cmake_3.19.0_toolchains//:cmake-3.19.0-win32-x86_toolchain",
-                "@cmake_3.19.0_toolchains//:cmake-3.19.0-win64-x64_toolchain",
-            )
 
         return
 
@@ -10236,7 +9409,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.19.1_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.19.1-Darwin-x86_64": [
                     "@platforms//cpu:x86_64",
@@ -10257,14 +9430,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.19.1_toolchains//:cmake-3.19.1-Darwin-x86_64_toolchain",
-                "@cmake_3.19.1_toolchains//:cmake-3.19.1-Linux-x86_64_toolchain",
-                "@cmake_3.19.1_toolchains//:cmake-3.19.1-win32-x86_toolchain",
-                "@cmake_3.19.1_toolchains//:cmake-3.19.1-win64-x64_toolchain",
-            )
 
         return
 
@@ -10328,7 +9493,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.19.2_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.19.2-Linux-x86_64": [
                     "@platforms//cpu:x86_64",
@@ -10348,14 +9513,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.19.2_toolchains//:cmake-3.19.2-Linux-x86_64_toolchain",
-                "@cmake_3.19.2_toolchains//:cmake-3.19.2-macos-universal_toolchain",
-                "@cmake_3.19.2_toolchains//:cmake-3.19.2-win32-x86_toolchain",
-                "@cmake_3.19.2_toolchains//:cmake-3.19.2-win64-x64_toolchain",
-            )
 
         return
 
@@ -10433,7 +9590,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.19.3_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.19.3-Linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -10457,15 +9614,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.19.3_toolchains//:cmake-3.19.3-Linux-aarch64_toolchain",
-                "@cmake_3.19.3_toolchains//:cmake-3.19.3-Linux-x86_64_toolchain",
-                "@cmake_3.19.3_toolchains//:cmake-3.19.3-macos-universal_toolchain",
-                "@cmake_3.19.3_toolchains//:cmake-3.19.3-win32-x86_toolchain",
-                "@cmake_3.19.3_toolchains//:cmake-3.19.3-win64-x64_toolchain",
-            )
 
         return
 
@@ -10543,7 +9691,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.19.4_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.19.4-Linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -10567,15 +9715,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.19.4_toolchains//:cmake-3.19.4-Linux-aarch64_toolchain",
-                "@cmake_3.19.4_toolchains//:cmake-3.19.4-Linux-x86_64_toolchain",
-                "@cmake_3.19.4_toolchains//:cmake-3.19.4-macos-universal_toolchain",
-                "@cmake_3.19.4_toolchains//:cmake-3.19.4-win32-x86_toolchain",
-                "@cmake_3.19.4_toolchains//:cmake-3.19.4-win64-x64_toolchain",
-            )
 
         return
 
@@ -10653,7 +9792,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.19.5_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.19.5-Linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -10677,15 +9816,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.19.5_toolchains//:cmake-3.19.5-Linux-aarch64_toolchain",
-                "@cmake_3.19.5_toolchains//:cmake-3.19.5-Linux-x86_64_toolchain",
-                "@cmake_3.19.5_toolchains//:cmake-3.19.5-macos-universal_toolchain",
-                "@cmake_3.19.5_toolchains//:cmake-3.19.5-win32-x86_toolchain",
-                "@cmake_3.19.5_toolchains//:cmake-3.19.5-win64-x64_toolchain",
-            )
 
         return
 
@@ -10763,7 +9893,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.19.6_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.19.6-Linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -10787,15 +9917,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.19.6_toolchains//:cmake-3.19.6-Linux-aarch64_toolchain",
-                "@cmake_3.19.6_toolchains//:cmake-3.19.6-Linux-x86_64_toolchain",
-                "@cmake_3.19.6_toolchains//:cmake-3.19.6-macos-universal_toolchain",
-                "@cmake_3.19.6_toolchains//:cmake-3.19.6-win32-x86_toolchain",
-                "@cmake_3.19.6_toolchains//:cmake-3.19.6-win64-x64_toolchain",
-            )
 
         return
 
@@ -10873,7 +9994,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.19.7_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.19.7-Linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -10897,15 +10018,6 @@ def _cmake_toolchains(version, register_toolchains):
             },
             tool = "cmake",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.19.7_toolchains//:cmake-3.19.7-Linux-aarch64_toolchain",
-                "@cmake_3.19.7_toolchains//:cmake-3.19.7-Linux-x86_64_toolchain",
-                "@cmake_3.19.7_toolchains//:cmake-3.19.7-macos-universal_toolchain",
-                "@cmake_3.19.7_toolchains//:cmake-3.19.7-win32-x86_toolchain",
-                "@cmake_3.19.7_toolchains//:cmake-3.19.7-win64-x64_toolchain",
-            )
 
         return
 
@@ -10983,7 +10095,7 @@ def _cmake_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "cmake_3.19.8_toolchains",
+            name = "prebuilt_cmake_toolchains",
             repos = {
                 "cmake-3.19.8-Linux-aarch64": [
                     "@platforms//cpu:aarch64",
@@ -11008,20 +10120,12 @@ def _cmake_toolchains(version, register_toolchains):
             tool = "cmake",
         )
 
-        if register_toolchains:
-            native.register_toolchains(
-                "@cmake_3.19.8_toolchains//:cmake-3.19.8-Linux-aarch64_toolchain",
-                "@cmake_3.19.8_toolchains//:cmake-3.19.8-Linux-x86_64_toolchain",
-                "@cmake_3.19.8_toolchains//:cmake-3.19.8-macos-universal_toolchain",
-                "@cmake_3.19.8_toolchains//:cmake-3.19.8-win32-x86_toolchain",
-                "@cmake_3.19.8_toolchains//:cmake-3.19.8-win64-x64_toolchain",
-            )
-
         return
 
     fail("Unsupported version: " + str(version))
 
-def _ninja_toolchains(version, register_toolchains):
+# buildifier: disable=function-docstring
+def ninja_toolchains(version):
     if "1.12.1" == version:
         maybe(
             http_archive,
@@ -11096,7 +10200,7 @@ def _ninja_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "ninja_1.12.1_toolchains",
+            name = "prebuilt_ninja_toolchains",
             repos = {
                 "ninja_1.12.1_linux": [
                     "@platforms//cpu:x86_64",
@@ -11121,15 +10225,6 @@ def _ninja_toolchains(version, register_toolchains):
             },
             tool = "ninja",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@ninja_1.12.1_toolchains//:ninja_1.12.1_linux_toolchain",
-                "@ninja_1.12.1_toolchains//:ninja_1.12.1_linux-aarch64_toolchain",
-                "@ninja_1.12.1_toolchains//:ninja_1.12.1_mac_toolchain",
-                "@ninja_1.12.1_toolchains//:ninja_1.12.1_mac_aarch64_toolchain",
-                "@ninja_1.12.1_toolchains//:ninja_1.12.1_win_toolchain",
-            )
 
         return
 
@@ -11207,7 +10302,7 @@ def _ninja_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "ninja_1.12.0_toolchains",
+            name = "prebuilt_ninja_toolchains",
             repos = {
                 "ninja_1.12.0_linux": [
                     "@platforms//cpu:x86_64",
@@ -11232,15 +10327,6 @@ def _ninja_toolchains(version, register_toolchains):
             },
             tool = "ninja",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@ninja_1.12.0_toolchains//:ninja_1.12.0_linux_toolchain",
-                "@ninja_1.12.0_toolchains//:ninja_1.12.0_linux-aarch64_toolchain",
-                "@ninja_1.12.0_toolchains//:ninja_1.12.0_mac_toolchain",
-                "@ninja_1.12.0_toolchains//:ninja_1.12.0_mac_aarch64_toolchain",
-                "@ninja_1.12.0_toolchains//:ninja_1.12.0_win_toolchain",
-            )
 
         return
 
@@ -11304,7 +10390,7 @@ def _ninja_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "ninja_1.11.1_toolchains",
+            name = "prebuilt_ninja_toolchains",
             repos = {
                 "ninja_1.11.1_linux": [
                     "@platforms//cpu:x86_64",
@@ -11325,14 +10411,6 @@ def _ninja_toolchains(version, register_toolchains):
             },
             tool = "ninja",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@ninja_1.11.1_toolchains//:ninja_1.11.1_linux_toolchain",
-                "@ninja_1.11.1_toolchains//:ninja_1.11.1_mac_toolchain",
-                "@ninja_1.11.1_toolchains//:ninja_1.11.1_mac_aarch64_toolchain",
-                "@ninja_1.11.1_toolchains//:ninja_1.11.1_win_toolchain",
-            )
 
         return
 
@@ -11396,7 +10474,7 @@ def _ninja_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "ninja_1.11.0_toolchains",
+            name = "prebuilt_ninja_toolchains",
             repos = {
                 "ninja_1.11.0_linux": [
                     "@platforms//cpu:x86_64",
@@ -11417,14 +10495,6 @@ def _ninja_toolchains(version, register_toolchains):
             },
             tool = "ninja",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@ninja_1.11.0_toolchains//:ninja_1.11.0_linux_toolchain",
-                "@ninja_1.11.0_toolchains//:ninja_1.11.0_mac_toolchain",
-                "@ninja_1.11.0_toolchains//:ninja_1.11.0_mac_aarch64_toolchain",
-                "@ninja_1.11.0_toolchains//:ninja_1.11.0_win_toolchain",
-            )
 
         return
 
@@ -11488,7 +10558,7 @@ def _ninja_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "ninja_1.10.2_toolchains",
+            name = "prebuilt_ninja_toolchains",
             repos = {
                 "ninja_1.10.2_linux": [
                     "@platforms//cpu:x86_64",
@@ -11509,14 +10579,6 @@ def _ninja_toolchains(version, register_toolchains):
             },
             tool = "ninja",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@ninja_1.10.2_toolchains//:ninja_1.10.2_linux_toolchain",
-                "@ninja_1.10.2_toolchains//:ninja_1.10.2_mac_toolchain",
-                "@ninja_1.10.2_toolchains//:ninja_1.10.2_mac_aarch64_toolchain",
-                "@ninja_1.10.2_toolchains//:ninja_1.10.2_win_toolchain",
-            )
 
         return
 
@@ -11566,7 +10628,7 @@ def _ninja_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "ninja_1.10.1_toolchains",
+            name = "prebuilt_ninja_toolchains",
             repos = {
                 "ninja_1.10.1_linux": [
                     "@platforms//cpu:x86_64",
@@ -11583,13 +10645,6 @@ def _ninja_toolchains(version, register_toolchains):
             },
             tool = "ninja",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@ninja_1.10.1_toolchains//:ninja_1.10.1_linux_toolchain",
-                "@ninja_1.10.1_toolchains//:ninja_1.10.1_mac_toolchain",
-                "@ninja_1.10.1_toolchains//:ninja_1.10.1_win_toolchain",
-            )
 
         return
 
@@ -11639,7 +10694,7 @@ def _ninja_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "ninja_1.10.0_toolchains",
+            name = "prebuilt_ninja_toolchains",
             repos = {
                 "ninja_1.10.0_linux": [
                     "@platforms//cpu:x86_64",
@@ -11656,13 +10711,6 @@ def _ninja_toolchains(version, register_toolchains):
             },
             tool = "ninja",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@ninja_1.10.0_toolchains//:ninja_1.10.0_linux_toolchain",
-                "@ninja_1.10.0_toolchains//:ninja_1.10.0_mac_toolchain",
-                "@ninja_1.10.0_toolchains//:ninja_1.10.0_win_toolchain",
-            )
 
         return
 
@@ -11712,7 +10760,7 @@ def _ninja_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "ninja_1.9.0_toolchains",
+            name = "prebuilt_ninja_toolchains",
             repos = {
                 "ninja_1.9.0_linux": [
                     "@platforms//cpu:x86_64",
@@ -11729,13 +10777,6 @@ def _ninja_toolchains(version, register_toolchains):
             },
             tool = "ninja",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@ninja_1.9.0_toolchains//:ninja_1.9.0_linux_toolchain",
-                "@ninja_1.9.0_toolchains//:ninja_1.9.0_mac_toolchain",
-                "@ninja_1.9.0_toolchains//:ninja_1.9.0_win_toolchain",
-            )
 
         return
 
@@ -11785,7 +10826,7 @@ def _ninja_toolchains(version, register_toolchains):
         # buildifier: leave-alone
         maybe(
             prebuilt_toolchains_repository,
-            name = "ninja_1.8.2_toolchains",
+            name = "prebuilt_ninja_toolchains",
             repos = {
                 "ninja_1.8.2_linux": [
                     "@platforms//cpu:x86_64",
@@ -11802,13 +10843,6 @@ def _ninja_toolchains(version, register_toolchains):
             },
             tool = "ninja",
         )
-
-        if register_toolchains:
-            native.register_toolchains(
-                "@ninja_1.8.2_toolchains//:ninja_1.8.2_linux_toolchain",
-                "@ninja_1.8.2_toolchains//:ninja_1.8.2_mac_toolchain",
-                "@ninja_1.8.2_toolchains//:ninja_1.8.2_win_toolchain",
-            )
 
         return
 
