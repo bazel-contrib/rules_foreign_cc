@@ -18,7 +18,7 @@ cmake(
     },
     lib_source = ":srcs",
     out_binaries = select({
-        "//:windows": ["hello.exe"],
+        "@platforms//os:windows": ["hello.exe"],
         "//conditions:default": ["hello"],
     }),
 )
@@ -27,7 +27,7 @@ filegroup(
     name = "binary",
     srcs = [":libhello"],
     output_group = select({
-        "//:windows": "hello.exe",
+        "@platforms//os:windows": "hello.exe",
         "//conditions:default": "hello",
     }),
 )

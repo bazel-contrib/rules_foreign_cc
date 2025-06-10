@@ -5,7 +5,7 @@ ninja(
     name = "ninja_lib",
     build_data = ["//ninja_simple/code:clang_wrapper.sh"],
     env = select({
-        "//:windows": {
+        "@platforms//os:windows": {
             "CLANG_WRAPPER": "$(execpath //ninja_simple/code:clang_wrapper.sh)",
             "CXX_FLAGS": "/MD",
         },
