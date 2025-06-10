@@ -94,7 +94,6 @@ def _create_meson_script(configureParameters):
 
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
-    script.append("##export_var## MESON {}".format(attrs.meson_path))
     script.append("##export_var## PKG_CONFIG {}".format(attrs.pkg_config_path))
 
     root = detect_root(ctx.attr.lib_source)
