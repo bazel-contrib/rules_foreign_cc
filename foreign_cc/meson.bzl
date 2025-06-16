@@ -92,6 +92,14 @@ def _create_meson_script(configureParameters):
     if flags.cxx_linker_executable:
         script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, flags.cxx_linker_executable).replace("\"", "'")))
 
+    build_options = {}
+    build_options.update(ctx.attr.options)
+    if flags.cxx_linker_shared and ctx.attr.shared_ldflags_option:
+        if ctx.attr.shared_ldflags_option in build_options:
+            fail("cannot override existing build option: {}".format(ctx.attr.shared_ldflags_option))
+
+        build_options[ctx.attr.shared_ldflags_option] = _join_flags_list(ctx.workspace_name, flags.cxx_linker_shared)
+
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
     script.append("##export_var## PKG_CONFIG {}".format(attrs.pkg_config_path))
@@ -146,8 +154,8 @@ def _create_meson_script(configureParameters):
         install_dir = "$$INSTALLDIR$$",
         setup_args = " ".join(target_args.get("setup", [])),
         options = " ".join([
-            "-D{}=\"{}\"".format(key, ctx.attr.options[key])
-            for key in ctx.attr.options
+            "-D{}=\"{}\"".format(key, build_options[key])
+            for key in build_options
         ]),
         source_dir = "$$EXT_BUILD_ROOT$$/" + root,
     ))
@@ -223,6 +231,10 @@ def _attrs():
         ),
         "setup_args": attr.string_list(
             doc = "__deprecated__: please use `target_args` with `'setup'` target key.",
+            mandatory = False,
+        ),
+        "shared_ldflags_option": attr.string(
+            doc = "Name of additional setup option that will contain shared ldflags.",
             mandatory = False,
         ),
         "target_args": attr.string_list_dict(
