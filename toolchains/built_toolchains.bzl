@@ -72,6 +72,12 @@ native_tool_toolchain(
     target = ":make_tool",
     visibility = ["//visibility:public"],
 )
+
+toolchain(
+    name = "built_make_toolchain",
+    toolchain = ":built_make",
+    toolchain_type = "@rules_foreign_cc//toolchains:make_toolchain",
+)
 """
 
 _NINJA_BUILD_FILE_CONTENT = """\
@@ -101,6 +107,12 @@ native_tool_toolchain(
     }),
     target = ":ninja_tool",
     visibility = ["//visibility:public"],
+)
+
+toolchain(
+    name = "built_ninja_toolchain",
+    toolchain = ":built_ninja",
+    toolchain_type = "@rules_foreign_cc//toolchains:ninja_toolchain",
 )
 """
 
@@ -165,6 +177,12 @@ native_tool_toolchain(
     }),
     target = ":pkgconfig_tool",
     visibility = ["//visibility:public"],
+)
+
+toolchain(
+   name = "built_pkgconfig_toolchain",
+   toolchain = ":built_pkgconfig",
+   toolchain_type = "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
 )
 """
 
