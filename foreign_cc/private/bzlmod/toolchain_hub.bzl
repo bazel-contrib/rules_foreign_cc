@@ -30,6 +30,5 @@ register `:all` and get all the toolchains registered in a single call.
             doc = "The list of toolchain targets to include in the hub repo.",
             default = [],
         ),
-        # "_rules_foreign_cc_workspace: attr.label(default = Label("//:does_not_matter_what_this_name_is")),
     },
 )
