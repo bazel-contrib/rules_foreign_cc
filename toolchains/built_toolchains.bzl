@@ -131,6 +131,19 @@ def _ninja_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_ninja_toolchain",
         )
+    if version == "1.13.0":
+        maybe(
+            http_archive,
+            name = "ninja_build_src",
+            build_file_content = _ALL_CONTENT,
+            integrity = "sha256-8IZB0ACZqeQNROwBRvhBxHKuWLfm3VF77jlFz9kjzt8=",
+            strip_prefix = "ninja-1.13.0",
+            urls = [
+                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.13.0.tar.gz",
+                "https://github.com/ninja-build/ninja/archive/v1.13.0.tar.gz",
+            ],
+        )
+        return
     if version == "1.12.1":
         maybe(
             http_archive,
