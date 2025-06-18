@@ -5,10 +5,10 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//foreign_cc/private/framework:toolchain.bzl", "register_framework_toolchains")
 load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "preinstalled_toolchains")
 
-DEFAULT_CMAKE_VERSION = "3.31.7"
+DEFAULT_CMAKE_VERSION = "3.31.8"
 DEFAULT_MAKE_VERSION = "4.4.1"
 DEFAULT_MESON_VERSION = "1.5.1"
-DEFAULT_NINJA_VERSION = "1.12.1"
+DEFAULT_NINJA_VERSION = "1.13.0"
 DEFAULT_PKGCONFIG_VERSION = "0.29.2"
 
 # buildifier: disable=unnamed-macro

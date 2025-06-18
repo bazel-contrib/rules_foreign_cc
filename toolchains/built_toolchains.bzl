@@ -296,6 +296,19 @@ def ninja_toolchain(version):
     Args:
       version: The Ninja version to build
     """
+    if version == "1.13.0":
+        maybe(
+            http_archive,
+            name = "ninja_1.13.0_src",
+            build_file_content = _NINJA_BUILD_FILE_CONTENT,
+            integrity = "sha256-8IZB0ACZqeQNROwBRvhBxHKuWLfm3VF77jlFz9kjzt8=",
+            strip_prefix = "ninja-1.13.0",
+            urls = [
+                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.13.0.tar.gz",
+                "https://github.com/ninja-build/ninja/archive/v1.13.0.tar.gz",
+            ],
+        )
+        return
     if version == "1.12.1":
         maybe(
             http_archive,
