@@ -4,8 +4,8 @@ load("@bazel_features//:features.bzl", "bazel_features")
 load("//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 load("//toolchains:prebuilt_toolchains.bzl", "prebuilt_toolchains")
 
-_DEFAULT_CMAKE_VERSION = "3.31.7"
-_DEFAULT_NINJA_VERSION = "1.12.1"
+_DEFAULT_CMAKE_VERSION = "3.31.8"
+_DEFAULT_NINJA_VERSION = "1.13.0"
 
 cmake_toolchain_version = tag_class(attrs = {
     "version": attr.string(doc = "The cmake version", default = _DEFAULT_CMAKE_VERSION),
