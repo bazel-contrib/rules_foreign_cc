@@ -1,5 +1,6 @@
 """Entry point for extensions used by bzlmod."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("//foreign_cc:repositories.bzl", "DEFAULT_CMAKE_VERSION", "DEFAULT_MAKE_VERSION", "DEFAULT_MESON_VERSION", "DEFAULT_NINJA_VERSION", "DEFAULT_PKGCONFIG_VERSION")
 load("//foreign_cc/private/bzlmod:toolchain_hub.bzl", "hub_repo")
 load("//foreign_cc/private/framework:toolchain.bzl", "register_framework_toolchains")
@@ -110,6 +111,11 @@ def _init(module_ctx):
     register_framework_toolchains(register_toolchains = False)
 
     hub_repo(name = "toolchain_hub", toolchain_names = toolchain_names, toolchain_target = toolchain_target, toolchain_types = toolchain_types)
+
+    if bazel_features.external_deps.extension_metadata_has_reproducible:
+        return module_ctx.extension_metadata(reproducible = True)
+    else:
+        return None
 
 tools = module_extension(
     implementation = _init,
