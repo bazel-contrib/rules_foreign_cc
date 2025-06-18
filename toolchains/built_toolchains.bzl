@@ -130,6 +130,12 @@ native_tool_toolchain(
     path = "$(execpath :meson_tool)",
     target = ":meson_tool",
 )
+
+toolchain(
+    name = "built_meson_toolchain",
+    toolchain = ":built_meson",
+    toolchain_type = "@rules_foreign_cc//toolchains:meson_toolchain",
+)
 """
 
 _PKGCONFIG_BUILD_FILE_CONTENT = """\

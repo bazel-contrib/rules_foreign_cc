@@ -81,7 +81,7 @@ def rules_foreign_cc_dependencies(
             pkgconfig_version = pkgconfig_version,
             register_built_pkgconfig_toolchain = register_built_pkgconfig_toolchain,
         )
-        native.register_toolchains("@meson_{}_src//:all".format(meson_version), "//toolchains:all")
+        native.register_toolchains("@meson_{}_src//:built_meson_toolchain".format(meson_version), "//toolchains:all")
 
     if register_preinstalled_tools:
         preinstalled_toolchains()
