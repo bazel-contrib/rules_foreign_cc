@@ -276,7 +276,7 @@ export CXXFLAGS="foo=\\\"bar\\\" -Fbat"
 ##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$
 ##define_sandbox_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_ROOT$$
 ##enable_tracing##
-emcmake cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=""  -G 'Unix Makefiles' $$EXT_BUILD_ROOT$$/external/test_rule
+emcmake cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=":"  -G 'Unix Makefiles' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -333,7 +333,7 @@ export ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 ##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$
 ##define_sandbox_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_ROOT$$
 ##enable_tracing##
-cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_MODULE_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DNOFORTRAN="on" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$;/abc/def" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_MODULE_LINKER_FLAGS="-shared -fuse-ld=gold" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DNOFORTRAN="on" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$;/abc/def" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=":" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -396,7 +396,7 @@ export ASMFLAGS="-U_FORTIFY_SOURCE -fstack-protector -Wall"
 ##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$
 ##define_sandbox_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_ROOT$$
 ##enable_tracing##
-cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$;/abc/def" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold -Wl -no-as-needed" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$;/abc/def" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=":" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -468,7 +468,7 @@ EOF
 ##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$
 ##define_sandbox_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_ROOT$$
 ##enable_tracing##
-cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="$$BUILD_TMPDIR$$/crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="$$BUILD_TMPDIR$$/crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=":" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -539,7 +539,7 @@ export CUSTOM_ENV="YES"
 ##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$
 ##define_sandbox_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_ROOT$$
 ##enable_tracing##
-cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=":" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -610,7 +610,7 @@ export CUSTOM_ENV="YES"
 ##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$
 ##define_sandbox_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_ROOT$$
 ##enable_tracing##
-cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DANDROID="YES" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="x86_64" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DANDROID="YES" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="x86_64" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=":" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -681,7 +681,7 @@ export CUSTOM_ENV="YES"
 ##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$
 ##define_sandbox_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_ROOT$$
 ##enable_tracing##
-cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="aarch64" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMAKE_SHARED_LINKER_FLAGS="shared1 shared2" -DCMAKE_MODULE_LINKER_FLAGS="shared1 shared2" -DCMAKE_EXE_LINKER_FLAGS="executable" -DCMAKE_SYSTEM_NAME="Linux" -DCMAKE_SYSTEM_PROCESSOR="aarch64" -DCMAKE_BUILD_TYPE="user_type" -DCUSTOM_CACHE="YES" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=":" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
@@ -775,7 +775,7 @@ export CUSTOM_ENV="YES"
 ##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$
 ##define_sandbox_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_ROOT$$
 ##enable_tracing##
-cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="$$BUILD_TMPDIR$$/crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB="" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="$$BUILD_TMPDIR$$/crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" -DCMAKE_RANLIB=":" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
 ##disable_tracing##
 """
     asserts.equals(env, expected.splitlines(), script)
