@@ -9,6 +9,10 @@ load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_depende
 
 rules_foreign_cc_dependencies()
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
 load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
 
 py_repositories()
