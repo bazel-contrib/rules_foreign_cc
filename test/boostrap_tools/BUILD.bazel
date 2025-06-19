@@ -7,8 +7,10 @@ build_test(
         "manual",
     ],
     targets = [
-        "//toolchains:make_tool",
-        "//toolchains:cmake_tool",
-        "//toolchains:ninja_tool",
+        "//toolchains/private:make_tool",
+        "//toolchains/private:cmake_tool",
+        "//toolchains/private:ninja_tool",
+        "//toolchains/private:meson_tool",
+        "//toolchains/private:pkgconfig_tool",
     ],
 )
