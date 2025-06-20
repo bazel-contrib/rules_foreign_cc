@@ -1,6 +1,6 @@
 """Entry point for extensions used by bzlmod."""
 
-load("@bazel_features//:features.bzl", "bazel_features")
+load("@bazel_skylib//lib:modules.bzl", "modules")
 load("//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 load("//toolchains:prebuilt_toolchains.bzl", "prebuilt_toolchains")
 
@@ -45,10 +45,7 @@ def _init(module_ctx):
         register_toolchains = False,
     )
 
-    if bazel_features.external_deps.extension_metadata_has_reproducible:
-        return module_ctx.extension_metadata(reproducible = True)
-    else:
-        return None
+    return modules.use_all_repos(module_ctx, reproducible = True)
 
 tools = module_extension(
     implementation = _init,
