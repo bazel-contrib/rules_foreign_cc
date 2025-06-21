@@ -80,6 +80,7 @@ def _make_tool_impl(ctx):
 
         if os_name(ctx) == "macos":
             non_sysroot_ldflags += ["-undefined", "error"]
+
             # On macOS, remove "-lm".
             # During compilation, the ./configure script disables USE_SYSTEM_GLOB,
             # and chooses its own glob implementation (lib/glob.h, lib/glob.c).
