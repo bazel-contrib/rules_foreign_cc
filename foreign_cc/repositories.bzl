@@ -2,6 +2,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("//foreign_cc/private:default_versions.bzl", _DEFAULT_VERSIONS = "DEFAULT_VERSIONS")
 load("//foreign_cc/private/framework:toolchain.bzl", "register_framework_toolchains")
 load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "preinstalled_toolchains")
 
@@ -9,11 +10,11 @@ load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        cmake_version = "3.31.8",
-        make_version = "4.4.1",
-        ninja_version = "1.13.0",
-        meson_version = "1.5.1",
-        pkgconfig_version = "0.29.2",
+        cmake_version = _DEFAULT_VERSIONS["cmake"],
+        make_version = _DEFAULT_VERSIONS["make"],
+        ninja_version = _DEFAULT_VERSIONS["ninja"],
+        meson_version = _DEFAULT_VERSIONS["meson"],
+        pkgconfig_version = _DEFAULT_VERSIONS["pkgconfig"],
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True,
