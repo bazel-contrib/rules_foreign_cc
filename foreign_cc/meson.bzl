@@ -269,8 +269,8 @@ def meson_with_requirements(name, requirements, **kwargs):
 
     meson_tool(
         name = "meson_tool_for_{}".format(name),
-        main = "@meson_src//:meson.py",
-        data = ["@meson_src//:runtime"],
+        main = "@meson_1.5.1_src//:meson.py",
+        data = ["@meson_1.5.1_src//:runtime"],
         requirements = requirements,
         tags = tags + ["manual"],
     )
