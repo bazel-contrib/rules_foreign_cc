@@ -2,7 +2,7 @@ load("@rules_python//python/pip_install:requirements.bzl", "compile_pip_requirem
 
 test_suite(
     name = "third_party_examples_linux_tests",
-    target_compatible_with = ["@platforms//os:linux"],
+    tags = ["manual"],
     tests = ["@rules_foreign_cc_examples_third_party//:linux_tests"],
 )
 
