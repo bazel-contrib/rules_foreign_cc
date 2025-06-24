@@ -8,10 +8,10 @@ TAG=${GITHUB_REF_NAME}
 # The prefix is chosen to match what GitHub generates for source archives
 PREFIX="rules_foreign_cc-${TAG}"
 ARCHIVE="rules_foreign_cc-$TAG.tar.gz"
-git archive --format=tar --prefix="${PREFIX}"/ "${TAG}" | gzip > "$ARCHIVE"
+git archive --format=tar --prefix="${PREFIX}"/ "${TAG}" | gzip >"$ARCHIVE"
 SHA="$(shasum -a 256 "$ARCHIVE" | awk '{print $1}')"
 
-cat << EOF
+cat <<EOF
 ## Using Bzlmod
 
 1. Enable with \`common --enable_bzlmod\` in \`.bazelrc\`.
@@ -54,6 +54,10 @@ bazel_features_deps()
 load("@rules_python//python:repositories.bzl", "py_repositories")
 
 py_repositories()
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
 
 EOF
 
