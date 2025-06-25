@@ -261,7 +261,7 @@ def replace_symlink(file):
     # as `readlink` is.
     return """\
 if [[ -L "{file}" ]]; then
-  target="$(python3 -c "import os; print(os.path.realpath('{file}'))")"
+  target="$(realpath '{file}')"
   rm "{file}" && cp -a "${{target}}" "{file}"
 fi
 """.format(file = file)

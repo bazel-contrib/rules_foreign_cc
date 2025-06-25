@@ -629,6 +629,13 @@ CMAKE_SRCS = {
         "cmake-3.30.8",
         "10434223a40531b4d6bd77f8ffc471f1714029f4e6d2c83c499187a940276720",
     ],
+    "3.30.9": [
+        [
+            "https://github.com/Kitware/CMake/releases/download/v3.30.9/cmake-3.30.9.tar.gz",
+        ],
+        "cmake-3.30.9",
+        "65f765bb87c8019316cabe67cbe5e8f45ede334eeb5afd161ca6874d17994e0d",
+    ],
     "3.31.0": [
         [
             "https://github.com/Kitware/CMake/releases/download/v3.31.0/cmake-3.31.0.tar.gz",
@@ -685,6 +692,13 @@ CMAKE_SRCS = {
         "cmake-3.31.7",
         "a6d2eb1ebeb99130dfe63ef5a340c3fdb11431cce3d7ca148524c125924cea68",
     ],
+    "3.31.8": [
+        [
+            "https://github.com/Kitware/CMake/releases/download/v3.31.8/cmake-3.31.8.tar.gz",
+        ],
+        "cmake-3.31.8",
+        "e3cde3ca83dc2d3212105326b8f1b565116be808394384007e7ef1c253af6caa",
+    ],
     "4.0.0": [
         [
             "https://github.com/Kitware/CMake/releases/download/v4.0.0/cmake-4.0.0.tar.gz",
@@ -705,5 +719,12 @@ CMAKE_SRCS = {
         ],
         "cmake-4.0.2",
         "1c3a82c8ca7cf12e0b17178f9d0c32f7ac773bd5651a98fcfd80fbf4977f8d48",
+    ],
+    "4.0.3": [
+        [
+            "https://github.com/Kitware/CMake/releases/download/v4.0.3/cmake-4.0.3.tar.gz",
+        ],
+        "cmake-4.0.3",
+        "8d3537b7b7732660ea247398f166be892fe6131d63cc291944b45b91279f3ffb",
     ],
 }

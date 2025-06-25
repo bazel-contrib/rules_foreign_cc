@@ -10,9 +10,9 @@ CMAKE_SHA256_URL_TEMPLATE = "https://cmake.org/files/v{minor}/cmake-{full}-SHA-2
 CMAKE_URL_TEMPLATE = "https://github.com/Kitware/CMake/releases/download/v{full}/{file}"
 
 CMAKE_VERSIONS = (
-    [f"4.0.{x}" for x in range(3)]
-    + [f"3.31.{x}" for x in range(8)]
-    + [f"3.30.{x}" for x in range(9)]
+    [f"4.0.{x}" for x in range(4)]
+    + [f"3.31.{x}" for x in range(9)]
+    + [f"3.30.{x}" for x in range(10)]
     + [f"3.29.{x}" for x in range(10)]
     + [f"3.28.{x}" for x in range(7)]
     + [f"3.27.{x}" for x in range(10)]
@@ -96,6 +96,7 @@ NINJA_TARGETS = {
 }
 
 NINJA_VERSIONS = (
+    "1.13.0",
     "1.12.1",
     "1.12.0",
     "1.11.1",

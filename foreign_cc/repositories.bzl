@@ -9,9 +9,9 @@ load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        cmake_version = "3.31.7",
+        cmake_version = "3.31.8",
         make_version = "4.4.1",
-        ninja_version = "1.12.1",
+        ninja_version = "1.13.0",
         meson_version = "1.5.1",
         pkgconfig_version = "0.29.2",
         register_preinstalled_tools = True,
