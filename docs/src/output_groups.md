@@ -25,7 +25,6 @@ Each output file produced by the build is available as a separate output group u
 - `libexample.so` - Shared library (Linux)
 - `libexample.dylib` - Shared library (macOS)  
 - `example.dll` - Shared library (Windows)
-- `example.lib` - Interface library for DLLs (Windows)
 
 **Executable files:**
 - `example` - Executable binary (Unix-like systems)
@@ -33,6 +32,8 @@ Each output file produced by the build is available as a separate output group u
 
 **Header directory:**
 - The headers directory (if `out_include_dir` is set) is available by its directory name
+
+> **Note:** Interface libraries (`.lib` files for Windows DLLs) are part of the default outputs but are not currently available as separate output groups. Use the `gen_dir` output group to access all build outputs including interface libraries.
 
 ### Build Logs
 
