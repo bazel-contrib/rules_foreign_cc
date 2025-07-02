@@ -2,6 +2,8 @@
 
 Rules Foreign CC provides several output groups that allow you to access different parts of the build output beyond the default outputs. This is particularly useful when you need to package or process the complete install tree or specific build artifacts.
 
+**Output groups are available for all rules_foreign_cc rules:** `cmake`, `make`, `ninja`, `meson`, `configure_make`, and `boost_build`.
+
 ## Available Output Groups
 
 ### `gen_dir`
@@ -15,12 +17,22 @@ The `gen_dir` output group contains the complete install directory tree as it wo
 
 ### Individual Output Files
 
-Each output file produced by the build is available as a separate output group using the file's basename as the group name.
+Each output file produced by the build is available as a separate output group using the file's basename as the group name. This includes:
 
-**Examples:**
-- `libexample.a` - Static library
-- `example.exe` or `example` - Executable binary
-- `libexample.so` - Shared library
+**Library files:**
+- `libexample.a` - Static library (Unix-like systems)
+- `example.lib` - Static library (Windows)
+- `libexample.so` - Shared library (Linux)
+- `libexample.dylib` - Shared library (macOS)  
+- `example.dll` - Shared library (Windows)
+- `example.lib` - Interface library for DLLs (Windows)
+
+**Executable files:**
+- `example` - Executable binary (Unix-like systems)
+- `example.exe` - Executable binary (Windows)
+
+**Header directory:**
+- The headers directory (if `out_include_dir` is set) is available by its directory name
 
 ### Build Logs
 
@@ -166,9 +178,14 @@ filegroup(
 
 1. **Use `gen_dir` for complete packaging** - When you need everything the build produces, use the `gen_dir` output group.
 
-2. **Inspect available output groups** - Use `bazel query` to see what output groups are available:
+2. **Discover available output groups** - Use `bazel query` to see what output groups are available for a target:
    ```bash
    bazel query --output=build //path/to:target
+   ```
+   You can also inspect the target after building:
+   ```bash
+   bazel build //path/to:target
+   bazel cquery //path/to:target --output=textproto
    ```
 
 3. **Combine with rules_pkg** - Output groups work excellently with packaging rules to create distribution artifacts.
@@ -176,3 +193,5 @@ filegroup(
 4. **Platform-specific handling** - Use `select()` statements when dealing with platform-specific file extensions or names.
 
 5. **Access logs for debugging** - The logs output groups are useful for debugging build issues or understanding what the build system is doing.
+
+6. **Check the install directory structure** - The `gen_dir` output group contains the complete install tree layout, which matches what you'd get from running the native build tool's install command.
