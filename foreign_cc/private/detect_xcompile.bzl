@@ -8,17 +8,18 @@ load(
     "triplet_name",
 )
 
-def detect_xcompile(ctx):
+def detect_xcompile(ctx, autoconf = True):
     """A helper function for detecting and setting autoconf-style xcompile flags
 
     Args:
         ctx (ctx): The current rule's context object
+        autoconf: True if being called from make/pkgconfig
 
     Returns:
         list(str): The flags to set, or None if xcompiling is disabled
     """
 
-    if not ctx.attr.configure_xcompile:
+    if autoconf and not ctx.attr.configure_xcompile:
         return None
 
     host_triplet = triplet_name(
