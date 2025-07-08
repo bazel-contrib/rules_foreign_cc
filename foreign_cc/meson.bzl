@@ -13,6 +13,7 @@ load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",
 )
+load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
 load(
     "//foreign_cc/private:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
@@ -23,6 +24,11 @@ load(
 )
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
+load(
+    "//foreign_cc/private/framework:platform.bzl",
+    "target_arch_name",
+    "target_os_name",
+)
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
 
@@ -136,6 +142,7 @@ def _create_meson_script(configureParameters):
     for target_name, args_ in target_args.items():
         if target_name == "setup":
             args = expand_locations_and_make_variables(ctx, args_, "setup_args", data)
+            _write_cross_file(ctx, script, args)
         else:
             args = [ctx.expand_location(arg, data) for arg in args_]
 
@@ -207,6 +214,15 @@ def _attrs():
         "build_args": attr.string_list(
             doc = "__deprecated__: please use `target_args` with `'build'` target key.",
             mandatory = False,
+        ),
+        "generate_crosstool_file": attr.bool(
+            doc = (
+                "When True, a Meson cross file will be generated from the platform values. " +
+                "A cross compile must be detected and no existing --cross-file passed as a " +
+                "setup option."
+            ),
+            mandatory = False,
+            default = False,
         ),
         "install": attr.bool(
             doc = "__deprecated__: please use `targets` if you want to skip install.",
@@ -300,3 +316,39 @@ def _absolutize(workspace_name, text, force = False):
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+
+def _write_cross_file(ctx, script, args):
+    # generate a cross file from platform values
+    if not ctx.attr.generate_crosstool_file:
+        return
+
+    if not detect_xcompile(ctx, autoconf = False):
+        return
+
+    if _find_first_substring(args, "--cross-file"):
+        return
+
+    # adjust the system name Meson expects
+    os_name = "darwin" if target_os_name(ctx) == "macos" else target_os_name(ctx)
+
+    # write cross file
+    script.append("cat > crosstool_bazel.txt << EOF")
+    script.append("[host_machine]")
+    script.append("system = '{}'".format(os_name))
+    script.append("cpu_family = '{}'".format(target_arch_name(ctx)))
+    script.append("cpu = '{}'".format(target_arch_name(ctx)))
+    script.append("endian = 'little'")
+    script.append("")
+    script.append("[properties]")
+    script.append("skip_sanity_check = true")
+    script.append("EOF")
+    script.append("")
+
+    # append setup args
+    args.append("--cross-file crosstool_bazel.txt")
+
+def _find_first_substring(lst, substring):
+    for item in lst:
+        if substring in item:
+            return item
+    return None
