@@ -11352,6 +11352,117 @@ def _cmake_toolchains(version, register_toolchains):
     fail("Unsupported version: " + str(version))
 
 def _ninja_toolchains(version, register_toolchains):
+    if "1.13.1" == version:
+        maybe(
+            http_archive,
+            name = "ninja_1.13.1_linux",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-linux.zip",
+            ],
+            sha256 = "0830252db77884957a1a4b87b05a1e2d9b5f658b8367f82999a941884cbe0238",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.13.1_linux-aarch64",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-linux-aarch64.zip",
+            ],
+            sha256 = "740f1b9f9d8ae68438240a6a2f3f7a27fc8b1946d2024a6a6b25857ee877987b",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.13.1_mac",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-mac.zip",
+            ],
+            sha256 = "da7797794153629aca5570ef7c813342d0be214ba84632af886856e8f0063dd9",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.13.1_mac_aarch64",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-mac.zip",
+            ],
+            sha256 = "da7797794153629aca5570ef7c813342d0be214ba84632af886856e8f0063dd9",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        maybe(
+            http_archive,
+            name = "ninja_1.13.1_win",
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-win.zip",
+            ],
+            sha256 = "26a40fa8595694dec2fad4911e62d29e10525d2133c9a4230b66397774ae25bf",
+            strip_prefix = "",
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = "ninja.exe",
+                env = "{\"NINJA\": \"$(execpath :ninja_bin)\"}",
+            ),
+        )
+
+        # buildifier: leave-alone
+        maybe(
+            prebuilt_toolchains_repository,
+            name = "ninja_1.13.1_toolchains",
+            repos = {
+                "ninja_1.13.1_linux": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:linux",
+                ],
+                "ninja_1.13.1_linux-aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:linux",
+                ],
+                "ninja_1.13.1_mac": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:macos",
+                ],
+                "ninja_1.13.1_mac_aarch64": [
+                    "@platforms//cpu:aarch64",
+                    "@platforms//os:macos",
+                ],
+                "ninja_1.13.1_win": [
+                    "@platforms//cpu:x86_64",
+                    "@platforms//os:windows",
+                ],
+            },
+            tool = "ninja",
+        )
+
+        if register_toolchains:
+            native.register_toolchains(
+                "@ninja_1.13.1_toolchains//:ninja_1.13.1_linux_toolchain",
+                "@ninja_1.13.1_toolchains//:ninja_1.13.1_linux-aarch64_toolchain",
+                "@ninja_1.13.1_toolchains//:ninja_1.13.1_mac_toolchain",
+                "@ninja_1.13.1_toolchains//:ninja_1.13.1_mac_aarch64_toolchain",
+                "@ninja_1.13.1_toolchains//:ninja_1.13.1_win_toolchain",
+            )
+
+        return
+
     if "1.13.0" == version:
         maybe(
             http_archive,
