@@ -212,7 +212,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
             "debug symbols"
         ),
         mandatory = False,
-        default = False,
+        default = select({
+            "//foreign_cc:disable_set_file_prefix_map": False,
+            "//conditions:default": True,
+        }),
     ),
     "static_suffix": attr.string(
         doc = (

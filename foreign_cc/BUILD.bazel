@@ -5,6 +5,14 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 
+config_setting(
+    name = "disable_set_file_prefix_map",
+    flag_values = {
+        "//foreign_cc/private:disable_set_file_prefix_map": "True",
+    },
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "boost_build",
     srcs = ["boost_build.bzl"],
