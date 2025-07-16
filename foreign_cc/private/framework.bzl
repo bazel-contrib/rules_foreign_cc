@@ -214,12 +214,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = True,
     ),
-    "_disable_set_file_prefix_map_globally": attr.bool(
-        default = select({
-            "//foreign_cc:disable_set_file_prefix_map": True,
-            "//conditions:default": False,
-        }),
+    "_disable_set_file_prefix_map_flag": attr.label(
+        default = "//foreign_cc/private:disable_set_file_prefix_map",
+        doc = "Reference to the string flag for global override",
     ),
+
     "static_suffix": attr.string(
         doc = (
             "Optional suffix used by static libs." +
