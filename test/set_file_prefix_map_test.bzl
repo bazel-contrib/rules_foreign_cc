@@ -12,10 +12,9 @@ def _test_set_file_prefix_map_default_true(ctx):
     # Get the attribute definition
     attr_def = CC_EXTERNAL_RULE_ATTRIBUTES["set_file_prefix_map"]
     
-    # The default should be a select() that returns True for the default case
-    # We can't easily test the select() evaluation without a real context,
-    # but we can verify that the structure is correct
+    # The default should now be True (boolean)
     asserts.true(env, hasattr(attr_def, "default"), "set_file_prefix_map should have a default")
+    asserts.equals(env, True, attr_def.default, "set_file_prefix_map should default to True")
     
     return unittest.end(env)
 

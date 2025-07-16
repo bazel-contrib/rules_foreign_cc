@@ -308,7 +308,10 @@ def get_flags_info(ctx, link_output_file = None):
         ),
     )
 
-    if "set_file_prefix_map" in dir(ctx.attr) and ctx.attr.set_file_prefix_map:
+    # Check if set_file_prefix_map should be enabled
+    # Enable if: attribute is True AND not globally disabled
+    if ("set_file_prefix_map" in dir(ctx.attr) and ctx.attr.set_file_prefix_map and
+        not ("_disable_set_file_prefix_map_globally" in dir(ctx.attr) and ctx.attr._disable_set_file_prefix_map_globally)):
         copts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
         cxxopts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
 
