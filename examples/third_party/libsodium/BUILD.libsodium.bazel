@@ -1,0 +1,21 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+
+filegroup(
+    name = "all",
+    srcs = glob(["**"]),
+)
+
+configure_make(
+    name = "libsodium",
+    configure_options = ["--disable-shared"],
+    env = select({
+        "@platforms//os:macos": {
+            "AR": "",
+        },
+        "//conditions:default": {},
+    }),
+    lib_source = ":all",
+    out_lib_dir = "lib",
+    out_static_libs = ["libsodium.a"],
+    visibility = ["//visibility:public"],
+)
