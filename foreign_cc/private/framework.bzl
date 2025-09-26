@@ -791,7 +791,13 @@ def _copy_deps_and_tools(files):
     for tool in files.tools_files:
         tool_prefix = "$EXT_BUILD_ROOT/"
         tool = tool[len(tool_prefix):] if tool.startswith(tool_prefix) else tool
+        tool_runfiles = "{}.runfiles".format(tool)
+        tool_runfiles_manifest = "{}.runfiles_manifest".format(tool)
+        tool_exe_runfiles_manifest = "{}.exe.runfiles_manifest".format(tool)
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool))
+        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_runfiles))
+        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_runfiles_manifest))
+        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_exe_runfiles_manifest))
 
     for ext_dir in files.ext_build_dirs:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
