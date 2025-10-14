@@ -1,0 +1,10 @@
+filegroup(
+    name = "srcs",
+    srcs = [
+        "mylib.cpp",
+        "mylib.h",
+        "mylib.vcxproj",
+        "mysolution.sln",
+    ],
+    visibility = ["//msbuild_simple:__subpackages__"],
+)
