@@ -155,6 +155,17 @@ native_tool_toolchain(
     }),
 )
 
+native_tool_toolchain(
+    name = "preinstalled_msbuild",
+    env = {
+        "MSBUILD": "MSBuild.exe",
+    },
+    path = "MSBUILD.exe",
+    target_compatible_with = [
+        "@platforms//os:windows",
+    ],
+)
+
 pkgconfig_tool(
     name = "pkgconfig_tool",
     srcs = "@pkgconfig_src//:all_srcs",
