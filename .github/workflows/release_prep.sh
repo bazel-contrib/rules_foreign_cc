@@ -19,7 +19,40 @@ cat << EOF
 
 \`\`\`starlark
 bazel_dep(name = "rules_foreign_cc", version = "${TAG}")
+
+# Configure build tool versions (optional)
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.31.8")  # Optional: specify a different version
+use_repo(
+    tools,
+    "prebuilt_cmake_toolchains",
+    "prebuilt_ninja_toolchains",
+    "rules_foreign_cc_framework_toolchains",
+    "toolchain_hub",
+)
+
+register_toolchains(
+    "@prebuilt_cmake_toolchains//:all",
+    "@prebuilt_ninja_toolchains//:all",
+    "@rules_foreign_cc_framework_toolchains//:all",
+    "@toolchain_hub//:all",
+)
 \`\`\`
+
+### Customizing Tool Versions
+
+You can specify custom versions of build tools using the \`tools\` extension:
+
+\`\`\`starlark
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.30.5")
+tools.ninja(version = "1.12.0")
+tools.make(version = "4.4.1")
+tools.meson(version = "1.5.1")
+tools.pkgconfig(version = "0.29.2")
+\`\`\`
+
+For more details, see the [Bzlmod documentation](https://bazel-contrib.github.io/rules_foreign_cc/${TAG}/bzlmod.html).
 
 ## Using WORKSPACE
 
@@ -57,6 +90,4 @@ py_repositories()
 
 EOF
 
-# TODO: add example of how to configure for bzlmod
-# awk 'f;/--SNIP--/{f=1}' e2e/smoke/WORKSPACE.bazel
 echo "\`\`\`"

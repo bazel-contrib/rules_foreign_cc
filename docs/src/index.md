@@ -14,7 +14,39 @@ rules.
 
 ## Setup
 
-To use the ForeignCc build rules, add the following content to your WORKSPACE file:
+rules_foreign_cc supports both modern Bzlmod and legacy WORKSPACE setups.
+
+### Using Bzlmod (Recommended)
+
+To use rules_foreign_cc with Bzlmod, add the following to your `MODULE.bazel` file:
+
+```starlark
+bazel_dep(name = "rules_foreign_cc", version = "0.13.0")
+
+# Optional: Configure tool versions
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.31.8")
+use_repo(
+    tools,
+    "prebuilt_cmake_toolchains",
+    "prebuilt_ninja_toolchains",
+    "rules_foreign_cc_framework_toolchains",
+    "toolchain_hub",
+)
+
+register_toolchains(
+    "@prebuilt_cmake_toolchains//:all",
+    "@prebuilt_ninja_toolchains//:all",
+    "@rules_foreign_cc_framework_toolchains//:all",
+    "@toolchain_hub//:all",
+)
+```
+
+For more details on Bzlmod support and customizing tool versions, see the [Bzlmod Support](bzlmod.md) page.
+
+### Using WORKSPACE (Legacy)
+
+To use the ForeignCc build rules with WORKSPACE, add the following content to your WORKSPACE file:
 
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -38,3 +70,5 @@ Please note that there are many different configuration options for
 [rules_foreign_cc_dependencies](./flatten.md#rules_foreign_cc_dependencies)
 which offer more control over the toolchains used during the build phase. Please see
 that macro's documentation for more details.
+
+If you're migrating from WORKSPACE to Bzlmod, see the [Migration Guide](migration.md).
