@@ -42,15 +42,12 @@ tasks:
       - "-//test:shell_method_symlink_contents_to_dir_test"
       - "-//test:shell_script_inner_fun_test"
     build_flags:
-      - "--noenable_bzlmod"
       - "--enable_workspace"
     test_flags:
-      - "--noenable_bzlmod"
       - "--enable_workspace"
-      - "--@aspect_rules_lint//lint:fail_on_violation"
-  ubuntu1804_examples_standalone:
+  ubuntu2204_examples_standalone:
     name: Examples (spawn_strategy=standalone)
-    platform: ubuntu1804
+    platform: ubuntu2204
     working_directory: examples
     linux_targets: &linux_targets_standalone
       - "//..."
@@ -60,14 +57,12 @@ tasks:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
-      - "--noenable_bzlmod"
       - "--enable_workspace"
     test_targets: *linux_targets_standalone
     test_flags:
       - "-c"
       - "dbg"
       - "--spawn_strategy=standalone"
-      - "--noenable_bzlmod"
       - "--enable_workspace"
   ubuntu2204_examples:
     name: Examples
@@ -79,10 +74,8 @@ tasks:
     build_targets: *linux_targets
     test_targets: *linux_targets
     build_flags:
-      - "--noenable_bzlmod"
       - "--enable_workspace"
     test_flags:
-      - "--noenable_bzlmod"
       - "--enable_workspace"
   ubuntu2204_examples_bzlmod:
     name: Examples (bzlmod)
@@ -106,10 +99,12 @@ tasks:
       - "//:third_party_examples_linux_rbe_tests"
       # Gives error: zipalign: error while loading shared libraries: /usr/local/lib/libc++.so: file too short
       - "-//cmake_android/..."
-      # Python requirements not supported on Ubuntu 16.04
-      - "-//:requirements_test"
     build_targets: *rbe_targets
     test_targets: *rbe_targets
+    build_flags:
+      - "--enable_workspace"
+    test_flags:
+      - "--enable_workspace"
   macos_examples_standalone:
     name: Examples (spawn_strategy=standalone)
     platform: macos
@@ -127,7 +122,6 @@ tasks:
       - "dbg"
       - "--spawn_strategy=standalone"
       - "--noincompatible_enable_cc_toolchain_resolution"
-      - "--noenable_bzlmod"
       - "--enable_workspace"
     test_targets: *macos_targets_standalone
     test_flags:
@@ -135,7 +129,6 @@ tasks:
       - "dbg"
       - "--spawn_strategy=standalone"
       - "--noincompatible_enable_cc_toolchain_resolution"
-      - "--noenable_bzlmod"
       - "--enable_workspace"
   macos_examples:
     name: Examples
@@ -151,12 +144,10 @@ tasks:
     build_targets: *macos_targets
     build_flags:
       - "--noincompatible_enable_cc_toolchain_resolution"
-      - "--noenable_bzlmod"
       - "--enable_workspace"
     test_targets: *macos_targets
     test_flags:
       - "--noincompatible_enable_cc_toolchain_resolution"
-      - "--noenable_bzlmod"
       - "--enable_workspace"
   windows_examples:
     name: Examples
@@ -188,10 +179,8 @@ tasks:
     build_targets: *windows_targets
     test_targets: *windows_targets
     build_flags:
-      - "--noenable_bzlmod"
       - "--enable_workspace"
     test_flags:
-      - "--noenable_bzlmod"
       - "--enable_workspace"
   rbe_ubuntu2204_flags:
     name: Flags
@@ -211,6 +200,12 @@ tasks:
     working_directory: test/standard_cxx_flags_test
     test_targets:
       - "//:flags_test"
+  macos_arm64_flags:
+    name: Flags (arm64)
+    platform: macos_arm64
+    working_directory: test/standard_cxx_flags_test
+    test_targets:
+      - "//:flags_test"
   windows_flags:
     name: Flags
     platform: windows
@@ -223,24 +218,50 @@ tasks:
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
+    build_flags:
+      - "--enable_workspace"
+    test_flags:
+      - "--enable_workspace"
   ubuntu2204_detect_root:
     name: Detect root
     platform: ubuntu2204
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
+    build_flags:
+      - "--enable_workspace"
+    test_flags:
+      - "--enable_workspace"
   macos_detect_root:
     name: Detect root
     platform: macos
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
+    build_flags:
+      - "--enable_workspace"
+    test_flags:
+      - "--enable_workspace"
+  macos_arm64_detect_root:
+    name: Detect root (arm64)
+    platform: macos_arm64
+    working_directory: test/detect_root_test
+    test_targets:
+      - "//:tests"
+    build_flags:
+      - "--enable_workspace"
+    test_flags:
+      - "--enable_workspace"
   windows_detect_root:
     name: Detect root
     platform: windows
     working_directory: test/detect_root_test
     test_targets:
       - "//:tests"
+    build_flags:
+      - "--enable_workspace"
+    test_flags:
+      - "--enable_workspace"
   docs_linux:
     name: Docs
     platform: ubuntu2204
