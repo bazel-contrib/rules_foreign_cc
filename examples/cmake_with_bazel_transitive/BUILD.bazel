@@ -15,7 +15,7 @@ cmake(
     generate_args = ["-GNinja"],
     lib_source = "//cmake_with_bazel_transitive/libb:b_srcs",
     out_static_libs = select({
-        "//:windows": ["libb.lib"],
+        "@platforms//os:windows": ["libb.lib"],
         "//conditions:default": ["libb.a"],
     }),
     # This library is with public visibility, we can reuse it here.
