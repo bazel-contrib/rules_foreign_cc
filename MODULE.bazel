@@ -24,18 +24,35 @@ python.toolchain(python_version = "3.12")
 use_repo(python, "python_3_12")
 
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+
+# Note: bazel mod tidy will keep this up to date
 use_repo(
     tools,
+    "cmake-3.31.8-linux-aarch64",
+    "cmake-3.31.8-linux-x86_64",
+    "cmake-3.31.8-macos-universal",
+    "cmake-3.31.8-windows-i386",
+    "cmake-3.31.8-windows-x86_64",
     "cmake_3.31.8_toolchains",
     "cmake_src",
     "gettext_runtime",
     "glib_dev",
+    "glib_runtime",
     "glib_src",
     "gnumake_src",
     "meson_src",
+    "ninja_1.13.0_linux",
+    "ninja_1.13.0_linux-aarch64",
+    "ninja_1.13.0_mac",
+    "ninja_1.13.0_mac_aarch64",
     "ninja_1.13.0_toolchains",
+    "ninja_1.13.0_win",
     "ninja_build_src",
     "pkgconfig_src",
+    "rules_foreign_cc_framework_toolchain_freebsd",
+    "rules_foreign_cc_framework_toolchain_linux",
+    "rules_foreign_cc_framework_toolchain_macos",
+    "rules_foreign_cc_framework_toolchain_windows",
     "rules_foreign_cc_framework_toolchains",
 )
 
