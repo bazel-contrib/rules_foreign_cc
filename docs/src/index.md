@@ -14,6 +14,14 @@ rules.
 
 ## Setup
 
+### Using bzlmod
+
+```python
+bazel_dep(name = "rules_foreign_cc", version = "{version}")
+```
+
+### Using WORKSPACE
+
 To use the ForeignCc build rules, add the following content to your WORKSPACE file:
 
 ```python
