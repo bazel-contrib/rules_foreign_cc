@@ -165,6 +165,11 @@ a mechanism to build these external projects within Bazel's sandbox environment 
 of C/C++ build systems to be later consumed by other rules as though they were normal <a href="https://docs.bazel.build/versions/master/be/c-cpp.html">cc</a>
 rules.</p>
 <h2 id="setup"><a class="header" href="#setup">Setup</a></h2>
+<h3 id="using-bzlmod"><a class="header" href="#using-bzlmod">Using bzlmod</a></h3>
+<p>Add the following content to your MODULE.bazel:</p>
+<pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
+</code></pre>
+<h3 id="using-workspace"><a class="header" href="#using-workspace">Using WORKSPACE</a></h3>
 <p>To use the ForeignCc build rules, add the following content to your WORKSPACE file:</p>
 <pre><code class="language-python">load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
