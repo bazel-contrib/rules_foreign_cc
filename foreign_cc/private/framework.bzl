@@ -212,8 +212,13 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
             "debug symbols"
         ),
         mandatory = False,
-        default = False,
+        default = True,
     ),
+    "_disable_set_file_prefix_map_flag": attr.label(
+        default = "//foreign_cc/private:disable_set_file_prefix_map",
+        doc = "Reference to the string flag for global override",
+    ),
+
     "static_suffix": attr.string(
         doc = (
             "Optional suffix used by static libs." +

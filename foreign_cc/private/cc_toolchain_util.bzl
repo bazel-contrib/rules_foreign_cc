@@ -2,6 +2,7 @@
 """
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
@@ -311,7 +312,18 @@ def get_flags_info(ctx, link_output_file = None):
         ),
     )
 
-    if "set_file_prefix_map" in dir(ctx.attr) and ctx.attr.set_file_prefix_map:
+    # Check if set_file_prefix_map should be enabled
+    # Enable if: attribute is True AND not globally disabled
+    globally_disabled = False
+    if ("_disable_set_file_prefix_map_flag" in dir(ctx.attr) and 
+        ctx.attr._disable_set_file_prefix_map_flag):
+        # The string flag target should have a BuildSettingInfo provider
+        flag_target = ctx.attr._disable_set_file_prefix_map_flag
+        if BuildSettingInfo in flag_target:
+            flag_value = flag_target[BuildSettingInfo].value
+            globally_disabled = (flag_value == "True")
+    
+    if ("set_file_prefix_map" in dir(ctx.attr) and ctx.attr.set_file_prefix_map and not globally_disabled):
         copts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
         cxxopts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
 
