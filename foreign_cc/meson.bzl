@@ -13,6 +13,7 @@ load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",
 )
+load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
 load(
     "//foreign_cc/private:framework.bzl",
     "CC_EXTERNAL_RULE_ATTRIBUTES",
@@ -23,6 +24,11 @@ load(
 )
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
+load(
+    "//foreign_cc/private/framework:platform.bzl",
+    "target_arch_name",
+    "target_os_name",
+)
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
 
@@ -71,6 +77,7 @@ def _create_meson_script(configureParameters):
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
     script = pkgconfig_script(inputs.ext_build_dirs)
+    build_options = ctx.attr.options
 
     # CFLAGS and CXXFLAGS are also set in foreign_cc/private/cmake_script.bzl, so that meson
     # can use the intended tools.
@@ -141,13 +148,32 @@ def _create_meson_script(configureParameters):
 
         target_args[target_name] = args
 
+    # Append shared flags to build options
+    if flags.cxx_linker_shared and ctx.attr.shared_ldflags_option:
+        if ctx.attr.shared_ldflags_option in build_options:
+            fail("cannot override existing build option: {}".format(ctx.attr.shared_ldflags_option))
+
+        build_options = build_options | {ctx.attr.shared_ldflags_option: _list_to_str_repr(flags.cxx_linker_shared)}
+
+    # Expand options
+    build_options = expand_locations_and_make_variables(ctx, build_options, "options", data)
+
+    # Generate cross file if needed
+    if ctx.attr.generate_crosstool_file:
+        cross_args = _write_cross_file(ctx, script)
+        if cross_args:
+            if "setup" not in target_args:
+                target_args["setup"] = cross_args
+            else:
+                target_args["setup"] += cross_args
+
     script.append("{meson} setup --prefix={install_dir} {setup_args} {options} {source_dir}".format(
         meson = meson_path,
         install_dir = "$$INSTALLDIR$$",
         setup_args = " ".join(target_args.get("setup", [])),
         options = " ".join([
-            "-D{}=\"{}\"".format(key, ctx.attr.options[key])
-            for key in ctx.attr.options
+            "\"-D{}={}\"".format(key, build_options[key])
+            for key in build_options
         ]),
         source_dir = "$$EXT_BUILD_ROOT$$/" + root,
     ))
@@ -208,6 +234,15 @@ def _attrs():
             doc = "__deprecated__: please use `target_args` with `'build'` target key.",
             mandatory = False,
         ),
+        "generate_crosstool_file": attr.bool(
+            doc = (
+                "When True, a Meson cross file will be generated from the platform values. " +
+                "A cross compile must be detected and no existing --cross-file passed as a " +
+                "setup option."
+            ),
+            mandatory = False,
+            default = False,
+        ),
         "install": attr.bool(
             doc = "__deprecated__: please use `targets` if you want to skip install.",
             default = True,
@@ -223,6 +258,10 @@ def _attrs():
         ),
         "setup_args": attr.string_list(
             doc = "__deprecated__: please use `target_args` with `'setup'` target key.",
+            mandatory = False,
+        ),
+        "shared_ldflags_option": attr.string(
+            doc = "Name of additional setup option that will contain shared ldflags.",
             mandatory = False,
         ),
         "target_args": attr.string_list_dict(
@@ -300,3 +339,36 @@ def _absolutize(workspace_name, text, force = False):
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+
+def _list_to_str_repr(lst):
+    # see https://mesonbuild.com/Build-options.html#using-build-options
+    # meson array build options with elements that contain commas need to be in the format
+    # "-Doption=['a,b', 'c,d']"
+    quoted = []
+    for item in lst:
+        quoted.append("'" + item + "'")
+    return "[" + ", ".join(quoted) + "]"
+
+def _write_cross_file(ctx, script):
+    # generate a cross file from platform values
+    if not detect_xcompile(ctx, autoconf = False):
+        return []
+
+    # adjust the system name Meson expects
+    os_name = "darwin" if target_os_name(ctx) == "macos" else target_os_name(ctx)
+
+    # write cross file
+    script.append("cat > crosstool_bazel.txt << EOF")
+    script.append("[host_machine]")
+    script.append("system = '{}'".format(os_name))
+    script.append("cpu_family = '{}'".format(target_arch_name(ctx)))
+    script.append("cpu = '{}'".format(target_arch_name(ctx)))
+    script.append("endian = 'little'")
+    script.append("")
+    script.append("[properties]")
+    script.append("skip_sanity_check = true")
+    script.append("EOF")
+    script.append("")
+
+    # return setup arg
+    return ["--cross-file crosstool_bazel.txt"]
