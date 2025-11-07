@@ -4,8 +4,11 @@ load("@rules_cc//cc:defs.bzl", "CcInfo")
 load("//foreign_cc:utils.bzl", "full_label")
 load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load(
+    "//foreign_cc/built_tools/private:built_tools_framework.bzl",
+    "absolutize",
+)
+load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
-    "absolutize_path_in_str",
     "get_flags_info",
     "get_tools_info",
 )
@@ -78,9 +81,13 @@ def _create_meson_script(configureParameters):
     # https://github.com/mesonbuild/meson/issues/3565
     # Skip setting them in this case.
     if " " not in tools.cc:
-        script.append("##export_var## CC {}".format(_absolutize(ctx.workspace_name, tools.cc)))
+        script.append("##export_var## CC {}".format(absolutize(ctx.workspace_name, tools.cc)))
     if " " not in tools.cxx:
-        script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
+        script.append("##export_var## CXX {}".format(absolutize(ctx.workspace_name, tools.cxx)))
+    if " " not in tools.cxx_linker_static:
+        script.append("##export_var## AR {}".format(absolutize(ctx.workspace_name, tools.cxx_linker_static)))
+    if " " not in tools.cxx:
+        script.append("##export_var## STRIP {}".format(absolutize(ctx.workspace_name, tools.strip)))
 
     copts = flags.cc
     cxxopts = flags.cxx
@@ -295,8 +302,5 @@ def meson_with_requirements(name, requirements, **kwargs):
         **kwargs
     )
 
-def _absolutize(workspace_name, text, force = False):
-    return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text, force)
-
 def _join_flags_list(workspace_name, flags):
-    return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+    return " ".join([absolutize(workspace_name, flag) for flag in flags])
