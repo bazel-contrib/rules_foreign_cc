@@ -267,6 +267,8 @@ tasks:
       - "//..."
       # The min supported version of rules_rust is `>=7`
       - "-//rust/..."
+      # 6.5.0 seem to have a bug that does not honor target_compatible_with, so the msbuild target is getting triggered.
+      - "-//msbuild_simple/..."
     build_targets: *min_supported_targets
     test_targets: *min_supported_targets
 
