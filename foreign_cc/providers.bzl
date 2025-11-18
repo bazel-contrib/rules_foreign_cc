@@ -20,6 +20,7 @@ Instances of ForeignCcArtifactInfo are encapsulated in a depset [ForeignCcDepsIn
         "dll_dir_name": "DLL directory, relative to install directory",
         "gen_dir": "Install directory",
         "include_dir_name": "Include directory, relative to install directory",
+        "pc_dir_name": "Pkgconfig directory, relative to install directory",
         "lib_dir_name": "Lib directory, relative to install directory",
     },
 )
