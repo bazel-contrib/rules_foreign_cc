@@ -597,8 +597,8 @@ def cc_external_rule_impl(ctx, attrs):
         outputs.out_binary_files +
         outputs.libraries.static_libraries +
         outputs.libraries.shared_libraries +
-        [outputs.out_include_dir] if outputs.out_include_dir else [] +
-                                                                  [outputs.out_pc_dir] if outputs.out_pc_dir else []
+        ([outputs.out_include_dir] if outputs.out_include_dir else []) +
+        ([outputs.out_pc_dir] if outputs.out_pc_dir else [])
     )
     output_groups = _declare_output_groups(installdir_copy.file, output_groups)
     wrapped_files = [
