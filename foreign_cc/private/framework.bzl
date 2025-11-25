@@ -202,6 +202,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
         mandatory = False,
     ),
+    "out_pc_dir": attr.string(
+        doc = "Optional name of the output directory with the pkgconfig files",
+        mandatory = False,
+    ),
     "postfix_script": attr.string(
         doc = "Optional part of the shell script to be added after the make commands",
         mandatory = False,
@@ -587,12 +591,14 @@ def cc_external_rule_impl(ctx, attrs):
         dll_dir_name = attrs.out_dll_dir,
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
+        pc_dir_name = attrs.out_pc_dir,
     )
     output_groups = (
         outputs.out_binary_files +
         outputs.libraries.static_libraries +
         outputs.libraries.shared_libraries +
-        [outputs.out_include_dir] if outputs.out_include_dir else []
+        ([outputs.out_include_dir] if outputs.out_include_dir else []) +
+        ([outputs.out_pc_dir] if outputs.out_pc_dir else [])
     )
     output_groups = _declare_output_groups(installdir_copy.file, output_groups)
     wrapped_files = [
@@ -842,6 +848,7 @@ _Outputs = provider(
         out_include_dir = "Directory with header files (relative to install directory)",
         out_binary_files = "Binary files, which will be created by the action",
         libraries = "Library files, which will be created by the action",
+        out_pc_dir = "Directory with pkgconfig files (relative to install directory)",
         declared_outputs = "All output files and directories of the action",
     ),
 )
@@ -854,6 +861,7 @@ def _define_outputs(ctx, attrs, lib_name):
     attr_out_data_files = attrs.out_data_files
     attr_shared_libs = attrs.out_shared_libs
     attr_static_libs = attrs.out_static_libs
+    attr_out_pc_dir = attrs.out_pc_dir
 
     static_libraries = []
     if not attr_headers_only:
@@ -875,6 +883,11 @@ def _define_outputs(ctx, attrs, lib_name):
     else:
         out_include_dir = ""
 
+    if attrs.out_pc_dir and (attr_shared_libs or attr_static_libs):
+        out_pc_dir = ctx.actions.declare_directory(lib_name + "/" + attr_out_pc_dir.lstrip("/"))
+    else:
+        out_pc_dir = ""
+
     out_data_dirs = []
     for dir in attr_out_data_dirs:
         out_data_dirs.append(ctx.actions.declare_directory(lib_name + "/" + dir.lstrip("/")))
@@ -893,11 +906,13 @@ def _define_outputs(ctx, attrs, lib_name):
     declared_outputs += out_data_dirs + out_binary_files + out_data_files
     declared_outputs += libraries.static_libraries
     declared_outputs += libraries.shared_libraries + libraries.interface_libraries
+    declared_outputs += [out_pc_dir] if out_pc_dir else []
 
     return _Outputs(
         out_include_dir = out_include_dir,
         out_binary_files = out_binary_files,
         libraries = libraries,
+        out_pc_dir = out_pc_dir,
         declared_outputs = declared_outputs,
     )
 
