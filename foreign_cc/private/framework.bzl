@@ -591,6 +591,7 @@ def cc_external_rule_impl(ctx, attrs):
         dll_dir_name = attrs.out_dll_dir,
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
+        pc_dir_name = attrs.out_pc_dir,
     )
     output_groups = (
         outputs.out_binary_files +
