@@ -113,6 +113,10 @@ PLATFORM_COMMANDS = {
         arguments = [],
         doc = "Print all environment variables",
     ),
+    "export_ld_library_path_var": _command_info(
+        arguments = [],
+        doc = "Export the dynamic linked additional paths env variable",
+    ),
     "export_var": _command_info(
         arguments = [
             _argument_info(name = "name", data_type = type(""), doc = "Variable name"),
@@ -127,6 +131,17 @@ PLATFORM_COMMANDS = {
             _argument_info(name = "if_text", data_type = type(""), doc = "If block text"),
             _argument_info(name = "else_text", data_type = type(""), doc = "Else block text"),
         ],
+    ),
+    "increment_ld_library_path": _command_info(
+        arguments = [
+            _argument_info(
+                name = "source",
+                data_type = type(""),
+                doc = "Source directory",
+            ),
+        ],
+        doc = "Find shared libraries under the provided source directory and add them " +
+            "to (DY)LD_LIBRARY_PATH",
     ),
     "increment_pkg_config_path": _command_info(
         arguments = [

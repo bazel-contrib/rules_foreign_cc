@@ -49,6 +49,13 @@ def create_make_script(
     script.append("##disable_tracing##")
     return script
 
+def ldpath_script():
+    script = []
+    script.append("##increment_ld_library_path## $$EXT_BUILD_DEPS$$/")
+    script.append("##export_ld_library_path_var##")
+    return script
+
+
 def pkgconfig_script(ext_build_dirs):
     """Create a script fragment to configure pkg-config
 

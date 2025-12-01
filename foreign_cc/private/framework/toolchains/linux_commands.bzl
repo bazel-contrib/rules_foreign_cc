@@ -17,6 +17,9 @@ def echo(text):
 def export_var(name, value):
     return "{name}={value}; export {name}".format(name = name, value = value)
 
+def export_ld_library_path_var():
+    return "LD_LIBRARY_PATH=\"${LD_LIBRARY_PATH:-}\"; export LD_LIBRARY_PATH"
+
 def local_var(name, value):
     return "local {name}={value}".format(name = name, value = value)
 
@@ -173,6 +176,16 @@ fi
 def script_prelude():
     return "set -euo pipefail"
 
+def increment_ld_library_path(_source):
+    text = """\
+    local children=$(find "$1" -name '*.so')
+    LD_LIBRARY_PATH=""
+    for child in $children; do
+      export LD_LIBRARY_PATH="$${LD_LIBRARY_PATH:-}$$:$(dirname $child)"
+    done
+"""
+    return FunctionAndCallInfo(text = text)
+
 def increment_pkg_config_path(_source):
     text = """\
 local children=$(find "$1" -mindepth 1 -name '*.pc')
@@ -266,8 +279,10 @@ commands = struct(
     echo = echo,
     enable_tracing = enable_tracing,
     env = env,
+    export_ld_library_path_var = export_ld_library_path_var,
     export_var = export_var,
     if_else = if_else,
+    increment_ld_library_path = increment_ld_library_path,
     increment_pkg_config_path = increment_pkg_config_path,
     local_var = local_var,
     mkdirs = mkdirs,
