@@ -141,7 +141,7 @@ PLATFORM_COMMANDS = {
             ),
         ],
         doc = "Find shared libraries under the provided source directory and add them " +
-            "to (DY)LD_LIBRARY_PATH",
+              "to (DY)LD_LIBRARY_PATH",
     ),
     "increment_pkg_config_path": _command_info(
         arguments = [

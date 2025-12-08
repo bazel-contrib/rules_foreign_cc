@@ -55,7 +55,6 @@ def ldpath_script():
     script.append("##export_ld_library_path_var##")
     return script
 
-
 def pkgconfig_script(ext_build_dirs):
     """Create a script fragment to configure pkg-config
 

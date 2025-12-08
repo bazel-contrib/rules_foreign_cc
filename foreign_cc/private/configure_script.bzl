@@ -1,6 +1,6 @@
 # buildifier: disable=module-docstring
 load(":make_env_vars.bzl", "get_ldflags_make_vars", "get_make_env_vars")
-load(":make_script.bzl", "pkgconfig_script", "ldpath_script")
+load(":make_script.bzl", "ldpath_script", "pkgconfig_script")
 
 # buildifier: disable=function-docstring
 def create_configure_script(
