@@ -1,0 +1,10 @@
+workspace(name = "rules_foreign_cc_examples_third_party")
+
+local_repository(
+    name = "rules_foreign_cc",
+    path = "../..",
+)
+
+load("//:repositories.bzl", "repositories")
+
+repositories()
