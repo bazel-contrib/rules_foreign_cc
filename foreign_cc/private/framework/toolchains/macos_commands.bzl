@@ -12,10 +12,10 @@ def pwd():
     return "$(pwd)"
 
 def echo(text):
-    return "echo \"{text}\"".format(text = text)
+    return "echo {text}".format(text = text)
 
 def export_var(name, value):
-    return "export {name}={value}".format(name = name, value = value)
+    return "{name}={value}; export {name}".format(name = name, value = value)
 
 def local_var(name, value):
     return "local {name}={value}".format(name = name, value = value)
@@ -39,10 +39,10 @@ def disable_tracing():
     return "set +x"
 
 def mkdirs(path):
-    return "mkdir -p " + path
+    return "mkdir -p \"{path}\"".format(path = path)
 
 def rm_rf(path):
-    return "rm -rf " + path
+    return "rm -rf \"{path}\"".format(path = path)
 
 def if_else(condition, if_text, else_text):
     return """\
@@ -261,7 +261,7 @@ def replace_symlink(file):
     # as `readlink` is.
     return """\
 if [[ -L "{file}" ]]; then
-  target="$(python3 -c "import os; print(os.path.realpath('{file}'))")"
+  target="$(realpath '{file}')"
   rm "{file}" && cp -a "${{target}}" "{file}"
 fi
 """.format(file = file)

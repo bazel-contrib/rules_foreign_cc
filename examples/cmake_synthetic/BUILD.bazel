@@ -8,7 +8,7 @@ cmake(
     # Demonstrate non-alphanumeric name
     lib_name = "liba++",
     lib_source = "//cmake_synthetic/liba:a_srcs",
-    postfix_script = "cp -p $$INSTALLDIR$$/lib/liba.a $$INSTALLDIR$$/lib/liba++.a",
+    postfix_script = "cp -p $$INSTALLDIR/lib/liba.a $$INSTALLDIR/lib/liba++.a",
 )
 
 cmake(

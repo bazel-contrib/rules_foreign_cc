@@ -50,6 +50,48 @@ FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS = [
 def absolutize(workspace_name, text, force = False):
     return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
 
+def extract_sysroot_flags(flags):
+    """Function to return sysroot args from list of flags like cflags or ldflags
+
+    sysroot args are either '--sysroot=</path/to/sysroot>' or '--sysroot </path/to/sysroot>'
+
+    Args:
+        flags (list): list of flags
+
+    Returns:
+        List of sysroot flags
+    """
+    ret_flags = []
+    for i in range(len(flags)):
+        if flags[i] == "--sysroot":
+            if i + 1 < len(flags):
+                ret_flags.append(flags[i])
+                ret_flags.append(flags[i + 1])
+        elif flags[i].startswith("--sysroot="):
+            ret_flags.append(flags[i])
+    return ret_flags
+
+def extract_non_sysroot_flags(flags):
+    """Function to return non sysroot args from list of flags like cflags or ldflags
+
+    sysroot args are either '--sysroot=</path/to/sysroot>' or '--sysroot </path/to/sysroot>'
+
+    Args:
+        flags (list): list of flags
+
+    Returns:
+        List of non sysroot flags
+    """
+    ret_flags = []
+    for i in range(len(flags)):
+        if flags[i] == "--sysroot" or \
+           flags[i].startswith("--sysroot=") or \
+           (i != 0 and flags[i - 1] == "--sysroot"):
+            continue
+        else:
+            ret_flags.append(flags[i])
+    return ret_flags
+
 def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools = None):
     """Framework function for bootstrapping C/C++ build tools.
 
@@ -70,7 +112,7 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
 
     root = detect_root(ctx.attr.srcs)
     lib_name = ctx.attr.name
-    env_prelude = get_env_prelude(ctx, out_dir.path, [])
+    env_prelude = get_env_prelude(ctx, out_dir.path, [], {})
 
     cc_toolchain = find_cpp_toolchain(ctx)
 
@@ -82,7 +124,7 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
         "##mkdirs## $$INSTALLDIR$$",
         "##mkdirs## $$BUILD_TMPDIR$$",
         "##copy_dir_contents_to_dir## ./{} $$BUILD_TMPDIR$$".format(root),
-        "cd $$BUILD_TMPDIR$$",
+        "cd \"$$BUILD_TMPDIR$$\"",
     ]
 
     script.append("##enable_tracing##")

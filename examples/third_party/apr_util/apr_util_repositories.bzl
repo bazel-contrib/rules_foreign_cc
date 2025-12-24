@@ -8,11 +8,10 @@ def apr_util_repositories():
         http_archive,
         name = "apr_util",
         build_file = Label("//apr_util:BUILD.apr_util.bazel"),
-        sha256 = "b65e40713da57d004123b6319828be7f1273fbc6490e145874ee1177e112c459",
-        strip_prefix = "apr-util-1.6.1",
+        integrity = "sha256-K3TYkycDgmhiyjBbCU7vKYPCeznVyUFEQumXaprPGYM=",
+        strip_prefix = "apr-util-1.6.3",
         urls = [
-            "https://mirror.bazel.build/www-us.apache.org/dist//apr/apr-util-1.6.1.tar.gz",
-            "https://www-us.apache.org/dist//apr/apr-util-1.6.1.tar.gz",
+            "https://dlcdn.apache.org//apr/apr-util-1.6.3.tar.gz",
         ],
     )
 

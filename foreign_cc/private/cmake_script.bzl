@@ -1,5 +1,6 @@
 """ Contains all logic for calling CMake for building external libraries/binaries """
 
+load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
 def _escape_dquote_bash(text):
@@ -22,6 +23,9 @@ _TARGET_OS_PARAMS = {
         "ANDROID": "YES",
         "CMAKE_SYSTEM_NAME": "Linux",
     },
+    "emscripten": {
+        "CMAKE_SYSTEM_NAME": "Emscripten",
+    },
     "linux": {
         "CMAKE_SYSTEM_NAME": "Linux",
     },
@@ -31,8 +35,19 @@ _TARGET_ARCH_PARAMS = {
     "aarch64": {
         "CMAKE_SYSTEM_PROCESSOR": "aarch64",
     },
+    "ppc64le": {
+        "CMAKE_SYSTEM_PROCESSOR": "ppc64le",
+    },
     "s390x": {
         "CMAKE_SYSTEM_PROCESSOR": "s390x",
+    },
+    # Emscripten configures CMAKE_SYSTEM_PROCESSOR as follows for compatibility with libraries such as OpenCV
+    # https://github.com/emscripten-core/emscripten/blob/79ee3d1/cmake/Modules/Platform/Emscripten.cmake#L23-L30
+    "wasm32": {
+        "CMAKE_SYSTEM_PROCESSOR": "x86",
+    },
+    "wasm64": {
+        "CMAKE_SYSTEM_PROCESSOR": "x86_64",
     },
     "x86_64": {
         "CMAKE_SYSTEM_PROCESSOR": "x86_64",
@@ -45,6 +60,7 @@ def create_cmake_script(
         target_os,
         target_arch,
         host_os,
+        host_arch,
         generator,
         cmake_path,
         tools,
@@ -68,6 +84,7 @@ def create_cmake_script(
         target_os: The target OS for the build
         target_arch: The target arch for the build
         host_os: The execution OS for the build
+        host_arch: The execution arch for the build
         generator: The generator target for cmake to use
         cmake_path: The path to the cmake executable
         tools: cc_toolchain tools (CxxToolsInfo)
@@ -93,6 +110,23 @@ def create_cmake_script(
     toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags, target_os)
     params = None
 
+    # Avoid CMake passing the wrong linker flags when cross compiling
+    # by setting CMAKE_SYSTEM_NAME and CMAKE_SYSTEM_PROCESSOR,
+    # see https://github.com/bazel-contrib/rules_foreign_cc/issues/289,
+    # and https://github.com/bazel-contrib/rules_foreign_cc/pull/1062
+    # note: these parameters must be set in the toolchain file, not just in the
+    # cache, and CMAKE_SYSTEM_PROCESSOR is ignored unless CMAKE_SYSTEM_NAME is
+    # also set.
+    if target_os == "unknown":
+        # buildifier: disable=print
+        print("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+    elif target_arch == "unknown":
+        # buildifier: disable=print
+        print("target_arch is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+    elif target_os != host_os or target_arch != host_arch:
+        toolchain_dict.update(_TARGET_OS_PARAMS.get(target_os, {}))
+        toolchain_dict.update(_TARGET_ARCH_PARAMS.get(target_arch, {}))
+
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
 
     if no_toolchain_file:
@@ -108,6 +142,7 @@ def create_cmake_script(
         "CMAKE_BUILD_TYPE": build_type,
         "CMAKE_INSTALL_PREFIX": install_prefix,
         "CMAKE_PREFIX_PATH": merged_prefix_path,
+        "PKG_CONFIG_ARGN": "--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$",
     })
 
     # Give user the ability to suppress some value, taken from Bazel's toolchain,
@@ -123,17 +158,6 @@ def create_cmake_script(
     if not params.cache.get("CMAKE_RANLIB"):
         params.cache.update({"CMAKE_RANLIB": ""})
 
-    # Avoid CMake passing the wrong linker flags when cross compiling
-    # by setting CMAKE_SYSTEM_NAME and CMAKE_SYSTEM_PROCESSOR,
-    # see https://github.com/bazel-contrib/rules_foreign_cc/issues/289,
-    # and https://github.com/bazel-contrib/rules_foreign_cc/pull/1062
-    if target_os == "unknown":
-        # buildifier: disable=print
-        print("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
-    elif target_os != host_os:
-        params.cache.update(_TARGET_OS_PARAMS.get(target_os, {}))
-        params.cache.update(_TARGET_ARCH_PARAMS.get(target_arch, {}))
-
     set_env_vars = [
         "export {}=\"{}\"".format(key, _escape_dquote_bash(params.env[key]))
         for key in params.env
@@ -145,6 +169,8 @@ def create_cmake_script(
 
     # Add definitions for all environment variables
     script = set_env_vars
+
+    script += pkgconfig_script(ext_build_dirs)
 
     directory = "$$EXT_BUILD_ROOT$$/" + root
 
@@ -194,6 +220,7 @@ _CMAKE_ENV_VARS_FOR_CROSSTOOL = {
 }
 
 _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
+    "ANDROID": struct(value = "ANDROID", replace = False),
     "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
     "CMAKE_ASM_FLAGS": struct(value = "CMAKE_ASM_FLAGS_INIT", replace = False),
     "CMAKE_CXX_ARCHIVE_CREATE": struct(value = "CMAKE_CXX_ARCHIVE_CREATE", replace = False),
@@ -206,6 +233,8 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
     "CMAKE_SHARED_LINKER_FLAGS": struct(value = "CMAKE_SHARED_LINKER_FLAGS_INIT", replace = False),
     "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
+    "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = False),
+    "CMAKE_SYSTEM_PROCESSOR": struct(value = "CMAKE_SYSTEM_PROCESSOR", replace = False),
 }
 
 def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
