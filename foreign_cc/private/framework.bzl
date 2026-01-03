@@ -783,8 +783,8 @@ def _list(item):
 
 def _copy_deps_and_tools(files):
     lines = []
-    lines += _symlink_contents_to_dir("lib", files.libs)
-    lines += _symlink_contents_to_dir("include", files.headers + files.include_dirs)
+    lines += _symlink_contents_to_dir("lib", files.libs, False)
+    lines += _symlink_contents_to_dir("include", files.headers + files.include_dirs, False)
 
     if files.tools_files:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
@@ -806,7 +806,7 @@ def _copy_deps_and_tools(files):
 
     return lines
 
-def _symlink_contents_to_dir(dir_name, files_list):
+def _symlink_contents_to_dir(dir_name, files_list, replace_in_files):
     # It is possible that some duplicate libraries will be passed as inputs
     # to cmake_external or configure_make. Filter duplicates out here.
     files_list = collections.uniq(files_list)
@@ -818,7 +818,7 @@ def _symlink_contents_to_dir(dir_name, files_list):
         path = _file_path(file).strip()
         if path:
             lines.append("##symlink_contents_to_dir## \
-$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, dir_name))
+$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} {}".format(path, dir_name, replace_in_files))
 
     return lines
 
