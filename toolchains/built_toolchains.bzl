@@ -358,8 +358,8 @@ cc_import(
                 Label("//toolchains/patches:pkgconfig-builtin-glib-int-conversion.patch"),
             ],
             urls = [
-                "https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",
                 "https://mirror.bazel.build/pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",
+                "https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz",
             ],
         )
         return

@@ -242,6 +242,7 @@ def get_flags_info(ctx, link_output_file = None):
     cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []
     linkopts = (ctx.fragments.cpp.linkopts + getattr(ctx.attr, "linkopts", [])) or []
     defines = _defines_from_deps(ctx)
+    use_pic = cc_toolchain_.needs_pic_for_dynamic_libraries(feature_configuration = feature_configuration)
 
     flags = CxxFlagsInfo(
         cc = cc_common.get_memory_inefficient_command_line(
@@ -251,6 +252,7 @@ def get_flags_info(ctx, link_output_file = None):
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain_,
                 preprocessor_defines = defines,
+                use_pic = use_pic,
             ),
         ),
         cxx = cc_common.get_memory_inefficient_command_line(
@@ -261,6 +263,7 @@ def get_flags_info(ctx, link_output_file = None):
                 cc_toolchain = cc_toolchain_,
                 preprocessor_defines = defines,
                 add_legacy_cxx_options = True,
+                use_pic = use_pic,
             ),
         ),
         cxx_linker_shared = cc_common.get_memory_inefficient_command_line(

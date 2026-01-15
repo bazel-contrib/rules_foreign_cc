@@ -125,10 +125,10 @@ def _create_meson_script(configureParameters):
     ]
 
     for target_name, args_ in deprecated:
-        if args_ and target_name in target_args:
-            fail("Please migrate '{t}_args' to 'target_args[\"{t}\"]'".format(t = target_name))
-
-        target_args[target_name] = args_
+        if args_:
+            if target_name in target_args:
+                fail("Please migrate '{t}_args' to 'target_args[\"{t}\"]'".format(t = target_name))
+            target_args[target_name] = args_
 
     # --- TODO: DEPRECATED, delete on a future release ------------------------
 
