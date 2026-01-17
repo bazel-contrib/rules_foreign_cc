@@ -9,6 +9,7 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
+load("//foreign_cc/private:resource_sets.bzl", "SIZE_ATTRIBUTES", "get_resource_set")
 load(
     "//foreign_cc/private/framework:helpers.bzl",
     "convert_shell_script",
@@ -252,6 +253,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
 
 # this would be cleaner as x | y, but that's not supported in bazel 5.4.0
 CC_EXTERNAL_RULE_ATTRIBUTES.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
+CC_EXTERNAL_RULE_ATTRIBUTES.update(SIZE_ATTRIBUTES)
 
 # A list of common fragments required by rules using this framework
 CC_EXTERNAL_RULE_FRAGMENTS = [
@@ -542,6 +544,13 @@ def cc_external_rule_impl(ctx, attrs):
     for tool in attrs.tools_deps:
         tool_runfiles += tool[DefaultInfo].default_runfiles.files.to_list()
 
+    resource_set, cpu, _mem = get_resource_set(ctx.attr)
+    env = None
+    if cpu > 0:
+        env = {
+            "CMAKE_BUILD_PARALLEL_LEVEL": str(cpu),
+            "MAKEFLAGS": "-j{}".format(cpu),
+        }
     ctx.actions.run_shell(
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
@@ -561,6 +570,8 @@ def cc_external_rule_impl(ctx, attrs):
             configure_name = attrs.configure_name,
             lib_name = lib_name,
         ),
+        resource_set = resource_set,
+        env = env,
     )
 
     # Gather runfiles transitively as per the documentation in:
