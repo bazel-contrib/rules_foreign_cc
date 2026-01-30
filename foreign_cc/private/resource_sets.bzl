@@ -148,3 +148,45 @@ def get_resource_set(attr):
         actual_mem = 0
 
     return resource_set, actual_cpu, actual_mem
+
+def get_resource_env_vars(attr):
+    """ get the values of env vars controlling parallelism
+
+    Because any of these tools (cmake, meson, ninja, make, etc) can call into
+    other tools, we set all of the flags in the hopes that complicated call
+    structures will still see the values.
+
+    Args:
+        attr: the ctx.attr associated with the target
+    Returns:
+        tuple[resource_set | None, env_vars | None]
+
+        Where resource_set is the correct resource set, and env_vars is the
+        dict[str, str] to pass to run/run_shell
+    """
+
+    resource_set, cpu, _mem = get_resource_set(attr)
+
+    env = None
+    if cpu > 0:
+        sc = str(cpu)
+        env = {
+            "CMAKE_BUILD_PARALLEL_LEVEL": sc,
+
+            # we set GNUMAKEFLAGS instead of MAKEFLAGS because nmake sees
+            # MAKEFLAGS but doesn't accept a -j argument, and we don't have a
+            # good way of being sure that nmake isn't going to be used as part
+            # of a build.
+            "GNUMAKEFLAGS": "-j" + sc,
+
+            # Meson starts to honor this as of 1.7.0; before that, it only uses
+            # ninja's parallelization controls.
+            "MESON_NUM_PROCESSES": sc,
+
+            # Note that ninja does not honor this by default; it's our wrapper
+            # script that handles this.
+            # https://github.com/ninja-build/ninja/issues/1482
+            "NINJA_JOBS": sc,
+        }
+
+    return resource_set, env
