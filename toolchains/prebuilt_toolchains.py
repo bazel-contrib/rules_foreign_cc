@@ -108,13 +108,17 @@ NINJA_VERSIONS = (
     "1.8.2",
 )
 
-def repo_definition(name, url, sha256, prefix, template, **template_substitutions):
-    sub_str = "\n".join([
-        indent(f"{k}={v!r},", " " * 8)
-        for k, v in sorted(template_substitutions.items())
-    ])
 
-    return f"""\
+def repo_definition(name, url, sha256, prefix, template, **template_substitutions):
+    sub_str = "\n".join(
+        [
+            indent(f"{k}={v!r},", " " * 8)
+            for k, v in sorted(template_substitutions.items())
+        ]
+    )
+
+    return (
+        f"""\
 maybe(
     http_archive,
     name = "{name}",
@@ -124,10 +128,14 @@ maybe(
     sha256 = "{sha256}",
     strip_prefix = "{prefix}",
     build_file_content = {template}.format(
-""" + sub_str + """
+"""
+        + sub_str
+        + """
     ),
 )
 """
+    )
+
 
 TOOLCHAIN_REPO_DEFINITION = """\
 # buildifier: leave-alone
