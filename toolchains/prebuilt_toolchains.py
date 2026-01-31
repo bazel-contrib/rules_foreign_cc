@@ -202,6 +202,7 @@ native_tool_toolchain(
 
 _NINJA_BUILD_FILE = \"\"\"\\
 load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("@rules_foreign_cc//foreign_cc/private:select_executable.bzl", "select_executable")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -210,27 +211,27 @@ filegroup(
     srcs = ["{{bin}}"],
 )
 
-filegroup(
-    name = "ninja_wrapper",
-    srcs = ["{{wrapper}}"],
+select_executable(
+    name = "ninja_wrapper_bin",
+    src = "{{wrapper}}",
 )
 
 filegroup(
     name = "ninja_data",
     srcs = [
         ":ninja_bin",
-        ":ninja_wrapper",
+        "{{wrapper}}",
     ]
 )
 
 native_tool_toolchain(
     name = "ninja_tool",
     env = {{env}},
-    path = "$(execpath :ninja_wrapper)",
+    path = "$(execpath :ninja_wrapper_bin)",
     target = ":ninja_data",
     tools = [
         ":ninja_bin",
-        ":ninja_wrapper",
+        ":ninja_wrapper_bin",
     ]
 )
 \"\"\"
@@ -455,10 +456,10 @@ def get_ninja_definitions() -> str:
                     prefix="",
                     template="_NINJA_BUILD_FILE",
                     bin="ninja.exe" if "win" in target else "ninja",
-                    wrapper="@rules_foreign_cc//toolchains/private:ninja_wrapper.sh",
+                    wrapper="@rules_foreign_cc//toolchains/private:ninja_wrapper",
                     env={
+                        "NINJA": "$(execpath :ninja_wrapper_bin)",
                         "REAL_NINJA": "$(execpath :ninja_bin)",
-                        "NINJA": "$(execpath :ninja_wrapper)",
                     },
                 )
             )
