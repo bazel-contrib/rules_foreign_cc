@@ -119,15 +119,12 @@ def rules_foreign_cc_dependencies(
         ],
     )
 
-    # XXX https://github.com/bazel-contrib/bazel-lib/pull/1235
     maybe(
         http_archive,
         name = "bazel_lib",
-        integrity = "sha256-8u81hQmpvra/CqtXvddEjU0iYDp4FmYENUjwoAsX2DI=",
-        strip_prefix = "bazel-lib-e6420f3ec1503ccdd221a5c75d3dcf272feb4c20",
-        urls = [
-            "https://github.com/bazel-contrib/bazel-lib/archive/e6420f3ec1503ccdd221a5c75d3dcf272feb4c20.tar.gz",
-        ],
+        sha256 = "e733937de2f542436c5d3d618e22c638489b40dfd251284050357babe71103d7",
+        strip_prefix = "bazel-lib-3.2.0",
+        url = "https://github.com/bazel-contrib/bazel-lib/releases/download/v3.2.0/bazel-lib-v3.2.0.tar.gz",
     )
 
     maybe(

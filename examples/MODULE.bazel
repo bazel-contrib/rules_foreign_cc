@@ -67,16 +67,7 @@ use_repo(
     "rust_example",
 )
 
-# XXX https://github.com/bazel-contrib/bazel-lib/pull/1235
-bazel_dep(name = "bazel_lib", version = "3.1.1")
-archive_override(
-    module_name = "bazel_lib",
-    integrity = "sha256-8u81hQmpvra/CqtXvddEjU0iYDp4FmYENUjwoAsX2DI=",
-    strip_prefix = "bazel-lib-e6420f3ec1503ccdd221a5c75d3dcf272feb4c20",
-    urls = [
-        "https://github.com/bazel-contrib/bazel-lib/archive/e6420f3ec1503ccdd221a5c75d3dcf272feb4c20.tar.gz",
-    ],
-)
+bazel_dep(name = "bazel_lib", version = "3.2.0")
 
 # bazel_dep(name = "rules_android", version = "0.1.1")
 # bazel_dep(name = "rules_jvm_external", version = "5.1")
