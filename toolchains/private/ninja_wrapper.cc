@@ -2,6 +2,7 @@
 #include <cstring>
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
 
     // this will leak if we don't exec properly, but we also exit immediately in
     // that case, so...
-    args[0] = strdup(ninja_path.c_str());
+    args[0] = strdup(ninja_path.string().c_str());
 
     if (const char *jobs_p = getenv("NINJA_JOBS")) {
         errno = 0;
