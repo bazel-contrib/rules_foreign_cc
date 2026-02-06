@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <cstring>
-#include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -35,15 +34,12 @@ int main(int argc, char *argv[]) {
     const char *root = getvar("EXT_BUILD_ROOT");
     const char *ninja = getvar("REAL_NINJA");
 
-    auto ninja_path = filesystem::path(root) / ninja;
-    if (!filesystem::exists(ninja_path)) {
-        cerr << "ninja path does not exist: " << ninja_path << endl;
-        exit(42);
-    }
+    // can't rely on std::filesystem existing.
+    string ninja_path = string(root) + "/" +  ninja;
 
     // this will leak if we don't exec properly, but we also exit immediately in
     // that case, so...
-    args[0] = strdup(ninja_path.string().c_str());
+    args[0] = strdup(ninja_path.c_str());
 
     if (const char *jobs_p = getenv("NINJA_JOBS")) {
         errno = 0;
