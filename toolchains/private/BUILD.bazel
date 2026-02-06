@@ -1,4 +1,4 @@
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("//foreign_cc/built_tools:cmake_build.bzl", "cmake_tool")
 load("//foreign_cc/built_tools:make_build.bzl", "make_tool")
 load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
@@ -73,11 +73,12 @@ native_tool_toolchain(
     target = ":cmake_tool",
 )
 
-sh_binary(
+cc_binary(
     name = "ninja_wrapper",
     srcs = [
-        ":ninja_wrapper.sh",
+        ":ninja_wrapper.cc",
     ],
+    features = ["fully_static_link"],
 )
 
 native_tool_toolchain(
