@@ -78,6 +78,10 @@ cc_binary(
     srcs = [
         ":ninja_wrapper.cc",
     ],
+    cxxopts = select({
+        "@platforms//os:windows": ["/std:c++17"],
+        "//conditions:default": ["-std=c++17"],
+    }),
     features = ["fully_static_link"],
 )
 
