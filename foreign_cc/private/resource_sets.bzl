@@ -1,5 +1,6 @@
 """Resource set definitions for build actions"""
 
+load("@bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@bazel_lib//lib:resource_sets.bzl", "resource_set_for")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo", "int_flag", "string_flag")
 
@@ -49,22 +50,39 @@ def create_settings():
         visibility = ["//visibility:public"],
     )
 
+    settings = {}
     for size, cfg in _SIZES.items():
         if cfg == None:
             continue
 
         # keep this in sync with the docs and the above helper!
+        cpu_name = "size_{}_cpu".format(size)
+        cpu_default = _SIZES[size]["cpu"]
         int_flag(
-            name = "size_{}_cpu".format(size),
-            build_setting_default = _SIZES[size]["cpu"],
+            name = cpu_name,
+            build_setting_default = cpu_default,
             visibility = ["//visibility:public"],
         )
+        settings[cpu_name] = cpu_default
 
+        mem_name = "size_{}_mem".format(size)
+        mem_default = _SIZES[size]["mem"]
         int_flag(
-            name = "size_{}_mem".format(size),
-            build_setting_default = _SIZES[size]["mem"],
+            name = mem_name,
+            build_setting_default = mem_default,
             visibility = ["//visibility:public"],
         )
+        settings[mem_name] = mem_default
+
+    expand_template(
+        name = "settings",
+        is_executable = True,
+        out = "settings.sh",
+        template = Label(":settings.sh.in"),
+        substitutions = {
+            "{{meow}}": "bark",
+        },
+    )
 
 SIZE_ATTRIBUTES = {
     "resource_size": attr.string(
