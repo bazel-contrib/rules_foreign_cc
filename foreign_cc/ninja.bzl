@@ -1,5 +1,6 @@
 """A rule for building projects using the [Ninja](https://ninja-build.org/) build tool"""
 
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",
@@ -118,7 +119,4 @@ ninja = rule(
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
-    # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
-    # version is updated to a release of Bazel containing the new default for this setting.
-    incompatible_use_toolchain_transition = True,
 )

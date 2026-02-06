@@ -52,7 +52,6 @@ current_cmake_toolchain = rule(
     attrs = {
         "_toolchain": attr.string(default = str(Label("//toolchains:cmake_toolchain"))),
     },
-    incompatible_use_toolchain_transition = True,
     toolchains = [
         str(Label("//toolchains:cmake_toolchain")),
     ],
@@ -63,7 +62,6 @@ current_make_toolchain = rule(
     attrs = {
         "_toolchain": attr.string(default = str(Label("//toolchains:make_toolchain"))),
     },
-    incompatible_use_toolchain_transition = True,
     toolchains = [
         str(Label("//toolchains:make_toolchain")),
     ],
@@ -74,7 +72,6 @@ current_ninja_toolchain = rule(
     attrs = {
         "_toolchain": attr.string(default = str(Label("//toolchains:ninja_toolchain"))),
     },
-    incompatible_use_toolchain_transition = True,
     toolchains = [
         str(Label("//toolchains:ninja_toolchain")),
     ],
@@ -85,7 +82,6 @@ current_meson_toolchain = rule(
     attrs = {
         "_toolchain": attr.string(default = str(Label("//toolchains:meson_toolchain"))),
     },
-    incompatible_use_toolchain_transition = True,
     toolchains = [
         str(Label("//toolchains:meson_toolchain")),
     ],
@@ -96,7 +92,6 @@ current_autoconf_toolchain = rule(
     attrs = {
         "_toolchain": attr.string(default = str(Label("//toolchains:autoconf_toolchain"))),
     },
-    incompatible_use_toolchain_transition = True,
     toolchains = [
         str(Label("//toolchains:autoconf_toolchain")),
     ],
@@ -107,7 +102,6 @@ current_automake_toolchain = rule(
     attrs = {
         "_toolchain": attr.string(default = str(Label("//toolchains:automake_toolchain"))),
     },
-    incompatible_use_toolchain_transition = True,
     toolchains = [
         str(Label("//toolchains:automake_toolchain")),
     ],
@@ -118,7 +112,6 @@ current_m4_toolchain = rule(
     attrs = {
         "_toolchain": attr.string(default = str(Label("//toolchains:m4_toolchain"))),
     },
-    incompatible_use_toolchain_transition = True,
     toolchains = [
         str(Label("//toolchains:m4_toolchain")),
     ],
@@ -129,7 +122,6 @@ current_pkgconfig_toolchain = rule(
     attrs = {
         "_toolchain": attr.string(default = str(Label("//toolchains:pkgconfig_toolchain"))),
     },
-    incompatible_use_toolchain_transition = True,
     toolchains = [
         str(Label("//toolchains:pkgconfig_toolchain")),
     ],

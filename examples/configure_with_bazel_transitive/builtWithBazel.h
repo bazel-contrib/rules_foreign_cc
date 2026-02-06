@@ -3,4 +3,4 @@
 
 char* bazelSays(void);
 
-#endif // BUILT_WITH_BAZEL_H_
+#endif  // BUILT_WITH_BAZEL_H_

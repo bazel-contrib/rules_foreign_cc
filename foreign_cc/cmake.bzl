@@ -28,13 +28,13 @@ http_archive(
    name = "rules_foreign_cc",
    sha256 = "c2cdcf55ffaf49366725639e45dedd449b8c3fe22b54e31625eb80ce3a240f1e",
    strip_prefix = "rules_foreign_cc-0.1.0",
-   url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.1.0.zip",
+   url = "https://github.com/bazel-contrib/rules_foreign_cc/archive/0.1.0.zip",
 )
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 # This sets up some common toolchains for building targets. For more details, please see
-# https://github.com/bazelbuild/rules_foreign_cc/tree/main/docs#rules_foreign_cc_dependencies
+# https://github.com/bazel-contrib/rules_foreign_cc/tree/main/docs#rules_foreign_cc_dependencies
 rules_foreign_cc_dependencies()
 
 _ALL_CONTENT = \"\"\"\\
@@ -128,6 +128,7 @@ cmake(
 [cct]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain
 """
 
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
@@ -147,6 +148,7 @@ load(
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//foreign_cc/private/framework:platform.bzl",
+    "arch_name",
     "os_name",
     "target_arch_name",
     "target_os_name",
@@ -154,14 +156,18 @@ load(
 load(
     "//toolchains/native_tools:tool_access.bzl",
     "get_cmake_data",
+    "get_m4_data",
     "get_make_data",
     "get_ninja_data",
+    "get_pkgconfig_data",
 )
 
 def _cmake_impl(ctx):
     cmake_data = get_cmake_data(ctx)
+    pkgconfig_data = get_pkgconfig_data(ctx)
+    m4_data = get_m4_data(ctx)
 
-    tools_data = [cmake_data]
+    tools_data = [cmake_data, pkgconfig_data, m4_data]
 
     env = dict(ctx.attr.env)
 
@@ -205,7 +211,8 @@ def _create_configure_script(configureParameters):
 
     cmake_commands = []
 
-    configuration = "Debug" if is_debug_mode(ctx) else "Release"
+    default_configuration = "Debug" if is_debug_mode(ctx) else "Release"
+    configuration = default_configuration if not ctx.attr.configuration else ctx.attr.configuration
 
     data = ctx.attr.data + ctx.attr.build_data
 
@@ -253,9 +260,11 @@ def _create_configure_script(configureParameters):
 
     configure_script = create_cmake_script(
         workspace_name = ctx.workspace_name,
+        current_label = ctx.label,
         target_os = target_os_name(ctx),
         target_arch = target_arch_name(ctx),
         host_os = os_name(ctx),
+        host_arch = arch_name(ctx),
         generator = attrs.generator,
         cmake_path = attrs.cmake_path,
         tools = tools,
@@ -263,13 +272,14 @@ def _create_configure_script(configureParameters):
         install_prefix = "$$INSTALLDIR$$",
         root = root,
         no_toolchain_file = no_toolchain_file,
-        user_cache = dict(ctx.attr.cache_entries),
+        user_cache = expand_locations_and_make_variables(ctx, ctx.attr.cache_entries, "cache_entries", data),
         user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data),
         options = attrs.generate_args,
         cmake_commands = cmake_commands,
         cmake_prefix = prefix,
         include_dirs = inputs.include_dirs,
         is_debug_mode = is_debug_mode(ctx),
+        ext_build_dirs = inputs.ext_build_dirs,
     )
     return configure_script
 
@@ -362,6 +372,15 @@ def _attrs():
             mandatory = False,
             default = {},
         ),
+        "configuration": attr.string(
+            doc = (
+                "Override the `cmake --build` and `cmake --install` `--config` configuration. " +
+                "If left empty, the value of this arg will be determined by the COMPILATION_MODE env var: " +
+                "dbg will set `--config Debug` and all other modes will set --config Release."
+            ),
+            mandatory = False,
+            default = "",
+        ),
         "generate_args": attr.string_list(
             doc = (
                 "Arguments for CMake's generate command. Arguments should be passed as key/value pairs. eg: " +
@@ -419,9 +438,6 @@ cmake = rule(
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
     provides = [CcInfo],
-    # TODO: Remove once https://github.com/bazelbuild/bazel/issues/11584 is closed and the min supported
-    # version is updated to a release of Bazel containing the new default for this setting.
-    incompatible_use_toolchain_transition = True,
 )
 
 def cmake_variant(name, toolchain, **kwargs):

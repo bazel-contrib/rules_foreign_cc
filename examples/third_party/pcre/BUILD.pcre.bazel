@@ -15,7 +15,7 @@ filegroup(
 cmake(
     name = "pcre",
     cache_entries = {
-        "CMAKE_C_FLAGS": "${CMAKE_C_FLAGS:-} -fPIC",
+        "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
     },
     lib_source = ":all_srcs",
     out_static_libs = select({

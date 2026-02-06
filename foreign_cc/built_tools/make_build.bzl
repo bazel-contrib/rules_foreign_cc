@@ -8,12 +8,19 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
     "absolutize",
     "built_tool_rule_impl",
+    "extract_non_sysroot_flags",
+    "extract_sysroot_flags",
 )
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_env_vars",
     "get_flags_info",
     "get_tools_info",
+)
+load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
+load(
+    "//foreign_cc/private/framework:helpers.bzl",
+    "escape_dquote_bash",
 )
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 
@@ -32,8 +39,8 @@ def _make_tool_impl(ctx):
 
         script = [
             build_str,
-            "mkdir -p $$INSTALLDIR$$/bin",
-            "cp -p ./{}/gnumake.exe $$INSTALLDIR$$/bin/make.exe".format(dist_dir),
+            "mkdir -p \"$$INSTALLDIR$$/bin\"",
+            "cp -p ./{}/gnumake.exe \"$$INSTALLDIR$$/bin/make.exe\"".format(dist_dir),
         ]
     else:
         env = get_env_vars(ctx)
@@ -45,13 +52,13 @@ def _make_tool_impl(ctx):
 
         cc_path = tools_info.cc
         cflags = flags_info.cc
-        sysroot_cflags = [flag for flag in cflags if flag.startswith("--sysroot=")]
-        non_sysroot_cflags = [flag for flag in cflags if not flag.startswith("--sysroot=")]
+        sysroot_cflags = extract_sysroot_flags(cflags)
+        non_sysroot_cflags = extract_non_sysroot_flags(cflags)
 
         ld_path = tools_info.cxx_linker_executable
         ldflags = flags_info.cxx_linker_executable
-        sysroot_ldflags = [flag for flag in ldflags if flag.startswith("--sysroot=")]
-        non_sysroot_ldflags = [flag for flag in ldflags if not flag.startswith("--sysroot=")]
+        sysroot_ldflags = extract_sysroot_flags(ldflags)
+        non_sysroot_ldflags = extract_non_sysroot_flags(ldflags)
 
         # Make's build script does not forward CFLAGS to all compiler and linker
         # invocations, so we append --sysroot flags directly to CC and LD.
@@ -74,6 +81,34 @@ def _make_tool_impl(ctx):
         if os_name(ctx) == "macos":
             non_sysroot_ldflags += ["-undefined", "error"]
 
+            # On macOS, remove "-lm".
+            # During compilation, the ./configure script disables USE_SYSTEM_GLOB,
+            # and chooses its own glob implementation (lib/glob.h, lib/glob.c).
+            # all source files in lib/* are compiled to ./lib/libgnu.a
+            # However, at link time, "-lm" appears before "-lgnu".
+            # This linker commandline is like this: LINKER ... -lm -L./lib -o xxx ... -lgnu
+            # So the system glob is linked instead, causing ABI conflicts.
+            non_sysroot_ldflags = [x for x in non_sysroot_ldflags if x != "-lm"]
+
+        configure_options = [
+            "--without-guile",
+            "--with-guile=no",
+            "--disable-dependency-tracking",
+            "--prefix=\"$$INSTALLDIR$$\"",
+        ]
+
+        install_cmd = ["./make install"]
+
+        xcompile_options = detect_xcompile(ctx)
+        if xcompile_options:
+            configure_options.extend(xcompile_options)
+
+            # We can't use make to install make when cross-compiling
+            install_cmd = [
+                "mkdir -p \"$$INSTALLDIR$$/bin\"",
+                "cp -p make \"$$INSTALLDIR$$/bin/make\"",
+            ]
+
         env.update({
             "AR": absolute_ar,
             "ARFLAGS": _join_flags_list(ctx.workspace_name, arflags),
@@ -85,11 +120,10 @@ def _make_tool_impl(ctx):
 
         configure_env = " ".join(["%s=\"%s\"" % (key, value) for key, value in env.items()])
         script = [
-            "%s ./configure --without-guile --with-guile=no --disable-dependency-tracking --prefix=$$INSTALLDIR$$" % configure_env,
+            "%s ./configure %s" % (configure_env, " ".join(configure_options)),
             "cat build.cfg",
             "./build.sh",
-            "./make install",
-        ]
+        ] + install_cmd
 
     return built_tool_rule_impl(
         ctx,
@@ -112,4 +146,4 @@ make_tool = rule(
 )
 
 def _join_flags_list(workspace_name, flags):
-    return " ".join([absolutize(workspace_name, flag) for flag in flags])
+    return " ".join([escape_dquote_bash(absolutize(workspace_name, flag)) for flag in flags])

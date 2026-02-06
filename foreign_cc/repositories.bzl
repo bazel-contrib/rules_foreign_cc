@@ -9,15 +9,16 @@ load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        cmake_version = "3.23.2",
+        cmake_version = "3.31.8",
         make_version = "4.4.1",
-        ninja_version = "1.12.1",
-        meson_version = "1.1.1",
+        ninja_version = "1.13.0",
+        meson_version = "1.5.1",
         pkgconfig_version = "0.29.2",
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True,
-        register_built_pkgconfig_toolchain = True):
+        register_built_pkgconfig_toolchain = True,
+        register_repos = True):
     """Call this function from the WORKSPACE file to initialize rules_foreign_cc \
     dependencies and let neccesary code generation happen \
     (Code generation is needed to support different variants of the C++ Starlark API.).
@@ -59,6 +60,10 @@ def rules_foreign_cc_dependencies(
             startup --windows_enable_symlinks -> This is required to enable symlinking to avoid long runfile paths
             build --action_env=MSYS=winsymlinks:nativestrict -> This is required to enable symlinking to avoid long runfile paths
             startup --output_user_root=C:/b  -> This is required to keep paths as short as possible
+
+        register_repos: If true, use repository rules to register the required
+            dependencies. (If you are using bzlmod, you probably do not want to set
+            this since it will create shadow copies of these repos)
     """
 
     register_framework_toolchains(register_toolchains = register_toolchains)
@@ -83,20 +88,57 @@ def rules_foreign_cc_dependencies(
     if register_preinstalled_tools:
         preinstalled_toolchains()
 
+    if not register_repos:
+        return
+
+    maybe(
+        http_archive,
+        name = "platforms",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.11/platforms-0.0.11.tar.gz",
+            "https://github.com/bazelbuild/platforms/releases/download/0.0.11/platforms-0.0.11.tar.gz",
+        ],
+        sha256 = "29742e87275809b5e598dc2f04d86960cc7a55b3067d97221c9abbc9926bff0f",
+    )
+
+    maybe(
+        http_archive,
+        name = "bazel_features",
+        sha256 = "ba1282c1aa1d1fffdcf994ab32131d7c7551a9bc960fbf05f42d55a1b930cbfb",
+        strip_prefix = "bazel_features-1.15.0",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.15.0/bazel_features-v1.15.0.tar.gz",
+    )
+
     maybe(
         http_archive,
         name = "bazel_skylib",
+        sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.2.1/bazel-skylib-1.2.1.tar.gz",
-            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.2.1/bazel-skylib-1.2.1.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
         ],
-        sha256 = "f7be3474d42aae265405a592bb7da8e171919d74c16f082a5457840f06054728",
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_cc",
+        urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.17/rules_cc-0.0.17.tar.gz"],
+        sha256 = "abc605dd850f813bb37004b77db20106a19311a96b2da1c92b789da529d28fe1",
+        strip_prefix = "rules_cc-0.0.17",
     )
 
     maybe(
         http_archive,
         name = "rules_python",
-        sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
-        strip_prefix = "rules_python-0.23.1",
-        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.23.1.tar.gz",
+        sha256 = "2ef40fdcd797e07f0b6abda446d1d84e2d9570d234fddf8fcd2aa262da852d1c",
+        strip_prefix = "rules_python-1.2.0",
+        url = "https://github.com/bazelbuild/rules_python/releases/download/1.2.0/rules_python-1.2.0.tar.gz",
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_shell",
+        sha256 = "d8cd4a3a91fc1dc68d4c7d6b655f09def109f7186437e3f50a9b60ab436a0c53",
+        strip_prefix = "rules_shell-0.3.0",
+        url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.3.0/rules_shell-v0.3.0.tar.gz",
     )

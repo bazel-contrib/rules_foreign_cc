@@ -10,7 +10,4 @@
 #error This error intentionally prevents this library from compiling
 #endif
 
-void hello_world()
-{
-    std::cout << "Hello world!" << std::endl;
-}
+void hello_world() { std::cout << "Hello world!" << std::endl; }

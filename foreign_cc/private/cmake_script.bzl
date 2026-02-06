@@ -1,5 +1,6 @@
 """ Contains all logic for calling CMake for building external libraries/binaries """
 
+load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
 
 def _escape_dquote_bash(text):
@@ -22,14 +23,34 @@ _TARGET_OS_PARAMS = {
         "ANDROID": "YES",
         "CMAKE_SYSTEM_NAME": "Linux",
     },
+    "emscripten": {
+        "CMAKE_SYSTEM_NAME": "Emscripten",
+    },
     "linux": {
         "CMAKE_SYSTEM_NAME": "Linux",
+    },
+    "macos": {
+        "CMAKE_SYSTEM_NAME": "Darwin",
     },
 }
 
 _TARGET_ARCH_PARAMS = {
     "aarch64": {
         "CMAKE_SYSTEM_PROCESSOR": "aarch64",
+    },
+    "ppc64le": {
+        "CMAKE_SYSTEM_PROCESSOR": "ppc64le",
+    },
+    "s390x": {
+        "CMAKE_SYSTEM_PROCESSOR": "s390x",
+    },
+    # Emscripten configures CMAKE_SYSTEM_PROCESSOR as follows for compatibility with libraries such as OpenCV
+    # https://github.com/emscripten-core/emscripten/blob/79ee3d1/cmake/Modules/Platform/Emscripten.cmake#L23-L30
+    "wasm32": {
+        "CMAKE_SYSTEM_PROCESSOR": "x86",
+    },
+    "wasm64": {
+        "CMAKE_SYSTEM_PROCESSOR": "x86_64",
     },
     "x86_64": {
         "CMAKE_SYSTEM_PROCESSOR": "x86_64",
@@ -38,9 +59,11 @@ _TARGET_ARCH_PARAMS = {
 
 def create_cmake_script(
         workspace_name,
+        current_label,
         target_os,
         target_arch,
         host_os,
+        host_arch,
         generator,
         cmake_path,
         tools,
@@ -54,14 +77,17 @@ def create_cmake_script(
         cmake_commands,
         include_dirs = [],
         cmake_prefix = None,
-        is_debug_mode = True):
+        is_debug_mode = True,
+        ext_build_dirs = []):
     """Constructs CMake script to be passed to cc_external_rule_impl.
 
     Args:
         workspace_name: current workspace name
+        current_label: The label of the target currently being built
         target_os: The target OS for the build
         target_arch: The target arch for the build
         host_os: The execution OS for the build
+        host_arch: The execution arch for the build
         generator: The generator target for cmake to use
         cmake_path: The path to the cmake executable
         tools: cc_toolchain tools (CxxToolsInfo)
@@ -76,15 +102,44 @@ def create_cmake_script(
         include_dirs: Optional additional include directories. Defaults to [].
         cmake_prefix: Optional prefix before the cmake command (without the trailing space).
         is_debug_mode: If the compilation mode is `debug`. Defaults to True.
+        ext_build_dirs: A list of gen_dirs for each foreign_cc dep.
 
     Returns:
         list: Lines of bash which make up the build script
     """
 
-    merged_prefix_path = _merge_prefix_path(user_cache, include_dirs)
+    merged_prefix_path = _merge_prefix_path(user_cache, include_dirs, ext_build_dirs)
 
-    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags)
+    toolchain_dict = _fill_crossfile_from_toolchain(workspace_name, tools, flags, target_os)
     params = None
+
+    # Avoid CMake passing the wrong linker flags when cross compiling
+    # by setting CMAKE_SYSTEM_NAME and CMAKE_SYSTEM_PROCESSOR,
+    # see https://github.com/bazel-contrib/rules_foreign_cc/issues/289,
+    # and https://github.com/bazel-contrib/rules_foreign_cc/pull/1062
+    # note: these parameters must be set in the toolchain file, not just in the
+    # cache, and CMAKE_SYSTEM_PROCESSOR is ignored unless CMAKE_SYSTEM_NAME is
+    # also set.
+    if target_os == "unknown":
+        # buildifier: disable=print
+        print("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+    elif target_arch == "unknown":
+        # buildifier: disable=print
+        print("target_arch is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+    elif target_os != host_os or target_arch != host_arch:
+        # if we don't have a value here, it will end up attempting a native
+        # compile, even if that's not right, so emit a warning
+        if target_os in _TARGET_OS_PARAMS:
+            toolchain_dict.update(_TARGET_OS_PARAMS[target_os])
+        else:
+            # buildifier: disable=print
+            print("target_os", target_os, "is not in _TARGET_OS_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+
+        if target_arch in _TARGET_ARCH_PARAMS:
+            toolchain_dict.update(_TARGET_ARCH_PARAMS[target_arch])
+        else:
+            # buildifier: disable=print
+            print("target_arch", target_arch, "is not in _TARGET_ARCH_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
 
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
 
@@ -101,6 +156,7 @@ def create_cmake_script(
         "CMAKE_BUILD_TYPE": build_type,
         "CMAKE_INSTALL_PREFIX": install_prefix,
         "CMAKE_PREFIX_PATH": merged_prefix_path,
+        "PKG_CONFIG_ARGN": "--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$",
     })
 
     # Give user the ability to suppress some value, taken from Bazel's toolchain,
@@ -116,14 +172,6 @@ def create_cmake_script(
     if not params.cache.get("CMAKE_RANLIB"):
         params.cache.update({"CMAKE_RANLIB": ""})
 
-    # Avoid CMake passing the wrong linker flags when cross compiling
-    # by setting CMAKE_SYSTEM_NAME and CMAKE_SYSTEM_PROCESSOR,
-    # see https://github.com/bazelbuild/rules_foreign_cc/issues/289,
-    # and https://github.com/bazelbuild/rules_foreign_cc/pull/1062
-    if target_os != host_os and target_os != "unknown":
-        params.cache.update(_TARGET_OS_PARAMS.get(target_os, {}))
-        params.cache.update(_TARGET_ARCH_PARAMS.get(target_arch, {}))
-
     set_env_vars = [
         "export {}=\"{}\"".format(key, _escape_dquote_bash(params.env[key]))
         for key in params.env
@@ -135,6 +183,8 @@ def create_cmake_script(
 
     # Add definitions for all environment variables
     script = set_env_vars
+
+    script += pkgconfig_script(ext_build_dirs)
 
     directory = "$$EXT_BUILD_ROOT$$/" + root
 
@@ -163,9 +213,12 @@ def _wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
             cache.pop(key)
 
 # From CMake documentation: ;-list of directories specifying installation prefixes to be searched...
-def _merge_prefix_path(user_cache, include_dirs):
+def _merge_prefix_path(user_cache, include_dirs, ext_build_dirs):
     user_prefix = user_cache.get("CMAKE_PREFIX_PATH")
     values = ["$$EXT_BUILD_DEPS$$"] + include_dirs
+    for ext_dir in ext_build_dirs:
+        values.append("$$EXT_BUILD_DEPS$$/{}".format(ext_dir.basename))
+
     if user_prefix != None:
         # remove it, it is gonna be merged specifically
         user_cache.pop("CMAKE_PREFIX_PATH")
@@ -181,6 +234,7 @@ _CMAKE_ENV_VARS_FOR_CROSSTOOL = {
 }
 
 _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
+    "ANDROID": struct(value = "ANDROID", replace = False),
     "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
     "CMAKE_ASM_FLAGS": struct(value = "CMAKE_ASM_FLAGS_INIT", replace = False),
     "CMAKE_CXX_ARCHIVE_CREATE": struct(value = "CMAKE_CXX_ARCHIVE_CREATE", replace = False),
@@ -189,9 +243,12 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_C_ARCHIVE_CREATE": struct(value = "CMAKE_C_ARCHIVE_CREATE", replace = False),
     "CMAKE_C_FLAGS": struct(value = "CMAKE_C_FLAGS_INIT", replace = False),
     "CMAKE_EXE_LINKER_FLAGS": struct(value = "CMAKE_EXE_LINKER_FLAGS_INIT", replace = False),
+    "CMAKE_MODULE_LINKER_FLAGS": struct(value = "CMAKE_MODULE_LINKER_FLAGS_INIT", replace = False),
     "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
     "CMAKE_SHARED_LINKER_FLAGS": struct(value = "CMAKE_SHARED_LINKER_FLAGS_INIT", replace = False),
     "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
+    "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = False),
+    "CMAKE_SYSTEM_PROCESSOR": struct(value = "CMAKE_SYSTEM_PROCESSOR", replace = False),
 }
 
 def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
@@ -293,7 +350,7 @@ def _move_dict_values(target, source, descriptor_map):
             else:
                 target[existing.value] = target[existing.value] + " " + value
 
-def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
+def _fill_crossfile_from_toolchain(workspace_name, tools, flags, target_os):
     dict = {}
 
     _sysroot = _find_in_cc_or_cxx(flags, "sysroot")
@@ -346,8 +403,50 @@ def _fill_crossfile_from_toolchain(workspace_name, tools, flags):
     #        lines += [_set_list(ctx, "CMAKE_STATIC_LINKER_FLAGS_INIT", flags.cxx_linker_static)]
     if flags.cxx_linker_shared:
         dict["CMAKE_SHARED_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, flags.cxx_linker_shared)
+
+        # cxx_linker_shared will contain '-shared' or '-dynamiclib' on macos. This flag conflicts with "-bundle"
+        # that is set by CMAKE based on platform. e.g.
+        # https://gitlab.kitware.com/cmake/cmake/-/blob/master/Modules/Platform/Apple-Intel.cmake#L11
+        # Therefore, for modules aka bundles we want to remove these flags.
+        module_linker_flags = []
+        if target_os == "macos":
+            module_linker_flags = [flag for flag in flags.cxx_linker_shared if flag not in ["-shared", "-dynamiclib"]]
+        else:
+            module_linker_flags = flags.cxx_linker_shared
+        dict["CMAKE_MODULE_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, module_linker_flags)
     if flags.cxx_linker_executable:
         dict["CMAKE_EXE_LINKER_FLAGS_INIT"] = _join_flags_list(workspace_name, flags.cxx_linker_executable)
+
+    # todo this is a kind of hacky way to handle this; I suspect once
+    # https://github.com/bazelbuild/bazel/pull/23204 lands, it will be possible
+    # to do this better.
+    #
+    # The problem being solved here is: if a toolchain wants to link the
+    # toolchain libs statically, there are some flags that need to be passed.
+    # Unfortunately, static linking is notoriously order-sensitive (if an
+    # object needs a symbol, it can only be resolved by libraries _later_ than
+    # it on the command line). This means there are scenarios where:
+    # this works:
+    #   gcc thing.o -o stuff -l:libstdc++.a
+    # this fails with missing symbols (like std::cout):
+    #   gcc -l:libstdc++.a -o stuff thing.o
+    #
+    # In other words, we need these flags to be in "<LINK_LIBRARIES>" and not
+    # just "<LINK_FLAGS>", so they fall after the "<OBJECTS>" that might need
+    # them and that is what this code does, by injecting these indicative flags
+    # into CMAKE_CXX_STANDARD_LIBRARIES_INIT
+    static_flags = []
+    for flag in ("static-libstdc++", "static-libgcc", "l:libstdc++.a"):
+        if flags.cxx_linker_shared and _find_flag_value(flags.cxx_linker_shared, flag):
+            static_flags.append("-" + flag)
+            continue
+
+        if flags.cxx_linker_executable and _find_flag_value(flags.cxx_linker_executable, flag):
+            static_flags.append("-" + flag)
+            continue
+
+    if static_flags:
+        dict["CMAKE_CXX_STANDARD_LIBRARIES_INIT"] = _join_flags_list(workspace_name, static_flags)
 
     return dict
 

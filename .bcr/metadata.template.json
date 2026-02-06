@@ -7,7 +7,7 @@
       "name": "James Sharpe"
     }
   ],
-  "repository": ["github:bazelbuild/rules_foreign_cc"],
+  "repository": ["github:bazel-contrib/rules_foreign_cc"],
   "versions": [],
   "yanked_versions": {}
 }

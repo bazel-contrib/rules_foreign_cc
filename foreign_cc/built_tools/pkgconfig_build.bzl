@@ -8,12 +8,19 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
     "absolutize",
     "built_tool_rule_impl",
+    "extract_non_sysroot_flags",
+    "extract_sysroot_flags",
 )
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_env_vars",
     "get_flags_info",
     "get_tools_info",
+)
+load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
+load(
+    "//foreign_cc/private/framework:helpers.bzl",
+    "escape_dquote_bash",
 )
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
@@ -28,13 +35,13 @@ def _pkgconfig_tool_impl(ctx):
 
     cc_path = tools_info.cc
     cflags = flags_info.cc + ["-Wno-int-conversion"]  # Fix building with clang 15+
-    sysroot_cflags = [flag for flag in cflags if flag.startswith("--sysroot=")]
-    non_sysroot_cflags = [flag for flag in cflags if not flag.startswith("--sysroot=")]
+    sysroot_cflags = extract_sysroot_flags(cflags)
+    non_sysroot_cflags = extract_non_sysroot_flags(cflags)
 
     ld_path = tools_info.cxx_linker_executable
     ldflags = flags_info.cxx_linker_executable
-    sysroot_ldflags = [flag for flag in ldflags if flag.startswith("--sysroot=")]
-    non_sysroot_ldflags = [flag for flag in ldflags if not flag.startswith("--sysroot=")]
+    sysroot_ldflags = extract_sysroot_flags(ldflags)
+    non_sysroot_ldflags = extract_non_sysroot_flags(ldflags)
 
     # Make's build script does not forward CFLAGS to all compiler and linker
     # invocations, so we append --sysroot flags directly to CC and LD.
@@ -61,6 +68,15 @@ def _pkgconfig_tool_impl(ctx):
 
     make_data = get_make_data(ctx)
 
+    configure_options = [
+        "--with-internal-glib",
+        "--prefix=\"$$INSTALLDIR$$\"",
+    ]
+
+    xcompile_options = detect_xcompile(ctx)
+    if xcompile_options:
+        configure_options.extend(xcompile_options)
+
     env.update({
         "AR": absolute_ar,
         "ARFLAGS": _join_flags_list(ctx.workspace_name, arflags),
@@ -73,12 +89,15 @@ def _pkgconfig_tool_impl(ctx):
 
     configure_env = " ".join(["%s=\"%s\"" % (key, value) for key, value in env.items()])
     script = [
-        "%s ./configure  --with-internal-glib --prefix=$$INSTALLDIR$$" % configure_env,
-        "%s" % make_data.path,
-        "%s install" % make_data.path,
+        "%s ./configure %s" % (configure_env, " ".join(configure_options)),
+        "\"%s\"" % make_data.path,
+        "\"%s\" install" % make_data.path,
     ]
 
-    additional_tools = depset(transitive = [make_data.target.files])
+    if make_data.target:
+        additional_tools = depset(transitive = [make_data.target.files])
+    else:
+        additional_tools = depset()
 
     return built_tool_rule_impl(
         ctx,
@@ -153,10 +172,10 @@ def pkgconfig_tool(name, srcs, **kwargs):
             "@gettext_runtime",
         ],
         postfix_script = select({
-            "@platforms//os:windows": "cp release/x64/pkg-config.exe $$INSTALLDIR$$/bin",
+            "@platforms//os:windows": "cp release/x64/pkg-config.exe $$INSTALLDIR/bin",
             "//conditions:default": "",
         }),
-        toolchain = Label("@rules_foreign_cc//toolchains:preinstalled_nmake_toolchain"),
+        toolchain = Label("//toolchains:preinstalled_nmake_toolchain"),
         tags = tags,
         **kwargs
     )
@@ -171,4 +190,4 @@ def pkgconfig_tool(name, srcs, **kwargs):
     )
 
 def _join_flags_list(workspace_name, flags):
-    return " ".join([absolutize(workspace_name, flag) for flag in flags])
+    return " ".join([escape_dquote_bash(absolutize(workspace_name, flag)) for flag in flags])

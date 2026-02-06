@@ -21,9 +21,9 @@ def _ninja_tool_impl(ctx):
     absolute_py_interpreter_path = absolutize(ctx.workspace_name, py_toolchain.py3_runtime.interpreter.path, True)
 
     script = [
-        "{} ./configure.py --bootstrap".format(absolute_py_interpreter_path),
-        "mkdir $$INSTALLDIR$$/bin",
-        "cp -p ./ninja{} $$INSTALLDIR$$/bin/".format(
+        "\"{}\" ./configure.py --bootstrap".format(absolute_py_interpreter_path),
+        "mkdir \"$$INSTALLDIR$$/bin\"",
+        "cp -p ./ninja{} \"$$INSTALLDIR$$/bin/\"".format(
             ".exe" if "win" in os_name(ctx) else "",
         ),
     ]
