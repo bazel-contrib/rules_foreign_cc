@@ -142,7 +142,7 @@ def get_resource_set(attr):
     if resource_set:
         actual_resources = resource_set("", "")
         actual_cpu = actual_resources.get("cpu", 0)
-        actual_mem = actual_resources.get("mem", 0)
+        actual_mem = actual_resources.get("memory", 0)
     else:
         actual_cpu = 0
         actual_mem = 0
