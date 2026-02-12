@@ -73,7 +73,8 @@ string QuoteWindowsArg(const string &arg) {
 string GetWindowsErrorMessage(DWORD code) {
     LPSTR buffer = nullptr;
     DWORD size = FormatMessageA(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+            FORMAT_MESSAGE_IGNORE_INSERTS,
         nullptr, code, 0, reinterpret_cast<LPSTR>(&buffer), 0, nullptr);
     string message;
     if (size && buffer) {
@@ -101,27 +102,21 @@ int RunProcessWindows(const string &program, const vector<string> &args) {
     vector<char> mutable_command_line(command_line.begin(), command_line.end());
     mutable_command_line.push_back('\0');
 
-    BOOL ok = CreateProcessA(
-        program.c_str(),
-        mutable_command_line.data(),
-        nullptr,
-        nullptr,
-        TRUE,
-        0,
-        nullptr,
-        nullptr,
-        &startup_info,
-        &process_info);
+    BOOL ok = CreateProcessA(program.c_str(), mutable_command_line.data(),
+                             nullptr, nullptr, TRUE, 0, nullptr, nullptr,
+                             &startup_info, &process_info);
     if (!ok) {
         DWORD err = GetLastError();
-        cerr << "failed to CreateProcess: " << GetWindowsErrorMessage(err) << endl;
+        cerr << "failed to CreateProcess: " << GetWindowsErrorMessage(err)
+             << endl;
         return WRAPPER_ERROR;
     }
 
     DWORD wait_result = WaitForSingleObject(process_info.hProcess, INFINITE);
     if (wait_result != WAIT_OBJECT_0) {
         DWORD err = GetLastError();
-        cerr << "failed to wait for process: " << GetWindowsErrorMessage(err) << endl;
+        cerr << "failed to wait for process: " << GetWindowsErrorMessage(err)
+             << endl;
         CloseHandle(process_info.hThread);
         CloseHandle(process_info.hProcess);
         return WRAPPER_ERROR;
@@ -130,7 +125,8 @@ int RunProcessWindows(const string &program, const vector<string> &args) {
     DWORD exit_code = 0;
     if (!GetExitCodeProcess(process_info.hProcess, &exit_code)) {
         DWORD err = GetLastError();
-        cerr << "failed to read process exit code: " << GetWindowsErrorMessage(err) << endl;
+        cerr << "failed to read process exit code: "
+             << GetWindowsErrorMessage(err) << endl;
         CloseHandle(process_info.hThread);
         CloseHandle(process_info.hProcess);
         return WRAPPER_ERROR;
@@ -159,7 +155,8 @@ int main(int argc, char *argv[]) {
     if (const char *jobs_p = getenv("NINJA_JOBS")) {
         long ninja_jobs = 0;
         if (!ParseNinjaJobs(jobs_p, &ninja_jobs)) {
-            cerr << "failed to convert NINJA_JOBS to an integer: " << jobs_p << endl;
+            cerr << "failed to convert NINJA_JOBS to an integer: " << jobs_p
+                 << endl;
             exit(WRAPPER_ERROR);
         }
 
@@ -168,8 +165,9 @@ int main(int argc, char *argv[]) {
             exit(WRAPPER_ERROR);
         }
 
-        // we want the -j option to be _after_ the program name (which is in arg0) but _before_
-        // anything else, so it can be overridden by a later flag
+        // we want the -j option to be _after_ the program name (which is in
+        // arg0) but _before_ anything else, so it can be overridden by a later
+        // flag
         args.insert(args.begin() + 1, "-j" + to_string(ninja_jobs));
     }
 
