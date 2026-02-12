@@ -3,6 +3,7 @@
 load("@bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@bazel_lib//lib:resource_sets.bzl", "resource_set_for")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo", "int_flag", "string_flag")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 _DEFAULT_SIZE = "default"
 _SIZES = {
@@ -28,6 +29,9 @@ _SIZES = {
     },
 }
 
+def _bazelrc_line(name, value):
+    return "common --@rules_foreign_cc//foreign_cc/settings:{}={}".format(name, value)
+
 def _setting(size, resource, mode):
     if size == _DEFAULT_SIZE:
         short_name = _DEFAULT_SIZE
@@ -43,6 +47,7 @@ def _setting(size, resource, mode):
 
 def create_settings():
     """create the settings that configure these functions."""
+    settings = {"size_default": _DEFAULT_SIZE}
     string_flag(
         name = "size_default",
         build_setting_default = _DEFAULT_SIZE,
@@ -50,10 +55,9 @@ def create_settings():
         visibility = ["//visibility:public"],
     )
 
-    settings = {}
     for size, cfg in _SIZES.items():
-        if cfg == None:
-            continue
+        if not cfg:
+            fail("invalid size cfg", size)
 
         # keep this in sync with the docs and the above helper!
         cpu_name = "size_{}_cpu".format(size)
@@ -75,13 +79,22 @@ def create_settings():
         settings[mem_name] = mem_default
 
     expand_template(
-        name = "settings",
-        is_executable = True,
+        name = "settings_script",
         out = "settings.sh",
         template = Label(":settings.sh.in"),
         substitutions = {
-            "{{meow}}": "bark",
+            "{{SETTINGS_BAZELRC_LINES}}": "\n".join([
+                _bazelrc_line(name, settings[name])
+                for name in sorted(settings.keys())
+            ]),
         },
+    )
+
+    # Create an executable shim for the script
+    sh_binary(
+        name = "settings",
+        srcs = [":settings_script"],
+        visibility = ["//visibility:public"],
     )
 
 SIZE_ATTRIBUTES = {
