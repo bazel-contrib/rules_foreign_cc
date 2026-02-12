@@ -78,6 +78,7 @@ cc_binary(
     srcs = [
         ":ninja_wrapper.cc",
     ],
+    visibility = ["//visibility:public"],
 )
 
 native_tool_toolchain(
