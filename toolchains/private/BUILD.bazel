@@ -84,6 +84,7 @@ native_tool_toolchain(
     name = "preinstalled_ninja",
     env = {
         "NINJA": "$(execpath :ninja_wrapper)",
+        "NINJA_FROM_PATH": "1",
     } | select({
         "@platforms//os:windows": {
             "REAL_NINJA": "ninja.exe",

@@ -33,6 +33,32 @@ string JoinPath(const string &root, const string &path) {
     return root + separator + path;
 }
 
+bool IsAbsolutePath(const string &path) {
+    if (path.empty()) {
+        return false;
+    }
+#ifdef _WIN32
+    // Drive-letter path, e.g. C:\foo
+    if (path.size() > 2 && ((path[0] >= 'A' && path[0] <= 'Z') ||
+                            (path[0] >= 'a' && path[0] <= 'z')) &&
+        path[1] == ':' && (path[2] == '\\' || path[2] == '/')) {
+        return true;
+    }
+    // UNC path, e.g. \\server\share
+    if (path.size() > 1 && path[0] == '\\' && path[1] == '\\') {
+        return true;
+    }
+    return false;
+#else
+    return path[0] == '/';
+#endif
+}
+
+bool IsNinjaFromPath() {
+    const char *ninja_from_path = getenv("NINJA_FROM_PATH");
+    return ninja_from_path && strcmp(ninja_from_path, "1") == 0;
+}
+
 bool ParseNinjaJobs(const char *jobs_p, long *jobs_out) {
     errno = 0;
     char *end = nullptr;
@@ -86,7 +112,8 @@ string GetWindowsErrorMessage(DWORD code) {
     return message;
 }
 
-int RunProcessWindows(const string &program, const vector<string> &args) {
+int RunProcessWindows(const string &program, const vector<string> &args,
+                      bool search_path) {
     string command_line;
     for (size_t i = 0; i < args.size(); ++i) {
         if (i > 0) {
@@ -102,7 +129,8 @@ int RunProcessWindows(const string &program, const vector<string> &args) {
     vector<char> mutable_command_line(command_line.begin(), command_line.end());
     mutable_command_line.push_back('\0');
 
-    BOOL ok = CreateProcessA(program.c_str(), mutable_command_line.data(),
+    LPCSTR application_name = search_path ? nullptr : program.c_str();
+    BOOL ok = CreateProcessA(application_name, mutable_command_line.data(),
                              nullptr, nullptr, TRUE, 0, nullptr, nullptr,
                              &startup_info, &process_info);
     if (!ok) {
@@ -148,8 +176,12 @@ int main(int argc, char *argv[]) {
     const string root = getvar("EXT_BUILD_ROOT");
     const string ninja = getvar("REAL_NINJA");
 
-    // can't rely on std::filesystem existing.
-    const string ninja_path = JoinPath(root, ninja);
+    const bool ninja_from_path = IsNinjaFromPath();
+    string ninja_path = ninja;
+    if (!ninja_from_path && !IsAbsolutePath(ninja)) {
+        // can't rely on std::filesystem existing.
+        ninja_path = JoinPath(root, ninja);
+    }
     args[0] = ninja_path;
 
     if (const char *jobs_p = getenv("NINJA_JOBS")) {
@@ -172,7 +204,7 @@ int main(int argc, char *argv[]) {
     }
 
 #ifdef _WIN32
-    return RunProcessWindows(ninja_path, args);
+    return RunProcessWindows(ninja_path, args, ninja_from_path);
 #else
     vector<const char *> exec_args;
     exec_args.reserve(args.size() + 1);
@@ -181,9 +213,14 @@ int main(int argc, char *argv[]) {
     }
     exec_args.push_back(nullptr);
 
-    int ret = execv(exec_args[0], const_cast<char *const *>(exec_args.data()));
+    int ret = 0;
+    if (ninja_from_path) {
+        ret = execvp(exec_args[0], const_cast<char *const *>(exec_args.data()));
+    } else {
+        ret = execv(exec_args[0], const_cast<char *const *>(exec_args.data()));
+    }
     if (ret < 0) {
-        cerr << "failed to execv: " << strerror(errno) << endl;
+        cerr << "failed to exec: " << strerror(errno) << endl;
     }
     // shouldn't hit this unless something is wrong, so...
     return WRAPPER_ERROR;
