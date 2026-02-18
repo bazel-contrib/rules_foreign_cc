@@ -37,6 +37,8 @@ def _prepare_build_attrs(attrs, env_updates):
 
 def _create_env_diff_tests(name, build_name, tests, test_attrs):
     test_attrs = test_attrs or {}
+    test_attrs.setdefault("size", "small")
+
     for n, v in tests.items():
         if not v:
             continue
@@ -54,8 +56,8 @@ def _create_env_diff_tests(name, build_name, tests, test_attrs):
             name = expected,
             out = expected + ".out",
             content = [
-                "{}={}".format(k, values[k])
-                for k in sorted(values.keys())
+                "{}={}".format(k, v[k])
+                for k in sorted(v.keys())
             ] + [""],
             tags = ["manual"],
         )
@@ -129,7 +131,6 @@ def env_test_make(name, *, check_makevars = None, check_shellvars = None, make_a
     make_attrs.update(dict(
         name = build_name,
         lib_source = Label(makefile),
-        #args = ["-f", "$$EXT_BUILD_ROOT/$(execpath " + str(Label(makefile)) + ")"],
         data = [
             Label(makefile),
         ],

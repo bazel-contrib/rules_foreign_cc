@@ -1,8 +1,24 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 project(env_test NONE)
 
 file(REMOVE "$ENV{CMAKEVARS_FILE}" "$ENV{SHELLVARS_FILE}")
-file(WRITE "$ENV{CMAKEVARS_FILE}" "")
-file(WRITE "$ENV{SHELLVARS_FILE}" "")
+file(TOUCH "$ENV{CMAKEVARS_FILE}")
+file(TOUCH "$ENV{SHELLVARS_FILE}")
 
 {{VARIABLES}}
+
+function(post _filename)
+    file(READ "${_filename}" RAW)
+
+    # Note that this is order-sensitive, since (e.g.) INSTALLDIR is a subdir of
+    # EXT_BUILD_ROOT and we want the replacement to be the most specific
+    string(REPLACE "${CMAKE_BINARY_DIR}" "{{CMAKE_BINARY_DIR}}" RAW "${RAW}")
+    string(REPLACE "${CMAKE_SOURCE_DIR}" "{{CMAKE_SOURCE_DIR}}" RAW "${RAW}")
+    string(REPLACE "$ENV{INSTALLDIR}" "{{INSTALLDIR}}" RAW "${RAW}")
+    string(REPLACE "$ENV{EXT_BUILD_ROOT}" "{{EXT_BUILD_ROOT}}" RAW "${RAW}")
+
+    file(WRITE "${_filename}" "${RAW}")
+endfunction(post)
+
+post("$ENV{CMAKEVARS_FILE}")
+post("$ENV{SHELLVARS_FILE}")
