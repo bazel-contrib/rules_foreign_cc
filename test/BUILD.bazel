@@ -2,7 +2,7 @@ load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("//tools/lint:linters.bzl", "shellcheck_test")
 load(":cmake_text_tests.bzl", "cmake_script_test_suite")
 load(":convert_shell_script_test.bzl", "shell_script_conversion_suite")
-load(":env_test.bzl", "env_test_make")
+load(":env_test.bzl", "env_test_cmake", "env_test_make")
 load(":shell_script_helper_test_rule.bzl", "shell_script_helper_test_rule")
 load(":symlink_contents_to_dir_test_rule.bzl", "symlink_contents_to_dir_test_rule")
 load(":utils_test.bzl", "utils_test_suite")
@@ -129,9 +129,6 @@ env_test_make(
     check_makevars = {
         "MAKEFLAGS": " -- PREFIX=INSTALLDIR5",
     },
-    check_shellvars = {
-        "MAKEFLAGS": " -- PREFIX=INSTALLDIR5",
-    },
     test_attrs = dict(size = "small"),
 )
 
@@ -140,10 +137,32 @@ env_test_make(
     check_makevars = {
         "MAKEFLAGS": " -j1 -- PREFIX=INSTALLDIR5",
     },
-    check_shellvars = {
-        "MAKEFLAGS": " -j1 -- PREFIX=INSTALLDIR5",
-    },
     make_attrs = {
+        "resource_size": "tiny",
+    },
+    test_attrs = dict(size = "small"),
+)
+
+env_test_cmake(
+    name = "cmake_default",
+    check_cmakevars = {
+        "CMAKE_MINIMUM_REQUIRED_VERSION": "3.10",
+    },
+    check_shellvars = {
+        "CMAKE_BUILD_PARALLEL_LEVEL": "",
+    },
+    test_attrs = dict(size = "small"),
+)
+
+env_test_cmake(
+    name = "cmake_tiny",
+    check_cmakevars = {
+        "CMAKE_MINIMUM_REQUIRED_VERSION": "3.10",
+    },
+    check_shellvars = {
+        "CMAKE_BUILD_PARALLEL_LEVEL": "1",
+    },
+    cmake_attrs = {
         "resource_size": "tiny",
     },
     test_attrs = dict(size = "small"),

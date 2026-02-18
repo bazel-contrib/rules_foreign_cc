@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
+project(env_test NONE)
+
+file(REMOVE "$ENV{CMAKEVARS_FILE}" "$ENV{SHELLVARS_FILE}")
+file(WRITE "$ENV{CMAKEVARS_FILE}" "")
+file(WRITE "$ENV{SHELLVARS_FILE}" "")
+
+{{VARIABLES}}
