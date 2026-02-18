@@ -1,0 +1,10 @@
+all:
+	rm -if '$(MAKEVARS_FILE)' '$(SHELLVARS_FILE)'
+	touch '$(MAKEVARS_FILE)' '$(SHELLVARS_FILE)'
+	{{VARIABLES}}
+
+# The linter demands these, for some reason
+clean:
+test:
+
+.PHONY: all clean test
