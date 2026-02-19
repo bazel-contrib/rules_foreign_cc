@@ -6,6 +6,11 @@ load(":env_test_ninja.bzl", "env_test_ninja")
 
 package(default_visibility = ["//test:__subpackages__"])
 
+_NOT_WINDOWS = select({
+    "@platforms//os:windows": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
 env_test_make(
     name = "make_default",
     check_makevars = {
@@ -110,6 +115,12 @@ env_test_configure_make(
         "INSTALLDIR": "{{INSTALLDIR}}",
         "MAKEFLAGS": "",
     },
+    # srcdir ends up being C:/..., and then autotools looks for the aux files
+    # using $srcdir$PATH_SEPARATOR$srcdir/.. and PATH_SEPARATOR is :, so the :
+    # in the path breaks it.
+    configure_make_attrs = {
+        "target_compatible_with": _NOT_WINDOWS,
+    },
 )
 
 env_test_configure_make(
@@ -126,5 +137,6 @@ env_test_configure_make(
     },
     configure_make_attrs = {
         "resource_size": "tiny",
+        "target_compatible_with": _NOT_WINDOWS,
     },
 )
