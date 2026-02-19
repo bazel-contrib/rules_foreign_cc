@@ -1,6 +1,7 @@
 load(":env_test_cmake.bzl", "env_test_cmake")
 load(":env_test_configure_make.bzl", "env_test_configure_make")
 load(":env_test_make.bzl", "env_test_make")
+load(":env_test_ninja.bzl", "env_test_ninja")
 
 package(default_visibility = ["//test:__subpackages__"])
 
@@ -17,6 +18,23 @@ env_test_make(
         "MAKEFLAGS": " -j1 -- PREFIX={{INSTALLDIR}}",
     },
     make_attrs = {
+        "resource_size": "tiny",
+    },
+)
+
+env_test_ninja(
+    name = "ninja_default",
+    check_shellvars = {
+        "NINJA_JOBS": "",
+    },
+)
+
+env_test_ninja(
+    name = "ninja_tiny",
+    check_shellvars = {
+        "NINJA_JOBS": "1",
+    },
+    ninja_attrs = {
         "resource_size": "tiny",
     },
 )
