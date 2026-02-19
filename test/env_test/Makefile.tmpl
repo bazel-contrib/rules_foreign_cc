@@ -1,5 +1,5 @@
 all:
-	rm -if '$(MAKEVARS_FILE)' '$(SHELLVARS_FILE)'
+	rm -f '$(MAKEVARS_FILE)' '$(SHELLVARS_FILE)'
 	touch '$(MAKEVARS_FILE)' '$(SHELLVARS_FILE)'
 	{{VARIABLES}}
 	for filename in '$(MAKEVARS_FILE)' '$(SHELLVARS_FILE)'; do \
