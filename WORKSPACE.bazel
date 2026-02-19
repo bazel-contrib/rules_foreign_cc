@@ -94,9 +94,11 @@ http_archive(
 )
 
 # aspect_rules_lint depends on bazel_lib.
-load("@bazel_lib//lib:repositories.bzl", "bazel_lib_dependencies")
+load("@bazel_lib//lib:repositories.bzl", "bazel_lib_dependencies", "bazel_lib_register_toolchains")
 
 bazel_lib_dependencies()
+
+bazel_lib_register_toolchains()
 
 load(
     "@aspect_rules_lint//format:repositories.bzl",
