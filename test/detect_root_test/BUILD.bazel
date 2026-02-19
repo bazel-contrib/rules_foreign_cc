@@ -1,4 +1,4 @@
-load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@bazel_lib//lib:diff_test.bzl", "diff_test")
 load(":detect_root_test_rule.bzl", "detect_root_test_rule")
 
 filegroup(
