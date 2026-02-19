@@ -80,6 +80,12 @@ def env_test_configure_make(name, *, check_makevars = None, check_shellvars = No
             tags = ["manual"],
         )
 
+    native.filegroup(
+        name = src,
+        srcs = list(files_to_copy.values()) + list(files_to_expand.values()),
+        tags = ["manual"],
+    )
+
     configure_make_attrs = prepare_build_attrs(configure_make_attrs, {
         "MAKEVARS_FILE": "$$INSTALLDIR/makevars.out",
         "SHELLVARS_FILE": "$$INSTALLDIR/shellvars.out",
@@ -88,8 +94,7 @@ def env_test_configure_make(name, *, check_makevars = None, check_shellvars = No
     build_name = name + "_build"
     configure_make_attrs.update(dict(
         name = build_name,
-        lib_source = Label(files_to_copy["configure"]),
-        data = files_to_copy.values() + files_to_expand.values(),
+        lib_source = Label(src),
         out_headers_only = True,
         targets = ["all"],
         out_data_files = [
