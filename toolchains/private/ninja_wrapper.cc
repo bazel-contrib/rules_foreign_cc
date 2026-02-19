@@ -1,3 +1,12 @@
+// This is a thin(-ish) wrapper around ninja whose only purposes is to convert
+// environment variables (namely: NINJA_JOBS) into the correct -j argument. This
+// is necessary because the ninja project does not like environment variables
+// (https://github.com/ninja-build/ninja/issues/1482)
+//
+// This is in c++ instead of python or shell because both of those languages
+// rely on a shim runner on windows, and the shim runner depends on runfiles or
+// the manifest system, which means it doesn't work if you change the working
+// directory, which most callers of this wrapper will have done.
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -39,8 +48,9 @@ bool IsAbsolutePath(const string &path) {
     }
 #ifdef _WIN32
     // Drive-letter path, e.g. C:\foo
-    if (path.size() > 2 && ((path[0] >= 'A' && path[0] <= 'Z') ||
-                            (path[0] >= 'a' && path[0] <= 'z')) &&
+    if (path.size() > 2 &&
+        ((path[0] >= 'A' && path[0] <= 'Z') ||
+         (path[0] >= 'a' && path[0] <= 'z')) &&
         path[1] == ':' && (path[2] == '\\' || path[2] == '/')) {
         return true;
     }
