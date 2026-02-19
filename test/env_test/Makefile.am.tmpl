@@ -1,0 +1,14 @@
+all:
+	rm -if '@MAKEVARS_FILE@' '@SHELLVARS_FILE@'
+	touch '@MAKEVARS_FILE@' '@SHELLVARS_FILE@'
+	{{VARIABLES}}
+	for filename in '@MAKEVARS_FILE@' '@SHELLVARS_FILE@'; do \
+		# Note that this is order-sensitive, since INSTALLDIR is a subdir of \
+		# EXT_BUILD_ROOT and we want the replacement to be most specific first. \
+		$(SED) -i.bak \
+			-e 's|$(INSTALLDIR)|{{INSTALLDIR}}|g' \
+			-e 's|$(EXT_BUILD_ROOT)|{{EXT_BUILD_ROOT}}|g' \
+			"$${filename}"; \
+	done
+
+.PHONY: all

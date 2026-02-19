@@ -1,9 +1,11 @@
 """This contains helpers to run tests that check the environment of the various build systems"""
 
+load("@bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("//foreign_cc:cmake.bzl", "cmake")
+load("//foreign_cc:configure.bzl", "configure_make")
 load("//foreign_cc:make.bzl", "make")
 
 def _validate_not_configurable_dict(name, value):
@@ -114,7 +116,7 @@ def env_test_make(name, *, check_makevars = None, check_shellvars = None, make_a
 
     expand_template(
         name = makefile,
-        template = Label("//test/env_test:Makefile.tmpl"),
+        template = Label(":Makefile.tmpl"),
         out = makefile + "/Makefile",
         substitutions = {
             "{{VARIABLES}}": "\n\t".join(subs),
@@ -194,7 +196,7 @@ def env_test_cmake(name, *, check_cmakevars = None, check_shellvars = None, cmak
 
     expand_template(
         name = cmakelists,
-        template = Label("//test/env_test:CMakeLists.txt.tmpl"),
+        template = Label(":CMakeLists.txt.tmpl"),
         out = cmakelists + "/CMakeLists.txt",
         substitutions = {
             "{{VARIABLES}}": "\n".join(subs),
@@ -223,6 +225,106 @@ def env_test_cmake(name, *, check_cmakevars = None, check_shellvars = None, cmak
 
     tests = {
         "cmakevars": check_cmakevars,
+        "shellvars": check_shellvars,
+    }
+
+    _create_env_diff_tests(name, build_name, tests, test_attrs)
+
+def env_test_configure_make(name, *, check_makevars = None, check_shellvars = None, configure_make_attrs = None, test_attrs = None):
+    """ Macro to test the environment of a configure+make build
+
+    Args:
+        name: str
+            prefix to base all the other names on
+
+        check_makevars: dict[str, str]:
+            The makevars to check, and their expected values.
+
+        check_shellvars: dict[str, str]:
+            The shellvars to check, and their expected values. Defaults to
+            check_makevars if not set.
+
+        configure_make_attrs: dict[*, *]:
+            additional attrs to pass to the configure_make() rule
+
+        test_attrs: dict[*, *]:
+            additional attrs to pass to the diff_test rule
+    """
+    name = name + "_env_test"
+
+    check_makevars, check_shellvars = _normalize_checked_vars(
+        "check_makevars",
+        check_makevars,
+        "check_shellvars",
+        check_shellvars,
+    )
+
+    subs = []
+    for makevar in sorted(check_makevars.keys()):
+        subs.append(
+            'printf "%s=%s\\n" "{v}" "$$({v})" >> "$$(MAKEVARS_FILE)"'.format(v = makevar),
+        )
+
+    for shellvar in sorted(check_shellvars.keys()):
+        subs.append(
+            'printf "%s=%s\\n" "{v}" "$$$${{{v}}}" >> "$$(SHELLVARS_FILE)"'.format(v = shellvar),
+        )
+
+    src = name + "_src"
+
+    files_to_copy = {
+        "configure": src + "_configure",
+        "install-sh": src + "_install_sh",
+        "missing": src + "_missing",
+    }
+
+    files_to_expand = {
+        "Makefile.am": src + "_makefile_am",
+        "Makefile.in": src + "_makefile_in",
+    }
+
+    for file, label in files_to_copy.items():
+        copy_file(
+            name = label,
+            src = Label(file),
+            out = src + "/" + file,
+            is_executable = (file == "configure"),
+            tags = ["manual"],
+        )
+
+    for file, label in files_to_expand.items():
+        expand_template(
+            name = label,
+            template = Label(file + ".tmpl"),
+            out = src + "/" + file,
+            substitutions = {
+                "{{VARIABLES}}": "\n\t".join(subs),
+            },
+            tags = ["manual"],
+        )
+
+    configure_make_attrs = _prepare_build_attrs(configure_make_attrs, {
+        "MAKEVARS_FILE": "$$INSTALLDIR/makevars.out",
+        "SHELLVARS_FILE": "$$INSTALLDIR/shellvars.out",
+    })
+
+    build_name = name + "_build"
+    configure_make_attrs.update(dict(
+        name = build_name,
+        lib_source = Label(files_to_copy["configure"]),
+        data = files_to_copy.values() + files_to_expand.values(),
+        out_headers_only = True,
+        targets = ["all"],
+        out_data_files = [
+            "makevars.out",
+            "shellvars.out",
+        ],
+    ))
+
+    configure_make(**configure_make_attrs)
+
+    tests = {
+        "makevars": check_makevars,
         "shellvars": check_shellvars,
     }
 

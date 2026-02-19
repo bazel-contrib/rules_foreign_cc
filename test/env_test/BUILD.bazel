@@ -1,12 +1,66 @@
-load("@rules_python//python:defs.bzl", "py_binary")
+load(":defs.bzl", "env_test_cmake", "env_test_configure_make", "env_test_make")
 
 package(default_visibility = ["//test:__subpackages__"])
 
-exports_files(
-    glob(include = ["**/*.tmpl"]),
+env_test_make(
+    name = "make_default",
+    check_makevars = {
+        "MAKEFLAGS": " -- PREFIX={{INSTALLDIR}}",
+    },
 )
 
-py_binary(
-    name = "generate",
-    srcs = ["generate.py"],
+env_test_make(
+    name = "make_tiny",
+    check_makevars = {
+        "MAKEFLAGS": " -j1 -- PREFIX={{INSTALLDIR}}",
+    },
+    make_attrs = {
+        "resource_size": "tiny",
+    },
+)
+
+env_test_cmake(
+    name = "cmake_default",
+    check_cmakevars = {
+        "CMAKE_MINIMUM_REQUIRED_VERSION": "3.12",
+        "CMAKE_SOURCE_DIR": "{{CMAKE_SOURCE_DIR}}",
+    },
+    check_shellvars = {
+        "CMAKEVARS_FILE": "{{INSTALLDIR}}/cmakevars.out",
+        "CMAKE_BUILD_PARALLEL_LEVEL": "",
+    },
+)
+
+env_test_cmake(
+    name = "cmake_tiny",
+    check_cmakevars = {
+        "CMAKE_MINIMUM_REQUIRED_VERSION": "3.12",
+        "CMAKE_SOURCE_DIR": "{{CMAKE_SOURCE_DIR}}",
+    },
+    check_shellvars = {
+        "CMAKEVARS_FILE": "{{INSTALLDIR}}/cmakevars.out",
+        "CMAKE_BUILD_PARALLEL_LEVEL": "1",
+    },
+    cmake_attrs = {
+        "resource_size": "tiny",
+    },
+)
+
+env_test_configure_make(
+    name = "configure_make_default",
+    check_makevars = {
+        "INSTALLDIR": "{{INSTALLDIR}}",
+        "MAKEFLAGS": "",
+    },
+)
+
+env_test_configure_make(
+    name = "configure_make_tiny",
+    check_makevars = {
+        "INSTALLDIR": "{{INSTALLDIR}}",
+        "MAKEFLAGS": " -j1",
+    },
+    configure_make_attrs = {
+        "resource_size": "tiny",
+    },
 )

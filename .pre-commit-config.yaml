@@ -8,6 +8,8 @@ exclude: >-
     |.*\.diff
     |test/(expected|.*/expected)/.*\.txt
     |examples/(?!.*CMakeLists\.txt$).*\.txt
+    |test/env_test/.*\.tmpl
+    |test/env_test/(configure|install-sh|missing)
   )$
 
 repos:
@@ -44,7 +46,6 @@ repos:
     rev: 0.2.2
     hooks:
       - id: checkmake
-        exclude: ^test/env_test/
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1
