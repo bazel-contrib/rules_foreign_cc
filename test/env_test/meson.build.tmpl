@@ -1,0 +1,5 @@
+project('env_test')
+
+run_command('sh', '-c', 'rm -f "$SHELLVARS_FILE" && touch "$SHELLVARS_FILE"', check: true)
+
+{{VARIABLES}}
