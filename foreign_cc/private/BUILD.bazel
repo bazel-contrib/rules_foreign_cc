@@ -104,7 +104,9 @@ bzl_library(
     srcs = ["resource_sets.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
     deps = [
+        "@bazel_lib//lib:expand_template",
         "@bazel_lib//lib:resource_sets",
         "@bazel_skylib//rules:common_settings",
+        "@rules_shell//shell:rules_bzl",
     ],
 )
