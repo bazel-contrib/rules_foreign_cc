@@ -1,4 +1,6 @@
-load(":defs.bzl", "env_test_cmake", "env_test_configure_make", "env_test_make")
+load(":env_test_cmake.bzl", "env_test_cmake")
+load(":env_test_configure_make.bzl", "env_test_configure_make")
+load(":env_test_make.bzl", "env_test_make")
 
 package(default_visibility = ["//test:__subpackages__"])
 
