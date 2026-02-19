@@ -102,16 +102,19 @@ SIZE_ATTRIBUTES = {
         values = _SIZES.keys() + [_DEFAULT_SIZE],
         default = _DEFAULT_SIZE,
         mandatory = False,
-        doc = (
-            "Set the approximate size of this build. This does two things:" +
-            "1. Sets the environment variables to tell the underlying build system " +
-            "   the requested parallelization; examples are CMAKE_BUILD_PARALLEL_LEVEL " +
-            "   for cmake or MAKEFLAGS for autotools. " +
-            "2. Sets the resource_set attribute on the action to tell bazel how many cores " +
-            "   are being used, so it schedules appropriately." +
-            "The sizes map to labels, which can be used to override the meaning of the sizes. See " +
-            "@rules_foreign_cc//foreign_cc/settings:size_{size}_{cpu|mem}"
-        ),
+        doc = """\
+Set the approximate size of this build. This does two things:
+1. Sets the environment variables to tell the underlying build system the
+   requested parallelization; examples are CMAKE_BUILD_PARALLEL_LEVEL for cmake
+   or MAKEFLAGS for autotools.
+2. Sets the resource_set attribute on the action to tell bazel how many cores
+   are being used, so it schedules appropriately.  The sizes map to labels,
+   which can be used to override the meaning of the sizes. See
+   @rules_foreign_cc//foreign_cc/settings:size_{size}_{cpu|mem}.
+
+Running `bazel run @rules_foreign_cc//foreign_cc/settings` will print out all
+the settings in bazelrc format for easy customization.
+""",
     ),
 } | {
     _setting(size = size, resource = resource, mode = "key"): attr.label(
@@ -132,7 +135,7 @@ def _get_size_config(attr, size, resource):
     s = getattr(attr, name, None)
 
     if s == None:
-        fail("unknown size: ", size)
+        fail("unknown size:", size)
 
     return s[BuildSettingInfo].value
 
