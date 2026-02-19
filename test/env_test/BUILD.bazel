@@ -53,12 +53,24 @@ env_test_configure_make(
     check_makevars = {
         "INSTALLDIR": "{{INSTALLDIR}}",
         "MAKEFLAGS": "",
+        "abs_builddir": "{{abs_builddir}}",
+        "abs_srcdir": "{{abs_srcdir}}",
+    },
+    check_shellvars = {
+        "INSTALLDIR": "{{INSTALLDIR}}",
+        "MAKEFLAGS": "",
     },
 )
 
 env_test_configure_make(
     name = "configure_make_tiny",
     check_makevars = {
+        "INSTALLDIR": "{{INSTALLDIR}}",
+        "MAKEFLAGS": " -j1",
+        "abs_builddir": "{{abs_builddir}}",
+        "abs_srcdir": "{{abs_srcdir}}",
+    },
+    check_shellvars = {
         "INSTALLDIR": "{{INSTALLDIR}}",
         "MAKEFLAGS": " -j1",
     },
