@@ -4,6 +4,7 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:framework.bzl", "get_env_prelude", "wrap_outputs")
+load("//foreign_cc/private:resource_sets.bzl", "SIZE_ATTRIBUTES", "get_resource_env_vars")
 load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script", "shebang")
 load("//foreign_cc/private/framework:platform.bzl", "PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES")
 
@@ -35,6 +36,7 @@ FOREIGN_CC_BUILT_TOOLS_ATTRS = {
 
 # this would be cleaner as x | y, but that's not supported in bazel 5.4.0
 FOREIGN_CC_BUILT_TOOLS_ATTRS.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
+FOREIGN_CC_BUILT_TOOLS_ATTRS.update(SIZE_ATTRIBUTES)
 
 # Common fragments for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_FRAGMENTS = [
@@ -153,6 +155,8 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
     if additional_tools:
         tools = depset(transitive = [tools, additional_tools])
 
+    resource_set, env = get_resource_env_vars(ctx.attr)
+
     # The use of `run_shell` here is intended to ensure bash is correctly setup on windows
     # environments. This should not be replaced with `run` until a cross platform implementation
     # is found that guarantees bash exists or appropriately errors out.
@@ -161,6 +165,8 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
         inputs = ctx.attr.srcs.files,
         outputs = [out_dir, wrapped_outputs.log_file],
         tools = tools,
+        env = env,
+        resource_set = resource_set,
         use_default_shell_env = True,
         command = wrapped_outputs.wrapper_script_file.path,
         execution_requirements = {"block-network": ""},

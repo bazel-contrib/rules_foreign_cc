@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cat <<'EOF'
+{{SETTINGS_BAZELRC_LINES}}
+EOF

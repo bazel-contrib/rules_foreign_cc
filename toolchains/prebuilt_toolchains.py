@@ -108,7 +108,17 @@ NINJA_VERSIONS = (
     "1.8.2",
 )
 
-REPO_DEFINITION = """\
+
+def repo_definition(name, url, sha256, prefix, template, **template_substitutions):
+    sub_str = "\n".join(
+        [
+            indent(f"{k}={v!r},", " " * 8)
+            for k, v in sorted(template_substitutions.items())
+        ]
+    )
+
+    return (
+        f"""\
 maybe(
     http_archive,
     name = "{name}",
@@ -118,11 +128,14 @@ maybe(
     sha256 = "{sha256}",
     strip_prefix = "{prefix}",
     build_file_content = {template}.format(
-        bin = "{bin}",
-        env = "{env}",
+"""
+        + sub_str
+        + """
     ),
 )
 """
+    )
+
 
 TOOLCHAIN_REPO_DEFINITION = """\
 # buildifier: leave-alone
@@ -189,6 +202,7 @@ native_tool_toolchain(
 
 _NINJA_BUILD_FILE = \"\"\"\\
 load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("@rules_foreign_cc//foreign_cc/private:select_executable.bzl", "select_executable")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -197,11 +211,28 @@ filegroup(
     srcs = ["{{bin}}"],
 )
 
+select_executable(
+    name = "ninja_wrapper_bin",
+    src = "{{wrapper}}",
+)
+
+filegroup(
+    name = "ninja_data",
+    srcs = [
+        ":ninja_bin",
+        "{{wrapper}}",
+    ]
+)
+
 native_tool_toolchain(
     name = "ninja_tool",
     env = {{env}},
-    path = "$(execpath :ninja_bin)",
-    target = ":ninja_bin",
+    path = "$(execpath :ninja_wrapper_bin)",
+    target = ":ninja_data",
+    tools = [
+        ":ninja_bin",
+        ":ninja_wrapper_bin",
+    ]
 )
 \"\"\"
 
@@ -290,15 +321,16 @@ def get_cmake_definitions() -> str:
                 prefix = name
 
             version_archives.append(
-                REPO_DEFINITION.format(
+                repo_definition(
                     name=name,
                     sha256=sha256,
                     prefix=prefix,
                     url=CMAKE_URL_TEMPLATE.format(full=version, file=file),
-                    build="cmake",
                     template="_CMAKE_BUILD_FILE",
                     bin=bin,
-                    env='{\\"CMAKE\\": \\"$(execpath :cmake_bin)\\"}',
+                    env={
+                        "CMAKE": "$(execpath :cmake_bin)",
+                    },
                 )
             )
             version_toolchains.update({plat_target: name})
@@ -417,15 +449,18 @@ def get_ninja_definitions() -> str:
             name = "ninja_{}_{}".format(version, target)
 
             version_archives.append(
-                REPO_DEFINITION.format(
+                repo_definition(
                     name=name,
                     url=url,
                     sha256=sha256,
                     prefix="",
-                    build="ninja",
                     template="_NINJA_BUILD_FILE",
                     bin="ninja.exe" if "win" in target else "ninja",
-                    env='{\\"NINJA\\": \\"$(execpath :ninja_bin)\\"}',
+                    wrapper="@rules_foreign_cc//toolchains/private:ninja_wrapper",
+                    env={
+                        "NINJA": "$(execpath :ninja_wrapper_bin)",
+                        "REAL_NINJA": "$(execpath :ninja_bin)",
+                    },
                 )
             )
             version_toolchains.update({target: name})
