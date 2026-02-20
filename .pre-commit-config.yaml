@@ -8,6 +8,8 @@ exclude: >-
     |.*\.diff
     |test/(expected|.*/expected)/.*\.txt
     |examples/(?!.*CMakeLists\.txt$).*\.txt
+    |test/env_test/.*\.tmpl
+    |test/env_test/(configure|install-sh|missing)
   )$
 
 repos:
