@@ -16,7 +16,6 @@ def zlib_repositories():
             Label("//zlib:zlib.patch"),
         ],
         urls = [
-            "https://zlib.net/zlib-1.3.1.tar.gz",
-            "https://zlib.net/archive/zlib-1.3.1.tar.gz",
+            "https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz",
         ],
     )
