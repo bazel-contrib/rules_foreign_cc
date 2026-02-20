@@ -27,7 +27,7 @@ extra_toolchains_transitioned_foreign_cc_target = rule(
     cfg = _extra_toolchains_transition,
     attrs = {
         # This attr is singular to make it selectable when used for add make toolchain variant.
-        "extra_toolchain": attr.string(
+        "extra_toolchain": attr.label(
             doc = "Additional toolchain to consider. Note, this is singular.",
             mandatory = True,
         ),
