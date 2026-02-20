@@ -13,13 +13,10 @@ Documentation for all rules and providers are available at: https://bazel-contri
 
 ## Bazel versions compatibility
 
-Works with Bazel after 5.4.0.
+Works with Bazel after 7.4.1.
 
 Note that the rules may be compatible with older versions of Bazel but support may break
 in future changes as these older versions are not tested.
-
-Note also that the `runnable_binary` macro requires bazel 5.4.0, for the `rlocationpath` [path
-variable](https://bazel.build/reference/be/make-variables)
 
 ## News
 

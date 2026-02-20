@@ -58,19 +58,19 @@ rbe_preconfig(
 
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "b7387f72efb59f876e4daae42f1d3912d0d45563eac7cb23d1de0b094ab588cf",
+    sha256 = "aefbf2fc7c7616c9ed73aa3d51c77100724d5b3ce66cfa16406e8c13e87c8b52",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.34.0/bazel-gazelle-v0.34.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.34.0/bazel-gazelle-v0.34.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.41.0/bazel-gazelle-v0.41.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.41.0/bazel-gazelle-v0.41.0.tar.gz",
     ],
 )
 
 http_archive(
     name = "bazel_skylib_gazelle_plugin",
-    sha256 = "747addf3f508186234f6232674dd7786743efb8c68619aece5fb0cac97b8f415",
+    sha256 = "e0629e3cbacca15e2c659833b24b86174d22b664ca0a67f377108ff6a207cc8c",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-gazelle-plugin-1.5.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-gazelle-plugin-1.5.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-gazelle-plugin-1.7.1.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-gazelle-plugin-1.7.1.tar.gz",
     ],
 )
 
@@ -85,25 +85,20 @@ bazel_skylib_gazelle_plugin_setup()
 
 gazelle_dependencies(go_repository_default_config = "//:WORKSPACE.bazel")
 
+# Note: 1.13 requires nodeps bzlmod deps, which requires bazel 7.6.0
 http_archive(
     name = "aspect_rules_lint",
-    sha256 = "c90501db2548f4af27ed873e40adc6524fcd8472c25ff9946ba13aa77c767249",
-    strip_prefix = "rules_lint-1.2.2",
-    url = "https://github.com/aspect-build/rules_lint/releases/download/v1.2.2/rules_lint-v1.2.2.tar.gz",
+    sha256 = "a8a63bd071a39bd5be1f99d9f258eac674673c98505f9fc5b4c76587f67278cd",
+    strip_prefix = "rules_lint-1.12.0",
+    url = "https://github.com/aspect-build/rules_lint/releases/download/v1.12.0/rules_lint-v1.12.0.tar.gz",
 )
 
-# aspect_rules_lint depends on aspect_bazel_lib.
-http_archive(
-    name = "aspect_bazel_lib",
-    sha256 = "6d758a8f646ecee7a3e294fbe4386daafbe0e5966723009c290d493f227c390b",
-    strip_prefix = "bazel-lib-2.7.7",
-    url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.7.7/bazel-lib-v2.7.7.tar.gz",
-)
+# aspect_rules_lint depends on bazel_lib.
+load("@bazel_lib//lib:repositories.bzl", "bazel_lib_dependencies", "bazel_lib_register_toolchains")
 
-load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
+bazel_lib_dependencies()
 
-# aspect_bazel_lib depends on bazel_skylib
-aspect_bazel_lib_dependencies()
+bazel_lib_register_toolchains()
 
 load(
     "@aspect_rules_lint//format:repositories.bzl",
