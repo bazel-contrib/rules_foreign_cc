@@ -29,6 +29,9 @@ _TARGET_OS_PARAMS = {
     "linux": {
         "CMAKE_SYSTEM_NAME": "Linux",
     },
+    "macos": {
+        "CMAKE_SYSTEM_NAME": "Darwin",
+    },
 }
 
 _TARGET_ARCH_PARAMS = {
@@ -124,8 +127,19 @@ def create_cmake_script(
         # buildifier: disable=print
         print("target_arch is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
     elif target_os != host_os or target_arch != host_arch:
-        toolchain_dict.update(_TARGET_OS_PARAMS.get(target_os, {}))
-        toolchain_dict.update(_TARGET_ARCH_PARAMS.get(target_arch, {}))
+        # if we don't have a value here, it will end up attempting a native
+        # compile, even if that's not right, so emit a warning
+        if target_os in _TARGET_OS_PARAMS:
+            toolchain_dict.update(_TARGET_OS_PARAMS[target_os])
+        else:
+            # buildifier: disable=print
+            print("target_os", target_os, "is not in _TARGET_OS_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+
+        if target_arch in _TARGET_ARCH_PARAMS:
+            toolchain_dict.update(_TARGET_ARCH_PARAMS[target_arch])
+        else:
+            # buildifier: disable=print
+            print("target_arch", target_arch, "is not in _TARGET_ARCH_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
 
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
 
