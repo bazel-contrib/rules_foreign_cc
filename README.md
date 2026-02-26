@@ -9,14 +9,27 @@ This is **not an officially supported Google product**
 
 ## Documentation
 
-Documentation for all rules and providers are available at: https://bazel-contrib.github.io/rules_foreign_cc/
+Documentation for all rules and providers are available at [the doc site](https://bazel-contrib.github.io/rules_foreign_cc/)
 
-## Bazel versions compatibility
+## Version compatibility
 
-Works with Bazel after 7.4.1.
+### bazel
 
-Note that the rules may be compatible with older versions of Bazel but support may break
-in future changes as these older versions are not tested.
+The intent is to support the latest minor of all `Active` or `Maintenance` [Bazel Versions](https://bazel.build/release).
+This generally means that older bazel versions may work, but they won't be tested and so they might break.
+
+### delegated build systems (e.g. cmake, ninja)
+
+Some of these projects don't use semver, but the intent is is to support the logical equivalent of:
+
+- Latest version that is upstream-supported (meaning, they will accept patches for it)
+  - If upstream will accept patches for multiple release branches, then the latest patch for each of those will be
+        supported.
+- Exact version and latest patch version for supported LTS releases of distributions. The idea is that most packages
+    only get tested with the versions in the distros, so these are the versions most likely to work.
+  - [Ubuntu](https://ubuntu.com/about/release-cycle)
+  - [Fedora](https://endoflife.date/fedora)
+  - Versions can be referenced from Repology, e.g. [cmake](https://repology.org/project/cmake/versions)
 
 ## News
 
@@ -27,13 +40,9 @@ For more generalized updates, please see [NEWS.md](./NEWS.md) or checkout the
 
 [External C/C++ libraries rules](https://docs.google.com/document/d/1Gv452Vtki8edo_Dj9VTNJt5DA_lKTcSMwrwjJOkLaoU/edit?usp=sharing)
 
-[ccb]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_binary
-[ccl]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library
-[cct]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain
-
 ## Caveats
 
-* FreeBSD support is currently experimental and on a best-effort basis.
+- FreeBSD support is currently experimental and on a best-effort basis.
   Google currently doesn't have a CI test environment for FreeBSD,
   but please make your voice heard by upvoting this
   [issue](https://github.com/bazelbuild/continuous-integration/issues/258).
