@@ -3515,7 +3515,7 @@
         "usagesDigest": "2fuUa2+p8B1tK3iL7qvsZx/w/Ls++Sej5T1CEx2bKm8=",
         "recordedFileInputs": {
           "@@rules_rust~~rust_host_tools~rust_host_tools//bin/rustc": "6703c8f287653aae59b27849343fe64fa3893353f1c1d6037a608c18257afc2c",
-          "@@//MODULE.bazel": "c21c6a5f9b4adadbf63dbafb7e0da8eff77fd16a54d712c7545e647149581620",
+          "@@//MODULE.bazel": "3bfb39743d0d3e76191fedc5eac8d9aeff5c2ed0968dc9d19f38d1e184ff2593",
           "@@rules_rust~~rust_host_tools~rust_host_tools//bin/cargo": "da77b17765651b7a4405178a21d3dab1fa39dddec927d37c0fd5663b7c8623de"
         },
         "recordedDirentsInputs": {},
