@@ -112,12 +112,22 @@ if [[ -z "$2" ]]; then
 fi
 local source="$1"
 local target="$2"
+
+# make source absolute so symlinks in subdirs work
+case "$source" in
+    /*) ;;
+    *) source="$PWD/$source" ;;
+esac
 mkdir -p "$target"
 local replace_in_files="${3:-}"
 if [[ -f "$source" ]]; then
   ##symlink_to_dir## "$source" "$target" "$replace_in_files"
 elif [[ -L "$source" && ! -d "$source" ]]; then
   local actual=$(readlink "$source")
+  case "$actual" in
+      /*|[A-Za-z]:/*) ;;
+      *) actual="$(dirname "$source")/$actual" ;;
+  esac
   ##symlink_contents_to_dir## "$actual" "$target" "$replace_in_files"
 elif [[ -d "$source" ]]; then
   SAVEIFS=$IFS
@@ -143,6 +153,12 @@ if [[ -z "$2" ]]; then
 fi
 local source="$1"
 local target="$2"
+
+# make source absolute so symlinks in subdirs work
+case "$source" in
+    /*) ;;
+    *) source="$PWD/$source" ;;
+esac
 mkdir -p "$target"
 local replace_in_files="${3:-}"
 if [[ -f "$source" ]]; then

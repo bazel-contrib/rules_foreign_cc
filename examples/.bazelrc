@@ -19,3 +19,5 @@ test:windows --action_env=MSYS=winsymlinks:nativestrict
 build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain
 build:macos --crosstool_top=@local_config_apple_cc//:toolchain
 build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain
+
+common --keep_going
