@@ -19,12 +19,12 @@ cmake(
     },
     lib_source = ":srcs",
     out_interface_libs = select({
-        "//:windows": ["libhello.lib"],
+        "@platforms//os:windows": ["libhello.lib"],
         "//conditions:default": [],
     }),
     out_shared_libs = select({
-        "//:macos": ["libhello.dylib"],
-        "//:windows": ["libhello.dll"],
+        "@platforms//os:macos": ["libhello.dylib"],
+        "@platforms//os:windows": ["libhello.dll"],
         "//conditions:default": ["libhello.so"],
     }),
 )

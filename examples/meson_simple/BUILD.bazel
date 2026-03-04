@@ -6,7 +6,7 @@ meson(
     name = "meson_lib",
     build_data = ["//meson_simple/code:clang_wrapper.sh"],
     env = select({
-        "//:windows": {
+        "@platforms//os:windows": {
             "CLANG_WRAPPER": "$(execpath //meson_simple/code:clang_wrapper.sh)",
             "CXX_FLAGS": "/MD",
         },
