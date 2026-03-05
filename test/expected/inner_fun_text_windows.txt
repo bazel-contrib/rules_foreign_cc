@@ -12,9 +12,10 @@ local target="$2"
 
 # make source absolute so symlinks in subdirs work
 case "$source" in
-/*) ;;
+/*|[A-Za-z]:/*) ;;
 *) source="$PWD/$source" ;;
 esac
+
 mkdir -p "$target"
 local replace_in_files="${3:-}"
 if [[ -f "$source" ]]; then
@@ -30,9 +31,9 @@ elif [[ -d "$source" ]]; then
 SAVEIFS=$IFS
 IFS=$'
 '
-local children=($(find -H "$source" -maxdepth 1 -mindepth 1))
+local children=($($REAL_FIND -H "$source" -maxdepth 1 -mindepth 1))
 IFS=$SAVEIFS
-for child in "${children[@]:-}"; do
+for child in "${children[@]}"; do
 symlink_to_dir "$child" "$target" "$replace_in_files"
 done
 fi
@@ -51,9 +52,10 @@ local target="$2"
 
 # make source absolute so symlinks in subdirs work
 case "$source" in
-/*) ;;
+/*|[A-Za-z]:/*) ;;
 *) source="$PWD/$source" ;;
 esac
+
 mkdir -p "$target"
 local replace_in_files="${3:-}"
 if [[ -f "$source" ]]; then
@@ -63,10 +65,15 @@ if [[ "$source" == *.pc || "$source" == *.la || "$source" == *-config || "$sourc
 dest="$target/$(basename "$source")"
 cp "$source" "$dest" && chmod +w "$dest" && touch -r "$source" "$dest"
 else
-ln -sf "$source" "$target/${source##*/}"
+ln -s -f -t "$target" "$source"
 fi
-elif [[ -L "$source" && ! -d "$source" ]]; then
-cp -pR "$source" "$target"
+elif [[ -L "$source" ]]; then
+local actual=$(readlink "$source")
+case "$actual" in
+/*|[A-Za-z]:/*) ;;
+*) actual="$(dirname "$source")/$actual" ;;
+esac
+symlink_to_dir "$actual" "$target" "$replace_in_files"
 elif [[ -d "$source" ]]; then
 
 # If not replacing in files, simply create a symbolic link rather than traversing tree of files, which can result in very slow builds
@@ -78,11 +85,10 @@ fi
 SAVEIFS=$IFS
 IFS=$'
 '
-local children=($(find -H "$source" -maxdepth 1 -mindepth 1))
+local children=($($REAL_FIND -H "$source" -maxdepth 1 -mindepth 1))
 IFS=$SAVEIFS
 local dirname=$(basename "$source")
-mkdir -p "$target/$dirname"
-for child in "${children[@]:-}"; do
+for child in "${children[@]}"; do
 if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
 symlink_to_dir "$child" "$target/$dirname" "$replace_in_files"
 fi

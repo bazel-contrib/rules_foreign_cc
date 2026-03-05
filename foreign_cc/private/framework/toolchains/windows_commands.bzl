@@ -123,18 +123,30 @@ if [[ -z "$2" ]]; then
   echo "arg 2 to symlink_contents_to_dir is unexpectedly empty"
   exit 1
 fi
+local source="$1"
 local target="$2"
+
+# make source absolute so symlinks in subdirs work
+case "$source" in
+    /*|[A-Za-z]:/*) ;;
+    *) source="$PWD/$source" ;;
+esac
+
 mkdir -p "$target"
 local replace_in_files="${3:-}"
-if [[ -f "$1" ]]; then
-  ##symlink_to_dir## "$1" "$target" "$replace_in_files"
-elif [[ -L "$1" ]]; then
-  local actual=$(readlink "$1")
+if [[ -f "$source" ]]; then
+  ##symlink_to_dir## "$source" "$target" "$replace_in_files"
+elif [[ -L "$source" ]]; then
+  local actual=$(readlink "$source")
+  case "$actual" in
+      /*|[A-Za-z]:/*) ;;
+      *) actual="$(dirname "$source")/$actual" ;;
+  esac
   ##symlink_contents_to_dir## "$actual" "$target" "$replace_in_files"
-elif [[ -d "$1" ]]; then
+elif [[ -d "$source" ]]; then
   SAVEIFS=$IFS
   IFS=$'\n'
-  local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
+  local children=($($REAL_FIND -H "$source" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
   for child in "${children[@]}"; do
     ##symlink_to_dir## "$child" "$target" "$replace_in_files"
@@ -153,41 +165,53 @@ if [[ -z "$2" ]]; then
   echo "arg 2 to symlink_to_dir is unexpectedly empty"
   exit 1
 fi
+local source="$1"
 local target="$2"
+
+# make source absolute so symlinks in subdirs work
+case "$source" in
+    /*|[A-Za-z]:/*) ;;
+    *) source="$PWD/$source" ;;
+esac
+
 mkdir -p "$target"
 local replace_in_files="${3:-}"
-if [[ -f "$1" ]]; then
+if [[ -f "$source" ]]; then
   # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
   # files so updating them is possible.
-  if [[ "$1" == *.pc || "$1" == *.la || "$1" == *-config || "$1" == *.mk || "$1" == *.cmake ]]; then
-    dest="$target/$(basename \"$1\")"
-    cp "$1" "$dest" && chmod +w "$dest" && touch -r "$1" "$dest"
+  if [[ "$source" == *.pc || "$source" == *.la || "$source" == *-config || "$source" == *.mk || "$source" == *.cmake ]]; then
+    dest="$target/$(basename \"$source\")"
+    cp "$source" "$dest" && chmod +w "$dest" && touch -r "$source" "$dest"
   else
-    ln -s -f -t "$target" "$1"
+    ln -s -f -t "$target" "$source"
   fi
-elif [[ -L "$1" ]]; then
-  local actual=$(readlink "$1")
+elif [[ -L "$source" ]]; then
+  local actual=$(readlink "$source")
+  case "$actual" in
+      /*|[A-Za-z]:/*) ;;
+      *) actual="$(dirname "$source")/$actual" ;;
+  esac
   ##symlink_to_dir## "$actual" "$target" "$replace_in_files"
-elif [[ -d "$1" ]]; then
+elif [[ -d "$source" ]]; then
 
   # If not replacing in files, simply create a symbolic link rather than traversing tree of files, which can result in very slow builds
   if [[ "$replace_in_files" = False ]]; then
-    ln -s -f "$1" "$target"
+    ln -s -f "$source" "$target"
     return
   fi
 
   SAVEIFS=$IFS
   IFS=$'\n'
-  local children=($($REAL_FIND -H "$1" -maxdepth 1 -mindepth 1))
+  local children=($($REAL_FIND -H "$source" -maxdepth 1 -mindepth 1))
   IFS=$SAVEIFS
-  local dirname=$(basename "$1")
+  local dirname=$(basename "$source")
   for child in "${children[@]}"; do
     if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
       ##symlink_to_dir## "$child" "$target/$dirname" "$replace_in_files"
     fi
   done
 else
-  echo "Can not copy $1"
+  echo "Can not copy $source"
 fi
 """
     return FunctionAndCallInfo(text = text)
@@ -200,6 +224,9 @@ if [ -f /usr/bin/find ]; then
 else
   REAL_FIND="$(which find)"
 fi
+find() {
+  "$REAL_FIND" "$@"
+}
 export MSYS_NO_PATHCONV=1
 export MSYS2_ARG_CONV_EXCL="*"
 export SYSTEMDRIVE="C:"
