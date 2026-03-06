@@ -50,47 +50,32 @@ FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS = [
 def absolutize(workspace_name, text, force = False):
     return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
 
-def extract_sysroot_flags(flags):
-    """Function to return sysroot args from list of flags like cflags or ldflags
+def split_system_include_flags(flags):
+    """Splits flags into system include flags and remaining flags.
 
-    sysroot args are either '--sysroot=</path/to/sysroot>' or '--sysroot </path/to/sysroot>'
+    System include flags are --sysroot and -isystem args, in both
+    '--sysroot=<path>' / '--sysroot <path>' and '-isystem<path>' / '-isystem <path>' forms.
 
     Args:
         flags (list): list of flags
 
     Returns:
-        List of sysroot flags
+        Tuple of (system_include_flags, other_flags)
     """
-    ret_flags = []
+    system = []
+    other = []
     for i in range(len(flags)):
-        if flags[i] == "--sysroot":
+        if flags[i] in ("--sysroot", "-isystem"):
             if i + 1 < len(flags):
-                ret_flags.append(flags[i])
-                ret_flags.append(flags[i + 1])
-        elif flags[i].startswith("--sysroot="):
-            ret_flags.append(flags[i])
-    return ret_flags
-
-def extract_non_sysroot_flags(flags):
-    """Function to return non sysroot args from list of flags like cflags or ldflags
-
-    sysroot args are either '--sysroot=</path/to/sysroot>' or '--sysroot </path/to/sysroot>'
-
-    Args:
-        flags (list): list of flags
-
-    Returns:
-        List of non sysroot flags
-    """
-    ret_flags = []
-    for i in range(len(flags)):
-        if flags[i] == "--sysroot" or \
-           flags[i].startswith("--sysroot=") or \
-           (i != 0 and flags[i - 1] == "--sysroot"):
-            continue
+                system.append(flags[i])
+                system.append(flags[i + 1])
+        elif flags[i].startswith(("--sysroot=", "-isystem")):
+            system.append(flags[i])
+        elif i != 0 and flags[i - 1] in ("--sysroot", "-isystem"):
+            pass
         else:
-            ret_flags.append(flags[i])
-    return ret_flags
+            other.append(flags[i])
+    return system, other
 
 def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools = None):
     """Framework function for bootstrapping C/C++ build tools.

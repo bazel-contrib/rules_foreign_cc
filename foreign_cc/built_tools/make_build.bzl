@@ -8,8 +8,7 @@ load(
     "FOREIGN_CC_BUILT_TOOLS_HOST_FRAGMENTS",
     "absolutize",
     "built_tool_rule_impl",
-    "extract_non_sysroot_flags",
-    "extract_sysroot_flags",
+    "split_system_include_flags",
 )
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
@@ -52,22 +51,20 @@ def _make_tool_impl(ctx):
 
         cc_path = tools_info.cc
         cflags = flags_info.cc
-        sysroot_cflags = extract_sysroot_flags(cflags)
-        non_sysroot_cflags = extract_non_sysroot_flags(cflags)
+        system_include_cflags, non_system_include_cflags = split_system_include_flags(cflags)
 
         ld_path = tools_info.cxx_linker_executable
         ldflags = flags_info.cxx_linker_executable
-        sysroot_ldflags = extract_sysroot_flags(ldflags)
-        non_sysroot_ldflags = extract_non_sysroot_flags(ldflags)
+        system_include_ldflags, non_system_include_ldflags = split_system_include_flags(ldflags)
 
         # Make's build script does not forward CFLAGS to all compiler and linker
-        # invocations, so we append --sysroot flags directly to CC and LD.
+        # invocations, so we append --sysroot and -isystem flags directly to CC and LD.
         absolute_cc = absolutize(ctx.workspace_name, cc_path, True)
-        if sysroot_cflags:
-            absolute_cc += " " + _join_flags_list(ctx.workspace_name, sysroot_cflags)
+        if system_include_cflags:
+            absolute_cc += " " + _join_flags_list(ctx.workspace_name, system_include_cflags)
         absolute_ld = absolutize(ctx.workspace_name, ld_path, True)
-        if sysroot_ldflags:
-            absolute_ld += " " + _join_flags_list(ctx.workspace_name, sysroot_ldflags)
+        if system_include_ldflags:
+            absolute_ld += " " + _join_flags_list(ctx.workspace_name, system_include_ldflags)
 
         # If libtool is used as AR, the output file has to be prefixed with
         # "-o". Since the make Makefile only uses ar-style invocations, the
@@ -79,7 +76,7 @@ def _make_tool_impl(ctx):
             arflags.append("-o")
 
         if os_name(ctx) == "macos":
-            non_sysroot_ldflags += ["-undefined", "error"]
+            non_system_include_ldflags += ["-undefined", "error"]
 
             # On macOS, remove "-lm".
             # During compilation, the ./configure script disables USE_SYSTEM_GLOB,
@@ -88,7 +85,7 @@ def _make_tool_impl(ctx):
             # However, at link time, "-lm" appears before "-lgnu".
             # This linker commandline is like this: LINKER ... -lm -L./lib -o xxx ... -lgnu
             # So the system glob is linked instead, causing ABI conflicts.
-            non_sysroot_ldflags = [x for x in non_sysroot_ldflags if x != "-lm"]
+            non_system_include_ldflags = [x for x in non_system_include_ldflags if x != "-lm"]
 
         configure_options = [
             "--without-guile",
@@ -113,9 +110,9 @@ def _make_tool_impl(ctx):
             "AR": absolute_ar,
             "ARFLAGS": _join_flags_list(ctx.workspace_name, arflags),
             "CC": absolute_cc,
-            "CFLAGS": _join_flags_list(ctx.workspace_name, non_sysroot_cflags),
+            "CFLAGS": _join_flags_list(ctx.workspace_name, non_system_include_cflags),
             "LD": absolute_ld,
-            "LDFLAGS": _join_flags_list(ctx.workspace_name, non_sysroot_ldflags),
+            "LDFLAGS": _join_flags_list(ctx.workspace_name, non_system_include_ldflags),
         })
 
         configure_env = " ".join(["%s=\"%s\"" % (key, value) for key, value in env.items()])
