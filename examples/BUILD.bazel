@@ -1,5 +1,9 @@
 load("@rules_python//python/pip_install:requirements.bzl", "compile_pip_requirements")
 
+exports_files([
+    "cc_wrapper.sh",
+])
+
 test_suite(
     name = "third_party_examples_linux_tests",
     tags = ["manual"],

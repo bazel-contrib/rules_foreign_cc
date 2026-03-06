@@ -9,17 +9,10 @@ SIZES = [
 [
     ninja(
         name = "ninja_lib_" + size,
-        build_data = ["//ninja_simple/code:clang_wrapper.sh"],
-        env = select({
-            "@platforms//os:windows": {
-                "CLANG_WRAPPER": "$(execpath //ninja_simple/code:clang_wrapper.sh)",
-                "CXX_FLAGS": "/MD",
-            },
-            "//conditions:default": {
-                "CLANG_WRAPPER": "$(execpath //ninja_simple/code:clang_wrapper.sh)",
-                "CXX_FLAGS": "-fPIC",
-            },
-        }),
+        build_data = ["//:cc_wrapper.sh"],
+        env = {
+            "CC_WRAPPER": "$(execpath //:cc_wrapper.sh)",
+        },
         lib_source = "//ninja_simple/code:srcs",
         out_static_libs = ["liba.a"],
         resource_size = size,
