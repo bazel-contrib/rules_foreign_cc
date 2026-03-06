@@ -170,8 +170,6 @@ tasks:
       - "-//cmake_synthetic/..."
       # TODO: Fix `error LNK2019: unresolved external symbol hello_func`
       - "-//cmake_hello_world_lib/shared/..."
-      # TODO: Fix `CreateProcess failed: The system cannot find the file specified.`
-      - "-//ninja_simple/..."
       # TODO: The use of Visual Studio generator targets are broken. These should
       # be re-enabled pending a resolution to
       # https://github.com/bazelbuild/continuous-integration/issues/1204
