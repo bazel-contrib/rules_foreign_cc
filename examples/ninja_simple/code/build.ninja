@@ -6,27 +6,27 @@ ninja_required_version = 1.3
 
 builddir       = rules_foreign_cc_build
 rm             = rm -fr
-cxx            = $$CLANG_WRAPPER
-ar             = ar
+wrap           = $$CC_WRAPPER
 lib            = $builddir/liba.a
+ar_flags       = $$AR_FLAGS
 cxx_flags      = $$CXX_FLAGS
 
 # Rules
 
 rule compile
-  command = $cxx -c $in $cxx_flags -o $out
+  command = bash "$wrap" compile "$in" "$out"
   description = Building C file $in
 
 rule ar
-  command = $rm $out && $ar crs $out $in
+  command = bash "$wrap" static_link "$in" "$out"
   description = Creating archive $out
 
 rule clean
-  command = $rm $builddir
+  command = rm -fr $builddir
   description = Cleaning directory $builddir
 
 rule install
-  command = mkdir -p $$INSTALLDIR/lib $$INSTALLDIR/include && cp -rpv $builddir/*.a $$INSTALLDIR/lib/ && cp -p liba.h $$INSTALLDIR/include/
+  command = mkdir -p $$INSTALLDIR/lib $$INSTALLDIR/include && cp -p $lib $$INSTALLDIR/lib/ && cp -p liba.h $$INSTALLDIR/include/
   description = Installing compiled lib
 
 # Builds

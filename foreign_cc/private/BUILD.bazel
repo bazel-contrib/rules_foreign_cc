@@ -72,6 +72,16 @@ bzl_library(
 )
 
 bzl_library(
+    name = "ninja_script",
+    srcs = ["ninja_script.bzl"],
+    visibility = ["//foreign_cc:__subpackages__"],
+    deps = [
+        ":make_env_vars",
+        ":make_script",
+    ],
+)
+
+bzl_library(
     name = "transitions",
     srcs = ["transitions.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
