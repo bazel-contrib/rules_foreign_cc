@@ -2,6 +2,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files([
     "runnable_binary_wrapper.sh",
+    "settings.sh.in",
 ])
 
 bzl_library(
@@ -43,6 +44,7 @@ bzl_library(
         ":cc_toolchain_util",
         ":detect_root",
         ":detect_xcompile.bzl",
+        ":resource_sets",
         ":run_shell_file_utils",
         "//foreign_cc:providers",
         "//foreign_cc/private/framework:helpers",
@@ -95,4 +97,16 @@ bzl_library(
     name = "run_shell_file_utils",
     srcs = ["run_shell_file_utils.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
+)
+
+bzl_library(
+    name = "resource_sets",
+    srcs = ["resource_sets.bzl"],
+    visibility = ["//foreign_cc:__subpackages__"],
+    deps = [
+        "@bazel_lib//lib:expand_template",
+        "@bazel_lib//lib:resource_sets",
+        "@bazel_skylib//rules:common_settings",
+        "@rules_shell//shell:rules_bzl",
+    ],
 )
