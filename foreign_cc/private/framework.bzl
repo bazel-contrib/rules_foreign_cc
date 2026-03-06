@@ -340,15 +340,12 @@ def get_env_prelude(ctx, installdir, data_dependencies, tools_env):
 
     # This logic mirrors XcodeLocalEnvProvider#querySdkRoot in bazel itself
     if "APPLE_SDK_PLATFORM" in cc_env:
-        platform = cc_env["APPLE_SDK_PLATFORM"]
-        version = cc_env["APPLE_SDK_VERSION_OVERRIDE"]
-        sdk = "{}{}".format(platform.lower(), version)
         env_snippet.extend([
             # TODO: This path needs to take cc_env["XCODE_VERSION_OVERRIDE"] into account
             # Declare and export separately so bash doesn't ignore failures from the commands https://github.com/koalaman/shellcheck/wiki/SC2155
             "developer_dir_tmp=\"$(xcode-select --print-path)\"",
             "export DEVELOPER_DIR=\"$developer_dir_tmp\"",
-            "sdkroot_tmp=\"$(xcrun --sdk {} --show-sdk-path)\"".format(sdk),
+            "sdkroot_tmp=\"$(xcrun --sdk {} --show-sdk-path)\"".format(cc_env["APPLE_SDK_PLATFORM"].lower()),
             "export SDKROOT=\"$sdkroot_tmp\"",
             "export CMAKE_OSX_ARCHITECTURES={}".format(ctx.fragments.apple.single_arch_cpu),
         ])
