@@ -57,6 +57,10 @@ static_link() {
         */lib.exe)
             "$ar" ${ARFLAGS:-} "/OUT:$2" "$1"
             ;;
+        */libtool)
+            # Note that this is darwin libtool, not gnu.
+             "$ar" ${ARFLAGS:-} -static -o "$2" "$1"
+             ;;
         *)
             "$ar" rcs ${ARFLAGS:-} "$2" "$1"
             ;;
