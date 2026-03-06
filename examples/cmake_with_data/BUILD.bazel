@@ -5,9 +5,7 @@ cmake(
     name = "cmake_with_data",
     cache_entries = select({
         "@platforms//os:windows": {
-            "CMAKE_BUILD_TYPE": "Release",
-            "CMAKE_CXX_FLAGS": "/MD",
-            "CMAKE_CXX_FLAGS_DEBUG": "/MD",
+            "CMAKE_BUILD_TYPE": "Debug",
         },
         "//conditions:default": {},
     }),

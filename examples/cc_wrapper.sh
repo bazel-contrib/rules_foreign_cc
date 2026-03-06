@@ -16,13 +16,19 @@ die() {
 }
 
 ensure_absolute() {
-    case "$1" in
+    local path="$1"
+
+    # Tool paths may be provided with surrounding quotes on Windows.
+    path="${path#\"}"
+    path="${path%\"}"
+
+    case "$path" in
         /*|[A-Za-z]:/*)
             # already absolute (maybe with a drive path)
-            echo "$1"
+            echo "$path"
             ;;
         *)
-            echo "$EXT_BUILD_ROOT/$1"
+            echo "$EXT_BUILD_ROOT/$path"
             ;;
     esac
 }

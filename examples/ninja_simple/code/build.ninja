@@ -6,7 +6,6 @@ ninja_required_version = 1.3
 
 builddir       = rules_foreign_cc_build
 rm             = rm -fr
-wrap           = $$CC_WRAPPER
 lib            = $builddir/liba.a
 ar_flags       = $$AR_FLAGS
 cxx_flags      = $$CXX_FLAGS
@@ -14,11 +13,11 @@ cxx_flags      = $$CXX_FLAGS
 # Rules
 
 rule compile
-  command = bash "$wrap" compile "$in" "$out"
+  command = bash -c '"$$CC_WRAPPER" compile "$$1" "$$2"' -- "$in" "$out"
   description = Building C file $in
 
 rule ar
-  command = bash "$wrap" static_link "$in" "$out"
+  command = bash -c '"$$CC_WRAPPER" static_link "$$1" "$$2"' -- "$in" "$out"
   description = Creating archive $out
 
 rule clean
