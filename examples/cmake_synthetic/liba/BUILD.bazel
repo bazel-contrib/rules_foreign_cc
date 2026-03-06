@@ -10,6 +10,7 @@ cc_library(
     name = "lib_a_bazel",
     srcs = ["src/liba.cpp"],
     hdrs = ["src/liba.h"],
+    features = ["windows_export_all_symbols"],
     includes = ["src"],
     visibility = ["//visibility:public"],
 )
