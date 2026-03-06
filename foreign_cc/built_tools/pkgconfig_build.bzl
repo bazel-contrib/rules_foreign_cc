@@ -34,7 +34,7 @@ def _pkgconfig_tool_impl(ctx):
     frozen_arflags = flags_info.cxx_linker_static
 
     cc_path = tools_info.cc
-    cflags = flags_info.cc + ["-Wno-int-conversion"]  # Fix building with clang 15+
+    cflags = flags_info.cc + ["-Wno-int-conversion", "-std=gnu90"]  # Fix building with clang 15+
     sysroot_cflags = extract_sysroot_flags(cflags)
     non_sysroot_cflags = extract_non_sysroot_flags(cflags)
 
