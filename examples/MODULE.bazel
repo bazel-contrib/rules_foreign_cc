@@ -68,21 +68,3 @@ use_repo(
 )
 
 bazel_dep(name = "bazel_lib", version = "3.2.0")
-
-# bazel_dep(name = "rules_android", version = "0.1.1")
-# bazel_dep(name = "rules_jvm_external", version = "5.1")
-#
-# maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
-#
-# maven.install(
-#     name = "maven_deps",
-#     artifacts = [
-#         "com.android.support.constraint:constraint-layout:aar:1.1.2",
-#         "com.android.support:appcompat-v7:aar:26.1.0",
-#     ],
-#     repositories = [
-#         "https://jcenter.bintray.com/",
-#         "https://maven.google.com",
-#         "https://repo1.maven.org/maven2",
-#     ],
-# )

@@ -88,8 +88,6 @@ tasks:
     linux_targets: &linux_targets_bzlmod
       - "//..."
       - "//:third_party_examples_linux_tests"
-      # gives error '//external:databinding_annotation_processor': target 'databinding_annotation_processor' not declared in package 'external' defined by /workdir/examples/WORKSPACE.bazel (Tip: use `query "//external:*"` to see all the targets in that package) and referenced by '@bazel_tools//tools/android:databinding_annotation_processor'
-      - "-//cmake_android/..."
     build_targets: *linux_targets_bzlmod
     test_targets: *linux_targets_bzlmod
     build_flags:
@@ -101,8 +99,6 @@ tasks:
     rbe_targets: &rbe_targets
       - "//..."
       - "//:third_party_examples_linux_rbe_tests"
-      # Gives error: zipalign: error while loading shared libraries: /usr/local/lib/libc++.so: file too short
-      - "-//cmake_android/..."
       # Python requirements not supported on Ubuntu 16.04
       - "-//:requirements_test"
     build_targets: *rbe_targets
@@ -114,7 +110,6 @@ tasks:
     macos_targets: &macos_targets_standalone
       - "//..."
       - "//:third_party_examples_macos_tests"
-      - "-//cmake_android/..."
       # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
       - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
       - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
@@ -141,7 +136,6 @@ tasks:
     macos_targets: &macos_targets
       - "//..."
       - "//:third_party_examples_macos_tests"
-      - "-//cmake_android/..."
       # Remove tests that depend on shared libraries, which currently doesn't work on MacOS - https://github.com/bazelbuild/bazel/issues/10254
       - "-@rules_foreign_cc_examples_third_party//curl:curl_test"
       - "-@rules_foreign_cc_examples_third_party//openssl:openssl_test"
@@ -162,8 +156,6 @@ tasks:
     windows_targets: &windows_targets
       - "//..."
       - "//:third_party_examples_windows_tests"
-      # TODO: Support all targets on windows
-      - "-//cmake_android/..."
       # TODO: Fix `error C2118: negative subscript`
       - "-//cmake_defines/..."
       # TODO: Fix linker error
