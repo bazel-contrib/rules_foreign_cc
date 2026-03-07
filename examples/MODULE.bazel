@@ -13,13 +13,14 @@ use_repo(
 )
 
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_rust", version = "0.56.0")
+bazel_dep(name = "bazel_skylib", version = "1.8.1")
+bazel_dep(name = "rules_rust", version = "0.69.0")
 bazel_dep(name = "rules_swift", version = "1.17.0", repo_name = "build_bazel_rules_swift")
 bazel_dep(name = "rules_apple", version = "3.4.0", repo_name = "build_bazel_rules_apple")
-bazel_dep(name = "apple_support", version = "1.17.1", repo_name = "build_bazel_apple_support")
+bazel_dep(name = "apple_support", version = "1.24.1", repo_name = "build_bazel_apple_support")
 bazel_dep(name = "rules_python", version = "1.2.0")
-bazel_dep(name = "rules_cc", version = "0.1.5")
-bazel_dep(name = "rules_shell", version = "0.5.0")
+bazel_dep(name = "rules_cc", version = "0.2.8")
+bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "rules_perl", version = "0.2.5")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
@@ -50,7 +51,11 @@ rust_example.annotation(
         # The toolchain supplies a value of $(CMAKE) which is an execroot-relative path, so we need to prefix it with `$${pwd}/`
         # because build scripts don't typically run in the execroot unlike most bazel rules, for improved compatibility with Cargo.
         "CMAKE": "$${pwd}/$(CMAKE)",
-    },
+    } | select({
+        "@platforms//os:windows": {
+            "CMAKE_GENERATOR": "Ninja",
+        },
+    }),
     # Setting build_script_toolchains makes makefile variable substitution work so that we can reference $(CNAME) in attributes.
     build_script_toolchains = ["@rules_foreign_cc//toolchains:current_cmake_toolchain"],
     crate = "libz-ng-sys",
@@ -68,21 +73,3 @@ use_repo(
 )
 
 bazel_dep(name = "bazel_lib", version = "3.2.0")
-
-# bazel_dep(name = "rules_android", version = "0.1.1")
-# bazel_dep(name = "rules_jvm_external", version = "5.1")
-#
-# maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
-#
-# maven.install(
-#     name = "maven_deps",
-#     artifacts = [
-#         "com.android.support.constraint:constraint-layout:aar:1.1.2",
-#         "com.android.support:appcompat-v7:aar:26.1.0",
-#     ],
-#     repositories = [
-#         "https://jcenter.bintray.com/",
-#         "https://maven.google.com",
-#         "https://repo1.maven.org/maven2",
-#     ],
-# )

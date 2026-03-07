@@ -4,17 +4,6 @@ load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 meson(
     name = "meson_lib",
-    build_data = ["//meson_simple/code:clang_wrapper.sh"],
-    env = select({
-        "//:windows": {
-            "CLANG_WRAPPER": "$(execpath //meson_simple/code:clang_wrapper.sh)",
-            "CXX_FLAGS": "/MD",
-        },
-        "//conditions:default": {
-            "CLANG_WRAPPER": "$(execpath //meson_simple/code:clang_wrapper.sh)",
-            "CXX_FLAGS": "-fPIC",
-        },
-    }),
     lib_source = "//meson_simple/code:srcs",
     out_static_libs = ["liba.a"],
 )

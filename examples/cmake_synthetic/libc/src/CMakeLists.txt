@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 2.8.4)
 set(libc_SRC libc.cpp libc.h)
 
 add_library(libc_static STATIC ${libc_SRC})
+if (MSVC)
+  # Prefer embedded debug info to avoid external PDB server failures in CI.
+  set_target_properties(libc_static PROPERTIES COMPILE_FLAGS "/Z7")
+endif()
 set_target_properties(libc_static PROPERTIES OUTPUT_NAME "libc")
 IF (WIN32)
   set_target_properties(libc_static PROPERTIES ARCHIVE_OUTPUT_NAME "libc")

@@ -1,17 +1,5 @@
 workspace(name = "rules_foreign_cc_examples")
 
-load("//deps:repositories.bzl", "repositories")
-
-repositories()
-
-load("//deps:deps_android.bzl", "deps_android")
-
-deps_android()
-
-load("//deps:deps_jvm_external.bzl", "deps_jvm_external")
-
-deps_jvm_external()
-
 local_repository(
     name = "rules_foreign_cc_examples_third_party",
     path = "third_party",
@@ -41,5 +29,5 @@ load("@bazelci_rules//:rbe_repo.bzl", "rbe_preconfig")
 # otherwise refer to RBE docs.
 rbe_preconfig(
     name = "buildkite_config",
-    toolchain = "ubuntu1804-bazel-java11",
+    toolchain = "ubuntu2204",
 )

@@ -21,3 +21,11 @@ build:macos --crosstool_top=@local_config_apple_cc//:toolchain
 build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain
 
 common --keep_going
+
+# https://github.com/bazelbuild/bazel/issues/12844 requires non-empty configs,
+# so use show_progress as a noop
+common:noop --show_progress
+
+# Provide CI shortcuts for these
+common:spawn-standalone --spawn_strategy=standalone
+common:spawn-default --config=noop

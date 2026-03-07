@@ -1,4 +1,5 @@
 load("@bazel_lib//lib:diff_test.bzl", "diff_test")
+load("@rules_shell//shell:sh_library.bzl", "sh_library")
 load("//tools/lint:linters.bzl", "shellcheck_test")
 load(":cmake_text_tests.bzl", "cmake_script_test_suite")
 load(":convert_shell_script_test.bzl", "shell_script_conversion_suite")
