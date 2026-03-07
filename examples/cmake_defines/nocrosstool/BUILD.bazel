@@ -5,7 +5,7 @@ cmake(
     generate_crosstool_file = False,
     lib_source = "//cmake_defines:lib_a_sources",
     out_static_libs = select({
-        "//:windows": ["lib_a.lib"],
+        "@platforms//os:windows": ["lib_a.lib"],
         "//conditions:default": ["liblib_a.a"],
     }),
     deps = [":lib_b"],
@@ -17,7 +17,7 @@ cmake(
     generate_crosstool_file = False,
     lib_source = "//cmake_defines:lib_b_sources",
     out_static_libs = select({
-        "//:windows": ["lib_b.lib"],
+        "@platforms//os:windows": ["lib_b.lib"],
         "//conditions:default": ["liblib_b.a"],
     }),
 )

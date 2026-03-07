@@ -4,7 +4,7 @@ load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 cmake(
     name = "cmake_with_data",
     cache_entries = select({
-        "@bazel_tools//src/conditions:windows": {
+        "@platforms//os:windows": {
             "CMAKE_BUILD_TYPE": "Release",
             "CMAKE_CXX_FLAGS": "/MD",
             "CMAKE_CXX_FLAGS_DEBUG": "/MD",
@@ -16,7 +16,7 @@ cmake(
         "//cmake_with_data/lib_b",
     ],
     generate_args = select({
-        "@bazel_tools//src/conditions:windows": [
+        "@platforms//os:windows": [
             "-G \"Visual Studio 15 2017\"",
             "-A x64",
         ],
@@ -24,7 +24,7 @@ cmake(
     }),
     lib_source = "//cmake_with_data/lib_a:srcs",
     out_static_libs = select({
-        "@bazel_tools//src/conditions:windows": ["lib_a.lib"],
+        "@platforms//os:windows": ["lib_a.lib"],
         "//conditions:default": ["lib_a.a"],
     }),
 )
