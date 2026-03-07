@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-- clang
+- a working c++ toolchain
 - bazel
 
 ## Executing the Example
