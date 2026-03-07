@@ -49,8 +49,8 @@ def runnable_binary(name, binary, foreign_cc_target, match_binary_name = False, 
     )
 
     wrapper_cmd = """
-    sed s@EXECUTABLE@$(rlocationpath {name})@g $(location @rules_foreign_cc//foreign_cc/private:runnable_binary_wrapper.sh) > tmp
-    cp tmp $@
+    sed s@EXECUTABLE@$(rlocationpath {name})@g $(location @rules_foreign_cc//foreign_cc/private:runnable_binary_wrapper.sh) | tee tmp_$$$$ > /dev/null
+    cp tmp_$$$$ $@
     """
 
     fg_label = full_label(name + "_fg")
