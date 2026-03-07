@@ -14,6 +14,9 @@ def pwd():
 def echo(text):
     return "echo {text}".format(text = text)
 
+def export_ld_library_path_var():
+    return ""
+
 def export_var(name, value):
     return "{name}={value}; export {name}".format(name = name, value = value)
 
@@ -232,6 +235,9 @@ export MSYS2_ARG_CONV_EXCL="*"
 export SYSTEMDRIVE="C:"
 """
 
+def increment_ld_library_path(_source):
+    return ""
+
 def increment_pkg_config_path(_source):
     text = """\
 local children=$($REAL_FIND "$1" -mindepth 1 -name '*.pc')
@@ -328,8 +334,10 @@ commands = struct(
     echo = echo,
     enable_tracing = enable_tracing,
     env = env,
+    export_ld_library_path_var = export_ld_library_path_var,
     export_var = export_var,
     if_else = if_else,
+    increment_ld_library_path = increment_ld_library_path,
     increment_pkg_config_path = increment_pkg_config_path,
     local_var = local_var,
     mkdirs = mkdirs,
