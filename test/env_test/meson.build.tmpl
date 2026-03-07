@@ -1,0 +1,7 @@
+project('env_test')
+
+run_command('sh', '-c', 'rm -f "$SHELLVARS_FILE" && touch "$SHELLVARS_FILE"', check: true)
+
+{{VARIABLES}}
+
+run_command('sh', '-c', 'sed -i.bak -e "s|$INSTALLDIR|{{INSTALLDIR}}|g" -e "s|$EXT_BUILD_ROOT|{{EXT_BUILD_ROOT}}|g" "$SHELLVARS_FILE"', check: true)
