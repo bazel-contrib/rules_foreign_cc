@@ -12,7 +12,7 @@ def bison_repositories():
         strip_prefix = "bison-3.8.2",
         urls = [
             "https://mirror.bazel.build/ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz",
-            "https://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz",
+            "https://ftpmirror.gnu.org/gnu/bison/bison-3.8.2.tar.gz",
         ],
         sha256 = "",
     )
