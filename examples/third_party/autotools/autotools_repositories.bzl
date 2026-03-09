@@ -12,7 +12,7 @@ def autotools_repositories():
         strip_prefix = "m4-1.4.19",
         urls = [
             "https://mirror.bazel.build/ftp.gnu.org/gnu/m4/m4-1.4.19.tar.xz",
-            "https://ftp.gnu.org/gnu/m4/m4-1.4.19.tar.xz",
+            "https://ftpmirror.gnu.org/gnu/m4/m4-1.4.19.tar.xz",
         ],
         sha256 = "63aede5c6d33b6d9b13511cd0be2cac046f2e70fd0a07aa9573a04a82783af96",
     )
@@ -24,7 +24,7 @@ def autotools_repositories():
         strip_prefix = "autoconf-2.71",
         urls = [
             "https://mirror.bazel.build/ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz",
-            "https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz",
+            "https://ftpmirror.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz",
         ],
         sha256 = "431075ad0bf529ef13cb41e9042c542381103e80015686222b8a9d4abef42a1c",
     )
@@ -36,7 +36,7 @@ def autotools_repositories():
         strip_prefix = "automake-1.16.4",
         urls = [
             "https://mirror.bazel.build/ftp.gnu.org/gnu/automake/automake-1.16.4.tar.gz",
-            "https://ftp.gnu.org/gnu/automake/automake-1.16.4.tar.gz",
+            "https://ftpmirror.gnu.org/gnu/automake/automake-1.16.4.tar.gz",
         ],
         sha256 = "8a0f0be7aaae2efa3a68482af28e5872d8830b9813a6a932a2571eac63ca1794",
     )
