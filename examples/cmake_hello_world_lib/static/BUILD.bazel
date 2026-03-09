@@ -15,7 +15,7 @@ filegroup(
 cmake(
     name = "libhello",
     generate_args = select({
-        "//:windows": [
+        "@platforms//os:windows": [
             "-G \"Visual Studio 15 2017\"",
             "-A x64",
         ],
@@ -51,7 +51,7 @@ cmake(
     # pass include/version123 to C/C++ provider as include directory
     out_include_dir = "include/version123",
     out_static_libs = select({
-        "//:windows": ["libhello.lib"],
+        "@platforms//os:windows": ["libhello.lib"],
         "//conditions:default": ["libhello.a"],
     }),
 )
@@ -120,7 +120,7 @@ cmake(
     out_include_dir = "include",
     # the name of the static library != <name>.a, put it explicitly
     out_static_libs = select({
-        "//:windows": ["libhello.lib"],
+        "@platforms//os:windows": ["libhello.lib"],
         "//conditions:default": ["libhello.a"],
     }),
 )
