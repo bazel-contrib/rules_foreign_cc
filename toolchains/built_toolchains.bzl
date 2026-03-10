@@ -217,6 +217,19 @@ def _meson_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_meson_toolchain",
         )
+    if version == "1.10.1":
+        maybe(
+            http_archive,
+            name = "meson_src",
+            build_file_content = _MESON_BUILD_FILE_CONTENT,
+            sha256 = "c42296f12db316a4515b9375a5df330f2e751ccdd4f608430d41d7d6210e4317",
+            strip_prefix = "meson-1.10.1",
+            urls = [
+                "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/1.10.1/meson-1.10.1.tar.gz",
+                "https://github.com/mesonbuild/meson/releases/download/1.10.1/meson-1.10.1.tar.gz",
+            ],
+        )
+        return
     if version == "1.5.1":
         maybe(
             http_archive,

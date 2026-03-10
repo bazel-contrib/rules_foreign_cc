@@ -1,7 +1,8 @@
 # example code is taken from https://github.com/Akagi201/learning-cmake/tree/master/hello-world-lib
 # for test only
 
-load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 filegroup(
@@ -19,12 +20,12 @@ cmake(
     },
     lib_source = ":srcs",
     out_interface_libs = select({
-        "//:windows": ["libhello.lib"],
+        "@platforms//os:windows": ["libhello.lib"],
         "//conditions:default": [],
     }),
     out_shared_libs = select({
-        "//:macos": ["libhello.dylib"],
-        "//:windows": ["libhello.dll"],
+        "@platforms//os:macos": ["libhello.dylib"],
+        "@platforms//os:windows": ["libhello.dll"],
         "//conditions:default": ["libhello.so"],
     }),
 )
@@ -32,5 +33,27 @@ cmake(
 cc_test(
     name = "test_libhello",
     srcs = ["hello_client.c"],
+    # On windows, dlls need to be copied to the binary directory to run, and
+    # --features=copy_dynamic_libraries_to_binary is broken:
+    # https://github.com/bazelbuild/rules_cc/pull/623
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [":libhello"],
+)
+
+# TODO: This test primarily serves to try to replace the above test on windows;
+# once the above bug is fixed, feel free to delete.
+cc_binary(
+    name = "binary_libhello",
+    srcs = ["hello_client.c"],
+    deps = [":libhello"],
+)
+
+build_test(
+    name = "libhello_just_build",
+    targets = [
+        ":binary_libhello",
+    ],
 )
