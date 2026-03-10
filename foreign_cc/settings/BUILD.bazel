@@ -1,0 +1,3 @@
+load("//foreign_cc/private:resource_sets.bzl", _create_settings = "create_settings")
+
+_create_settings()
