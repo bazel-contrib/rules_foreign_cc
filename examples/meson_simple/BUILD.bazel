@@ -10,17 +10,6 @@ SIZES = [
 [
     meson(
         name = "meson_lib_" + size,
-        build_data = ["//meson_simple/code:clang_wrapper.sh"],
-        env = select({
-            "@platforms//os:windows": {
-                "CLANG_WRAPPER": "$(execpath //meson_simple/code:clang_wrapper.sh)",
-                "CXX_FLAGS": "/MD",
-            },
-            "//conditions:default": {
-                "CLANG_WRAPPER": "$(execpath //meson_simple/code:clang_wrapper.sh)",
-                "CXX_FLAGS": "-fPIC",
-            },
-        }),
         lib_source = "//meson_simple/code:srcs",
         out_static_libs = ["liba.a"],
         resource_size = size,

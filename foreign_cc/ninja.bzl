@@ -1,6 +1,12 @@
 """A rule for building projects using the [Ninja](https://ninja-build.org/) build tool"""
 
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
+load(
+    "//foreign_cc/private:cc_toolchain_util.bzl",
+    "get_flags_info",
+    "get_tools_info",
+)
 load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",
@@ -13,6 +19,7 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load("//foreign_cc/private:ninja_script.bzl", "create_ninja_script")
 load("//toolchains/native_tools:tool_access.bzl", "get_ninja_data")
 
 def _ninja_impl(ctx):
@@ -48,11 +55,12 @@ def _create_ninja_script(configureParameters):
     """
     ctx = configureParameters.ctx
     attrs = configureParameters.attrs
-
-    script = []
+    inputs = configureParameters.inputs
 
     root = detect_root(ctx.attr.lib_source)
-    script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$ False".format(root))
+
+    tools = get_tools_info(ctx)
+    flags = get_flags_info(ctx)
 
     data = ctx.attr.data + ctx.attr.build_data
 
@@ -67,22 +75,28 @@ def _create_ninja_script(configureParameters):
     if ctx.attr.directory:
         directory = ctx.expand_location(ctx.attr.directory, data)
 
+    user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data)
+
     prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
 
-    # Generate commands for all the targets, ensuring there's
-    # always at least 1 call to the default target.
-    for target in ctx.attr.targets or [""]:
-        # Note that even though directory is always passed, the
-        # following arguments can take precedence.
-        script.append("{prefix}{ninja} -C {dir} {args} {target}".format(
-            prefix = prefix,
-            ninja = attrs.ninja_path,
-            dir = directory,
-            args = args,
-            target = target,
-        ))
+    cc_toolchain = find_cpp_toolchain(ctx)
+    is_msvc = cc_toolchain.compiler == "msvc-cl"
 
-    return script
+    return create_ninja_script(
+        workspace_name = ctx.workspace_name,
+        tools = tools,
+        flags = flags,
+        root = root,
+        deps = ctx.attr.deps,
+        inputs = inputs,
+        env_vars = user_env,
+        ninja_prefix = prefix,
+        ninja_path = attrs.ninja_path,
+        ninja_targets = ctx.attr.targets or [""],
+        ninja_args = args,
+        ninja_directory = directory,
+        is_msvc = is_msvc,
+    )
 
 def _attrs():
     """Modifies the common set of attributes used by rules_foreign_cc and sets Ninja specific attrs

@@ -1,5 +1,3 @@
-exports_files(["cxx_wrapper.sh"])
-
 filegroup(
     name = "srcs",
     srcs = [
