@@ -33,7 +33,7 @@ def get_make_env_vars(
         vars["CPPFLAGS"] = deps_flags.flags
 
     return " ".join(["{}=\"{}\""
-        .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
+        .format(key, join_flags_list(workspace_name, vars[key])) for key in vars])
 
 # buildifier: disable=function-docstring
 def get_ldflags_make_vars(
@@ -52,7 +52,7 @@ def get_ldflags_make_vars(
         vars[key] = vars[key] + deps_flags.libs
 
     return " ".join(["{}=\"{}\""
-        .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
+        .format(key, join_flags_list(workspace_name, vars[key])) for key in vars])
 
 def _define_deps_flags(deps, inputs, is_msvc):
     # It is very important to keep the order for the linker => put them into list
@@ -190,7 +190,7 @@ def _merge_env_vars(flags, make_flags, user_env_vars):
 def _absolutize(workspace_name, text, force = False):
     return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
 
-def _join_flags_list(workspace_name, flags):
+def join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
 
 def _nmake_in_make_commands(make_commands):
