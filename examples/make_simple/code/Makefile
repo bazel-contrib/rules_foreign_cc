@@ -1,6 +1,8 @@
 BUILD_DIR := build-out
 
-default all $(BUILD_DIR)/lib/liba.a: liba.cpp liba.h
+all: $(BUILD_DIR)/lib/liba.a
+
+$(BUILD_DIR)/lib/liba.a: liba.cpp liba.h
 	rm -rf $(BUILD_DIR)/lib
 	mkdir -p $(BUILD_DIR)/lib
 	bash $(CC_WRAPPER) compile liba.cpp $(BUILD_DIR)/lib/liba.o
@@ -14,4 +16,11 @@ install: $(BUILD_DIR)/lib/liba.a
 	cp -p liba.h $(PREFIX)/include
 	cp $(README_DIR)/README.md $(PREFIX)/share/
 
-.PHONY: clean test
+clean:
+	rm -rf $(BUILD_DIR)
+
+.PHONY: clean
+
+test: all
+
+.PHONY: test

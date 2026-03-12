@@ -1,4 +1,3 @@
----
 validate_config: 1
 
 matrix:
@@ -16,16 +15,16 @@ matrix:
     # 9.x: 9.0.1
 
   bzlmod:
-    bzlmod: ["--enable_bzlmod", "--noenable_workspace"]
-    workspaces: ["--noenable_bzlmod", "--enable_workspace"]
-    mixed: ["--enable_bzlmod", "--enable_workspace"]
+    bzlmod: [--enable_bzlmod, --noenable_workspace]
+    workspaces: [--noenable_bzlmod, --enable_workspace]
+    mixed: [--enable_bzlmod, --enable_workspace]
 
   spawn_strategy:
-    default: "--config=spawn-default"
-    standalone: "--config=spawn-standalone"
+    default: --config=spawn-default
+    standalone: --config=spawn-standalone
 
   primary:
-    Main: ""
+    Main: ''
     Examples: examples
 
   mini:
@@ -55,25 +54,24 @@ matrix:
     - primary: Examples
       bzlmod: bzlmod
 
-
 # Note: we're not using the default_flags idiom because the matrix expander
 # currently can't handle expanding dict keys
 .default_task: &default_task
   platform: ${{ platform }}
   bazel: ${{ bazel_version }}
   build_targets:
-    - "//..."
+    - //...
   test_targets:
-    - "//..."
+    - //...
 
 tasks:
   primary:
     <<: *default_task
-    name: "{primary}/{bazel_version}/{bzlmod}/{spawn_strategy}"
+    name: '{primary}/{bazel_version}/{bzlmod}/{spawn_strategy}'
     working_directory: ${{ primary }}
 
     build_flags: &primary_flags
-      - "--config=ci"
+      - --config=ci
       - ${{ bzlmod }}
       - ${{ spawn_strategy }}
 
@@ -81,11 +79,11 @@ tasks:
 
   mini:
     <<: *default_task
-    name: "{mini}/{bazel_version}/{bzlmod}"
+    name: '{mini}/{bazel_version}/{bzlmod}'
     working_directory: ${{ mini }}
 
     build_flags: &mini_flags
-      - "--config=ci"
+      - --config=ci
       - ${{ bzlmod }}
 
     test_flags: *mini_flags
@@ -97,9 +95,9 @@ tasks:
     build_targets:
       - //...
     build_flags:
-      - "--config=ci"
+      - --config=ci
 
 buildifier:
-  version: "8.2.1"
+  version: 8.2.1
   # keep this argument in sync with .pre-commit-config.yaml
-  warnings: "all"
+  warnings: all
