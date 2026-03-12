@@ -16,4 +16,11 @@ install: $(OUTPUT)
 	cp $(OUTPUT) ./simple/lib/$(OUTPUT)
 	cp -r ./include ./simple
 
-.PHONY: clean test
+clean:
+	rm -rf simple
+
+.PHONY: clean
+
+test: all
+
+.PHONY: test
