@@ -13,13 +13,13 @@ use_repo(
 )
 
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_rust", version = "0.56.0")
+bazel_dep(name = "rules_rust", version = "0.69.0")
 bazel_dep(name = "rules_swift", version = "1.17.0", repo_name = "build_bazel_rules_swift")
 bazel_dep(name = "rules_apple", version = "3.4.0", repo_name = "build_bazel_rules_apple")
-bazel_dep(name = "apple_support", version = "1.17.1", repo_name = "build_bazel_apple_support")
+bazel_dep(name = "apple_support", version = "1.24.5", repo_name = "build_bazel_apple_support")
 bazel_dep(name = "rules_python", version = "1.2.0")
-bazel_dep(name = "rules_cc", version = "0.1.5")
-bazel_dep(name = "rules_shell", version = "0.5.0")
+bazel_dep(name = "rules_cc", version = "0.2.13")
+bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "rules_perl", version = "0.2.5")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
@@ -67,5 +67,5 @@ use_repo(
     "rust_example",
 )
 
-bazel_dep(name = "bazel_skylib", version = "1.8.1")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "bazel_lib", version = "3.2.0")

@@ -5,4 +5,4 @@ local_path_override(
 )
 
 # bazel_ci_deps requires these, and fails to declare them
-bazel_dep(name = "rules_cc", version = "0.1.5", dev_dependency = True)
+bazel_dep(name = "rules_cc", version = "0.2.13", dev_dependency = True)
