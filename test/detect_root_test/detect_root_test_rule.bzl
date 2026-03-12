@@ -3,12 +3,14 @@
 # buildifier: disable=bzl-visibility
 load("@rules_foreign_cc//foreign_cc/private:detect_root.bzl", "detect_root")
 
+BZLMOD_ENABLED = "@@" in str(Label("//:unused"))
+
 def _impl(ctx):
     detected_root = detect_root(ctx.attr.srcs)
     out = ctx.actions.declare_file(ctx.attr.out)
     ctx.actions.write(
         output = out,
-        content = detected_root,
+        content = detected_root + "\n",
     )
     return [DefaultInfo(files = depset([out]))]
 

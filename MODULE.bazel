@@ -17,7 +17,6 @@ bazel_dep(name = "bazel_lib", version = "3.2.0")
 # Dev dependencies
 bazel_dep(name = "gazelle", version = "0.41.0", dev_dependency = True, repo_name = "bazel_gazelle")
 bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.7.1", dev_dependency = True)
-bazel_dep(name = "bazel_ci_rules", version = "1.0.0", dev_dependency = True)
 
 # Note: 1.13 requires nodeps bzlmod deps, which requires bazel 7.6.0
 bazel_dep(name = "aspect_rules_lint", version = "1.12.0", dev_dependency = True)
