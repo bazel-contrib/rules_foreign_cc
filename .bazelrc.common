@@ -34,3 +34,12 @@ common:spawn-default --config=noop
 common:bzlmod-yes --noenable_workspace --enable_bzlmod
 common:bzlmod-no --enable_workspace --noenable_bzlmod
 common:bzlmod-mixed --enable_workspace --enable_bzlmod
+
+# Because we support both bzlmod and not right now, it's important that the
+# actual dependencies we use stay in sync, and this means erroring when the
+# root module doesn't get what it wants.
+common:ci --check_direct_dependencies=error
+
+# When the lockfile falls out of sync, it can crash bazel, so don't let it fall
+# out of sync
+common:ci --lockfile_mode=error

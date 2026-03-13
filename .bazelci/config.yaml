@@ -50,10 +50,6 @@ matrix:
     - platform: rbe_ubuntu2204
       bzlmod: bzlmod
 
-    # XXX Examples dir doesn't work without workspaces
-    - primary: Examples
-      bzlmod: bzlmod
-
 # Note: we're not using the default_flags idiom because the matrix expander
 # currently can't handle expanding dict keys
 .default_task: &default_task
