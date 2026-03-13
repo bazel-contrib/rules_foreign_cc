@@ -5,14 +5,18 @@ load("//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies(register_built_pkgconfig_toolchain = True)
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
+
+compatibility_proxy_repo()
+
 local_repository(
     name = "rules_foreign_cc_examples",
     path = "examples",
 )
-
-load("@bazel_features//:deps.bzl", "bazel_features_deps")
-
-bazel_features_deps()
 
 load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
 

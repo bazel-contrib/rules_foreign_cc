@@ -9,6 +9,14 @@ load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_depende
 
 rules_foreign_cc_dependencies(register_built_pkgconfig_toolchain = True)
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
+
+compatibility_proxy_repo()
+
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
@@ -72,8 +80,8 @@ rbe_preconfig(
 
 http_archive(
     name = "build_bazel_apple_support",
-    sha256 = "100d12617a84ebc7ee7a10ecf3b3e2fdadaebc167ad93a21f820a6cb60158ead",
-    url = "https://github.com/bazelbuild/apple_support/releases/download/1.12.0/apple_support.1.12.0.tar.gz",
+    sha256 = "1ae6fcf983cff3edab717636f91ad0efff2e5ba75607fdddddfd6ad0dbdfaf10",
+    url = "https://github.com/bazelbuild/apple_support/releases/download/1.24.5/apple_support.1.24.5.tar.gz",
 )
 
 http_archive(
@@ -110,13 +118,10 @@ load(
 
 apple_support_dependencies()
 
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-
-maybe(
-    http_archive,
+http_archive(
     name = "rules_rust",
-    integrity = "sha256-8TBqrAsli3kN8BrZq8arsN8LZUFsdLTvJ/Sqsph4CmQ=",
-    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.56.0/rules_rust-0.56.0.tar.gz"],
+    integrity = "sha256-u8dkwlLQYSgbI1knek1GSA4tz69yr8HObgCtpYzL/Uw=",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.69.0/rules_rust-0.69.0.tar.gz"],
 )
 
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
