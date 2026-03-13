@@ -60,8 +60,26 @@ repos:
     rev: v1.38.0
     hooks:
       - id: yamllint
+        args: [-c, .yamllint.yml]
 
   - repo: https://github.com/google/yamlfmt
     rev: v0.21.0
     hooks:
       - id: yamlfmt
+
+  - repo: https://github.com/psf/black
+    rev: 26.3.1
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pycqa/isort
+    rev: 8.0.1
+    hooks:
+      - id: isort
+        args: [--profile, black, --filter-files]
+
+  - repo: https://github.com/cpp-linter/cpp-linter-hooks
+    rev: v1.1.13
+    hooks:
+      - id: clang-format
+        args: [--style=file, --version=21]
