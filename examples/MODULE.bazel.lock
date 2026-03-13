@@ -559,7 +559,7 @@
         "bzlTransitiveDigest": "gHOJoj3XQwmvZSuRy31ElIWKhIT4Mgn4zSt4kRj32o4=",
         "usagesDigest": "2fuUa2+p8B1tK3iL7qvsZx/w/Ls++Sej5T1CEx2bKm8=",
         "recordedFileInputs": {
-          "@@//MODULE.bazel": "ba22ec080d5802e9ff37093c0731364ce952ede13bae776dc0ff422149deeaf4",
+          "@@//MODULE.bazel": "1a2823ea677683acaa7960ad26fbf558bb477e436de51c4b78a84fc8b1ddacb7",
           "@@rules_rust~~rust_host_tools~rust_host_tools//rust_host_tools": "ENOENT"
         },
         "recordedDirentsInputs": {},

@@ -4,6 +4,8 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 def openssl_repositories():
+    """Create external repositories needed by the OpenSSL example."""
+
     maybe(
         http_archive,
         name = "openssl",
@@ -26,15 +28,5 @@ def openssl_repositories():
         urls = [
             "https://mirror.bazel.build/www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-win64.zip",
             "https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-win64.zip",
-        ],
-    )
-
-    maybe(
-        http_archive,
-        name = "rules_perl",
-        integrity = "sha256-2Z/JEFL8OWBRlck3voAdj0spjBtukSqADwvR9xd0WVk=",
-        strip_prefix = "",
-        urls = [
-            "https://github.com/bazel-contrib/rules_perl/releases/download/1.0.0/rules_perl-1.0.0.tar.gz",
         ],
     )

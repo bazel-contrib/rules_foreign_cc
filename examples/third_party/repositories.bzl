@@ -25,7 +25,7 @@ load("//zlib:zlib_repositories.bzl", "zlib_repositories")
 
 # buildifier: disable=unnamed-macro
 def repositories():
-    """Load all repositories needed for the targets of rules_foreign_cc_examples_third_party"""
+    """Load all repositories needed for third_party example targets."""
     apr_repositories()
     apr_util_repositories()
     autotools_repositories()

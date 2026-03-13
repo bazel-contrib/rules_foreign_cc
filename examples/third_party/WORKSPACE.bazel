@@ -1,5 +1,13 @@
 workspace(name = "rules_foreign_cc_examples_third_party")
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "bazel_skylib",
+    integrity = "sha256-bnjw5X3iaAH29WT6fEpI3Is2hz5BYlepK7sJN+6shEY=",
+    url = "https://github.com/bazelbuild/bazel-skylib/releases/download/1.8.2/bazel-skylib-1.8.2.tar.gz",
+)
+
 local_repository(
     name = "rules_foreign_cc",
     path = "../..",
@@ -17,15 +25,71 @@ load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
 
 compatibility_proxy_repo()
 
+load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
+
+py_repositories()
+
+python_register_toolchains(
+    name = "python_3_10",
+    python_version = "3.10",
+)
+
+load("@rules_python//python:pip.bzl", "pip_parse")
+
+pip_parse(
+    name = "third_party_pip",
+    python_interpreter_target = "@python_3_10_host//:python",
+    requirements_lock = "//:requirements_lock.txt",
+)
+
+http_archive(
+    name = "build_bazel_apple_support",
+    sha256 = "1ae6fcf983cff3edab717636f91ad0efff2e5ba75607fdddddfd6ad0dbdfaf10",
+    url = "https://github.com/bazelbuild/apple_support/releases/download/1.24.5/apple_support.1.24.5.tar.gz",
+)
+
+http_archive(
+    name = "build_bazel_rules_apple",
+    sha256 = "ed432a2d5929452748bd53a4ff9e652f2332283eb3d7ffad6cb63aab96a06301",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/3.4.0/rules_apple.3.4.0.tar.gz",
+)
+
+load("@build_bazel_rules_apple//apple:repositories.bzl", "apple_rules_dependencies")
+
+apple_rules_dependencies()
+
+load("@build_bazel_rules_swift//swift:repositories.bzl", "swift_rules_dependencies")
+
+swift_rules_dependencies()
+
+load("@build_bazel_rules_swift//swift:extras.bzl", "swift_rules_extra_dependencies")
+
+swift_rules_extra_dependencies()
+
+load("@build_bazel_apple_support//lib:repositories.bzl", "apple_support_dependencies")
+
+apple_support_dependencies()
+
 local_repository(
     name = "rules_foreign_cc_examples",
     path = "..",
+)
+
+http_archive(
+    name = "rules_perl",
+    integrity = "sha256-2Z/JEFL8OWBRlck3voAdj0spjBtukSqADwvR9xd0WVk=",
+    strip_prefix = "",
+    urls = [
+        "https://github.com/bazel-contrib/rules_perl/releases/download/1.0.0/rules_perl-1.0.0.tar.gz",
+    ],
 )
 
 load("//:repositories.bzl", "repositories")
 
 repositories()
 
-load("//:setup.bzl", "setup")
+load("@rules_perl//perl:deps.bzl", "perl_register_toolchains", "perl_rules_dependencies")
 
-setup()
+perl_rules_dependencies()
+
+perl_register_toolchains()
