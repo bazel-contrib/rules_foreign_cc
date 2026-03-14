@@ -1,0 +1,46 @@
+load("@bazel_lib//lib:diff_test.bzl", "diff_test")
+load("@pip//:requirements.bzl", "requirement")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson_with_requirements")
+
+meson_with_requirements(
+    name = "hello",
+    lib_source = "//meson_with_requirements/code:srcs",
+    out_data_files = [
+        "hello_prog_python.txt",
+        "hello_runpython.txt",
+    ],
+    out_include_dir = "",
+    requirements = [
+        requirement("mako"),
+    ],
+    target_args = {
+        "setup": [
+            "-Dexpected_python_version=3.10",
+        ],
+    },
+    toolchains = ["@rules_python//python:current_py_toolchain"],
+)
+
+filegroup(
+    name = "hello_prog_python_actual",
+    srcs = [":hello"],
+    output_group = "hello_prog_python.txt",
+)
+
+filegroup(
+    name = "hello_runpython_actual",
+    srcs = [":hello"],
+    output_group = "hello_runpython.txt",
+)
+
+diff_test(
+    name = "test_hello_prog_python",
+    file1 = "hello_expected.txt",
+    file2 = ":hello_prog_python_actual",
+)
+
+diff_test(
+    name = "test_hello_runpython",
+    file1 = "hello_expected.txt",
+    file2 = ":hello_runpython_actual",
+)
