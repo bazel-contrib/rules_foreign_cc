@@ -20,7 +20,7 @@ bazel_dep(name = "apple_support", version = "1.24.5", repo_name = "build_bazel_a
 bazel_dep(name = "rules_python", version = "1.9.0")
 bazel_dep(name = "rules_cc", version = "0.2.13")
 bazel_dep(name = "rules_shell", version = "0.6.1")
-bazel_dep(name = "rules_perl", version = "0.2.5")
+bazel_dep(name = "rules_perl", version = "1.0.0")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
