@@ -27,9 +27,7 @@ def detect_xcompile(ctx):
     )
 
     if host_triplet == "unknown":
-        # buildifier: disable=print
-        print("host is unknown; please update foreign_cc/private/framework/platform.bzl; triggered by", ctx.label)
-        return None
+        fail("host is unknown; please update foreign_cc/private/framework/platform.bzl; triggered by", ctx.label)
 
     target_triplet = triplet_name(
         target_os_name(ctx),
@@ -37,9 +35,7 @@ def detect_xcompile(ctx):
     )
 
     if target_triplet == "unknown":
-        # buildifier: disable=print
-        print("target is unknown; please update foreign_cc/private/framework/platform.bzl; triggered by", ctx.label)
-        return None
+        fail("target is unknown; please update foreign_cc/private/framework/platform.bzl; triggered by", ctx.label)
 
     if target_triplet == host_triplet:
         return None
