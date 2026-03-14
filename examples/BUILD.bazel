@@ -6,25 +6,25 @@ exports_files([
 
 test_suite(
     name = "third_party_examples_linux_tests",
-    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:linux"],
     tests = ["@rules_foreign_cc_examples_third_party//:linux_tests"],
 )
 
 test_suite(
     name = "third_party_examples_linux_rbe_tests",
-    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:linux"],
     tests = ["@rules_foreign_cc_examples_third_party//:linux_rbe_tests"],
 )
 
 test_suite(
     name = "third_party_examples_macos_tests",
-    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:macos"],
     tests = ["@rules_foreign_cc_examples_third_party//:macos_tests"],
 )
 
 test_suite(
     name = "third_party_examples_windows_tests",
-    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:windows"],
     tests = ["@rules_foreign_cc_examples_third_party//:windows_tests"],
 )
 
