@@ -22,4 +22,4 @@ void foo() { STATIC_ASSERT(__TIME__[0] == 'r', time_must_be_redacted); }
 #endif
 
 // Should return "redacted"
-const char *getBuildTime(void) { return __TIME__; }
+const char* getBuildTime(void) { return __TIME__; }

@@ -26,10 +26,10 @@
 int width, height;
 png_byte color_type;
 png_byte bit_depth;
-png_bytep *row_pointers;
+png_bytep* row_pointers;
 
-void read_png_file(char *filename) {
-    FILE *fp = fopen(filename, "rb");
+void read_png_file(char* filename) {
+    FILE* fp = fopen(filename, "rb");
 
     png_structp png =
         png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
@@ -79,9 +79,9 @@ void read_png_file(char *filename) {
 
     png_read_update_info(png, info);
 
-    row_pointers = (png_bytep *)malloc(sizeof(png_bytep) * height);
+    row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
     for (int y = 0; y < height; y++) {
-        row_pointers[y] = (png_byte *)malloc(png_get_rowbytes(png, info));
+        row_pointers[y] = (png_byte*)malloc(png_get_rowbytes(png, info));
     }
 
     png_read_image(png, row_pointers);
@@ -89,8 +89,8 @@ void read_png_file(char *filename) {
     fclose(fp);
 }
 
-void write_png_file(char *filename) {
-    FILE *fp = fopen(filename, "wb");
+void write_png_file(char* filename) {
+    FILE* fp = fopen(filename, "wb");
     if (!fp) abort();
 
     png_structp png =
@@ -138,7 +138,7 @@ void process_png_file() {
     }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     if (argc != 3) {
         abort();
     }
