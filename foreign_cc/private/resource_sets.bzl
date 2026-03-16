@@ -188,6 +188,14 @@ def inject_make_parallelism_args(attr, make_path, args):
 
     GNUMAKEFLAGS is only honored by GNU Make 4.2+; the command-line -j flag works on all
     GNU Make versions. We do not set MAKEFLAGS because nmake reads it and rejects -j.
+
+    Args:
+        attr: the ctx.attr associated with the target
+        make_path: path to the make binary; skipped if it contains "nmake"
+        args: existing argument string to prepend -j to
+
+    Returns:
+        The args string, possibly prefixed with -j<N>.
     """
     _, cpu, _ = get_resource_set(attr)
     if cpu > 0 and "nmake" not in make_path:
