@@ -183,6 +183,17 @@ def get_resource_set(attr):
 
     return resource_set, actual_cpu, actual_mem
 
+def inject_make_parallelism_args(attr, make_path, args):
+    """Prepend -j<N> to make args when resource_size requests parallelism and make is not nmake.
+
+    GNUMAKEFLAGS is only honored by GNU Make 4.2+; the command-line -j flag works on all
+    GNU Make versions. We do not set MAKEFLAGS because nmake reads it and rejects -j.
+    """
+    _, cpu, _ = get_resource_set(attr)
+    if cpu > 0 and "nmake" not in make_path:
+        return ("-j%d " % cpu) + args
+    return args
+
 def get_resource_env_vars(attr):
     """ get the values of env vars controlling parallelism
 
@@ -207,11 +218,8 @@ def get_resource_env_vars(attr):
         env = {
             "CMAKE_BUILD_PARALLEL_LEVEL": sc,
 
-            # we set GNUMAKEFLAGS instead of MAKEFLAGS because nmake sees
-            # MAKEFLAGS but doesn't accept a -j argument, and we don't have a
-            # good way of being sure that nmake isn't going to be used as part
-            # of a build.
-            "GNUMAKEFLAGS": "-j" + sc,
+            # Make parallelism is set via -j on the command line in inject_make_parallelism_args();
+            # we do not set GNUMAKEFLAGS/MAKEFLAGS here to avoid a no-op env var on GNU Make 3.x.
 
             # Meson starts to honor this as of 1.7.0; before that, it only uses
             # ninja's parallelization controls.
