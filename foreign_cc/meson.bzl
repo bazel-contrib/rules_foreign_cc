@@ -281,9 +281,13 @@ def meson_with_requirements(name, requirements, **kwargs):
 
     native_tool_toolchain(
         name = "built_meson_for_{}".format(name),
-        env = {"MESON": "$(execpath :meson_tool_for_{})".format(name)},
+        env = {
+            "MESON": "$(execpath :meson_tool_for_{})".format(name),
+            "REAL_MESON": "$(rlocationpath @meson_src//:meson.py)",
+        },
         path = "$(execpath :meson_tool_for_{})".format(name),
         target = ":meson_tool_for_{}".format(name),
+        tools = ["@meson_src//:meson.py"],
     )
 
     native.toolchain(

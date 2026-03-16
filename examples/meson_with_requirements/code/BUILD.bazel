@@ -1,0 +1,10 @@
+filegroup(
+    name = "srcs",
+    srcs = [
+        "hello.txt.mako",
+        "meson.build",
+        "meson_options.txt",
+        "render.py",
+    ],
+    visibility = ["//meson_with_requirements:__subpackages__"],
+)

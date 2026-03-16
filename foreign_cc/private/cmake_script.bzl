@@ -121,25 +121,21 @@ def create_cmake_script(
     # cache, and CMAKE_SYSTEM_PROCESSOR is ignored unless CMAKE_SYSTEM_NAME is
     # also set.
     if target_os == "unknown":
-        # buildifier: disable=print
-        print("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+        fail("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
     elif target_arch == "unknown":
-        # buildifier: disable=print
-        print("target_arch is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+        fail("target_arch is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
     elif target_os != host_os or target_arch != host_arch:
         # if we don't have a value here, it will end up attempting a native
         # compile, even if that's not right, so emit a warning
         if target_os in _TARGET_OS_PARAMS:
             toolchain_dict.update(_TARGET_OS_PARAMS[target_os])
         else:
-            # buildifier: disable=print
-            print("target_os", target_os, "is not in _TARGET_OS_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+            fail("target_os", target_os, "is not in _TARGET_OS_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
 
         if target_arch in _TARGET_ARCH_PARAMS:
             toolchain_dict.update(_TARGET_ARCH_PARAMS[target_arch])
         else:
-            # buildifier: disable=print
-            print("target_arch", target_arch, "is not in _TARGET_ARCH_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+            fail("target_arch", target_arch, "is not in _TARGET_ARCH_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
 
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
 

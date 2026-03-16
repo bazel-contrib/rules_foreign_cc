@@ -25,8 +25,8 @@
 
 using namespace std;
 
-const char *getvar(const char *name) {
-    const char *val = getenv(name);
+const char* getvar(const char* name) {
+    const char* val = getenv(name);
     if (!val) {
         cerr << name << " must be set" << endl;
         exit(WRAPPER_ERROR);
@@ -34,7 +34,7 @@ const char *getvar(const char *name) {
     return val;
 }
 
-string JoinPath(const string &root, const string &path) {
+string JoinPath(const string& root, const string& path) {
 #ifdef _WIN32
     const char separator = '\\';
 #else
@@ -43,7 +43,7 @@ string JoinPath(const string &root, const string &path) {
     return root + separator + path;
 }
 
-bool IsAbsolutePath(const string &path) {
+bool IsAbsolutePath(const string& path) {
     if (path.empty()) {
         return false;
     }
@@ -66,13 +66,13 @@ bool IsAbsolutePath(const string &path) {
 }
 
 bool IsNinjaFromPath() {
-    const char *ninja_from_path = getenv("NINJA_FROM_PATH");
+    const char* ninja_from_path = getenv("NINJA_FROM_PATH");
     return ninja_from_path && strcmp(ninja_from_path, "1") == 0;
 }
 
-bool ParseNinjaJobs(const char *jobs_p, long *jobs_out) {
+bool ParseNinjaJobs(const char* jobs_p, long* jobs_out) {
     errno = 0;
-    char *end = nullptr;
+    char* end = nullptr;
     long parsed = strtol(jobs_p, &end, 10);
     if (errno || end == jobs_p || *end != '\0') {
         return false;
@@ -82,7 +82,7 @@ bool ParseNinjaJobs(const char *jobs_p, long *jobs_out) {
 }
 
 #ifdef _WIN32
-string QuoteWindowsArg(const string &arg) {
+string QuoteWindowsArg(const string& arg) {
     if (arg.find_first_of(" \t\n\v\"") == string::npos) {
         return arg;
     }
@@ -123,7 +123,7 @@ string GetWindowsErrorMessage(DWORD code) {
     return message;
 }
 
-int RunProcessWindows(const string &program, const vector<string> &args,
+int RunProcessWindows(const string& program, const vector<string>& args,
                       bool search_path) {
     string command_line;
     for (size_t i = 0; i < args.size(); ++i) {
@@ -177,7 +177,7 @@ int RunProcessWindows(const string &program, const vector<string> &args,
 }
 #endif
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     vector<string> args;
     args.reserve(static_cast<size_t>(argc));
     for (int i = 0; i < argc; ++i) {
@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
     }
     args[0] = ninja_path;
 
-    if (const char *jobs_p = getenv("NINJA_JOBS")) {
+    if (const char* jobs_p = getenv("NINJA_JOBS")) {
         long ninja_jobs = 0;
         if (!ParseNinjaJobs(jobs_p, &ninja_jobs)) {
             cerr << "failed to convert NINJA_JOBS to an integer: " << jobs_p
@@ -217,18 +217,18 @@ int main(int argc, char *argv[]) {
 #ifdef _WIN32
     return RunProcessWindows(ninja_path, args, ninja_from_path);
 #else
-    vector<const char *> exec_args;
+    vector<const char*> exec_args;
     exec_args.reserve(args.size() + 1);
-    for (string &arg : args) {
+    for (string& arg : args) {
         exec_args.push_back(arg.c_str());
     }
     exec_args.push_back(nullptr);
 
     int ret = 0;
     if (ninja_from_path) {
-        ret = execvp(exec_args[0], const_cast<char *const *>(exec_args.data()));
+        ret = execvp(exec_args[0], const_cast<char* const*>(exec_args.data()));
     } else {
-        ret = execv(exec_args[0], const_cast<char *const *>(exec_args.data()));
+        ret = execv(exec_args[0], const_cast<char* const*>(exec_args.data()));
     }
     if (ret < 0) {
         cerr << "failed to exec: " << strerror(errno) << endl;
