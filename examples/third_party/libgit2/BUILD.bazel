@@ -14,3 +14,7 @@ build_test(
     ],
     visibility = ["//:__pkg__"],
 )
+
+test_suite(
+    name = "all_tests",
+)

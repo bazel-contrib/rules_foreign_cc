@@ -63,3 +63,7 @@ sh_test(
     data = [":run-zlib-example"],
     visibility = ["//:__pkg__"],
 )
+
+test_suite(
+    name = "all_tests",
+)
