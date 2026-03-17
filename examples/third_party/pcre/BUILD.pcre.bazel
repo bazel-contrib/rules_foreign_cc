@@ -16,12 +16,15 @@ cmake(
     name = "pcre",
     cache_entries = {
         "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
+        "CMAKE_DISABLE_FIND_PACKAGE_BZip2": "TRUE",
+        "PCRE2_SUPPORT_LIBZ": "ON",
     },
     lib_source = ":all_srcs",
     out_static_libs = select({
         "@platforms//os:windows": ["pcre2-8.lib"],
         "//conditions:default": ["libpcre2-8.a"],
     }),
+    deps = ["@zlib"],
 )
 
 filegroup(

@@ -14,15 +14,17 @@ filegroup(
 configure_make(
     name = "bison",
     build_data = [
-        "@m4",
+        "@m4//:m4_exe",
     ],
     env = select({
         "@platforms//os:linux": {
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+            "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
         },
         "@platforms//os:macos": {
             "AR": "",
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+            "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
         },
         "//conditions:default": {},
     }),
@@ -38,6 +40,7 @@ configure_make(
         "@platforms//os:linux": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
+    toolchains = ["@rules_perl//:current_toolchain"],
 )
 
 filegroup(

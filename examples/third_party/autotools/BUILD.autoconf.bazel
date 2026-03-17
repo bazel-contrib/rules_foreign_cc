@@ -1,4 +1,5 @@
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+load("@rules_perl//perl:perl.bzl", "perl_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -10,29 +11,61 @@ filegroup(
     ),
 )
 
+AUTOCONF_BINARIES = [
+    "autoconf",
+    "autoheader",
+    "autom4te",
+    "autoreconf",
+    "autoscan",
+    "autoupdate",
+    "ifnames",
+]
+
 configure_make(
     name = "autoconf",
     build_data = [
-        "@m4",
+        "@m4//:m4_exe",
     ],
     env = select({
         "@platforms//os:macos": {
             "AR": "",
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+            "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
         },
         "//conditions:default": {
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+            "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
         },
     }),
     lib_source = ":all_srcs",
-    out_binaries = [
-        "autoconf",
-        "autoheader",
-        "autom4te",
-        "autoreconf",
-        "autoscan",
-        "autoupdate",
-        "ifnames",
-    ],
+    out_binaries = AUTOCONF_BINARIES,
     out_data_dirs = ["share"],
+    toolchains = ["@rules_perl//:current_toolchain"],
 )
+
+filegroup(
+    name = "gen_dir",
+    srcs = [":autoconf"],
+    output_group = "gen_dir",
+    visibility = ["//visibility:public"],
+)
+
+[
+    filegroup(
+        name = binary + "_raw",
+        srcs = [":autoconf"],
+        output_group = binary,
+        visibility = ["//visibility:public"],
+    )
+    for binary in AUTOCONF_BINARIES
+]
+
+[
+    perl_binary(
+        name = binary + "_tool",
+        srcs = [":" + binary + "_raw"],
+        data = [":gen_dir"],
+        visibility = ["//visibility:public"],
+    )
+    for binary in AUTOCONF_BINARIES
+]

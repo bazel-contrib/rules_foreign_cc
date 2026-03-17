@@ -14,6 +14,7 @@ configure_make(
     configure_options = [
         "--with-apr=$$EXT_BUILD_DEPS/apr",
         "--with-expat=$$EXT_BUILD_DEPS/expat",
+        "--without-pgsql",
     ],
     env = select({
         "@platforms//os:macos": {"AR": ""},
