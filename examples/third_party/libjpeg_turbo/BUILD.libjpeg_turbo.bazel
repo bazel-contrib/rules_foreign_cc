@@ -26,5 +26,9 @@ cmake(
             "libturbojpeg.dll",
         ],
     }),
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
 )

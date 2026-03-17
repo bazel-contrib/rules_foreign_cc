@@ -78,6 +78,10 @@ configure_make_variant(
         "libssl-1_1-x64.dll",
         "libcrypto-1_1-x64.dll",
     ],
+    target_compatible_with = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     targets = MAKE_TARGETS,
     toolchain = "@rules_foreign_cc//toolchains:preinstalled_nmake_toolchain",
     toolchains = ["@rules_perl//:current_toolchain"],
@@ -111,6 +115,10 @@ configure_make(
             "libssl.so.1.1",
             "libcrypto.so.1.1",
         ],
+    }),
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
     }),
     targets = MAKE_TARGETS,
     toolchains = ["@rules_perl//:current_toolchain"],

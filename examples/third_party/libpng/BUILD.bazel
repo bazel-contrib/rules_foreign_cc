@@ -4,6 +4,10 @@ load("@rules_shell//shell:sh_test.bzl", "sh_test")
 cc_binary(
     name = "libpng_usage_example",
     srcs = ["libpng_usage_example.cpp"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         "@libpng",
         "@zlib",

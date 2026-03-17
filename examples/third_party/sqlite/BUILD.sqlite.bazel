@@ -16,5 +16,9 @@ configure_make(
     }),
     lib_source = ":all_srcs",
     out_static_libs = ["libsqlite3.a"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
 )

@@ -39,6 +39,10 @@ configure_make(
         "svn",
         "svnversion",
     ],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     targets = [
         "bin",
         "install",

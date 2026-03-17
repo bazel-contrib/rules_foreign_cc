@@ -1,5 +1,14 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
+alias(
+    name = "pcre_build",
+    actual = "@pcre//:pcre",
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
 exports_files(
     [
         "BUILD.pcre.bazel",
@@ -11,7 +20,7 @@ build_test(
     name = "pcre_build_test",
     tags = ["manual"],  # Linux Only
     targets = [
-        "@pcre//:pcre",
+        ":pcre_build",
     ],
     visibility = ["//:__pkg__"],
 )

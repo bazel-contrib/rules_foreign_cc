@@ -35,6 +35,10 @@ ninja(
             "cp -a out/gn $$INSTALLDIR/bin",
         ]),
     }),
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 filegroup(

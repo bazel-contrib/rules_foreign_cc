@@ -21,6 +21,10 @@ filegroup(
 cc_binary(
     name = "zlib_usage_example",
     srcs = ["zlib-example.cpp"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = ["@zlib"],
 )
 
@@ -36,6 +40,10 @@ cmake(
     dynamic_deps = ["@zlib//:zlib_shared"],
     lib_source = "shared_usage_srcs",
     out_binaries = ["zlib-example"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = ["@zlib//:zlib_static"],
 )
 
@@ -43,6 +51,10 @@ runnable_binary(
     name = "run-zlib-example",
     binary = "zlib-example",
     foreign_cc_target = ":zlib_shared_usage_example",
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 sh_test(

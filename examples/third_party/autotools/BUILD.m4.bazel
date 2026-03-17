@@ -20,6 +20,10 @@ configure_make(
     out_binaries = [
         "m4",
     ],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 filegroup(
