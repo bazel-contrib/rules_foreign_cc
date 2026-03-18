@@ -15,16 +15,14 @@ configure_make(
     build_data = [
         "@m4//:m4_exe",
     ],
-    env = select({
+    env = {
+        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+        "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
+    } | select({
         "@platforms//os:macos": {
             "AR": "",
-            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
-            "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
         },
-        "//conditions:default": {
-            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
-            "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
-        },
+        "//conditions:default": {},
     }),
     lib_source = ":all_srcs",
     out_binaries = [

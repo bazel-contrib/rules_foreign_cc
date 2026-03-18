@@ -15,12 +15,13 @@ configure_make(
     build_data = [
         "@m4//:m4_exe",
     ],
-    env = select({
+    env = {
+        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+    } | select({
         "@platforms//os:macos": {
             "AR": "",
-            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
         },
-        "//conditions:default": {"M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)"},
+        "//conditions:default": {},
     }),
     install_prefix = "install",
     lib_source = ":all_srcs",
