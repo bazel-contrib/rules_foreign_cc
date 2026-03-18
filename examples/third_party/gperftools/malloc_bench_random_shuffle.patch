@@ -1,0 +1,21 @@
+--- benchmark/malloc_bench.cc
++++ benchmark/malloc_bench.cc
+@@ -32,6 +32,7 @@
+ #include <algorithm>
+ #include <map>
+ #include <memory>
++#include <random>
+ #include <string>
+ #include <vector>
+ 
+@@ -233,7 +234,8 @@
+     randomize_buffer = new char*[count];
+     for (int i = 0; i < count; i++) {
+       randomize_buffer[i] = buffer + i * size;
+     }
+-    std::random_shuffle(randomize_buffer, randomize_buffer + count);
++    std::mt19937 rng(std::random_device{}());
++    std::shuffle(randomize_buffer, randomize_buffer + count, rng);
+   }
+ 
+   // TODO(csilvers): do this in a way where the reader can be sure the

@@ -4,6 +4,7 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 exports_files(
     [
         "BUILD.gperftools.bazel",
+        "malloc_bench_random_shuffle.patch",
     ],
     visibility = ["//visibility:public"],
 )
