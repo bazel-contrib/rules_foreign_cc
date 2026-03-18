@@ -116,6 +116,10 @@ configure_make(
         ],
     }),
     target_compatible_with = select({
+        # Macos is broken with recent sdks due to the absolute (execroot) path
+        # being baked into the libssl dylib, resulting in downstream packages
+        # being unable to load them during the tests.
+        "@platforms//os:macos": ["@platforms//:incompatible"],
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
