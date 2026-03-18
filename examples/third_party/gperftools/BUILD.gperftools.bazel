@@ -25,5 +25,10 @@ configure_make(
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
+    targets = [
+        "install-libLTLIBRARIES",
+        "install-perftoolsincludeHEADERS",
+        "install-nodist_perftoolsincludeHEADERS",
+    ],
     visibility = ["//visibility:public"],
 )
