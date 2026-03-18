@@ -1,4 +1,5 @@
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+load("@rules_perl//perl:perl.bzl", "perl_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -9,6 +10,13 @@ filegroup(
         exclude = ["*.bazel"],
     ),
 )
+
+AUTOMAKE_BINARIES = [
+    "aclocal",
+    "aclocal-1.16",
+    "automake",
+    "automake-1.16",
+]
 
 configure_make(
     name = "automake",
@@ -32,8 +40,33 @@ configure_make(
         "autom4te_perllibdir": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/share/autoconf",
     },
     lib_source = ":all_srcs",
-    out_binaries = [
-        "automake",
-    ],
+    out_binaries = AUTOMAKE_BINARIES,
     toolchains = ["@rules_perl//:current_toolchain"],
 )
+
+filegroup(
+    name = "gen_dir",
+    srcs = [":automake"],
+    output_group = "gen_dir",
+    visibility = ["//visibility:public"],
+)
+
+[
+    filegroup(
+        name = binary + "_raw",
+        srcs = [":automake"],
+        output_group = binary,
+        visibility = ["//visibility:public"],
+    )
+    for binary in AUTOMAKE_BINARIES
+]
+
+[
+    perl_binary(
+        name = binary + "_tool",
+        srcs = [":" + binary + "_raw"],
+        data = [":gen_dir"],
+        visibility = ["//visibility:public"],
+    )
+    for binary in AUTOMAKE_BINARIES
+]

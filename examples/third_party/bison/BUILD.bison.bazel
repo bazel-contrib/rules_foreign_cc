@@ -14,17 +14,31 @@ filegroup(
 configure_make(
     name = "bison",
     build_data = [
+        "@autoconf//:autoconf_tool",
+        "@autoconf//:autoheader_tool",
+        "@autoconf//:autom4te_tool",
+        "@autoconf//:autoreconf_tool",
+        "@autoconf//:gen_dir",
+        "@automake//:aclocal_tool",
+        "@automake//:automake_tool",
+        "@automake//:gen_dir",
         "@m4//:m4_exe",
     ],
-    env = select({
-        "@platforms//os:linux": {
-            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
-            "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
-        },
+    env = {
+        "ACLOCAL": "$$EXT_BUILD_ROOT/$(location @automake//:aclocal_tool)",
+        "AC_MACRODIR": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/share/autoconf",
+        "AUTOCONF": "$$EXT_BUILD_ROOT/$(location @autoconf//:autoconf_tool)",
+        "AUTOHEADER": "$$EXT_BUILD_ROOT/$(location @autoconf//:autoheader_tool)",
+        "AUTOM4TE": "$$EXT_BUILD_ROOT/$(location @autoconf//:autom4te_tool)",
+        "AUTOMAKE": "$$EXT_BUILD_ROOT/$(location @automake//:automake_tool)",
+        "AUTORECONF": "$$EXT_BUILD_ROOT/$(location @autoconf//:autoreconf_tool)",
+        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+        "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @autoconf//:autoconf_tool)):$$(dirname $$EXT_BUILD_ROOT/$(location @automake//:automake_tool)):$$PATH",
+        "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
+        "autom4te_perllibdir": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/share/autoconf",
+    } | select({
         "@platforms//os:macos": {
             "AR": "",
-            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
-            "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
         },
         "//conditions:default": {},
     }),
