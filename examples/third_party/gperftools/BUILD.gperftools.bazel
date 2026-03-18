@@ -15,6 +15,11 @@ configure_make(
         "--enable-frame-pointers",
         "--disable-libunwind",
     ],
+    copts = [
+        # This package requires c++17, and bazel 7.x's default BAZEL_CXXOPTS is
+        # set to -std=c++14, so override.
+        "-std=c++17",
+    ],
     env = select({
         "@platforms//os:macos": {"AR": ""},
         "//conditions:default": {},
