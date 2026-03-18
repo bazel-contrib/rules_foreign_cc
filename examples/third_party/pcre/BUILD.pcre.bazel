@@ -32,6 +32,10 @@ cmake(
         "@platforms//os:windows": ["pcre2-8.lib"],
         "//conditions:default": ["libpcre2-8.a"],
     }),
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = ["@examples_zlib//:zlib"],
 )
 
