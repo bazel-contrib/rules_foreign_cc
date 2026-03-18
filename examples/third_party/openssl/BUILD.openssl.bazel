@@ -92,14 +92,13 @@ configure_make(
     configure_command = "config",
     configure_in_place = True,
     configure_options = CONFIGURE_OPTIONS,
-    env = select({
+    env = {
+        "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
+    } | select({
         "@platforms//os:macos": {
             "AR": "",
-            "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
         },
-        "//conditions:default": {
-            "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
-        },
+        "//conditions:default": {},
     }),
     lib_name = LIB_NAME,
     lib_source = ":all_srcs",

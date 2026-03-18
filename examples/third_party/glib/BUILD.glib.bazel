@@ -29,7 +29,9 @@ meson(
         ],
         "//conditions:default": [],
     }),
-    env = select({
+    env = {
+        "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
+    } | select({
         ":msvc_compiler": {
             "INCLUDE": "$$EXT_BUILD_DEPS/include",
             "LIB": "$$EXT_BUILD_DEPS/lib",
@@ -38,11 +40,8 @@ meson(
         "@platforms//os:macos": {
             "CPATH": "$$EXT_BUILD_DEPS/gettext/include",
             "LIBRARY_PATH": "$$EXT_BUILD_DEPS/gettext/lib",
-            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
         },
-        "//conditions:default": {
-            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
-        },
+        "//conditions:default": {},
     }),
     lib_source = ":all_srcs",
     options = {
