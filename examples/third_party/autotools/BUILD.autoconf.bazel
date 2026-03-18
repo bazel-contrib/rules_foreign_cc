@@ -1,5 +1,4 @@
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
-load("@rules_perl//perl:perl.bzl", "perl_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -10,16 +9,6 @@ filegroup(
         exclude = ["*.bazel"],
     ),
 )
-
-AUTOCONF_BINARIES = [
-    "autoconf",
-    "autoheader",
-    "autom4te",
-    "autoreconf",
-    "autoscan",
-    "autoupdate",
-    "ifnames",
-]
 
 configure_make(
     name = "autoconf",
@@ -38,7 +27,15 @@ configure_make(
         },
     }),
     lib_source = ":all_srcs",
-    out_binaries = AUTOCONF_BINARIES,
+    out_binaries = [
+        "autoconf",
+        "autoheader",
+        "autom4te",
+        "autoreconf",
+        "autoscan",
+        "autoupdate",
+        "ifnames",
+    ],
     out_data_dirs = ["share"],
     toolchains = ["@rules_perl//:current_toolchain"],
 )
@@ -49,23 +46,3 @@ filegroup(
     output_group = "gen_dir",
     visibility = ["//visibility:public"],
 )
-
-[
-    filegroup(
-        name = binary + "_raw",
-        srcs = [":autoconf"],
-        output_group = binary,
-        visibility = ["//visibility:public"],
-    )
-    for binary in AUTOCONF_BINARIES
-]
-
-[
-    perl_binary(
-        name = binary + "_tool",
-        srcs = [":" + binary + "_raw"],
-        data = [":gen_dir"],
-        visibility = ["//visibility:public"],
-    )
-    for binary in AUTOCONF_BINARIES
-]

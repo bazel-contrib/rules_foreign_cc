@@ -1,5 +1,4 @@
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
-load("@rules_perl//perl:perl.bzl", "perl_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -11,36 +10,28 @@ filegroup(
     ),
 )
 
-AUTOMAKE_BINARIES = [
-    "aclocal",
-    "aclocal-1.16",
-    "automake",
-    "automake-1.16",
-]
-
 configure_make(
     name = "automake",
     build_data = [
-        "@autoconf//:autoconf_tool",
-        "@autoconf//:autoheader_tool",
-        "@autoconf//:autom4te_tool",
-        "@autoconf//:autoreconf_tool",
         "@autoconf//:gen_dir",
         "@m4//:m4_exe",
     ],
     env = {
         "AC_MACRODIR": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/share/autoconf",
-        "AUTOCONF": "$$EXT_BUILD_ROOT/$(location @autoconf//:autoconf_tool)",
-        "AUTOHEADER": "$$EXT_BUILD_ROOT/$(location @autoconf//:autoheader_tool)",
-        "AUTOM4TE": "$$EXT_BUILD_ROOT/$(location @autoconf//:autom4te_tool)",
-        "AUTORECONF": "$$EXT_BUILD_ROOT/$(location @autoconf//:autoreconf_tool)",
+        "AUTOCONF": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autoconf",
+        "AUTOHEADER": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autoheader",
+        "AUTOM4TE": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autom4te",
+        "AUTORECONF": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autoreconf)",
         "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
-        "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @autoconf//:autoconf_tool)):$$PATH",
+        "PATH": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin:$$PATH",
         "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
         "autom4te_perllibdir": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/share/autoconf",
     },
     lib_source = ":all_srcs",
-    out_binaries = AUTOMAKE_BINARIES,
+    out_binaries = [
+        "aclocal",
+        "automake",
+    ],
     toolchains = ["@rules_perl//:current_toolchain"],
 )
 
@@ -50,23 +41,3 @@ filegroup(
     output_group = "gen_dir",
     visibility = ["//visibility:public"],
 )
-
-[
-    filegroup(
-        name = binary + "_raw",
-        srcs = [":automake"],
-        output_group = binary,
-        visibility = ["//visibility:public"],
-    )
-    for binary in AUTOMAKE_BINARIES
-]
-
-[
-    perl_binary(
-        name = binary + "_tool",
-        srcs = [":" + binary + "_raw"],
-        data = [":gen_dir"],
-        visibility = ["//visibility:public"],
-    )
-    for binary in AUTOMAKE_BINARIES
-]
