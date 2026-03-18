@@ -81,6 +81,10 @@ def _create_meson_script(configureParameters):
         script.append("##export_var## CC {}".format(_absolutize(ctx.workspace_name, tools.cc)))
     if " " not in tools.cxx:
         script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
+    if " " not in tools.cxx_linker_static and tools.cxx_linker_static.endswith("ar"):
+        script.append("##export_var## AR {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_static)))
+    if tools.strip and " " not in tools.strip:
+        script.append("##export_var## STRIP {}".format(_absolutize(ctx.workspace_name, tools.strip)))
 
     copts = flags.cc
     cxxopts = flags.cxx
@@ -277,9 +281,13 @@ def meson_with_requirements(name, requirements, **kwargs):
 
     native_tool_toolchain(
         name = "built_meson_for_{}".format(name),
-        env = {"MESON": "$(execpath :meson_tool_for_{})".format(name)},
+        env = {
+            "MESON": "$(execpath :meson_tool_for_{})".format(name),
+            "REAL_MESON": "$(rlocationpath @meson_src//:meson.py)",
+        },
         path = "$(execpath :meson_tool_for_{})".format(name),
         target = ":meson_tool_for_{}".format(name),
+        tools = ["@meson_src//:meson.py"],
     )
 
     native.toolchain(

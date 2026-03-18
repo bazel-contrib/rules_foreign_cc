@@ -121,32 +121,28 @@ def create_cmake_script(
     # cache, and CMAKE_SYSTEM_PROCESSOR is ignored unless CMAKE_SYSTEM_NAME is
     # also set.
     if target_os == "unknown":
-        # buildifier: disable=print
-        print("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+        fail("target_os is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
     elif target_arch == "unknown":
-        # buildifier: disable=print
-        print("target_arch is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+        fail("target_arch is unknown, please update foreign_cc/private/framework/platform.bzl and foreign_cc/private/cmake_script.bzl; triggered by", current_label)
     elif target_os != host_os or target_arch != host_arch:
         # if we don't have a value here, it will end up attempting a native
         # compile, even if that's not right, so emit a warning
         if target_os in _TARGET_OS_PARAMS:
             toolchain_dict.update(_TARGET_OS_PARAMS[target_os])
         else:
-            # buildifier: disable=print
-            print("target_os", target_os, "is not in _TARGET_OS_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+            fail("target_os", target_os, "is not in _TARGET_OS_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
 
         if target_arch in _TARGET_ARCH_PARAMS:
             toolchain_dict.update(_TARGET_ARCH_PARAMS[target_arch])
         else:
-            # buildifier: disable=print
-            print("target_arch", target_arch, "is not in _TARGET_ARCH_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
+            fail("target_arch", target_arch, "is not in _TARGET_ARCH_PARAMS, please update foreign_cc/private/cmake_script.bzl; triggered by", current_label)
 
     keys_with_empty_values_in_user_cache = [key for key in user_cache if user_cache.get(key) == ""]
 
     if no_toolchain_file:
         params = _create_cache_entries_env_vars(toolchain_dict, user_cache, user_env)
     else:
-        params = _create_crosstool_file_text(toolchain_dict, user_cache, user_env)
+        params = _create_crosstool_file_text(toolchain_dict, user_cache, user_env, target_os)
 
     build_type = params.cache.get(
         "CMAKE_BUILD_TYPE",
@@ -158,6 +154,13 @@ def create_cmake_script(
         "CMAKE_PREFIX_PATH": merged_prefix_path,
         "PKG_CONFIG_ARGN": "--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$",
     })
+
+    # On Windows, default to embedded debug info (`/Z7`) so newer CMake versions
+    # do not force Program Database output (`/Zi`), which is more prone to flaky
+    # PDB failures. Older CMake versions may ignore this and rely on the fallback
+    # flag rewrite in the generated toolchain file instead.
+    if target_os == "windows" and params.cache.get("CMAKE_MSVC_DEBUG_INFORMATION_FORMAT") == None:
+        params.cache["CMAKE_MSVC_DEBUG_INFORMATION_FORMAT"] = "Embedded"
 
     # Give user the ability to suppress some value, taken from Bazel's toolchain,
     # or to suppress calculated CMAKE_BUILD_TYPE
@@ -251,7 +254,7 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_SYSTEM_PROCESSOR": struct(value = "CMAKE_SYSTEM_PROCESSOR", replace = False),
 }
 
-def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
+def _create_crosstool_file_text(toolchain_dict, user_cache, user_env, target_os):
     cache_entries = _dict_copy(user_cache)
     env_vars = _dict_copy(user_env)
     _move_dict_values(toolchain_dict, env_vars, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
@@ -280,8 +283,35 @@ def _create_crosstool_file_text(toolchain_dict, user_cache, user_env):
     cache_entries.update({
         "CMAKE_TOOLCHAIN_FILE": "$$BUILD_TMPDIR$$/crosstool_bazel.cmake",
     })
+
+    # When targeting Windows, CMake's default CMAKE_{C,CXX}_FLAGS_{DEBUG,RELWITHDEBINFO}
+    # include /Zi which uses a shared PDB file via mspdbsrv.exe. This causes
+    # "PDB API call failed" errors (C1090) when multiple targets build in parallel.
+    # Apply the fallback rewrite unconditionally for Windows because the toolchain
+    # file is evaluated before CMake has set MSVC=TRUE.
+    msvc_debug_fix_lines = []
+    if target_os == "windows":
+        msvc_debug_fix_lines = [
+            'set(_CMAKE_C_FLAGS_DEBUG "\\${CMAKE_C_FLAGS_DEBUG}")',
+            'string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_DEBUG_INIT "\\${CMAKE_C_FLAGS_DEBUG_INIT}")',
+            'string(REPLACE "/Zi" "/Z7" _CMAKE_C_FLAGS_DEBUG "\\${_CMAKE_C_FLAGS_DEBUG}")',
+            'set(CMAKE_C_FLAGS_DEBUG "\\${_CMAKE_C_FLAGS_DEBUG}" CACHE STRING "" FORCE)',
+            'set(_CMAKE_CXX_FLAGS_DEBUG "\\${CMAKE_CXX_FLAGS_DEBUG}")',
+            'string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG_INIT "\\${CMAKE_CXX_FLAGS_DEBUG_INIT}")',
+            'string(REPLACE "/Zi" "/Z7" _CMAKE_CXX_FLAGS_DEBUG "\\${_CMAKE_CXX_FLAGS_DEBUG}")',
+            'set(CMAKE_CXX_FLAGS_DEBUG "\\${_CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING "" FORCE)',
+            'set(_CMAKE_C_FLAGS_RELWITHDEBINFO "\\${CMAKE_C_FLAGS_RELWITHDEBINFO}")',
+            'string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "\\${CMAKE_C_FLAGS_RELWITHDEBINFO_INIT}")',
+            'string(REPLACE "/Zi" "/Z7" _CMAKE_C_FLAGS_RELWITHDEBINFO "\\${_CMAKE_C_FLAGS_RELWITHDEBINFO}")',
+            'set(CMAKE_C_FLAGS_RELWITHDEBINFO "\\${_CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "" FORCE)',
+            'set(_CMAKE_CXX_FLAGS_RELWITHDEBINFO "\\${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")',
+            'string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "\\${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT}")',
+            'string(REPLACE "/Zi" "/Z7" _CMAKE_CXX_FLAGS_RELWITHDEBINFO "\\${_CMAKE_CXX_FLAGS_RELWITHDEBINFO}")',
+            'set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "\\${_CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "" FORCE)',
+        ]
+
     return struct(
-        commands = sorted(crosstool_vars) + ["cat > crosstool_bazel.cmake << EOF"] + sorted(lines) + ["EOF", ""],
+        commands = sorted(crosstool_vars) + ["cat > crosstool_bazel.cmake << EOF"] + sorted(lines) + msvc_debug_fix_lines + ["EOF", ""],
         env = env_vars,
         cache = cache_entries,
     )

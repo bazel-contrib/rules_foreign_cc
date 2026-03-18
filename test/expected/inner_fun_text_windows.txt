@@ -1,0 +1,100 @@
+function symlink_contents_to_dir() {
+if [[ -z "$1" ]]; then
+echo "arg 1 to symlink_contents_to_dir is unexpectedly empty"
+exit 1
+fi
+if [[ -z "$2" ]]; then
+echo "arg 2 to symlink_contents_to_dir is unexpectedly empty"
+exit 1
+fi
+local source="$1"
+local target="$2"
+
+# make source absolute so symlinks in subdirs work
+case "$source" in
+/*|[A-Za-z]:/*) ;;
+*) source="$PWD/$source" ;;
+esac
+
+mkdir -p "$target"
+local replace_in_files="${3:-}"
+if [[ -f "$source" ]]; then
+symlink_to_dir "$source" "$target" "$replace_in_files"
+elif [[ -L "$source" ]]; then
+local actual=$(readlink "$source")
+case "$actual" in
+/*|[A-Za-z]:/*) ;;
+*) actual="$(dirname "$source")/$actual" ;;
+esac
+symlink_contents_to_dir "$actual" "$target" "$replace_in_files"
+elif [[ -d "$source" ]]; then
+SAVEIFS=$IFS
+IFS=$'
+'
+local children=($($REAL_FIND -H "$source" -maxdepth 1 -mindepth 1))
+IFS=$SAVEIFS
+for child in "${children[@]}"; do
+symlink_to_dir "$child" "$target" "$replace_in_files"
+done
+fi
+}
+function symlink_to_dir() {
+if [[ -z "$1" ]]; then
+echo "arg 1 to symlink_to_dir is unexpectedly empty"
+exit 1
+fi
+if [[ -z "$2" ]]; then
+echo "arg 2 to symlink_to_dir is unexpectedly empty"
+exit 1
+fi
+local source="$1"
+local target="$2"
+
+# make source absolute so symlinks in subdirs work
+case "$source" in
+/*|[A-Za-z]:/*) ;;
+*) source="$PWD/$source" ;;
+esac
+
+mkdir -p "$target"
+local replace_in_files="${3:-}"
+if [[ -f "$source" ]]; then
+# In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
+# files so updating them is possible.
+if [[ "$source" == *.pc || "$source" == *.la || "$source" == *-config || "$source" == *.mk || "$source" == *.cmake ]]; then
+dest="$target/$(basename "$source")"
+cp "$source" "$dest" && chmod +w "$dest" && touch -r "$source" "$dest"
+else
+ln -s -f -t "$target" "$source"
+fi
+elif [[ -L "$source" ]]; then
+local actual=$(readlink "$source")
+case "$actual" in
+/*|[A-Za-z]:/*) ;;
+*) actual="$(dirname "$source")/$actual" ;;
+esac
+symlink_to_dir "$actual" "$target" "$replace_in_files"
+elif [[ -d "$source" ]]; then
+
+# If not replacing in files, simply create a symbolic link rather than traversing tree of files, which can result in very slow builds
+if [[ "$replace_in_files" = False ]]; then
+ln -s -f "$source" "$target"
+return
+fi
+
+SAVEIFS=$IFS
+IFS=$'
+'
+local children=($($REAL_FIND -H "$source" -maxdepth 1 -mindepth 1))
+IFS=$SAVEIFS
+local dirname=$(basename "$source")
+for child in "${children[@]}"; do
+if [[ -n "$child" && "$dirname" != *.ext_build_deps ]]; then
+symlink_to_dir "$child" "$target/$dirname" "$replace_in_files"
+fi
+done
+else
+echo "Can not copy $source"
+fi
+}
+symlink_contents_to_dir $SOURCE_DIR $TARGET_DIR False

@@ -9,10 +9,10 @@ def meson_tool(name, main, data, requirements = [], **kwargs):
         kwargs["precompile"] = "disabled"
     py_binary(
         name = name,
-        srcs = [main],
-        data = data,
-        deps = requirements,
+        srcs = ["@rules_foreign_cc//foreign_cc/built_tools:meson_tool_wrapper.py"],
+        data = data + [main],
+        deps = requirements + ["@rules_python//python/runfiles"],
         python_version = "PY3",
-        main = main,
+        main = "@rules_foreign_cc//foreign_cc/built_tools:meson_tool_wrapper.py",
         **kwargs
     )

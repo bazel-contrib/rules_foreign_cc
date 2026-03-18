@@ -32,8 +32,9 @@ def openssl_repositories():
     maybe(
         http_archive,
         name = "rules_perl",
-        strip_prefix = "rules_perl-0.2.5",
+        integrity = "sha256-2Z/JEFL8OWBRlck3voAdj0spjBtukSqADwvR9xd0WVk=",
+        strip_prefix = "",
         urls = [
-            "https://github.com/bazelbuild/rules_perl/archive/refs/tags/0.2.5.tar.gz",
+            "https://github.com/bazel-contrib/rules_perl/releases/download/1.0.0/rules_perl-1.0.0.tar.gz",
         ],
     )

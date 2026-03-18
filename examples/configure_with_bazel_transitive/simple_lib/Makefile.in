@@ -10,10 +10,17 @@ $(OUTPUT): ./src/simple.c
 	$(CC) $(CPPFLAGS) -o $(OBJECT) -c ./src/simple.c -I./include -I.
 	$(AR) $(LDFLAGS)
 
-install:
+install: $(OUTPUT)
 	mkdir -p simple
 	mkdir -p simple/lib
 	cp -p $(OUTPUT) ./simple/lib/$(OUTPUT)
 	cp -rp ./include ./simple
 
-.PHONY: clean test
+clean:
+	rm -rf simple
+
+.PHONY: clean
+
+test: all
+
+.PHONY: test

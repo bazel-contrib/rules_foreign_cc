@@ -17,7 +17,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "bazel_skylib",
-    version = "1.8.1",
+    version = "1.8.2",
 )
 bazel_dep(
     name = "stardoc",
@@ -26,11 +26,11 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_shell",
-    version = "0.5.0",
+    version = "0.6.1",
 )
 bazel_dep(
     name = "rules_python",
-    version = "1.2.0",
+    version = "1.9.0",
 )
 bazel_dep(
     name = "protobuf",

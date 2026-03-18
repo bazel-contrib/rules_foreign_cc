@@ -1,5 +1,5 @@
-load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load(":detect_root_test_rule.bzl", "detect_root_test_rule")
+load("@bazel_lib//lib:diff_test.bzl", "diff_test")
+load(":detect_root_test_rule.bzl", "BZLMOD_ENABLED", "detect_root_test_rule")
 
 filegroup(
     name = "fg",
@@ -36,7 +36,7 @@ detect_root_test_rule(
 diff_test(
     name = "repo_test",
     file1 = ":srcs_in_repo",
-    file2 = "expected/out_repo.txt",
+    file2 = "expected/out_repo_bzlmod.txt" if BZLMOD_ENABLED else "expected/out_repo_workspaces.txt",
 )
 
 diff_test(

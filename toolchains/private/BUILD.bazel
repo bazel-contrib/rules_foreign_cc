@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("//foreign_cc/built_tools:cmake_build.bzl", "cmake_tool")
 load("//foreign_cc/built_tools:make_build.bzl", "make_tool")
 load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
@@ -23,6 +24,7 @@ native_tool_toolchain(
 make_tool(
     name = "make_tool",
     srcs = "@gnumake_src//:all_srcs",
+    resource_size = "small",
     tags = ["manual"],
 )
 
@@ -54,6 +56,7 @@ native_tool_toolchain(
 cmake_tool(
     name = "cmake_tool",
     srcs = "@cmake_src//:all_srcs",
+    resource_size = "medium",
     tags = ["manual"],
 )
 
@@ -70,35 +73,51 @@ native_tool_toolchain(
     target = ":cmake_tool",
 )
 
+cc_binary(
+    name = "ninja_wrapper",
+    srcs = [
+        ":ninja_wrapper.cc",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 native_tool_toolchain(
     name = "preinstalled_ninja",
-    env = select({
-        "@platforms//os:windows": {"NINJA": "ninja.exe"},
-        "//conditions:default": {"NINJA": "ninja"},
+    env = {
+        "NINJA": "$(execpath :ninja_wrapper)",
+        "NINJA_FROM_PATH": "1",
+    } | select({
+        "@platforms//os:windows": {
+            "REAL_NINJA": "ninja.exe",
+        },
+        "//conditions:default": {
+            "REAL_NINJA": "ninja",
+        },
     }),
-    path = select({
-        "@platforms//os:windows": "ninja.exe",
-        "//conditions:default": "ninja",
-    }),
+    path = "$(execpath :ninja_wrapper)",
+    target = ":ninja_wrapper",
 )
 
 ninja_tool(
     name = "ninja_tool",
     srcs = "@ninja_build_src//:all_srcs",
+    resource_size = "small",
     tags = ["manual"],
 )
 
 native_tool_toolchain(
     name = "built_ninja",
-    env = select({
-        "@platforms//os:windows": {"NINJA": "$(execpath :ninja_tool)/bin/ninja.exe"},
-        "//conditions:default": {"NINJA": "$(execpath :ninja_tool)/bin/ninja"},
+    env = {
+        "NINJA": "$(execpath :ninja_wrapper)",
+    } | select({
+        "@platforms//os:windows": {"REAL_NINJA": "$(execpath :ninja_tool)/bin/ninja.exe"},
+        "//conditions:default": {"REAL_NINJA": "$(execpath :ninja_tool)/bin/ninja"},
     }),
-    path = select({
-        "@platforms//os:windows": "$(execpath :ninja_tool)/bin/ninja.exe",
-        "//conditions:default": "$(execpath :ninja_tool)/bin/ninja",
-    }),
-    target = ":ninja_tool",
+    path = "$(execpath :ninja_wrapper)",
+    target = ":ninja_wrapper",
+    tools = [
+        ":ninja_tool",
+    ],
 )
 
 native_tool_toolchain(
@@ -118,9 +137,13 @@ meson_tool(
 
 native_tool_toolchain(
     name = "built_meson",
-    env = {"MESON": "$(execpath :meson_tool)"},
+    env = {
+        "MESON": "$(execpath :meson_tool)",
+        "REAL_MESON": "$(rlocationpath @meson_src//:meson.py)",
+    },
     path = "$(execpath :meson_tool)",
     target = ":meson_tool",
+    tools = ["@meson_src//:meson.py"],
 )
 
 native_tool_toolchain(
@@ -158,6 +181,7 @@ native_tool_toolchain(
 pkgconfig_tool(
     name = "pkgconfig_tool",
     srcs = "@pkgconfig_src//:all_srcs",
+    resource_size = "small",
     tags = ["manual"],
 )
 
