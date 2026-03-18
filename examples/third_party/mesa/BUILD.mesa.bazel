@@ -95,11 +95,6 @@ meson_with_requirements(
     requirements = [
         requirement("mako"),
     ],
-    # The Windows winflexbison bootstrap currently fails in CI due to path length.
-    target_compatible_with = select({
-        "@platforms//os:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     toolchains = ["@rules_python//python:current_py_toolchain"],
     visibility = ["//visibility:public"],
     deps = ["@examples_zlib//:zlib"] + select({
