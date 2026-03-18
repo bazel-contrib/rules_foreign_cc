@@ -119,7 +119,7 @@ configure_make(
         # Macos is broken with recent sdks due to the absolute (execroot) path
         # being baked into the libssl dylib, resulting in downstream packages
         # being unable to load them during the tests.
-        "@platforms//os:macos": ["@platforms//:incompatible"],
+        "@platforms//os:macos": ["@rules_foreign_cc_examples_third_party//:broken"],
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),

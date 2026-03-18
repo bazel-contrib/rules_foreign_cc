@@ -1,5 +1,12 @@
 package(default_visibility = ["//visibility:public"])
 
+# Use this to mark a target that is broken but theoretically fixable, as
+# compared to a target that is fundamentally incompatible with the platform.
+alias(
+    name = "broken",
+    actual = "@platforms//:incompatible",
+)
+
 test_suite(
     name = "all_tests",
     tests = [

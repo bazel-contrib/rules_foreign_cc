@@ -26,7 +26,7 @@ cmake(
     target_compatible_with = select({
         # In bazel 7 (at least) the bzlmod paths are too long to build this.
         # TODO: reevaluate with bazel 8
-        "@platforms//os:windows": ["@platforms//:incompatible"] if BZLMOD_ENABLED else [],
+        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"] if BZLMOD_ENABLED else [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
     visibility = ["//visibility:public"],
