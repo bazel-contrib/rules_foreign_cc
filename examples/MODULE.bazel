@@ -93,6 +93,7 @@ use_repo(
     "bison",
     "cares",
     "curl",
+    "examples_zlib",
     "expat",
     "flex",
     "gettext",
@@ -134,7 +135,6 @@ use_repo(
     "xcb-proto",
     "xorgproto",
     "xtrans",
-    "zlib",
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.8.2")

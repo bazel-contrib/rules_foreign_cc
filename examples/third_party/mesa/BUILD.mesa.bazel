@@ -100,6 +100,7 @@ meson_with_requirements(
     deps = select({
         "@platforms//os:linux": [
             "@bison",
+            "@examples_zlib//:zlib",
             "@expat",
             "@libdrm",
             "@libpciaccess",
@@ -112,16 +113,15 @@ meson_with_requirements(
             "@libxrender",
             "@libxshmfence",
             "@xorgproto",
-            "@zlib",
         ],
         "@platforms//os:macos": [
+            "@examples_zlib//:zlib",
             "@libx11",
             "@libxext",
             "@libxfixes",
-            "@zlib",
         ],
         "@platforms//os:windows": [
-            "@zlib",
+            "@examples_zlib//:zlib",
         ],
     }),
 )

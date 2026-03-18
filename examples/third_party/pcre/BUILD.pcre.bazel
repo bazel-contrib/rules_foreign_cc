@@ -24,7 +24,7 @@ cmake(
         "@platforms//os:windows": ["pcre2-8.lib"],
         "//conditions:default": ["libpcre2-8.a"],
     }),
-    deps = ["@zlib"],
+    deps = ["@examples_zlib//:zlib"],
 )
 
 filegroup(

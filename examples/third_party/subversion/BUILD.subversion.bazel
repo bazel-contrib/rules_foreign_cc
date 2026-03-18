@@ -51,7 +51,7 @@ configure_make(
     deps = [
         "@apr",
         "@apr_util",
+        "@examples_zlib//:zlib",
         "@sqlite",
-        "@zlib",
     ],
 )

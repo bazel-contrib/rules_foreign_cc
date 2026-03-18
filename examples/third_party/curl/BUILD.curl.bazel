@@ -53,7 +53,7 @@ cmake(
     toolchains = ["@rules_perl//:current_toolchain"],
     visibility = ["//visibility:public"],
     deps = [
+        "@examples_zlib//:zlib",
         "@openssl",
-        "@zlib",
     ],
 )

@@ -17,7 +17,7 @@ filegroup(
 DEPS = [
     "@libffi",
     "@pcre",
-    "@zlib",
+    "@examples_zlib//:zlib",
 ]
 
 meson(

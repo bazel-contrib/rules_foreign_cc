@@ -38,7 +38,7 @@ configure_make(
         "//conditions:default": [],
     }),
     deps = [
+        "@examples_zlib//:zlib",
         "@openssl",
-        "@zlib",
     ],
 )

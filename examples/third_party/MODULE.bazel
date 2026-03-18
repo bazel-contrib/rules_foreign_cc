@@ -71,6 +71,7 @@ use_repo(
     "bison",
     "cares",
     "curl",
+    "examples_zlib",
     "expat",
     "flex",
     "gettext",
@@ -112,7 +113,6 @@ use_repo(
     "xcb-proto",
     "xorgproto",
     "xtrans",
-    "zlib",
 )
 
 register_toolchains(

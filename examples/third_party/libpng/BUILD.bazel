@@ -9,8 +9,8 @@ cc_binary(
         "//conditions:default": [],
     }),
     deps = [
+        "@examples_zlib//:zlib",
         "@libpng",
-        "@zlib",
     ],
 )
 
