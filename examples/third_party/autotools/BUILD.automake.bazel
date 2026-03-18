@@ -32,6 +32,8 @@ configure_make(
         "aclocal",
         "automake",
     ],
+    # doesn't work on any platform currently, due to autoconf
+    target_compatible_with = ["@platforms//:incompatible"],
     toolchains = ["@rules_perl//:current_toolchain"],
 )
 
