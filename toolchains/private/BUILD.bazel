@@ -74,11 +74,21 @@ native_tool_toolchain(
 )
 
 cc_binary(
-    name = "ninja_wrapper",
+    # Note: this binary must be called ninja or meson (at least, maybe others)
+    # refuse to use it, because meson has a cmake fallback for dependency
+    # searches that only knows how to search the path
+    # We use "out" as a dir because ninja_tool creates an output directory called
+    # "ninja" which would otherwise conflict with our name.
+    name = "out/ninja",
     srcs = [
         ":ninja_wrapper.cc",
     ],
     visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "ninja_wrapper",
+    actual = ":out/ninja",
 )
 
 native_tool_toolchain(
