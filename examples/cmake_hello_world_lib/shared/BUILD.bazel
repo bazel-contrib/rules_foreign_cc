@@ -32,6 +32,7 @@ cmake(
 
 cc_test(
     name = "test_libhello",
+    size = "small",
     srcs = ["hello_client.c"],
     # On windows, dlls need to be copied to the binary directory to run, and
     # --features=copy_dynamic_libraries_to_binary is broken:

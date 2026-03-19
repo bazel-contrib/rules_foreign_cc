@@ -12,6 +12,7 @@ exports_files(
 
 cc_test(
     name = "malloc_test",
+    size = "small",
     srcs = ["malloc_test.cc"],
     malloc = "@gperftools//:gperftools_build",
 )

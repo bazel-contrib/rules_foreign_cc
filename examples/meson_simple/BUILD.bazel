@@ -20,6 +20,7 @@ SIZES = [
 [
     cc_test(
         name = "test_lib_" + size,
+        size = "small",
         srcs = [
             "test_libb.cpp",
         ],
@@ -40,6 +41,7 @@ meson(
 
 sh_test(
     name = "test_introspect",
+    size = "small",
     srcs = ["test_introspect.sh"],
     args = ["$(location meson_lib-introspect)"],
     data = [":meson_lib-introspect"],

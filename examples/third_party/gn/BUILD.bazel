@@ -10,6 +10,7 @@ exports_files(
 
 sh_test(
     name = "gn_launch_test",
+    size = "small",
     srcs = ["gn_test.sh"],
     data = ["@gn//:gn_bin"],
     env = {

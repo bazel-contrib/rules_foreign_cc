@@ -4,6 +4,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_test(
     name = "test_c_ares",
+    size = "small",
     srcs = ["c-ares-test.cpp"],
     visibility = ["//:__pkg__"],
     deps = ["@cares"],

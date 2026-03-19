@@ -30,6 +30,7 @@ cc_binary(
 
 sh_test(
     name = "test_zlib",
+    size = "small",
     srcs = ["test_zlib.sh"],
     data = [":zlib_usage_example"],
     visibility = ["//:__pkg__"],
@@ -55,6 +56,7 @@ runnable_binary(
 
 sh_test(
     name = "test_shared_zlib",
+    size = "small",
     srcs = ["test_shared_zlib.sh"],
     data = [":run-zlib-example"],
     visibility = ["//:__pkg__"],

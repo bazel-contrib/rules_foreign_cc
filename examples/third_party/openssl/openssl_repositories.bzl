@@ -11,7 +11,6 @@ def openssl_repositories():
         integrity = "sha256-zzCYlQy02FOtlcCEHx+cbT3BAtzPys1SHZOSUgi3asg=",
         strip_prefix = "openssl-1.1.1w",
         urls = [
-            "https://mirror.bazel.build/www.openssl.org/source/openssl-1.1.1w.tar.gz",
             "https://www.openssl.org/source/openssl-1.1.1w.tar.gz",
             "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1w.tar.gz",
         ],
