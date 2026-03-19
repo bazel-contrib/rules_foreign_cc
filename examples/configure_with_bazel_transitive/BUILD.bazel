@@ -21,6 +21,7 @@ configure_make(
 
 cc_test(
     name = "test",
+    size = "small",
     srcs = ["testSimple.c"],
     deps = [":simple"],
 )

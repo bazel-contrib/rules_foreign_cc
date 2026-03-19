@@ -139,7 +139,6 @@ def _ninja_toolchain(version, register_toolchains):
             integrity = "sha256-8IZB0ACZqeQNROwBRvhBxHKuWLfm3VF77jlFz9kjzt8=",
             strip_prefix = "ninja-1.13.0",
             urls = [
-                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.13.0.tar.gz",
                 "https://github.com/ninja-build/ninja/archive/v1.13.0.tar.gz",
             ],
         )

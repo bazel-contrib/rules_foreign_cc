@@ -16,6 +16,7 @@ cc_binary(
 
 sh_test(
     name = "test_libpng",
+    size = "small",
     srcs = ["test_libpng.sh"],
     args = [
         "$(location :libpng_usage_example)",

@@ -1,5 +1,6 @@
 """ Unit tests for some utility functions """
 
+load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 
 # buildifier: disable=bzl-visibility
@@ -22,5 +23,5 @@ uniq_list_keep_order_test = unittest.make(_uniq_list_keep_order_test)
 def utils_test_suite():
     unittest.suite(
         "utils_test_suite",
-        uniq_list_keep_order_test,
+        partial.make(uniq_list_keep_order_test, size = "small"),
     )

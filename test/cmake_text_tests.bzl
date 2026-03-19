@@ -1,5 +1,6 @@
 """ Unit tests for CMake script creation """
 
+load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 
 # buildifier: disable=bzl-visibility
@@ -930,21 +931,21 @@ create_min_cmake_script_wipe_toolchain_test = unittest.make(_create_min_cmake_sc
 def cmake_script_test_suite():
     unittest.suite(
         "cmake_script_test_suite",
-        absolutize_test,
-        tail_extraction_test,
-        find_flag_value_test,
-        fill_crossfile_from_toolchain_test,
-        move_dict_values_test,
-        reverse_descriptor_dict_test,
-        merge_toolchain_and_user_values_test,
-        create_min_cmake_script_no_toolchain_file_test,
-        create_min_cmake_script_toolchain_file_test,
-        create_cmake_script_no_toolchain_file_test,
-        create_cmake_script_toolchain_file_test,
-        create_cmake_script_android_test,
-        create_cmake_script_linux_test,
-        create_cmake_script_windows_no_toolchain_file_test,
-        create_cmake_script_windows_toolchain_file_test,
-        merge_flag_values_no_toolchain_file_test,
-        create_min_cmake_script_wipe_toolchain_test,
+        partial.make(absolutize_test, size = "small"),
+        partial.make(tail_extraction_test, size = "small"),
+        partial.make(find_flag_value_test, size = "small"),
+        partial.make(fill_crossfile_from_toolchain_test, size = "small"),
+        partial.make(move_dict_values_test, size = "small"),
+        partial.make(reverse_descriptor_dict_test, size = "small"),
+        partial.make(merge_toolchain_and_user_values_test, size = "small"),
+        partial.make(create_min_cmake_script_no_toolchain_file_test, size = "small"),
+        partial.make(create_min_cmake_script_toolchain_file_test, size = "small"),
+        partial.make(create_cmake_script_no_toolchain_file_test, size = "small"),
+        partial.make(create_cmake_script_toolchain_file_test, size = "small"),
+        partial.make(create_cmake_script_android_test, size = "small"),
+        partial.make(create_cmake_script_linux_test, size = "small"),
+        partial.make(create_cmake_script_windows_no_toolchain_file_test, size = "small"),
+        partial.make(create_cmake_script_windows_toolchain_file_test, size = "small"),
+        partial.make(merge_flag_values_no_toolchain_file_test, size = "small"),
+        partial.make(create_min_cmake_script_wipe_toolchain_test, size = "small"),
     )

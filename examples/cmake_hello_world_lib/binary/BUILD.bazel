@@ -42,6 +42,7 @@ genrule(
 
 file_test(
     name = "test_binary",
+    size = "small",
     content = "Hello, me!",
     file = ":call_hello",
 )

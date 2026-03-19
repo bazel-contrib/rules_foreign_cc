@@ -31,6 +31,7 @@ SIZES = [
 [
     cc_test(
         name = "test_lib_" + size,
+        size = "small",
         srcs = [
             "test_libb.cpp",
         ],
