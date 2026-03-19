@@ -5,8 +5,8 @@ cc_binary(
     name = "libpng_usage_example",
     srcs = ["libpng_usage_example.cpp"],
     deps = [
+        "@examples_zlib//:zlib",
         "@libpng",
-        "@zlib",
     ],
 )
 

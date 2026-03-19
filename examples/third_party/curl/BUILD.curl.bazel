@@ -51,7 +51,7 @@ cmake(
     }),
     visibility = ["//visibility:public"],
     deps = [
+        "@examples_zlib//:zlib",
         "@openssl",
-        "@zlib",
     ],
 )

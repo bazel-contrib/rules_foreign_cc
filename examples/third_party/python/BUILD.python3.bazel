@@ -34,7 +34,7 @@ configure_make(
     ],
     out_data_dirs = ["lib"],
     deps = [
+        "@examples_zlib//:zlib",
         "@openssl",
-        "@zlib",
     ],
 )

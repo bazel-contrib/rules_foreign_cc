@@ -21,7 +21,7 @@ filegroup(
 cc_binary(
     name = "zlib_usage_example",
     srcs = ["zlib-example.cpp"],
-    deps = ["@zlib"],
+    deps = ["@examples_zlib//:zlib"],
 )
 
 sh_test(
@@ -33,10 +33,10 @@ sh_test(
 
 cmake(
     name = "zlib_shared_usage_example",
-    dynamic_deps = ["@zlib//:zlib_shared"],
+    dynamic_deps = ["@examples_zlib//:zlib_shared"],
     lib_source = "shared_usage_srcs",
     out_binaries = ["zlib-example"],
-    deps = ["@zlib//:zlib_static"],
+    deps = ["@examples_zlib//:zlib_static"],
 )
 
 runnable_binary(
