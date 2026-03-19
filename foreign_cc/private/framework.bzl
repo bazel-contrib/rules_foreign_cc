@@ -2,11 +2,11 @@
  with CMake, configure/make, autotools)
 """
 
-load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
+load("@rules_cc//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load("//foreign_cc/private:resource_sets.bzl", "SIZE_ATTRIBUTES", "get_resource_env_vars")
@@ -967,10 +967,7 @@ def _define_inputs(attrs):
             bazel_libs += _collect_libs(dep[CcInfo].linking_context)
 
     for dynamic_dep in attrs.dynamic_deps:
-        if not bazel_features.globals.CcSharedLibraryInfo:
-            fail("CcSharedLibraryInfo is only available in Bazel 7 or greater")
-
-        linker_input = dynamic_dep[bazel_features.globals.CcSharedLibraryInfo].linker_input
+        linker_input = dynamic_dep[CcSharedLibraryInfo].linker_input
         bazel_libs += _collect_shared_libs(linker_input)
         linking_context = cc_common.create_linking_context(
             linker_inputs = depset(direct = [linker_input]),
