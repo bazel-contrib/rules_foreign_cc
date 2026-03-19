@@ -43,6 +43,13 @@ meson_with_requirements(
         "@openssl//:msvc_compiler": [
             "ws2_32.lib",
         ],
+        "@platforms//os:linux": [
+            # Newer ld.lld rejects version script entries for symbols that are
+            # not present in the final link; see
+            # https://gitlab.freedesktop.org/mesa/mesa/-/issues/8338 for
+            # breadcrumbs
+            "-Wl,--undefined-version",
+        ],
         "//conditions:default": [],
     }),
     options = select({
