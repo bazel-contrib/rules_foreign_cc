@@ -13,14 +13,15 @@ filegroup(
 configure_make(
     name = "libtool",
     build_data = [
-        "@m4",
+        "@m4//:m4_exe",
     ],
-    env = select({
+    env = {
+        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+    } | select({
         "@platforms//os:macos": {
             "AR": "",
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
         },
-        "//conditions:default": {"M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4"},
+        "//conditions:default": {},
     }),
     install_prefix = "install",
     lib_source = ":all_srcs",

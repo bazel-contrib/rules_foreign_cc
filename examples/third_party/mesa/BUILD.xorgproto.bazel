@@ -12,6 +12,10 @@ filegroup(
 
 configure_make(
     name = "xorgproto",
+    env = {
+        "PYTHON": "$$EXT_BUILD_ROOT/$(PYTHON3)",
+    },
     lib_source = ":all_srcs",
     out_headers_only = True,
+    toolchains = ["@rules_python//python:current_py_toolchain"],
 )

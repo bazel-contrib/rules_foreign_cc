@@ -13,16 +13,16 @@ filegroup(
 configure_make(
     name = "autoconf",
     build_data = [
-        "@m4",
+        "@m4//:m4_exe",
     ],
-    env = select({
+    env = {
+        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+        "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
+    } | select({
         "@platforms//os:macos": {
             "AR": "",
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
         },
-        "//conditions:default": {
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
-        },
+        "//conditions:default": {},
     }),
     lib_source = ":all_srcs",
     out_binaries = [
@@ -35,5 +35,12 @@ configure_make(
         "ifnames",
     ],
     out_data_dirs = ["share"],
-    target_compatible_with = ["@rules_foreign_cc_examples_third_party//:broken"],
+    toolchains = ["@rules_perl//:current_toolchain"],
+)
+
+filegroup(
+    name = "gen_dir",
+    srcs = [":autoconf"],
+    output_group = "gen_dir",
+    visibility = ["//visibility:public"],
 )

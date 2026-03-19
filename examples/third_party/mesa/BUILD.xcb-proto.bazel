@@ -12,8 +12,12 @@ filegroup(
 
 configure_make(
     name = "xcb-proto",
+    env = {
+        "PYTHON": "$$EXT_BUILD_ROOT/$(PYTHON3)",
+    },
     lib_source = ":all_srcs",
     # Dependents of xcb-proto require this lib dir to be present in the bazel sandbox
     out_data_dirs = ["lib"],
     out_headers_only = True,
+    toolchains = ["@rules_python//python:current_py_toolchain"],
 )
