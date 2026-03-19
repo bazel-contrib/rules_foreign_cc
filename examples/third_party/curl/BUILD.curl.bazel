@@ -24,6 +24,7 @@ _MACOS_CACHE_ENTRIES = dict(_CACHE_ENTRIES.items() + {
 
 _LINUX_CACHE_ENTRIES = dict(_CACHE_ENTRIES.items() + {
     "CMAKE_C_FLAGS": "-fPIC",
+    "PERL_EXECUTABLE": "$$EXT_BUILD_ROOT/$(PERL)",
 }.items())
 
 cmake(
@@ -49,9 +50,10 @@ cmake(
         "@platforms//os:windows": ["libcurl.lib"],
         "//conditions:default": ["libcurl.a"],
     }),
+    toolchains = ["@rules_perl//:current_toolchain"],
     visibility = ["//visibility:public"],
     deps = [
+        "@examples_zlib//:zlib",
         "@openssl",
-        "@zlib",
     ],
 )

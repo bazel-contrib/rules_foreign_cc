@@ -20,10 +20,14 @@ configure_make(
     env = select({
         "@platforms//os:macos": {
             "AR": "",
+            "PYTHON": "$$EXT_BUILD_ROOT/$(PYTHON3)",
         },
-        "//conditions:default": {},
+        "//conditions:default": {
+            "PYTHON": "$$EXT_BUILD_ROOT/$(PYTHON3)",
+        },
     }),
     lib_source = ":all_srcs",
+    toolchains = ["@rules_python//python:current_py_toolchain"],
     deps = select({
         "@platforms//os:macos": DEPS + ["@libpthread-stubs"],
         "//conditions:default": DEPS,

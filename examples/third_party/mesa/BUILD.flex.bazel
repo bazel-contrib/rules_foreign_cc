@@ -23,11 +23,11 @@ configure_make(
     }),
     env = select({
         "@platforms//os:linux": {
-            "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @m4//:m4_exe)):$$PATH",
+            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @m4//:m4_exe)):$$PATH",
         },
         "@platforms//os:macos": {
             "AR": "",
-            "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @m4//:m4_exe)):$$PATH",
+            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @m4//:m4_exe)):$$PATH",
         },
         "//conditions:default": {},
     }),

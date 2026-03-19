@@ -1135,8 +1135,14 @@ def expand_locations_and_make_variables(ctx, unexpanded, attr_name, data):
 
 def _expand_make_variables_in_string(ctx, expandable, attr_name):
     # Make variable expansion will treat $$ as escaped values for $ and strip the second one.
-    # Double-escape $s which we insert in expand_locations.
-    return ctx.expand_make_variables(attr_name, expandable.replace("$$EXT_BUILD_ROOT$$", "$$$$EXT_BUILD_ROOT$$$$"), {})
+    # Double-escape placeholder vars that may appear in user-provided attrs and must survive
+    # into the generated shell scripts.
+    for placeholder in [
+        "EXT_BUILD_DEPS",
+        "EXT_BUILD_ROOT",
+    ]:
+        expandable = expandable.replace("$${}$$".format(placeholder), "$$$${}$$$$".format(placeholder))
+    return ctx.expand_make_variables(attr_name, expandable, {})
 
 def _expand_locations(ctx, expandable, data):
     """Expand locations on a dictionary while ensuring `execpath` is always set to an absolute path

@@ -43,3 +43,10 @@ common:ci --check_direct_dependencies=error
 # When the lockfile falls out of sync, it can crash bazel, so don't let it fall
 # out of sync
 common:ci --lockfile_mode=error
+
+# When using foreign_rules_cc, we can get a much larger output which makes it
+# hard to debug if it exceeds the limit. This increases the default 1MiB to 10MiB
+common --experimental_ui_max_stdouterr_bytes=10485760
+
+# Remind people to set good test timeouts / sizes
+common --test_verbose_timeout_warnings

@@ -35,6 +35,7 @@ cc_binary(
 
 sh_test(
     name = "test_hello",
+    size = "small",
     srcs = ["test_hello.sh"],
     args = ["$(location libhello_example)"],
     data = [":libhello_example"],
@@ -65,6 +66,7 @@ cc_binary(
 
 sh_test(
     name = "test_hello_ninja",
+    size = "small",
     srcs = ["test_hello.sh"],
     args = ["$(location libhello_example_ninja)"],
     data = [":libhello_example_ninja"],

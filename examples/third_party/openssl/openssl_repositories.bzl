@@ -11,7 +11,6 @@ def openssl_repositories():
         integrity = "sha256-zzCYlQy02FOtlcCEHx+cbT3BAtzPys1SHZOSUgi3asg=",
         strip_prefix = "openssl-1.1.1w",
         urls = [
-            "https://mirror.bazel.build/www.openssl.org/source/openssl-1.1.1w.tar.gz",
             "https://www.openssl.org/source/openssl-1.1.1w.tar.gz",
             "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1w.tar.gz",
         ],
@@ -26,15 +25,5 @@ def openssl_repositories():
         urls = [
             "https://mirror.bazel.build/www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-win64.zip",
             "https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-win64.zip",
-        ],
-    )
-
-    maybe(
-        http_archive,
-        name = "rules_perl",
-        integrity = "sha256-2Z/JEFL8OWBRlck3voAdj0spjBtukSqADwvR9xd0WVk=",
-        strip_prefix = "",
-        urls = [
-            "https://github.com/bazel-contrib/rules_perl/releases/download/1.0.0/rules_perl-1.0.0.tar.gz",
         ],
     )

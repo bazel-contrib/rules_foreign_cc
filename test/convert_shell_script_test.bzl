@@ -1,5 +1,6 @@
 """ Unit tests for shell script conversion """
 
+load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 
 # buildifier: disable=bzl-visibility
@@ -287,10 +288,10 @@ script_conversion_test = unittest.make(_script_conversion_test)
 def shell_script_conversion_suite():
     unittest.suite(
         "shell_script_conversion_suite",
-        replace_vars_test,
-        replace_vars_win_test,
-        do_function_call_test,
-        split_arguments_test,
-        do_function_call_with_body_test,
-        script_conversion_test,
+        partial.make(replace_vars_test, size = "small"),
+        partial.make(replace_vars_win_test, size = "small"),
+        partial.make(do_function_call_test, size = "small"),
+        partial.make(split_arguments_test, size = "small"),
+        partial.make(do_function_call_with_body_test, size = "small"),
+        partial.make(script_conversion_test, size = "small"),
     )

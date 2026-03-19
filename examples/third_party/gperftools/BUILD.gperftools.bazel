@@ -15,11 +15,30 @@ configure_make(
         "--enable-frame-pointers",
         "--disable-libunwind",
     ],
+    copts = [
+        # This package requires c++17, and bazel 7.x's default BAZEL_CXXOPTS is
+        # set to -std=c++14, so override.
+        "-std=c++17",
+    ],
     env = select({
         "@platforms//os:macos": {"AR": ""},
         "//conditions:default": {},
     }),
     lib_source = ":all_srcs",
     out_static_libs = ["libtcmalloc_and_profiler.a"],
+    target_compatible_with = select({
+        "@platforms//os:macos": ["@rules_foreign_cc_examples_third_party//:broken"],
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    targets = [
+        # Something is wrong about the project's gtest wiring, resulting in
+        # unittests failing to build due to being unable to find gtest.h. They
+        # don't provide any official method to bypass building the tests, so
+        # work around it by calling the make targets we require directly.
+        "install-libLTLIBRARIES",
+        "install-perftoolsincludeHEADERS",
+        "install-nodist_perftoolsincludeHEADERS",
+    ],
     visibility = ["//visibility:public"],
 )

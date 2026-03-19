@@ -25,6 +25,7 @@ cmake(
 # And cc_test built with cmake_external dependency and transitive Bazel dependency
 cc_test(
     name = "test",
+    size = "small",
     srcs = [
         "test_libb.cpp",
     ],

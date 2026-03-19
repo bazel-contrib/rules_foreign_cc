@@ -10,9 +10,14 @@ exports_files(
 
 sh_test(
     name = "gn_launch_test",
+    size = "small",
     srcs = ["gn_test.sh"],
     data = ["@gn//:gn_bin"],
     env = {
         "GN": "$(rootpath @gn//:gn_bin)",
     },
+)
+
+test_suite(
+    name = "all_tests",
 )

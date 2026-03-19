@@ -43,6 +43,7 @@ sh_library(
 
 shellcheck_test(
     name = "shellcheck_linux",
+    size = "small",
     srcs = [":tool_build_scripts"],
     target_compatible_with = [
         "@platforms//os:linux",

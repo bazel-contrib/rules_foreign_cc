@@ -4,6 +4,12 @@ local_path_override(
     path = "..",
 )
 
+bazel_dep(name = "rules_foreign_cc_examples_third_party", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc_examples_third_party",
+    path = "third_party",
+)
+
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 tools.cmake(version = "3.23.1")
 tools.ninja(version = "1.11.1")
@@ -21,6 +27,16 @@ bazel_dep(name = "rules_python", version = "1.9.0")
 bazel_dep(name = "rules_cc", version = "0.2.13")
 bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "rules_perl", version = "1.0.0")
+
+perl = use_extension("@rules_perl//perl:extensions.bzl", "perl_repositories")
+use_repo(
+    perl,
+    "perl_darwin_amd64",
+    "perl_darwin_arm64",
+    "perl_linux_amd64",
+    "perl_linux_arm64",
+    "perl_windows_x86_64",
+)
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
@@ -65,6 +81,60 @@ rust_example.from_specs(
 use_repo(
     rust_example,
     "rust_example",
+)
+
+third_party = use_extension("@rules_foreign_cc_examples_third_party//:extensions.bzl", "third_party")
+use_repo(
+    third_party,
+    "apr",
+    "apr_util",
+    "autoconf",
+    "automake",
+    "bison",
+    "cares",
+    "curl",
+    "examples_zlib",
+    "expat",
+    "flex",
+    "gettext",
+    "gettext_win",
+    "glib",
+    "gn",
+    "gperftools",
+    "iconv",
+    "iconv_macos",
+    "libdrm",
+    "libffi",
+    "libgit2",
+    "libjpeg_turbo",
+    "libpciaccess",
+    "libpng",
+    "libpthread-stubs",
+    "libssh2",
+    "libtool",
+    "libx11",
+    "libxau",
+    "libxcb",
+    "libxdmcp",
+    "libxext",
+    "libxfixes",
+    "libxrandr",
+    "libxrender",
+    "libxshmfence",
+    "log4cxx",
+    "m4",
+    "mesa",
+    "nasm",
+    "openssl",
+    "pcre",
+    "python3",
+    "renderproto",
+    "sqlite",
+    "subversion",
+    "winflexbison",
+    "xcb-proto",
+    "xorgproto",
+    "xtrans",
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.8.2")

@@ -43,6 +43,7 @@ build_test(
 
 cc_test(
     name = "test_libs",
+    size = "small",
     srcs = [
         "test_libb.cpp",
     ],

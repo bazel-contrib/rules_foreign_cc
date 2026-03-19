@@ -26,11 +26,20 @@ _TARGET_OS_PARAMS = {
     "emscripten": {
         "CMAKE_SYSTEM_NAME": "Emscripten",
     },
+    "ios": {
+        "CMAKE_SYSTEM_NAME": "iOS",
+    },
     "linux": {
         "CMAKE_SYSTEM_NAME": "Linux",
     },
     "macos": {
         "CMAKE_SYSTEM_NAME": "Darwin",
+    },
+    "tvos": {
+        "CMAKE_SYSTEM_NAME": "tvOS",
+    },
+    "watchos": {
+        "CMAKE_SYSTEM_NAME": "watchOS",
     },
 }
 

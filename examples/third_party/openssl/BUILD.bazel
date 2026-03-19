@@ -11,6 +11,7 @@ exports_files(
 
 cc_test(
     name = "openssl_test",
+    size = "small",
     srcs = ["openssl_test.cc"],
     linkopts = select({
         "@openssl//:msvc_compiler": [
@@ -33,6 +34,7 @@ build_test(
 
 sh_test(
     name = "openssl_launch_test",
+    size = "small",
     srcs = ["openssl_test.sh"],
     data = ["@openssl//:runnable_openssl"],
     env = {
@@ -48,4 +50,8 @@ test_suite(
         ":openssl_test",
     ],
     visibility = ["//:__pkg__"],
+)
+
+test_suite(
+    name = "all_tests",
 )
