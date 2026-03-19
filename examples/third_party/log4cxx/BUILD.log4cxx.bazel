@@ -26,6 +26,10 @@ configure_make(
     }),
     lib_source = ":all_srcs",
     out_static_libs = ["liblog4cxx.a"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
     deps = [
         "@apr",

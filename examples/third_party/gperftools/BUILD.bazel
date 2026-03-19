@@ -25,10 +25,5 @@ build_test(
 )
 
 test_suite(
-    name = "test",
-    tests = [
-        ":build_test",
-        # ":malloc_test",
-    ],
-    visibility = ["//:__pkg__"],
+    name = "all_tests",
 )
