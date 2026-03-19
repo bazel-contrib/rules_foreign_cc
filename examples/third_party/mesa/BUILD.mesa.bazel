@@ -97,7 +97,7 @@ meson_with_requirements(
     ],
     toolchains = ["@rules_python//python:current_py_toolchain"],
     visibility = ["//visibility:public"],
-    deps = select({
+    deps = ["@examples_zlib//:zlib"] + select({
         "@platforms//os:linux": [
             "@bison",
             "@expat",
@@ -112,16 +112,12 @@ meson_with_requirements(
             "@libxrender",
             "@libxshmfence",
             "@xorgproto",
-            "@zlib",
         ],
         "@platforms//os:macos": [
             "@libx11",
             "@libxext",
             "@libxfixes",
-            "@zlib",
         ],
-        "@platforms//os:windows": [
-            "@zlib",
-        ],
+        "@platforms//os:windows": [],
     }),
 )

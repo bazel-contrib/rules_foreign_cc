@@ -36,9 +36,9 @@ cmake(
     }),
     visibility = ["//visibility:public"],
     deps = [
+        "@examples_zlib//:zlib",
         "@libssh2",
         "@openssl",
-        "@zlib",
     ] + select({
         "@platforms//os:linux": ["@pcre"],
         "@platforms//os:macos": ["@iconv_macos//:iconv"],
