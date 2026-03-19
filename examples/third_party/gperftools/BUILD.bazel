@@ -1,6 +1,8 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 # load("@rules_cc//cc:defs.bzl", "cc_test")
 
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
 exports_files(
     [
         "BUILD.gperftools.bazel",
@@ -8,14 +10,11 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 
-# TODO(rules_foreign_cc#227) This currently gives an error:
-# "ERROR: <...>/use_malloc/BUILD:17:14: in malloc attribute of cc_test rule //:test:
-# configure_make rule '@gperftools//:gperftools_build' is misplaced here (expected cc_library)"
-# cc_test(
-#     name = "malloc_test",
-#     srcs = ["malloc_test.cpp"],
-#     malloc = "@gperftools//:gperftools_build",
-# )
+cc_test(
+    name = "malloc_test",
+    srcs = ["malloc_test.cc"],
+    malloc = "@gperftools//:gperftools_build",
+)
 
 build_test(
     name = "build_test",
