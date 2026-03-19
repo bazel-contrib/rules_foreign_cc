@@ -35,4 +35,5 @@ configure_make(
         "ifnames",
     ],
     out_data_dirs = ["share"],
+    target_compatible_with = ["@rules_foreign_cc_examples_third_party//:broken"],
 )

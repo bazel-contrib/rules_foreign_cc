@@ -28,13 +28,3 @@ def openssl_repositories():
             "https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-win64.zip",
         ],
     )
-
-    maybe(
-        http_archive,
-        name = "rules_perl",
-        integrity = "sha256-2Z/JEFL8OWBRlck3voAdj0spjBtukSqADwvR9xd0WVk=",
-        strip_prefix = "",
-        urls = [
-            "https://github.com/bazel-contrib/rules_perl/releases/download/1.0.0/rules_perl-1.0.0.tar.gz",
-        ],
-    )

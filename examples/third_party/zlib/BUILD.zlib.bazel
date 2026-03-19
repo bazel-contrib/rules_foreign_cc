@@ -28,6 +28,7 @@ cmake(
         "@platforms//os:windows": ["z.lib"],
         "//conditions:default": ["libz.a"],
     }),
+    target_compatible_with = ["@rules_foreign_cc_examples_third_party//:broken"],
 )
 
 cc_library(

@@ -16,3 +16,7 @@ sh_test(
         "GN": "$(rootpath @gn//:gn_bin)",
     },
 )
+
+test_suite(
+    name = "all_tests",
+)

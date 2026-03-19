@@ -28,4 +28,8 @@ configure_make(
         "libtool",
     ],
     out_data_dirs = ["share"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )

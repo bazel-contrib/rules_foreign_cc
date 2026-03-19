@@ -1,0 +1,7 @@
+# Note that we actually want this to be in sync with the .bazelrc from
+# examples, but it's not possible to reliably import it from there (because
+# %workspace% points to a different value). As a result, this has to be
+# manually kept in sync with the parent one.
+import %workspace%/../../.bazelrc.common
+
+common:ci --compilation_mode=dbg

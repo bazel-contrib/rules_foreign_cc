@@ -27,5 +27,7 @@ configure_make(
     out_binaries = [
         "automake",
     ],
+    # doesn't work on any platform currently, due to autoconf
+    target_compatible_with = ["@rules_foreign_cc_examples_third_party//:broken"],
     toolchains = ["@rules_perl//:current_toolchain"],
 )

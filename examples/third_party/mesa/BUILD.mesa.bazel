@@ -1,5 +1,5 @@
-load("@pip//:requirements.bzl", "requirement")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson_with_requirements")
+load("@third_party_pip//:requirements.bzl", "requirement")
 
 filegroup(
     name = "all_srcs",

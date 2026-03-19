@@ -12,7 +12,10 @@ cc_test(
 cc_library(
     name = "ios_lib",
     srcs = ["c-ares-test.cpp"],
-    tags = ["manual"],
+    target_compatible_with = select({
+        "@platforms//os:macos": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     deps = ["@cares"],
 )
 
@@ -20,13 +23,19 @@ apple_binary(
     name = "ios_binary",
     minimum_os_version = "12.0",
     platform_type = "ios",
+    target_compatible_with = select({
+        "@platforms//os:macos": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     deps = [":ios_lib"],
 )
 
 build_test(
     name = "test_c_ares_ios",
-    tags = ["manual"],
-    target_compatible_with = ["@platforms//os:macos"],
     targets = ["ios_binary"],
     visibility = ["//:__pkg__"],
+)
+
+test_suite(
+    name = "all_tests",
 )
