@@ -14,15 +14,14 @@ filegroup(
 configure_make(
     name = "bison",
     build_data = [
-        "@m4",
+        "@m4//:m4_exe",
     ],
-    env = select({
-        "@platforms//os:linux": {
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
-        },
+    env = {
+        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+        "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
+    } | select({
         "@platforms//os:macos": {
             "AR": "",
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
         },
         "//conditions:default": {},
     }),
@@ -34,7 +33,12 @@ configure_make(
     # Bison depends on m4sugar.m4 in the "share" directory at runtime
     out_data_dirs = ["share"],
     out_static_libs = ["liby.a"],
-    target_compatible_with = ["@rules_foreign_cc_examples_third_party//:broken"],
+    target_compatible_with = select({
+        "@platforms//os:macos": ["@rules_foreign_cc_examples_third_party//:broken"],
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    toolchains = ["@rules_perl//:current_toolchain"],
 )
 
 filegroup(
