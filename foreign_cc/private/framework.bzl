@@ -811,6 +811,16 @@ def _copy_deps_and_tools(files):
 
     return lines
 
+def _get_dir_name(dir, file):
+    dest_dir = dir
+    if type(file) == "File" and file.owner != None:
+        workspace_root = file.owner.workspace_root
+        path = "/".join(file.path.split("/")[:-1])
+        prefix = "{}/".format(workspace_root)
+        if path.startswith(prefix):
+            dest_dir = "{}/{}".format(dir, path.removeprefix(prefix))
+    return dest_dir
+
 def _symlink_contents_to_dir(dir_name, files_list):
     # It is possible that some duplicate libraries will be passed as inputs
     # to cmake_external or configure_make. Filter duplicates out here.
@@ -823,7 +833,7 @@ def _symlink_contents_to_dir(dir_name, files_list):
         path = _file_path(file).strip()
         if path:
             lines.append("##symlink_contents_to_dir## \
-$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, dir_name))
+$$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, _get_dir_name(dir_name, file)))
 
     return lines
 
