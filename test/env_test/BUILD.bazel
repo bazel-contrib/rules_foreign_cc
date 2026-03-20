@@ -61,8 +61,14 @@ env_test_ninja(
 env_test_meson(
     name = "meson_default",
     check_shellvars = STANDARD_VARS | {
+        "CMAKE": "bork",
         "MESON_NUM_PROCESSES": "",
         "NINJA_JOBS": "",
+    },
+    meson_attrs = {
+        "env": {
+            "CMAKE": "bork",
+        },
     },
 )
 
@@ -134,12 +140,16 @@ env_test_configure_make(
     check_shellvars = STANDARD_VARS | {
         # since we replace the builddir, this overrides the STANDARD_VARS
         "BUILD_TMPDIR": "{{abs_builddir}}",
+        "MAKE": "bork",
         "MAKEFLAGS": "",
     },
     # srcdir ends up being C:/..., and then autotools looks for the aux files
     # using $srcdir$PATH_SEPARATOR$srcdir/.. and PATH_SEPARATOR is :, so the :
     # in the path breaks it.
     configure_make_attrs = {
+        "env": {
+            "MAKE": "bork",
+        },
         "target_compatible_with": _NOT_WINDOWS,
     },
 )
