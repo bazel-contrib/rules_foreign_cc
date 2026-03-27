@@ -3,11 +3,11 @@ module(
     version = "0.0.0",
 )
 
-bazel_dep(name = "bazel_features", version = "1.28.0")
+bazel_dep(name = "bazel_features", version = "1.38.0")
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "apple_support", version = "1.24.5", repo_name = "build_bazel_apple_support")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_cc", version = "0.2.13")
+bazel_dep(name = "rules_cc", version = "0.2.16")
 bazel_dep(name = "rules_apple", version = "3.4.0", repo_name = "build_bazel_rules_apple")
 bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
 bazel_dep(name = "rules_perl", version = "1.0.0", repo_name = "rules_perl")
