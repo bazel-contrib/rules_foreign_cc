@@ -41,6 +41,17 @@ env_test_make(
     },
 )
 
+env_test_make(
+    name = "make_serial",
+    check_makevars = STANDARD_VARS | {
+        "GNUMAKEFLAGS": "",
+        "MAKEFLAGS": " -j1 -- PREFIX={{INSTALLDIR}}",
+    },
+    make_attrs = {
+        "resource_size": "serial",
+    },
+)
+
 env_test_ninja(
     name = "ninja_default",
     check_shellvars = STANDARD_VARS | {
