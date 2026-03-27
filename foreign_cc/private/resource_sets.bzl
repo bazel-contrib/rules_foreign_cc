@@ -19,6 +19,11 @@ _SIZES = {
         "cpu": 4,
         "mem": 500,
     },
+    "serial": {
+        "cpu": 1,
+        "fixed_cpu": True,
+        "mem": 250,
+    },
     "small": {
         "cpu": 2,
         "mem": 250,
@@ -31,6 +36,9 @@ _SIZES = {
 
 def _bazelrc_line(name, value):
     return "common --@rules_foreign_cc//foreign_cc/settings:{}={}".format(name, value)
+
+def _is_fixed(cfg, resource):
+    return cfg.get("fixed_{}".format(resource), False)
 
 def _setting(size, resource, mode):
     if size == _DEFAULT_SIZE:
@@ -47,7 +55,12 @@ def _setting(size, resource, mode):
 
 def create_settings():
     """create the settings that configure these functions."""
-    settings = {"size_default": _DEFAULT_SIZE}
+    settings = {
+        "size_default": {
+            "sort_key": (0, 0, 0, ""),
+            "value": _DEFAULT_SIZE,
+        },
+    }
     string_flag(
         name = "size_default",
         build_setting_default = _DEFAULT_SIZE,
@@ -59,24 +72,31 @@ def create_settings():
         if not cfg:
             fail("invalid size cfg", size)
 
-        # keep this in sync with the docs and the above helper!
-        cpu_name = "size_{}_cpu".format(size)
-        cpu_default = _SIZES[size]["cpu"]
-        int_flag(
-            name = cpu_name,
-            build_setting_default = cpu_default,
-            visibility = ["//visibility:public"],
-        )
-        settings[cpu_name] = cpu_default
+        for resource in ["cpu", "mem"]:
+            if _is_fixed(cfg, resource):
+                continue
 
-        mem_name = "size_{}_mem".format(size)
-        mem_default = _SIZES[size]["mem"]
-        int_flag(
-            name = mem_name,
-            build_setting_default = mem_default,
-            visibility = ["//visibility:public"],
-        )
-        settings[mem_name] = mem_default
+            name = "size_{}_{}".format(size, resource)
+            default = cfg[resource]
+            int_flag(
+                name = name,
+                build_setting_default = default,
+                visibility = ["//visibility:public"],
+            )
+
+            # Keep the generated bazelrc grouped by descending size, with
+            # fixed-resource variants after non-fixed ones when values tie.
+            settings[name] = {
+                "sort_key": (
+                    1,
+                    -cfg["cpu"],
+                    -cfg["mem"],
+                    1 if cfg.get("fixed_cpu", False) or cfg.get("fixed_mem", False) else 0,
+                    size,
+                    0 if resource == "cpu" else 1,
+                ),
+                "value": default,
+            }
 
     expand_template(
         name = "settings_script",
@@ -84,8 +104,8 @@ def create_settings():
         template = Label(":settings.sh.in"),
         substitutions = {
             "{{SETTINGS_BAZELRC_LINES}}": "\n".join([
-                _bazelrc_line(name, settings[name])
-                for name in sorted(settings.keys())
+                _bazelrc_line(name, settings[name]["value"])
+                for name in sorted(settings.keys(), key = lambda name: settings[name]["sort_key"])
             ]),
         },
     )
@@ -108,12 +128,16 @@ Set the approximate size of this build. This does two things:
    requested parallelization; examples are CMAKE_BUILD_PARALLEL_LEVEL for cmake
    or MAKEFLAGS for autotools.
 2. Sets the resource_set attribute on the action to tell bazel how many cores
-   are being used, so it schedules appropriately.  The sizes map to labels,
-   which can be used to override the meaning of the sizes. See
-   @rules_foreign_cc//foreign_cc/settings:size_{size}_{cpu|mem}.
+   are being used, so it schedules appropriately.
 
+The sizes map to labels, which can be used to override the meaning of the
+sizes. See @rules_foreign_cc//foreign_cc/settings:size_{size}_{cpu|mem}.
 Running `bazel run @rules_foreign_cc//foreign_cc/settings` will print out all
 the settings in bazelrc format for easy customization.
+
+The `serial` size is special: it sets cpu=1, and provides no override for cpu
+(just mem), so `serial` can be used for packages that are known-broken for
+parallelization.
 """,
     ),
 } | {
@@ -121,8 +145,9 @@ the settings in bazelrc format for easy customization.
         default = _setting(size, resource, mode = "label"),
         providers = [BuildSettingInfo],
     )
-    for size in _SIZES.keys()
+    for size, cfg in _SIZES.items()
     for resource in ["cpu", "mem"]
+    if not _is_fixed(cfg, resource)
 } | {
     _setting(size = _DEFAULT_SIZE, resource = None, mode = "key"): attr.label(
         default = _setting(size = _DEFAULT_SIZE, resource = None, mode = "label"),
@@ -159,8 +184,9 @@ def get_resource_set(attr):
     if size == _DEFAULT_SIZE:
         return None, 0, 0
 
-    cpu_value = _get_size_config(attr, size, "cpu")
-    mem_value = _get_size_config(attr, size, "mem")
+    cfg = _SIZES[size]
+    cpu_value = cfg["cpu"] if _is_fixed(cfg, "cpu") else _get_size_config(attr, size, "cpu")
+    mem_value = cfg["mem"] if _is_fixed(cfg, "mem") else _get_size_config(attr, size, "mem")
 
     if cpu_value < 0:
         fail("cpu must be >= 0")
