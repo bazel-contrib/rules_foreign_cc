@@ -147,13 +147,9 @@ meson_tool(
 
 native_tool_toolchain(
     name = "built_meson",
-    env = {
-        "MESON": "$(execpath :meson_tool)",
-        "REAL_MESON": "$(rlocationpath @meson_src//:meson.py)",
-    },
+    env = {"MESON": "$(execpath :meson_tool)"},
     path = "$(execpath :meson_tool)",
     target = ":meson_tool",
-    tools = ["@meson_src//:meson.py"],
 )
 
 native_tool_toolchain(
