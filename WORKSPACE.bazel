@@ -5,14 +5,18 @@ load("//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies(register_built_pkgconfig_toolchain = True)
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
+
+compatibility_proxy_repo()
+
 local_repository(
     name = "rules_foreign_cc_examples",
     path = "examples",
 )
-
-load("@bazel_features//:deps.bzl", "bazel_features_deps")
-
-bazel_features_deps()
 
 load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
 
@@ -38,39 +42,39 @@ load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 protobuf_deps()
 
 http_archive(
-    name = "bazelci_rules",
+    name = "bazel_ci_rules",
     sha256 = "eca21884e6f66a88c358e580fd67a6b148d30ab57b1680f62a96c00f9bc6a07e",
     strip_prefix = "bazelci_rules-1.0.0",
     url = "https://github.com/bazelbuild/continuous-integration/releases/download/rules-1.0.0/bazelci_rules-1.0.0.tar.gz",
 )
 
-load("@bazelci_rules//:rbe_repo.bzl", "rbe_preconfig")
+load("@bazel_ci_rules//:rbe_repo.bzl", "rbe_preconfig")
 
 # Creates a default toolchain config for RBE.
 # Use this as is if you are using the rbe_ubuntu16_04 container,
 # otherwise refer to RBE docs.
 rbe_preconfig(
     name = "buildkite_config",
-    toolchain = "ubuntu1804-bazel-java11",
+    toolchain = "ubuntu2204",
 )
 
 # Gazelle dependencies
 
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "b7387f72efb59f876e4daae42f1d3912d0d45563eac7cb23d1de0b094ab588cf",
+    sha256 = "aefbf2fc7c7616c9ed73aa3d51c77100724d5b3ce66cfa16406e8c13e87c8b52",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.34.0/bazel-gazelle-v0.34.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.34.0/bazel-gazelle-v0.34.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.41.0/bazel-gazelle-v0.41.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.41.0/bazel-gazelle-v0.41.0.tar.gz",
     ],
 )
 
 http_archive(
     name = "bazel_skylib_gazelle_plugin",
-    sha256 = "747addf3f508186234f6232674dd7786743efb8c68619aece5fb0cac97b8f415",
+    sha256 = "e0629e3cbacca15e2c659833b24b86174d22b664ca0a67f377108ff6a207cc8c",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-gazelle-plugin-1.5.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-gazelle-plugin-1.5.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-gazelle-plugin-1.7.1.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-gazelle-plugin-1.7.1.tar.gz",
     ],
 )
 
@@ -85,25 +89,20 @@ bazel_skylib_gazelle_plugin_setup()
 
 gazelle_dependencies(go_repository_default_config = "//:WORKSPACE.bazel")
 
+# Note: 1.13 requires nodeps bzlmod deps, which requires bazel 7.6.0
 http_archive(
     name = "aspect_rules_lint",
-    sha256 = "c90501db2548f4af27ed873e40adc6524fcd8472c25ff9946ba13aa77c767249",
-    strip_prefix = "rules_lint-1.2.2",
-    url = "https://github.com/aspect-build/rules_lint/releases/download/v1.2.2/rules_lint-v1.2.2.tar.gz",
+    sha256 = "a8a63bd071a39bd5be1f99d9f258eac674673c98505f9fc5b4c76587f67278cd",
+    strip_prefix = "rules_lint-1.12.0",
+    url = "https://github.com/aspect-build/rules_lint/releases/download/v1.12.0/rules_lint-v1.12.0.tar.gz",
 )
 
-# aspect_rules_lint depends on aspect_bazel_lib.
-http_archive(
-    name = "aspect_bazel_lib",
-    sha256 = "6d758a8f646ecee7a3e294fbe4386daafbe0e5966723009c290d493f227c390b",
-    strip_prefix = "bazel-lib-2.7.7",
-    url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.7.7/bazel-lib-v2.7.7.tar.gz",
-)
+# aspect_rules_lint depends on bazel_lib.
+load("@bazel_lib//lib:repositories.bzl", "bazel_lib_dependencies", "bazel_lib_register_toolchains")
 
-load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
+bazel_lib_dependencies()
 
-# aspect_bazel_lib depends on bazel_skylib
-aspect_bazel_lib_dependencies()
+bazel_lib_register_toolchains()
 
 load(
     "@aspect_rules_lint//format:repositories.bzl",

@@ -8,7 +8,10 @@ cmake(
     # Demonstrate non-alphanumeric name
     lib_name = "liba++",
     lib_source = "//cmake_synthetic/liba:a_srcs",
-    postfix_script = "cp -p $$INSTALLDIR/lib/liba.a $$INSTALLDIR/lib/liba++.a",
+    postfix_script = select({
+        "@platforms//os:windows": "cp -p $$INSTALLDIR/lib/liba.lib $$INSTALLDIR/lib/liba++.lib",
+        "//conditions:default": "cp -p $$INSTALLDIR/lib/liba.a $$INSTALLDIR/lib/liba++.a",
+    }),
 )
 
 cmake(
@@ -40,6 +43,7 @@ build_test(
 
 cc_test(
     name = "test_libs",
+    size = "small",
     srcs = [
         "test_libb.cpp",
     ],

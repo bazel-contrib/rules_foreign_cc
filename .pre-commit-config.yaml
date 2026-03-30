@@ -8,11 +8,13 @@ exclude: >-
     |.*\.diff
     |test/(expected|.*/expected)/.*\.txt
     |examples/(?!.*CMakeLists\.txt$).*\.txt
+    |test/env_test/.*\.tmpl
+    |test/env_test/(configure|install-sh|missing)
   )$
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-merge-conflict
       - id: mixed-line-ending
@@ -21,7 +23,7 @@ repos:
       - id: check-yaml
 
   - repo: https://github.com/keith/pre-commit-buildifier
-    rev: 7.3.1.1
+    rev: 8.2.1.1
     hooks:
       - id: buildifier
         args: &args
@@ -31,25 +33,53 @@ repos:
         args: *args
 
   - repo: https://github.com/mpalmer/action-validator
-    rev: v0.6.0
+    rev: v0.8.0
     hooks:
       - id: action-validator
 
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.4
+    rev: v1.7.11
     hooks:
       - id: actionlint
 
   - repo: https://github.com/mrtazz/checkmake.git
-    rev: 0.2.2
+    rev: v0.3.2
     hooks:
       - id: checkmake
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
+    rev: v0.11.0.1
     hooks:
       - id: shellcheck
         exclude: >-
           (?x)^(
             examples/.*
           )$
+
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args: [-c, .yamllint.yml]
+
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.21.0
+    hooks:
+      - id: yamlfmt
+
+  - repo: https://github.com/psf/black
+    rev: 26.3.1
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pycqa/isort
+    rev: 8.0.1
+    hooks:
+      - id: isort
+        args: [--profile, black, --filter-files]
+
+  - repo: https://github.com/cpp-linter/cpp-linter-hooks
+    rev: v1.1.13
+    hooks:
+      - id: clang-format
+        args: [--style=file, --version=21]

@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 package(default_visibility = ["//visibility:public"])
@@ -24,8 +24,9 @@ cmake(
         "//conditions:default": [],
     }),
     lib_source = ":all_srcs",
+    out_include_dir = "include",
     out_static_libs = select({
-        "@platforms//os:windows": ["z.lib"],
+        "@platforms//os:windows": ["zlib.lib"],
         "//conditions:default": ["libz.a"],
     }),
 )
@@ -58,7 +59,6 @@ cc_library(
         "inflate.h",
         "inftrees.h",
         "trees.h",
-        "zconf.h",
         "zlib.h",
         "zutil.h",
     ],
@@ -72,6 +72,7 @@ cc_library(
     }),
     includes = ["."],
     linkstatic = True,
+    deps = [":zlib"],
 )
 
 cc_shared_library(

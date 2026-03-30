@@ -1,0 +1,178 @@
+load(":env_test_cmake.bzl", "env_test_cmake")
+load(":env_test_configure_make.bzl", "env_test_configure_make")
+load(":env_test_make.bzl", "env_test_make")
+load(":env_test_meson.bzl", "env_test_meson")
+load(":env_test_ninja.bzl", "env_test_ninja")
+
+package(default_visibility = ["//test:__subpackages__"])
+
+_NOT_WINDOWS = select({
+    "@platforms//os:windows": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
+STANDARD_VARS = {
+    "BUILD_TMPDIR": "{{INSTALLDIR}}.build_tmpdir",
+    "EXT_BUILD_DEPS": "{{INSTALLDIR}}.ext_build_deps",
+    "EXT_BUILD_ROOT": "{{EXT_BUILD_ROOT}}",
+    "INSTALLDIR": "{{INSTALLDIR}}",
+}
+
+env_test_make(
+    name = "make_default",
+    check_makevars = STANDARD_VARS | {
+        # Note that we set GNUMAKEFLAGS, but make itself will convert it into
+        # MAKEFLAGS, so we'll just see MAKEFLAGS set here
+        "GNUMAKEFLAGS": "",
+        "MAKEFLAGS": " -- PREFIX={{INSTALLDIR}}",
+    },
+)
+
+env_test_make(
+    name = "make_tiny",
+    check_makevars = STANDARD_VARS | {
+        # Note that we set GNUMAKEFLAGS, but make itself will convert it into
+        # MAKEFLAGS, so we'll just see MAKEFLAGS set here
+        "GNUMAKEFLAGS": "",
+        "MAKEFLAGS": " -j1 -- PREFIX={{INSTALLDIR}}",
+    },
+    make_attrs = {
+        "resource_size": "tiny",
+    },
+)
+
+env_test_make(
+    name = "make_serial",
+    check_makevars = STANDARD_VARS | {
+        "GNUMAKEFLAGS": "",
+        "MAKEFLAGS": " -j1 -- PREFIX={{INSTALLDIR}}",
+    },
+    make_attrs = {
+        "resource_size": "serial",
+    },
+)
+
+env_test_ninja(
+    name = "ninja_default",
+    check_shellvars = STANDARD_VARS | {
+        "NINJA_JOBS": "",
+    },
+)
+
+env_test_ninja(
+    name = "ninja_tiny",
+    check_shellvars = STANDARD_VARS | {
+        "NINJA_JOBS": "1",
+    },
+    ninja_attrs = {
+        "resource_size": "tiny",
+    },
+)
+
+env_test_meson(
+    name = "meson_default",
+    check_shellvars = STANDARD_VARS | {
+        "MESON_NUM_PROCESSES": "",
+        "NINJA_JOBS": "",
+    },
+)
+
+env_test_meson(
+    name = "meson_tiny",
+    check_shellvars = STANDARD_VARS | {
+        "MESON_NUM_PROCESSES": "1",
+        "NINJA_JOBS": "1",
+    },
+    meson_attrs = {
+        "resource_size": "tiny",
+    },
+)
+
+CMAKE_STANDARD_CVARS = {
+    # none of the standard vars are cmake vars, so verify they aren't set
+    k: ""
+    for k in STANDARD_VARS.keys()
+}
+
+env_test_cmake(
+    name = "cmake_default",
+    check_cmakevars = CMAKE_STANDARD_CVARS | {
+        "CMAKE_MINIMUM_REQUIRED_VERSION": "3.12",
+        "CMAKE_SOURCE_DIR": "{{CMAKE_SOURCE_DIR}}",
+    },
+    check_shellvars = STANDARD_VARS | {
+        # since we replace the binary dir, this overrides the STANDARD_VARS
+        "BUILD_TMPDIR": "{{CMAKE_BINARY_DIR}}",
+        "CMAKEVARS_FILE": "{{INSTALLDIR}}/cmakevars.out",
+        "CMAKE_BUILD_PARALLEL_LEVEL": "",
+        "GNUMAKEFLAGS": "",
+        "MAKEFLAGS": "",
+        "NINJA_JOBS": "",
+    },
+)
+
+env_test_cmake(
+    name = "cmake_tiny",
+    check_cmakevars = CMAKE_STANDARD_CVARS | {
+        "CMAKE_MINIMUM_REQUIRED_VERSION": "3.12",
+        "CMAKE_SOURCE_DIR": "{{CMAKE_SOURCE_DIR}}",
+    },
+    check_shellvars = {
+        # since we replace the binary dir, this overrides the STANDARD_VARS
+        "BUILD_TMPDIR": "{{CMAKE_BINARY_DIR}}",
+        "CMAKEVARS_FILE": "{{INSTALLDIR}}/cmakevars.out",
+        "CMAKE_BUILD_PARALLEL_LEVEL": "1",
+        # Note that we set GNUMAKEFLAGS, but make itself will convert it into
+        # MAKEFLAGS, so for the cmake test we won't see it converted yet.
+        "GNUMAKEFLAGS": "-j1",
+        "MAKEFLAGS": "",
+        "NINJA_JOBS": "1",
+    },
+    cmake_attrs = {
+        "resource_size": "tiny",
+    },
+)
+
+env_test_configure_make(
+    name = "configure_make_default",
+    check_makevars = STANDARD_VARS | {
+        # since we replace the builddir, this overrides the STANDARD_VARS
+        "BUILD_TMPDIR": "{{abs_builddir}}",
+        "MAKEFLAGS": "",
+        "abs_builddir": "{{abs_builddir}}",
+        "abs_srcdir": "{{abs_srcdir}}",
+    },
+    check_shellvars = STANDARD_VARS | {
+        # since we replace the builddir, this overrides the STANDARD_VARS
+        "BUILD_TMPDIR": "{{abs_builddir}}",
+        "MAKEFLAGS": "",
+    },
+    # srcdir ends up being C:/..., and then autotools looks for the aux files
+    # using $srcdir$PATH_SEPARATOR$srcdir/.. and PATH_SEPARATOR is :, so the :
+    # in the path breaks it.
+    configure_make_attrs = {
+        "target_compatible_with": _NOT_WINDOWS,
+    },
+)
+
+env_test_configure_make(
+    name = "configure_make_tiny",
+    check_makevars = STANDARD_VARS | {
+        # since we replace the builddir, this overrides the STANDARD_VARS
+        "BUILD_TMPDIR": "{{abs_builddir}}",
+        "INSTALLDIR": "{{INSTALLDIR}}",
+        "MAKEFLAGS": " -j1",
+        "abs_builddir": "{{abs_builddir}}",
+        "abs_srcdir": "{{abs_srcdir}}",
+    },
+    check_shellvars = STANDARD_VARS | {
+        # since we replace the builddir, this overrides the STANDARD_VARS
+        "BUILD_TMPDIR": "{{abs_builddir}}",
+        "INSTALLDIR": "{{INSTALLDIR}}",
+        "MAKEFLAGS": " -j1",
+    },
+    configure_make_attrs = {
+        "resource_size": "tiny",
+        "target_compatible_with": _NOT_WINDOWS,
+    },
+)

@@ -33,8 +33,12 @@ configure_make(
         "python3.10",
     ],
     out_data_dirs = ["lib"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
+        "@examples_zlib//:zlib",
         "@openssl",
-        "@zlib",
     ],
 )

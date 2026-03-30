@@ -1,0 +1,52 @@
+build --enable_platform_specific_config
+
+# Required by Meson on Windows
+build:windows --action_env=PROCESSOR_ARCHITECTURE
+build:windows --action_env=USERPROFILE
+
+# Required when using the built meson toolchain on windows
+build:windows --nobuild_python_zip
+
+# Required by Meson and built pkg-config on Windows
+build:windows --enable_runfiles
+
+# These are required otherwise paths are too long
+startup --windows_enable_symlinks
+build:windows --action_env=MSYS=winsymlinks:nativestrict
+test:windows --action_env=MSYS=winsymlinks:nativestrict
+
+# Enable CC toolchain that supports iOS from https://github.com/bazelbuild/apple_support
+build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain
+build:macos --crosstool_top=@local_config_apple_cc//:toolchain
+build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain
+
+common:ci --keep_going
+
+# https://github.com/bazelbuild/bazel/issues/12844 requires non-empty configs,
+# so use show_progress as a noop
+common:noop --show_progress
+
+# Provide CI shortcuts for these
+common:spawn-standalone --spawn_strategy=standalone
+common:spawn-default --config=noop
+
+# There are three different bzlmod configurations!
+common:bzlmod-yes --noenable_workspace --enable_bzlmod
+common:bzlmod-no --enable_workspace --noenable_bzlmod
+common:bzlmod-mixed --enable_workspace --enable_bzlmod
+
+# Because we support both bzlmod and not right now, it's important that the
+# actual dependencies we use stay in sync, and this means erroring when the
+# root module doesn't get what it wants.
+common:ci --check_direct_dependencies=error
+
+# When the lockfile falls out of sync, it can crash bazel, so don't let it fall
+# out of sync
+common:ci --lockfile_mode=error
+
+# When using foreign_rules_cc, we can get a much larger output which makes it
+# hard to debug if it exceeds the limit. This increases the default 1MiB to 10MiB
+common --experimental_ui_max_stdouterr_bytes=10485760
+
+# Remind people to set good test timeouts / sizes
+common --test_verbose_timeout_warnings

@@ -1,0 +1,3 @@
+import %workspace%/.bazelrc.common
+
+common:ci --@aspect_rules_lint//lint:fail_on_violation

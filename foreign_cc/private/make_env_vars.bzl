@@ -16,8 +16,14 @@ def get_make_env_vars(
     vars = _get_make_variables(workspace_name, tools, flags, user_vars, make_commands)
     deps_flags = _define_deps_flags(deps, inputs, is_msvc)
 
-    # For cross-compilation.
-    if "RANLIB" not in vars.keys():
+    # bazel has no standard way to retrieve this value from the toolchain, but
+    # some toolchains provide it and some build systems (like openssl) require
+    # it for non-racy parallel builds.
+    if "RANLIB" in user_vars:
+        vars["RANLIB"] = [user_vars["RANLIB"]]
+
+    elif "RANLIB" not in vars.keys():
+        # For cross-compilation.
         vars["RANLIB"] = [":"]
 
     if "LDFLAGS" in vars.keys():

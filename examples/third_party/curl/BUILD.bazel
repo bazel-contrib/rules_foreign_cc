@@ -10,6 +10,7 @@ exports_files(
 
 cc_test(
     name = "curl_test",
+    size = "small",
     srcs = ["curl_test.cc"],
     defines = select({
         "@openssl//:msvc_compiler": ["CURL_STATICLIB"],
@@ -46,4 +47,8 @@ test_suite(
         ":curl_test",
     ],
     visibility = ["//:__pkg__"],
+)
+
+test_suite(
+    name = "all_tests",
 )

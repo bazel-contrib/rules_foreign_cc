@@ -10,10 +10,21 @@ def _symlink_contents_to_dir_test_rule_impl(ctx):
     dir1 = detect_root(ctx.attr.dir1)
     dir2 = detect_root(ctx.attr.dir2)
     script_lines = [
+        "##script_prelude##",
+        # do a cleanup just in case, since windows isn't sandboxed
+        "##rm_rf## rel_symlink_test",
+        "##rm_rf## aaa",
+        "##mkdirs## rel_symlink_test/src",
+        "##mkdirs## rel_symlink_test/links/nested",
+        "cp -R \"%s\" rel_symlink_test/src/dir1_copy" % dir1,
+        # Use a nested relative link so `readlink` returns a relative value
+        # that must be resolved against the symlink's parent dir.
+        "ln -sf ../../src/dir1_copy rel_symlink_test/links/nested/dir1_link",
         "##mkdirs## aaa",
-        "##symlink_contents_to_dir## %s aaa False" % dir1,
-        "##symlink_contents_to_dir## %s aaa False" % dir2,
-        "ls -R aaa > %s" % out.path,
+        "##symlink_contents_to_dir## rel_symlink_test/links/nested/dir1_link aaa False",
+        "##symlink_contents_to_dir## \"%s\" aaa False" % dir2,
+        # simplistic way to check for dangling symlinks, too
+        "find -L aaa | sort > %s" % out.path,
     ]
     converted_script = convert_shell_script(ctx, script_lines)
     ctx.actions.run_shell(

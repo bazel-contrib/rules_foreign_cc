@@ -23,8 +23,12 @@ bzl_library(
     name = "meson_build",
     srcs = ["meson_build.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["@rules_python//python:defs_bzl"],
+    deps = [
+        "@rules_python//python:defs_bzl",
+    ],
 )
+
+exports_files(["meson_tool_wrapper.py"])
 
 bzl_library(
     name = "ninja_build",

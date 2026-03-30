@@ -13,19 +13,33 @@ filegroup(
 configure_make(
     name = "automake",
     build_data = [
-        "@autoconf",
-        "@m4",
+        "@autoconf//:gen_dir",
+        "@m4//:m4_exe",
     ],
     env = {
-        "AC_MACRODIR": "$$EXT_BUILD_DEPS$$/bin/autoconf/share/autoconf",
-        "AUTOM4TE": "$$EXT_BUILD_DEPS$$/bin/autoconf/bin/autom4te",
-        "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
-        "PERL": "$$EXT_BUILD_ROOT$$/$(PERL)",
-        "autom4te_perllibdir": "$$EXT_BUILD_DEPS$$/bin/autoconf/share/autoconf",
+        "AC_MACRODIR": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/share/autoconf",
+        "AUTOCONF": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autoconf",
+        "AUTOHEADER": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autoheader",
+        "AUTOM4TE": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autom4te",
+        "AUTORECONF": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autoreconf)",
+        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+        "PATH": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin:$$PATH",
+        "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
+        "autom4te_perllibdir": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/share/autoconf",
     },
     lib_source = ":all_srcs",
     out_binaries = [
+        "aclocal",
         "automake",
     ],
+    # doesn't work on any platform currently, due to autoconf
+    target_compatible_with = ["@rules_foreign_cc_examples_third_party//:broken"],
     toolchains = ["@rules_perl//:current_toolchain"],
+)
+
+filegroup(
+    name = "gen_dir",
+    srcs = [":automake"],
+    output_group = "gen_dir",
+    visibility = ["//visibility:public"],
 )

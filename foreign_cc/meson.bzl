@@ -24,7 +24,7 @@ load(
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
-load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
+load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_make_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
 
 def _meson_impl(ctx):
     """The implementation of the `meson` rule
@@ -40,8 +40,9 @@ def _meson_impl(ctx):
     cmake_data = get_cmake_data(ctx)
     ninja_data = get_ninja_data(ctx)
     pkg_config_data = get_pkgconfig_data(ctx)
+    make_data = get_make_data(ctx)
 
-    tools_data = [meson_data, cmake_data, ninja_data, pkg_config_data]
+    tools_data = [meson_data, cmake_data, ninja_data, pkg_config_data, make_data]
 
     attrs = create_attrs(
         ctx.attr,
@@ -51,6 +52,7 @@ def _meson_impl(ctx):
         meson_path = meson_data.path,
         cmake_path = cmake_data.path,
         ninja_path = ninja_data.path,
+        make_path = make_data.path,
         pkg_config_path = pkg_config_data.path,
     )
     return cc_external_rule_impl(ctx, attrs)
@@ -81,6 +83,10 @@ def _create_meson_script(configureParameters):
         script.append("##export_var## CC {}".format(_absolutize(ctx.workspace_name, tools.cc)))
     if " " not in tools.cxx:
         script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
+    if " " not in tools.cxx_linker_static and tools.cxx_linker_static.endswith("ar"):
+        script.append("##export_var## AR {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_static)))
+    if tools.strip and " " not in tools.strip:
+        script.append("##export_var## STRIP {}".format(_absolutize(ctx.workspace_name, tools.strip)))
 
     copts = flags.cc
     cxxopts = flags.cxx
@@ -92,9 +98,16 @@ def _create_meson_script(configureParameters):
     if flags.cxx_linker_executable:
         script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, flags.cxx_linker_executable).replace("\"", "'")))
 
+    # Note that these variables do help meson, but meson has a dependency
+    # search fallback where it asks cmake, and when it tries to invoke all of
+    # the cmake generators (it tries a bunch of them) it doesn't set
+    # CMAKE_MAKE_PROGRAM, so tools like ninja must be in the PATH to be found
+    # (which is handled by the tools setup) and setting NINJA here does not
+    # help that
     script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
     script.append("##export_var## PKG_CONFIG {}".format(attrs.pkg_config_path))
+    script.append("##export_var## MAKE {}".format(attrs.make_path))
 
     root = detect_root(ctx.attr.lib_source)
     data = ctx.attr.data + ctx.attr.build_data
@@ -252,6 +265,7 @@ meson = rule(
         "@rules_foreign_cc//toolchains:cmake_toolchain",
         "@rules_foreign_cc//toolchains:ninja_toolchain",
         "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
+        "@rules_foreign_cc//toolchains:make_toolchain",
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
@@ -277,9 +291,13 @@ def meson_with_requirements(name, requirements, **kwargs):
 
     native_tool_toolchain(
         name = "built_meson_for_{}".format(name),
-        env = {"MESON": "$(execpath :meson_tool_for_{})".format(name)},
+        env = {
+            "MESON": "$(execpath :meson_tool_for_{})".format(name),
+            "REAL_MESON": "$(rlocationpath @meson_src//:meson.py)",
+        },
         path = "$(execpath :meson_tool_for_{})".format(name),
         target = ":meson_tool_for_{}".format(name),
+        tools = ["@meson_src//:meson.py"],
     )
 
     native.toolchain(

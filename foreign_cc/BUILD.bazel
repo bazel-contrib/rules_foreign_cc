@@ -117,8 +117,10 @@ bzl_library(
     srcs = ["ninja.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        "//foreign_cc/private:cc_toolchain_util",
         "//foreign_cc/private:detect_root",
         "//foreign_cc/private:framework",
+        "//foreign_cc/private:ninja_script",
         "//toolchains/native_tools:tool_access",
         "@rules_cc//cc:bzl_srcs",
         "@rules_cc//cc/common",

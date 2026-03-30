@@ -139,7 +139,6 @@ def _ninja_toolchain(version, register_toolchains):
             integrity = "sha256-8IZB0ACZqeQNROwBRvhBxHKuWLfm3VF77jlFz9kjzt8=",
             strip_prefix = "ninja-1.13.0",
             urls = [
-                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.13.0.tar.gz",
                 "https://github.com/ninja-build/ninja/archive/v1.13.0.tar.gz",
             ],
         )
@@ -217,6 +216,19 @@ def _meson_toolchain(version, register_toolchains):
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_meson_toolchain",
         )
+    if version == "1.10.1":
+        maybe(
+            http_archive,
+            name = "meson_src",
+            build_file_content = _MESON_BUILD_FILE_CONTENT,
+            sha256 = "c42296f12db316a4515b9375a5df330f2e751ccdd4f608430d41d7d6210e4317",
+            strip_prefix = "meson-1.10.1",
+            urls = [
+                "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/1.10.1/meson-1.10.1.tar.gz",
+                "https://github.com/mesonbuild/meson/releases/download/1.10.1/meson-1.10.1.tar.gz",
+            ],
+        )
+        return
     if version == "1.5.1":
         maybe(
             http_archive,

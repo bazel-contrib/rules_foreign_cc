@@ -1,5 +1,5 @@
-load("@pip//:requirements.bzl", "requirement")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson_with_requirements")
+load("@third_party_pip//:requirements.bzl", "requirement")
 
 filegroup(
     name = "all_srcs",
@@ -30,18 +30,25 @@ meson_with_requirements(
     }),
     env = select({
         "@bazel_tools//src/conditions:host_windows": {
-            "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @winflexbison//:gen_dir))/winflexbison:$$(dirname $$EXT_BUILD_ROOT$$/$(PYTHON3)):$$PATH",
+            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @winflexbison//:gen_dir))/winflexbison:$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
         },
         "//conditions:default": {
-            "BISON_PKGDATADIR": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @bison//:gen_dir))/bison/share/bison",
-            "M4": "$$EXT_BUILD_ROOT$$/$(location @m4//:m4_exe)",
-            "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @bison//:gen_dir))/bison/bin:$$(dirname $$EXT_BUILD_ROOT$$/$(location @flex//:flex_exe)):$$EXT_BUILD_DEPS$$/bin/m4/bin/:$$(dirname $$EXT_BUILD_ROOT$$/$(PYTHON3)):$$PATH",
+            "BISON_PKGDATADIR": "$$(dirname $$EXT_BUILD_ROOT/$(location @bison//:gen_dir))/bison/share/bison",
+            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @bison//:gen_dir))/bison/bin:$$(dirname $$EXT_BUILD_ROOT/$(location @flex//:flex_exe)):$$(dirname $$EXT_BUILD_ROOT/$(location @m4//:m4_exe)):$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
         },
     }),
     lib_source = ":all_srcs",
     linkopts = select({
         "@openssl//:msvc_compiler": [
             "ws2_32.lib",
+        ],
+        "@platforms//os:linux": [
+            # Newer ld.lld rejects version script entries for symbols that are
+            # not present in the final link; see
+            # https://gitlab.freedesktop.org/mesa/mesa/-/issues/8338 for
+            # breadcrumbs
+            "-Wl,--undefined-version",
         ],
         "//conditions:default": [],
     }),
@@ -97,7 +104,7 @@ meson_with_requirements(
     ],
     toolchains = ["@rules_python//python:current_py_toolchain"],
     visibility = ["//visibility:public"],
-    deps = select({
+    deps = ["@examples_zlib//:zlib"] + select({
         "@platforms//os:linux": [
             "@bison",
             "@expat",
@@ -112,16 +119,12 @@ meson_with_requirements(
             "@libxrender",
             "@libxshmfence",
             "@xorgproto",
-            "@zlib",
         ],
         "@platforms//os:macos": [
             "@libx11",
             "@libxext",
             "@libxfixes",
-            "@zlib",
         ],
-        "@platforms//os:windows": [
-            "@zlib",
-        ],
+        "@platforms//os:windows": [],
     }),
 )

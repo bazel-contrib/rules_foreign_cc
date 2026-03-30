@@ -16,6 +16,7 @@ cmake(
 
 cc_test(
     name = "test_lib",
+    size = "small",
     srcs = [
         "test_liba.cpp",
     ],

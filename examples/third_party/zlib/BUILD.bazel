@@ -21,11 +21,16 @@ filegroup(
 cc_binary(
     name = "zlib_usage_example",
     srcs = ["zlib-example.cpp"],
-    deps = ["@zlib"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"],
+        "//conditions:default": [],
+    }),
+    deps = ["@examples_zlib//:zlib"],
 )
 
 sh_test(
     name = "test_zlib",
+    size = "small",
     srcs = ["test_zlib.sh"],
     data = [":zlib_usage_example"],
     visibility = ["//:__pkg__"],
@@ -33,10 +38,14 @@ sh_test(
 
 cmake(
     name = "zlib_shared_usage_example",
-    dynamic_deps = ["@zlib//:zlib_shared"],
+    dynamic_deps = ["@examples_zlib//:zlib_shared"],
     lib_source = "shared_usage_srcs",
     out_binaries = ["zlib-example"],
-    deps = ["@zlib//:zlib_static"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"],
+        "//conditions:default": [],
+    }),
+    deps = ["@examples_zlib//:zlib_static"],
 )
 
 runnable_binary(
@@ -47,7 +56,12 @@ runnable_binary(
 
 sh_test(
     name = "test_shared_zlib",
+    size = "small",
     srcs = ["test_shared_zlib.sh"],
     data = [":run-zlib-example"],
     visibility = ["//:__pkg__"],
+)
+
+test_suite(
+    name = "all_tests",
 )
