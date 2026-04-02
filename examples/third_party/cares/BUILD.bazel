@@ -33,6 +33,10 @@ apple_binary(
 
 build_test(
     name = "test_c_ares_ios",
+    target_compatible_with = select({
+        "@platforms//os:macos": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     targets = ["ios_binary"],
     visibility = ["//:__pkg__"],
 )
