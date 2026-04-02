@@ -372,7 +372,7 @@ cmake(<a href="cmake.html#cmake-name">name</a>, <a href="cmake.html#cmake-deps">
 <pre>
 load("@rules_foreign_cc//foreign_cc:cmake.bzl", "cmake_variant")
 
-cmake_variant(<a href="cmake.html#cmake_variant-name">name</a>, <a href="cmake.html#cmake_variant-toolchain">toolchain</a>, <a href="cmake.html#cmake_variant-kwargs">kwargs</a>)
+cmake_variant(<a href="cmake.html#cmake_variant-name">name</a>, <a href="cmake.html#cmake_variant-toolchain">toolchain</a>, <a href="cmake.html#cmake_variant-kwargs">**kwargs</a>)
 </pre>
 <p>Wrapper macro around the cmake() rule to force usage of the given make variant toolchain.</p>
 <p><strong>PARAMETERS</strong></p>
@@ -459,7 +459,7 @@ configure_make(<a href="configure_make.html#configure_make-name">name</a>, <a hr
 <pre>
 load("@rules_foreign_cc//foreign_cc:configure.bzl", "configure_make_variant")
 
-configure_make_variant(<a href="configure_make.html#configure_make_variant-name">name</a>, <a href="configure_make.html#configure_make_variant-toolchain">toolchain</a>, <a href="configure_make.html#configure_make_variant-kwargs">kwargs</a>)
+configure_make_variant(<a href="configure_make.html#configure_make_variant-name">name</a>, <a href="configure_make.html#configure_make_variant-toolchain">toolchain</a>, <a href="configure_make.html#configure_make_variant-kwargs">**kwargs</a>)
 </pre>
 <p>Wrapper macro around the configure_make() rule to force usage of the given make variant toolchain.</p>
 <p><strong>PARAMETERS</strong></p>
@@ -529,7 +529,7 @@ make(<a href="make.html#make-name">name</a>, <a href="make.html#make-deps">deps<
 <pre>
 load("@rules_foreign_cc//foreign_cc:make.bzl", "make_variant")
 
-make_variant(<a href="make.html#make_variant-name">name</a>, <a href="make.html#make_variant-toolchain">toolchain</a>, <a href="make.html#make_variant-kwargs">kwargs</a>)
+make_variant(<a href="make.html#make_variant-name">name</a>, <a href="make.html#make_variant-toolchain">toolchain</a>, <a href="make.html#make_variant-kwargs">**kwargs</a>)
 </pre>
 <p>Wrapper macro around the make() rule to force usage of the given make variant toolchain.</p>
 <p><strong>PARAMETERS</strong></p>
@@ -601,7 +601,7 @@ meson(<a href="meson.html#meson-name">name</a>, <a href="meson.html#meson-deps">
 <pre>
 load("@rules_foreign_cc//foreign_cc:meson.bzl", "meson_with_requirements")
 
-meson_with_requirements(<a href="meson.html#meson_with_requirements-name">name</a>, <a href="meson.html#meson_with_requirements-requirements">requirements</a>, <a href="meson.html#meson_with_requirements-kwargs">kwargs</a>)
+meson_with_requirements(<a href="meson.html#meson_with_requirements-name">name</a>, <a href="meson.html#meson_with_requirements-requirements">requirements</a>, <a href="meson.html#meson_with_requirements-kwargs">**kwargs</a>)
 </pre>
 <p>Wrapper macro around Meson rule to add Python libraries required by the Meson build.</p>
 <p><strong>PARAMETERS</strong></p>
