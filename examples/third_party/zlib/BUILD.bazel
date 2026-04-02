@@ -32,7 +32,11 @@ sh_test(
     name = "test_zlib",
     size = "small",
     srcs = ["test_zlib.sh"],
-    data = [":zlib_usage_example"],
+    args = ["$(rlocationpath :zlib_usage_example)"],
+    data = [
+        ":zlib_usage_example",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
     visibility = ["//:__pkg__"],
 )
 
@@ -58,7 +62,11 @@ sh_test(
     name = "test_shared_zlib",
     size = "small",
     srcs = ["test_shared_zlib.sh"],
-    data = [":run-zlib-example"],
+    args = ["$(rlocationpaths :zlib_shared_usage_example)"],
+    data = [
+        ":zlib_shared_usage_example",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
     visibility = ["//:__pkg__"],
 )
 
