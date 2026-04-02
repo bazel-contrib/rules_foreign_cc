@@ -51,6 +51,7 @@ def env_test_ninja(name, *, check_shellvars = None, ninja_attrs = None, test_att
     ninja_attrs.update(dict(
         name = build_name,
         lib_source = Label(ninjafile),
+        out_include_dir = "",
         out_headers_only = True,
         targets = [""],
         out_data_files = [

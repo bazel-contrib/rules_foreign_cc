@@ -62,6 +62,7 @@ def env_test_make(name, *, check_makevars = None, check_shellvars = None, make_a
     make_attrs.update(dict(
         name = build_name,
         lib_source = Label(makefile),
+        out_include_dir = "",
         out_headers_only = True,
         targets = [""],
         out_data_files = [
