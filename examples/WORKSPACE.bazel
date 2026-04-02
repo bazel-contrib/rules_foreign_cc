@@ -1,6 +1,7 @@
 workspace(name = "rules_foreign_cc_examples")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:local.bzl", "new_local_repository")
 
 local_repository(
     name = "rules_foreign_cc",
@@ -14,6 +15,15 @@ rules_foreign_cc_dependencies(register_built_pkgconfig_toolchain = True)
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
 
 bazel_features_deps()
+
+http_archive(
+    name = "with_cfg.bzl",
+    integrity = "sha256-h4UuEzw3VaVkL+EFQ+4g7acA2uFNMNE9rJbiLqUQbQc=",
+    strip_prefix = "with_cfg.bzl-0.14.6",
+    urls = [
+        "https://github.com/fmeum/with_cfg.bzl/releases/download/v0.14.6/with_cfg.bzl-v0.14.6.tar.gz",
+    ],
+)
 
 load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
 
@@ -190,3 +200,15 @@ load(
 )
 
 rust_example_crate_repositories()
+
+new_local_repository(
+    name = "rules_foreign_cc_detect_root_test_repo",
+    build_file_content = """\
+filegroup(
+    name = "srcs",
+    srcs = glob(["**/**"]),
+    visibility = ["//visibility:public"],
+)
+""",
+    path = "integration_tests/detect_root_test/dir1",
+)

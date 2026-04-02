@@ -27,6 +27,7 @@ bazel_dep(name = "rules_python", version = "1.9.0")
 bazel_dep(name = "rules_cc", version = "0.2.13")
 bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "rules_perl", version = "1.0.0")
+bazel_dep(name = "with_cfg.bzl", version = "0.14.6")
 
 perl = use_extension("@rules_perl//perl:extensions.bzl", "perl_repositories")
 use_repo(
@@ -139,3 +140,19 @@ use_repo(
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "bazel_lib", version = "3.2.0")
+
+# Support the integration tests
+
+new_local_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:local.bzl", "new_local_repository")
+
+new_local_repository(
+    name = "rules_foreign_cc_detect_root_test_repo",
+    build_file_content = """\
+filegroup(
+    name = "srcs",
+    srcs = glob(["**/**"]),
+    visibility = ["//visibility:public"],
+)
+""",
+    path = "integration_tests/detect_root_test/dir1",
+)

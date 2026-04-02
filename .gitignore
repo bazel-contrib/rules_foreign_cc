@@ -85,6 +85,4 @@ bazelci.py
 /bazel-*
 /docs/bazel-*
 /examples/bazel-*
-/test/detect_root_test/bazel-*
-/test/standard_cxx_flags_test/bazel-*
 .ijwb/

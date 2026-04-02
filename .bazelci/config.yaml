@@ -27,10 +27,6 @@ matrix:
     Main: ''
     Examples: examples
 
-  mini:
-    Flags: test/standard_cxx_flags_test
-    DetectRoot: test/detect_root_test
-
   exclude:
     # bazel 9 no longer supports workspaces
     - bazel_version: 9.x
@@ -72,17 +68,6 @@ tasks:
       - ${{ spawn_strategy }}
 
     test_flags: *primary_flags
-
-  mini:
-    <<: *default_task
-    name: '{mini}/{bazel_version}/{bzlmod}'
-    working_directory: ${{ mini }}
-
-    build_flags: &mini_flags
-      - --config=ci
-      - ${{ bzlmod }}
-
-    test_flags: *mini_flags
 
   docs:
     name: Docs

@@ -1,6 +1,7 @@
 # buildifier: disable=module-docstring
 # buildifier: disable=bzl-visibility
 load("@rules_foreign_cc//foreign_cc/private:cc_toolchain_util.bzl", "get_flags_info")
+load("@with_cfg.bzl", "with_cfg")
 
 def _impl(ctx):
     flags = get_flags_info(ctx)
@@ -55,7 +56,7 @@ def assert_contains_once(arr, value):
     if cnt > 1:
         fail("Value is included multiple times: " + value)
 
-_flags_test = rule(
+_flags_test_test = rule(
     implementation = _impl,
     attrs = {
         "copts": attr.string_list(),
@@ -69,8 +70,8 @@ _flags_test = rule(
     test = True,
 )
 
-def flags_test(name, **kwargs):
-    _flags_test(
+def _flags_test(name, **kwargs):
+    _flags_test_test(
         name = name,
         # On Windows we need the ".bat" extension.
         # On other platforms the extension doesn't matter.
@@ -78,3 +79,20 @@ def flags_test(name, **kwargs):
         out = name + ".bat",
         **kwargs
     )
+
+flags_test, _flags_test_with_cfg = with_cfg(
+    _flags_test,
+    executable = True,
+).set(
+    "copt",
+    ["-fblah0"],
+).set(
+    "cxxopt",
+    ["-fblah1"],
+).set(
+    "conlyopt",
+    ["-fblah2"],
+).set(
+    "linkopt",
+    ["-fblah3"],
+).build()
