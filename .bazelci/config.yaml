@@ -11,8 +11,14 @@ matrix:
 
   bazel_version:
     7.x: 7.7.1
-    # 8.x: 8.6.0
+    8.x: 8.6.0
     # 9.x: 9.0.1
+
+  # hack to work around it until the fix lands:
+  # https://github.com/bazelbuild/continuous-integration/pull/2526
+  bazel_rc_config:
+    7.x: --config=bazel-7.x
+    8.x: --config=bazel-8.x
 
   bzlmod:
     bzlmod: [--enable_bzlmod, --noenable_workspace]
@@ -31,6 +37,20 @@ matrix:
     # bazel 9 no longer supports workspaces
     - bazel_version: 9.x
       bzlmod: workspaces
+
+    # bazel 7 has an unfortunate habit of crashing on bzlmod lock files, so
+    # only support bazel 7 in workspace mode
+    - bazel_version: 7.x
+      bzlmod: bzlmod
+
+    - bazel_version: 7.x
+      bzlmod: mixed
+
+    - bazel_version: 7.x
+      bazel_rc_config: 8.x
+
+    - bazel_version: 8.x
+      bazel_rc_config: 7.x
 
     # Windows doesn't actually have a sandbox anyway, and there aren't a lot of
     # windows runners, so don't run the standalones
@@ -64,6 +84,7 @@ tasks:
 
     build_flags: &primary_flags
       - --config=ci
+      - ${{ bazel_rc_config }}
       - ${{ bzlmod }}
       - ${{ spawn_strategy }}
 
