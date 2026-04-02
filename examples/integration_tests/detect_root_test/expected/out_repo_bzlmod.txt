@@ -1,1 +1,1 @@
-external/_main~_repo_rules~rules_foreign_cc_detect_root_test_repo
+external/+_repo_rules+rules_foreign_cc_detect_root_test_repo

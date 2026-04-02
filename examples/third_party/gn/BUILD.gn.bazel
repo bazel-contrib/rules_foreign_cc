@@ -20,6 +20,7 @@ ninja(
         "@platforms//os:windows": ["gn.exe"],
         "//conditions:default": ["gn"],
     }),
+    out_include_dir = "",
     out_static_libs = select({
         "@platforms//os:windows": ["gn_lib.lib"],
         "//conditions:default": ["gn_lib.a"],

@@ -42,6 +42,7 @@ def cmake_tool(name, srcs, **kwargs):
             "@platforms//os:windows": ["cmake.exe"],
             "//conditions:default": ["cmake"],
         }),
+        out_include_dir = "",
         out_static_libs = [],
         out_shared_libs = [],
         tags = tags,

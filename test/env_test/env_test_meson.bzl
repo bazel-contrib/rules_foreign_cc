@@ -49,6 +49,7 @@ def env_test_meson(name, *, check_shellvars = None, meson_attrs = None, test_att
     meson_attrs.update(dict(
         name = build_name,
         lib_source = Label(meson_build),
+        out_include_dir = "",
         out_headers_only = True,
         targets = [],
         out_data_files = [

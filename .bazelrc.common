@@ -22,13 +22,9 @@ build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain
 
 common:ci --keep_going
 
-# https://github.com/bazelbuild/bazel/issues/12844 requires non-empty configs,
-# so use show_progress as a noop
-common:noop --show_progress
-
 # Provide CI shortcuts for these
 common:spawn-standalone --spawn_strategy=standalone
-common:spawn-default --config=noop
+common:spawn-default --show_progress
 
 # There are three different bzlmod configurations!
 common:bzlmod-yes --noenable_workspace --enable_bzlmod
@@ -48,5 +44,12 @@ common:ci --lockfile_mode=error
 # hard to debug if it exceeds the limit. This increases the default 1MiB to 10MiB
 common --experimental_ui_max_stdouterr_bytes=10485760
 
+# Keep these config names around for BazelCI task selection. BazelCI expands
+# dict values only when they stand alone, so we need the bazel-x.x names until
+# https://github.com/bazelbuild/continuous-integration/pull/2526 lands
+# everywhere. Bazel 7 still needs a noop flag there, so use --show_progress;
+# see https://github.com/bazelbuild/bazel/issues/12844.
+common:bazel-7.x --show_progress
+common:bazel-8.x --incompatible_disable_autoloads_in_main_repo
 # Remind people to set good test timeouts / sizes
 common --test_verbose_timeout_warnings

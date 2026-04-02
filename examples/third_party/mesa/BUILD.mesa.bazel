@@ -17,11 +17,11 @@ meson_with_requirements(
     name = "mesa",
     build_args = select({
         # Prevent parallel builds on when using winflexbison, due to issue https://github.com/lexxmark/winflexbison/issues/86
-        "@bazel_tools//src/conditions:host_windows": ["-j 1"],
+        "@platforms//os:windows": ["-j 1"],
         "//conditions:default": [],
     }),
     build_data = select({
-        "@bazel_tools//src/conditions:host_windows": ["@winflexbison//:gen_dir"],
+        "@platforms//os:windows": ["@winflexbison//:gen_dir"],
         "//conditions:default": [
             "@bison//:gen_dir",
             "@flex//:flex_exe",
@@ -29,7 +29,7 @@ meson_with_requirements(
         ],
     }),
     env = select({
-        "@bazel_tools//src/conditions:host_windows": {
+        "@platforms//os:windows": {
             "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @winflexbison//:gen_dir))/winflexbison:$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
         },
         "//conditions:default": {

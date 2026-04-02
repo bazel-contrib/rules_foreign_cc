@@ -61,6 +61,7 @@ def env_test_cmake(name, *, check_cmakevars = None, check_shellvars = None, cmak
         name = build_name,
         lib_source = Label(cmakelists),
         install = False,
+        out_include_dir = "",
         out_headers_only = True,
         out_data_files = [
             "cmakevars.out",
