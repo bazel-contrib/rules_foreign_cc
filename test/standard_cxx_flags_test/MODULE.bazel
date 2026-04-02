@@ -1,8 +1,0 @@
-bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
-local_path_override(
-    module_name = "rules_foreign_cc",
-    path = "../../",
-)
-
-# bazel_ci_deps requires these, and fails to declare them
-bazel_dep(name = "rules_cc", version = "0.2.13", dev_dependency = True)
