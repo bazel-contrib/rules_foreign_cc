@@ -8,10 +8,10 @@ def cares_repositories():
         http_archive,
         name = "cares",
         build_file = Label("//cares:BUILD.cares.bazel"),
-        sha256 = "62dd12f0557918f89ad6f5b759f0bf4727174ae9979499f5452c02be38d9d3e8",
-        strip_prefix = "c-ares-cares-1_14_0",
+        sha256 = "4358939ff800b13b92f37d5fdda003718101faedfbdee792d6b79ddc1a53d890",
+        strip_prefix = "c-ares-1.34.6",
         urls = [
-            "https://mirror.bazel.build/github.com/c-ares/c-ares/archive/cares-1_14_0.tar.gz",
-            "https://github.com/c-ares/c-ares/archive/cares-1_14_0.tar.gz",
+            "https://mirror.bazel.build/github.com/c-ares/c-ares/archive/refs/tags/v1.34.6.tar.gz",
+            "https://github.com/c-ares/c-ares/archive/refs/tags/v1.34.6.tar.gz",
         ],
     )

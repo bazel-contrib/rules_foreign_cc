@@ -115,11 +115,18 @@ configure_make(
             "libcrypto.so.1.1",
         ],
     }),
+    postfix_script = select({
+        # OpenSSL's default macOS install names point at the build execroot.
+        # Rewrite them to @rpath so downstream tests can load the copied dylibs.
+        "@platforms//os:macos": "\n".join([
+            "install_name_tool -id @rpath/libssl.1.1.dylib $$INSTALLDIR/lib/libssl.1.1.dylib",
+            "install_name_tool -id @rpath/libcrypto.1.1.dylib $$INSTALLDIR/lib/libcrypto.1.1.dylib",
+            "install_name_tool -change $$BUILD_TMPDIR/openssl/lib/libcrypto.1.1.dylib @rpath/libcrypto.1.1.dylib $$INSTALLDIR/lib/libssl.1.1.dylib",
+            "install_name_tool -change $$INSTALLDIR/lib/libcrypto.1.1.dylib @rpath/libcrypto.1.1.dylib $$INSTALLDIR/lib/libssl.1.1.dylib",
+        ]),
+        "//conditions:default": "",
+    }),
     target_compatible_with = select({
-        # Macos is broken with recent sdks due to the absolute (execroot) path
-        # being baked into the libssl dylib, resulting in downstream packages
-        # being unable to load them during the tests.
-        "@platforms//os:macos": ["@rules_foreign_cc_examples_third_party//:broken"],
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
