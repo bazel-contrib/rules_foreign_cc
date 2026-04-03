@@ -5,8 +5,12 @@ load(
     _foreign_cc_binary = "foreign_cc_binary",
     _foreign_cc_import = "foreign_cc_import",
     _foreign_cc_library = "foreign_cc_library",
+    _foreign_cc_shared_library = "foreign_cc_shared_library",
+    _foreign_cc_static_library = "foreign_cc_static_library",
 )
 
 foreign_cc_binary = _foreign_cc_binary
 foreign_cc_import = _foreign_cc_import
 foreign_cc_library = _foreign_cc_library
+foreign_cc_shared_library = _foreign_cc_shared_library
+foreign_cc_static_library = _foreign_cc_static_library

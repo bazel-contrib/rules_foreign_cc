@@ -1,0 +1,6 @@
+#ifndef TEST_NATIVE_STATIC_LIBRARY_INCLUDE_PREBUILT_H_
+#define TEST_NATIVE_STATIC_LIBRARY_INCLUDE_PREBUILT_H_
+
+int demo_add(int left, int right);
+
+#endif

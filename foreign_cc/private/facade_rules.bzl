@@ -1,6 +1,7 @@
 """Facade rules that project raw foreign_cc producer targets into cc_*-like shapes."""
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("//foreign_cc:providers.bzl", "ForeignCcFacadeInputsInfo")
 load("//foreign_cc/private:cc_toolchain_util.bzl", "LibrariesToLinkInfo", "create_linking_info")
@@ -233,6 +234,99 @@ def _collect_transitive_shared_libraries(cc_info):
                 shared_libraries.append(lib.dynamic_library)
     return shared_libraries
 
+def _pretty_label(label):
+    s = str(label)
+    if s.startswith("@@//") or s.startswith("@//"):  # buildifier: disable=canonical-repository
+        return s.lstrip("@")
+    return s
+
+def _static_library_linkdeps_map_each(linker_input):
+    has_library = False
+    for lib in linker_input.libraries:
+        if lib.pic_static_library != None or lib.static_library != None or lib.dynamic_library != None or lib.interface_library != None:
+            has_library = True
+    if not has_library:
+        return None
+    return _pretty_label(linker_input.owner)
+
+def _static_library_linkopts_map_each(linker_input):
+    return linker_input.user_link_flags
+
+def _format_linker_inputs(*, actions, name, linker_inputs, map_each):
+    file = actions.declare_file(name)
+    args = actions.args().add_all(linker_inputs, map_each = map_each)
+    actions.write(output = file, content = args)
+    return file
+
+def _declare_static_library_output(*, name, actions, feature_configuration):
+    if cc_common.is_enabled(
+        feature_configuration = feature_configuration,
+        feature_name = "targets_windows",
+    ):
+        return actions.declare_file(name + ".lib")
+    return actions.declare_file("lib" + name + ".a")
+
+def _declare_shared_library_output_from_selected(*, name, actions, feature_configuration, selected_shared):
+    if cc_common.is_enabled(
+        feature_configuration = feature_configuration,
+        feature_name = "targets_windows",
+    ):
+        return actions.declare_file(name + ".dll")
+    if selected_shared.basename.endswith(".dylib"):
+        return actions.declare_file("lib" + name + ".dylib")
+    return actions.declare_file("lib" + name + ".so")
+
+def _declare_shared_interface_output(*, name, actions, feature_configuration, shared_output):
+    if cc_common.is_enabled(
+        feature_configuration = feature_configuration,
+        feature_name = "targets_windows",
+    ):
+        return actions.declare_file(name + ".if.lib")
+    return shared_output
+
+def _maybe_validate_static_library(*, name, actions, cc_toolchain, feature_configuration, static_library):
+    if not cc_common.action_is_enabled(
+        feature_configuration = feature_configuration,
+        action_name = ACTION_NAMES.validate_static_library,
+    ):
+        return None
+
+    validation_output = actions.declare_file(name + "_validation_output.txt")
+    validator_path = cc_common.get_tool_for_action(
+        feature_configuration = feature_configuration,
+        action_name = ACTION_NAMES.validate_static_library,
+    )
+    args = actions.args()
+    args.add(static_library)
+    args.add(validation_output)
+
+    env = cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = ACTION_NAMES.validate_static_library,
+        variables = cc_common.empty_variables(),
+    )
+    execution_requirements_keys = cc_common.get_execution_requirements(
+        feature_configuration = feature_configuration,
+        action_name = ACTION_NAMES.validate_static_library,
+    )
+
+    actions.run(
+        executable = validator_path,
+        arguments = [args],
+        env = env,
+        execution_requirements = {k: "" for k in execution_requirements_keys},
+        inputs = depset(
+            direct = [static_library],
+            transitive = [cc_toolchain.all_files],
+        ),
+        outputs = [validation_output],
+        use_default_shell_env = True,
+        mnemonic = "ValidateStaticLibrary",
+        progress_message = "Validating static library %{label}",
+    )
+
+    return validation_output
+
 def _foreign_cc_library_impl(ctx):
     facade_inputs = ctx.attr.src[ForeignCcFacadeInputsInfo]
     selected = _select_library_outputs(ctx, facade_inputs)
@@ -357,6 +451,145 @@ def _foreign_cc_binary_impl(ctx):
         ),
     ]
 
+def _foreign_cc_static_library_impl(ctx):
+    facade_inputs = ctx.attr.src[ForeignCcFacadeInputsInfo]
+    selected_static = None
+    if ctx.attr.static_library:
+        selected_static = _file_by_basename(facade_inputs.static_libraries, ctx.attr.static_library)
+        if selected_static == None:
+            fail("`static_library` references `{}`, which is not a direct static-library output of `{}`".format(
+                ctx.attr.static_library,
+                ctx.attr.src.label,
+            ))
+    else:
+        selected_static = _infer_single_file(
+            facade_inputs.static_libraries,
+            _static_stem,
+            "static library",
+        ) if facade_inputs.static_libraries else None
+
+    if selected_static == None:
+        fail("`foreign_cc_static_library` could not select a direct static-library output from `{}`".format(
+            ctx.attr.src.label,
+        ))
+
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features + ["symbol_check"],
+        unsupported_features = ctx.disabled_features,
+    )
+
+    wrapped_static_library = _declare_static_library_output(
+        name = ctx.label.name,
+        actions = ctx.actions,
+        feature_configuration = feature_configuration,
+    )
+    ctx.actions.symlink(
+        output = wrapped_static_library,
+        target_file = selected_static,
+    )
+
+    linker_inputs = facade_inputs.deps_cc_info.linking_context.linker_inputs
+    linkdeps_file = _format_linker_inputs(
+        actions = ctx.actions,
+        name = ctx.label.name + "_linkdeps.txt",
+        linker_inputs = linker_inputs,
+        map_each = _static_library_linkdeps_map_each,
+    )
+    linkopts_file = _format_linker_inputs(
+        actions = ctx.actions,
+        name = ctx.label.name + "_linkopts.txt",
+        linker_inputs = linker_inputs,
+        map_each = _static_library_linkopts_map_each,
+    )
+
+    validation_output = _maybe_validate_static_library(
+        name = ctx.label.name,
+        actions = ctx.actions,
+        cc_toolchain = cc_toolchain,
+        feature_configuration = feature_configuration,
+        static_library = wrapped_static_library,
+    )
+
+    output_groups = {
+        "linkdeps": depset([linkdeps_file]),
+        "linkopts": depset([linkopts_file]),
+    }
+    if validation_output:
+        output_groups["_validation"] = depset([validation_output])
+
+    runfiles = ctx.runfiles(
+        files = _collect_transitive_shared_libraries(facade_inputs.deps_cc_info),
+    )
+
+    return [
+        DefaultInfo(
+            files = depset([wrapped_static_library]),
+            runfiles = runfiles,
+        ),
+        OutputGroupInfo(**output_groups),
+    ]
+
+def _foreign_cc_shared_library_impl(ctx):
+    facade_inputs = ctx.attr.src[ForeignCcFacadeInputsInfo]
+    selected = _select_library_outputs(ctx, facade_inputs)
+
+    if selected.shared_library == None:
+        fail("`foreign_cc_shared_library` requires a direct shared-library output from `{}`".format(
+            ctx.attr.src.label,
+        ))
+
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+
+    wrapped_shared_library = _declare_shared_library_output_from_selected(
+        name = ctx.label.name,
+        actions = ctx.actions,
+        feature_configuration = feature_configuration,
+        selected_shared = selected.shared_library,
+    )
+    ctx.actions.symlink(
+        output = wrapped_shared_library,
+        target_file = selected.shared_library,
+    )
+
+    wrapped_interface_library = _declare_shared_interface_output(
+        name = ctx.label.name,
+        actions = ctx.actions,
+        feature_configuration = feature_configuration,
+        shared_output = wrapped_shared_library,
+    )
+    if wrapped_interface_library != wrapped_shared_library:
+        interface_target = selected.interface_library if selected.interface_library else selected.shared_library
+        ctx.actions.symlink(
+            output = wrapped_interface_library,
+            target_file = interface_target,
+        )
+
+    runfiles = ctx.runfiles(
+        files = selected.runtime_shared_files,
+    )
+    for dep in ctx.attr.dynamic_deps:
+        runfiles = runfiles.merge(dep[DefaultInfo].data_runfiles)
+
+    return [
+        DefaultInfo(
+            files = depset([wrapped_shared_library]),
+            runfiles = runfiles,
+        ),
+        OutputGroupInfo(
+            interface_library = depset([wrapped_interface_library]),
+            main_shared_library_output = depset([wrapped_shared_library]),
+        ),
+    ]
+
 foreign_cc_library = rule(
     implementation = _foreign_cc_library_impl,
     attrs = {
@@ -431,4 +664,42 @@ foreign_cc_binary = rule(
     },
     doc = "Projects a raw foreign_cc producer target into a cc_binary-like target.",
     executable = True,
+)
+
+foreign_cc_static_library = rule(
+    implementation = _foreign_cc_static_library_impl,
+    attrs = {
+        "src": attr.label(
+            mandatory = True,
+            providers = [ForeignCcFacadeInputsInfo],
+        ),
+        "static_library": attr.string(default = ""),
+        "_cc_toolchain": attr.label(
+            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+        ),
+    },
+    doc = "Projects a raw foreign_cc producer target into a cc_static_library-like target.",
+    fragments = CC_EXTERNAL_RULE_FRAGMENTS,
+    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+)
+
+foreign_cc_shared_library = rule(
+    implementation = _foreign_cc_shared_library_impl,
+    attrs = {
+        "additional_runtime_shared_libraries": attr.string_list(),
+        "dynamic_deps": attr.label_list(),
+        "interface_library": attr.string(default = ""),
+        "runtime_shared_library": attr.string(default = ""),
+        "shared_library": attr.string(default = ""),
+        "src": attr.label(
+            mandatory = True,
+            providers = [ForeignCcFacadeInputsInfo],
+        ),
+        "_cc_toolchain": attr.label(
+            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+        ),
+    },
+    doc = "Projects a raw foreign_cc producer target into a cc_shared_library-like target.",
+    fragments = CC_EXTERNAL_RULE_FRAGMENTS,
+    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
 )

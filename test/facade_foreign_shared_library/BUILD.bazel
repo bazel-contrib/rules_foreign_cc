@@ -1,0 +1,59 @@
+load("//foreign_cc:defs.bzl", "foreign_cc_shared_library")
+load(":tests.bzl", "foreign_cc_shared_library_default_test")
+
+package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+foreign_cc_shared_library(
+    name = "demo_foreign_shared",
+    src = "//test/facade_library:demo_raw",
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+)
+
+foreign_cc_shared_library_default_test(
+    name = "demo_foreign_shared_default_test",
+    size = "small",
+    expected_default_files = select({
+        ":macos": ["libdemo_foreign_shared.dylib"],
+        ":windows": ["demo_foreign_shared.dll"],
+        "//conditions:default": ["libdemo_foreign_shared.so"],
+    }),
+    expected_interface_files = select({
+        ":macos": ["libdemo_foreign_shared.dylib"],
+        ":windows": ["demo_foreign_shared.if.lib"],
+        "//conditions:default": ["libdemo_foreign_shared.so"],
+    }),
+    expected_main_files = select({
+        ":macos": ["libdemo_foreign_shared.dylib"],
+        ":windows": ["demo_foreign_shared.dll"],
+        "//conditions:default": ["libdemo_foreign_shared.so"],
+    }),
+    expected_runfiles = select({
+        ":macos": ["libdemo.1.dylib"],
+        ":windows": ["demo.dll"],
+        "//conditions:default": ["libdemo.so.1"],
+    }),
+    target_under_test = ":demo_foreign_shared",
+)

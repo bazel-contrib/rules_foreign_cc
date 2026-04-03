@@ -1,0 +1,7 @@
+default_files=mid_shared.dll
+main_shared_library_output=mid_shared.dll
+interface_library=mid_shared.if.lib
+exports=//test/facade_shared_library:mid
+dynamic_deps=//test/facade_shared_library:leaf_shared
+link_once_static_libs=//test/facade_shared_library:mid
+linker_input=dynamic=mid_shared.dll|interface=mid_shared.if.lib|static=|pic_static=

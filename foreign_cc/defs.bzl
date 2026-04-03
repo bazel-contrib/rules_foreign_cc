@@ -8,6 +8,8 @@ load(
     _foreign_cc_binary = "foreign_cc_binary",
     _foreign_cc_import = "foreign_cc_import",
     _foreign_cc_library = "foreign_cc_library",
+    _foreign_cc_shared_library = "foreign_cc_shared_library",
+    _foreign_cc_static_library = "foreign_cc_static_library",
 )
 load(":make.bzl", _make = "make", _make_variant = "make_variant")
 load(":meson.bzl", _meson = "meson", _meson_with_requirements = "meson_with_requirements")
@@ -22,6 +24,8 @@ configure_make_variant = _configure_make_variant
 foreign_cc_binary = _foreign_cc_binary
 foreign_cc_import = _foreign_cc_import
 foreign_cc_library = _foreign_cc_library
+foreign_cc_shared_library = _foreign_cc_shared_library
+foreign_cc_static_library = _foreign_cc_static_library
 make_variant = _make_variant
 make = _make
 meson = _meson

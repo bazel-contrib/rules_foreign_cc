@@ -1,0 +1,6 @@
+#ifndef TEST_FACADE_SHARED_LIBRARY_INCLUDE_MID_H_
+#define TEST_FACADE_SHARED_LIBRARY_INCLUDE_MID_H_
+
+int mid_value(void);
+
+#endif

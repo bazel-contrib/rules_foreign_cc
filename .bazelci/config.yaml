@@ -68,13 +68,19 @@ matrix:
   build_targets:
     - //test/facade_binary:all
     - //test/facade_chain:all
+    - //test/facade_foreign_shared_library:all
     - //test/facade_library:all
     - //test/facade_multi_library:all
+    - //test/facade_shared_library:all
+    - //test/facade_static_library:all
   test_targets:
     - //test/facade_binary:all
     - //test/facade_chain:all
+    - //test/facade_foreign_shared_library:all
     - //test/facade_library:all
     - //test/facade_multi_library:all
+    - //test/facade_shared_library:all
+    - //test/facade_static_library:all
 
 tasks:
   primary:

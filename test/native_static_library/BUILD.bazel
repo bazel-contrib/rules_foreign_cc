@@ -1,0 +1,125 @@
+load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load(":native_static_library_macro.bzl", "cc_static_library")
+load(":tests.bzl", "native_cc_static_library_default_test")
+
+package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+cc_library(
+    name = "leaf_obj",
+    srcs = ["src/leaf.c"],
+    hdrs = ["include/leaf.h"],
+    includes = ["include"],
+)
+
+cc_library(
+    name = "mid_obj",
+    srcs = ["src/mid.c"],
+    hdrs = ["include/mid.h"],
+    includes = ["include"],
+    deps = [":leaf_obj"],
+)
+
+cc_library(
+    name = "duplicate_linkopts",
+    linkopts = [
+        "linkopts_only_arg_1",
+        "linkopts_only_arg_2",
+        "linkopts_only_arg_1",
+    ],
+)
+
+cc_library(
+    name = "linkopts_only",
+    linkopts = [
+        "linkopts_only_arg_1",
+        "linkopts_only_arg_2",
+        "linkopts_only_arg_1",
+    ],
+    deps = [":duplicate_linkopts"],
+)
+
+cc_import(
+    name = "prebuilt_dep",
+    hdrs = ["include/prebuilt.h"],
+    interface_library = select({
+        ":windows": "//test/facade_library:demo_interface",
+        "//conditions:default": None,
+    }),
+    shared_library = "//test/facade_library:demo_shared_dev",
+    static_library = "//test/facade_library:demo_static",
+)
+
+cc_static_library(
+    name = "combo_native_static",
+    deps = [
+        ":linkopts_only",
+        ":mid_obj",
+        ":prebuilt_dep",
+    ],
+)
+
+filegroup(
+    name = "combo_native_linkdeps",
+    srcs = [":combo_native_static"],
+    output_group = "linkdeps",
+)
+
+filegroup(
+    name = "combo_native_linkopts",
+    srcs = [":combo_native_static"],
+    output_group = "linkopts",
+)
+
+native_cc_static_library_default_test(
+    name = "combo_native_default_test",
+    size = "small",
+    expected_default_files = select({
+        ":windows": ["combo_native_static.lib"],
+        "//conditions:default": ["libcombo_native_static.a"],
+    }),
+    expected_linkdeps_file = "combo_native_static_linkdeps.txt",
+    expected_linkopts_file = "combo_native_static_linkopts.txt",
+    target_under_test = ":combo_native_static",
+)
+
+sh_test(
+    name = "combo_native_linkdeps_content_test",
+    size = "small",
+    srcs = ["check_text_file.sh"],
+    args = [
+        "$(location :combo_native_linkdeps)",
+        "$(location :expected_linkdeps.txt)",
+    ],
+    data = [
+        ":combo_native_linkdeps",
+        ":expected_linkdeps.txt",
+    ],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_test(
+    name = "combo_native_linkopts_content_test",
+    size = "small",
+    srcs = ["check_text_file.sh"],
+    args = [
+        "$(location :combo_native_linkopts)",
+        "$(location :expected_linkopts.txt)",
+    ],
+    data = [
+        ":combo_native_linkopts",
+        ":expected_linkopts.txt",
+    ],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
