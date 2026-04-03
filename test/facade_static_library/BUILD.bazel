@@ -1,7 +1,8 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//foreign_cc:defs.bzl", "cmake", "foreign_cc_static_library")
-load(":tests.bzl", "foreign_cc_static_library_default_test")
+load("//test/facade_shared_library:tests.bzl", "runfiles_presence_test")
+load(":tests.bzl", "foreign_cc_static_library_default_test", "foreign_cc_static_library_expect_failure_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -21,6 +22,11 @@ filegroup(
         "include/**",
         "src/**",
     ]),
+)
+
+cc_library(
+    name = "runfiles_dep",
+    data = ["runtime_note.txt"],
 )
 
 cc_library(
@@ -49,6 +55,11 @@ cc_library(
         "linkopts_only_arg_1",
     ],
     deps = [":duplicate_linkopts"],
+)
+
+cc_library(
+    name = "late_linkopts",
+    linkopts = ["late_dep_arg"],
 )
 
 cmake(
@@ -81,6 +92,40 @@ foreign_cc_static_library(
     src = ":combo_raw",
 )
 
+foreign_cc_static_library(
+    name = "combo_foreign_static_with_dep",
+    src = ":combo_raw",
+    deps = [":late_linkopts"],
+)
+
+foreign_cc_static_library(
+    name = "combo_foreign_static_with_runfiles_dep",
+    src = ":combo_raw",
+    deps = [":runfiles_dep"],
+)
+
+foreign_cc_static_library(
+    name = "ambiguous_foreign_static",
+    src = "//test/facade_multi_library:multi_raw",
+    tags = ["manual"],
+)
+
+foreign_cc_static_library(
+    name = "invalid_foreign_static",
+    src = ":combo_raw",
+    static_library = select({
+        ":windows": "missing.lib",
+        "//conditions:default": "libmissing.a",
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_static_library(
+    name = "no_static_foreign_static",
+    src = "//test/facade_binary:binary_raw",
+    tags = ["manual"],
+)
+
 cc_import(
     name = "combo_foreign_import",
     hdrs = ["include/combo.h"],
@@ -92,6 +137,16 @@ cc_binary(
     srcs = ["src/main.c"],
     includes = ["include"],
     deps = [":combo_foreign_import"],
+)
+
+runfiles_presence_test(
+    name = "combo_foreign_consumer_runfiles_test",
+    forbidden_basenames = select({
+        ":windows": ["demo.dll"],
+        "//conditions:default": ["libdemo.so"],
+    }),
+    required_basenames = [],
+    target_under_test = ":combo_foreign_consumer",
 )
 
 filegroup(
@@ -106,21 +161,44 @@ filegroup(
     output_group = "linkopts",
 )
 
+filegroup(
+    name = "combo_foreign_with_dep_linkopts",
+    srcs = [":combo_foreign_static_with_dep"],
+    output_group = "linkopts",
+)
+
 foreign_cc_static_library_default_test(
     name = "combo_foreign_default_test",
     size = "small",
+    expect_validation_output_group = select({
+        ":windows": False,
+        "//conditions:default": True,
+    }),
     expected_default_files = select({
         ":windows": ["combo_foreign_static.lib"],
         "//conditions:default": ["libcombo_foreign_static.a"],
     }),
     expected_linkdeps_file = "combo_foreign_static_linkdeps.txt",
     expected_linkopts_file = "combo_foreign_static_linkopts.txt",
-    expected_runfiles = select({
-        ":macos": ["libdemo.dylib"],
-        ":windows": ["demo.dll"],
-        "//conditions:default": ["libdemo.so"],
-    }),
+    expected_runfiles = [],
     target_under_test = ":combo_foreign_static",
+)
+
+foreign_cc_static_library_default_test(
+    name = "combo_foreign_with_runfiles_dep_test",
+    size = "small",
+    expect_validation_output_group = select({
+        ":windows": False,
+        "//conditions:default": True,
+    }),
+    expected_default_files = select({
+        ":windows": ["combo_foreign_static_with_runfiles_dep.lib"],
+        "//conditions:default": ["libcombo_foreign_static_with_runfiles_dep.a"],
+    }),
+    expected_linkdeps_file = "combo_foreign_static_with_runfiles_dep_linkdeps.txt",
+    expected_linkopts_file = "combo_foreign_static_with_runfiles_dep_linkopts.txt",
+    expected_runfiles = ["runtime_note.txt"],
+    target_under_test = ":combo_foreign_static_with_runfiles_dep",
 )
 
 sh_test(
@@ -157,4 +235,40 @@ sh_test(
         ":windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
+)
+
+sh_test(
+    name = "combo_foreign_with_dep_linkopts_content_test",
+    size = "small",
+    srcs = ["check_text_file.sh"],
+    args = [
+        "$(location :combo_foreign_with_dep_linkopts)",
+        "$(location :expected_linkopts_with_dep.txt)",
+    ],
+    data = [
+        ":combo_foreign_with_dep_linkopts",
+        ":expected_linkopts_with_dep.txt",
+    ],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+foreign_cc_static_library_expect_failure_test(
+    name = "ambiguous_foreign_static_failure_test",
+    failure_message = "Unable to infer a single static library from",
+    target = ":ambiguous_foreign_static",
+)
+
+foreign_cc_static_library_expect_failure_test(
+    name = "invalid_foreign_static_failure_test",
+    failure_message = "`static_library` references",
+    target = ":invalid_foreign_static",
+)
+
+foreign_cc_static_library_expect_failure_test(
+    name = "no_static_foreign_static_failure_test",
+    failure_message = "`foreign_cc_static_library` could not select a direct static-library output",
+    target = ":no_static_foreign_static",
 )

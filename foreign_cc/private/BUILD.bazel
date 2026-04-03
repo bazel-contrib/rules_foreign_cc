@@ -111,7 +111,11 @@ bzl_library(
         ":cc_toolchain_util",
         ":framework",
         "//foreign_cc:providers",
+        "@bazel_features//:features",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+        "@rules_cc//cc:action_names_bzl",
+        "@rules_cc//cc:defs_bzl",
+        "@rules_cc//cc/common",
     ],
 )
 

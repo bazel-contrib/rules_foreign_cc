@@ -1,0 +1,18 @@
+load("@rules_python//python:defs.bzl", "py_test")
+load(":toolchain_probe.bzl", "cc_toolchain_probe")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_toolchain_probe(
+    name = "probe_info",
+)
+
+py_test(
+    name = "probe_test",
+    size = "small",
+    srcs = ["print_probe.py"],
+    args = ["$(location :probe_info)"],
+    data = [":probe_info"],
+    main = "print_probe.py",
+    python_version = "PY3",
+)

@@ -7,50 +7,78 @@ if [[ "$0" != /* ]]; then
 fi
 
 WRAPPER_PATH="$0"
+RUNFILES_MANIFEST=""
 
-# --- begin runfiles.bash initialization v3 ---
-# Copy-pasted from the Bazel Bash runfiles library v3.
-set -uo pipefail; set +e; f=bazel_tools/tools/bash/runfiles/runfiles.bash
-source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
-    source "$(grep -sm1 "^$f " "${RUNFILES_MANIFEST_FILE:-/dev/null}" | cut -f2- -d' ')" 2>/dev/null || \
-    source "$WRAPPER_PATH.runfiles/$f" 2>/dev/null || \
-    source "$(grep -sm1 "^$f " "$WRAPPER_PATH.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
-    source "$(grep -sm1 "^$f " "$WRAPPER_PATH.exe.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
-    { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
-# --- end runfiles.bash initialization v3 ---
-
-runfiles_export_envvars
-
-if [[ ! -d "${RUNFILES_DIR}" ]]; then
-    >&2 echo "RUNFILES_DIR is set to '${RUNFILES_DIR}' which does not exist";
-    exit 1;
+if [[ -n "${RUNFILES_DIR:-}" && -d "${RUNFILES_DIR}" ]]; then
+    :
+elif [[ -d "$WRAPPER_PATH.runfiles" ]]; then
+    RUNFILES_DIR="$WRAPPER_PATH.runfiles"
+elif [[ -d "$WRAPPER_PATH.exe.runfiles" ]]; then
+    RUNFILES_DIR="$WRAPPER_PATH.exe.runfiles"
+elif [[ -f "${RUNFILES_MANIFEST_FILE:-}" ]]; then
+    RUNFILES_MANIFEST="$RUNFILES_MANIFEST_FILE"
+elif [[ -f "$WRAPPER_PATH.runfiles_manifest" ]]; then
+    RUNFILES_MANIFEST="$WRAPPER_PATH.runfiles_manifest"
+elif [[ -f "$WRAPPER_PATH.exe.runfiles_manifest" ]]; then
+    RUNFILES_MANIFEST="$WRAPPER_PATH.exe.runfiles_manifest"
+else
+    >&2 echo "ERROR: cannot find Bazel runfiles for ${WRAPPER_PATH}"
+    exit 1
 fi
 
-RUNFILES_DIR=$( cd "${RUNFILES_DIR}" ; pwd -P )
+if [[ -n "${RUNFILES_DIR:-}" && ! -d "${RUNFILES_DIR}" ]]; then
+    >&2 echo "RUNFILES_DIR is set to '${RUNFILES_DIR:-}' which does not exist"
+    exit 1
+fi
 
-cd "${RUNFILES_DIR}"
+if [[ -n "${RUNFILES_DIR:-}" ]]; then
+    RUNFILES_DIR=$(cd "${RUNFILES_DIR}" || exit ; pwd -P)
+fi
+
+resolve_manifest_runfile() {
+    local logical_path="$1"
+    local manifest_line
+
+    manifest_line=$(grep -sm1 "^${logical_path} " "${RUNFILES_MANIFEST}")
+    if [[ -z "${manifest_line}" ]]; then
+        return 1
+    fi
+
+    printf '%s\n' "${manifest_line#* }"
+}
 
 EXE=EXECUTABLE
-# This wrapper already injects a concrete runfiles path, so repo inference is
-# unnecessary and can mis-handle direct bazel-bin execution under Bzlmod.
-EXE_PATH=$(rlocation "${EXE#external/}" "")
+if [[ -n "${RUNFILES_DIR:-}" && -e "${RUNFILES_DIR}/${EXE}" ]]; then
+    EXE_PATH="${RUNFILES_DIR}/${EXE}"
+else
+    EXE_PATH=$(resolve_manifest_runfile "${EXE}")
+fi
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    SHARED_LIB_SUFFIX=".so*"
+    SHARED_LIB_REGEX='\.so(\..*)?$'
+    SHARED_LIB_FIND_ARGS=(-name '*.so' -o -name '*.so.*')
     LIB_PATH_VAR=LD_LIBRARY_PATH
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-    SHARED_LIB_SUFFIX=".dylib"
+    SHARED_LIB_REGEX='\.dylib$'
+    SHARED_LIB_FIND_ARGS=(-name '*.dylib')
     LIB_PATH_VAR=DYLD_LIBRARY_PATH
 elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-    SHARED_LIB_SUFFIX=".dll"
+    SHARED_LIB_REGEX='\.dll$'
+    SHARED_LIB_FIND_ARGS=(-name '*.dll')
     LIB_PATH_VAR=PATH
 fi
 
 # Add paths to shared libraries to SHARED_LIBS_ARRAY
 SHARED_LIBS_ARRAY=()
-while IFS=  read -r -d $'\0'; do
-    SHARED_LIBS_ARRAY+=("$REPLY")
-done < <(find . -name "*${SHARED_LIB_SUFFIX}" -print0)
+if [[ -n "${RUNFILES_DIR:-}" ]]; then
+    while IFS=  read -r -d $'\0'; do
+        SHARED_LIBS_ARRAY+=("$REPLY")
+    done < <(find "${RUNFILES_DIR}" \( "${SHARED_LIB_FIND_ARGS[@]}" \) -print0)
+elif [[ -n "${RUNFILES_MANIFEST}" ]]; then
+    while IFS= read -r manifest_line; do
+        SHARED_LIBS_ARRAY+=("${manifest_line#* }")
+    done < <(grep -E " ${SHARED_LIB_REGEX}" "${RUNFILES_MANIFEST}")
+fi
 
 # Add paths to shared library directories to SHARED_LIBS_DIRS_ARRAY
 SHARED_LIBS_DIRS_ARRAY=()
@@ -72,5 +100,4 @@ if [ ${#SHARED_LIBS_DIRS_ARRAY[@]} -ne 0 ]; then
     set -u
 fi
 
-cd - &> /dev/null
-exec ${EXE_PATH} "$@"
+exec "${EXE_PATH}" "$@"

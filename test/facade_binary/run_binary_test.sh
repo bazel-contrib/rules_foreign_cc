@@ -1,28 +1,39 @@
 #!/usr/bin/env bash
 
-# shellcheck disable=SC1090,SC1091
-
 set -euo pipefail
 
-# --- begin runfiles.bash initialization ---
-if [[ ! -d "${RUNFILES_DIR:-/dev/null}" && ! -f "${RUNFILES_MANIFEST_FILE:-/dev/null}" ]]; then
-  if [[ -f "$0.runfiles/bazel_tools/tools/bash/runfiles/runfiles.bash" ]]; then
-    export RUNFILES_DIR="$0.runfiles"
-  elif [[ -f "$0.runfiles_manifest" ]]; then
-    export RUNFILES_MANIFEST_FILE="$0.runfiles_manifest"
-  elif [[ -f "$0.exe.runfiles_manifest" ]]; then
-    export RUNFILES_MANIFEST_FILE="$0.exe.runfiles_manifest"
+resolve_manifest_runfile() {
+  local logical_path="$1"
+  local manifest_line
+
+  manifest_line=$(grep -sm1 "^${logical_path} " "${RUNFILES_MANIFEST_FILE}")
+  if [[ -z "${manifest_line}" ]]; then
+    return 1
   fi
-fi
-if [[ -f "${RUNFILES_DIR:-/dev/null}/bazel_tools/tools/bash/runfiles/runfiles.bash" ]]; then
-  source "${RUNFILES_DIR}/bazel_tools/tools/bash/runfiles/runfiles.bash"
-elif [[ -f "${RUNFILES_MANIFEST_FILE:-/dev/null}" ]]; then
-  source "$(grep -m1 "^bazel_tools/tools/bash/runfiles/runfiles.bash " \
-    "${RUNFILES_MANIFEST_FILE}" | cut -d ' ' -f 2-)"
+
+  printf '%s\n' "${manifest_line#* }"
+}
+
+if [[ -n "${RUNFILES_DIR:-}" && -d "${RUNFILES_DIR}" ]]; then
+  :
+elif [[ -d "$0.runfiles" ]]; then
+  RUNFILES_DIR="$0.runfiles"
+elif [[ -d "$0.exe.runfiles" ]]; then
+  RUNFILES_DIR="$0.exe.runfiles"
+elif [[ -f "${RUNFILES_MANIFEST_FILE:-}" ]]; then
+  :
+elif [[ -f "$0.runfiles_manifest" ]]; then
+  RUNFILES_MANIFEST_FILE="$0.runfiles_manifest"
+elif [[ -f "$0.exe.runfiles_manifest" ]]; then
+  RUNFILES_MANIFEST_FILE="$0.exe.runfiles_manifest"
 else
-  echo >&2 "ERROR: cannot find @bazel_tools//tools/bash/runfiles:runfiles.bash"
+  echo >&2 "ERROR: cannot find Bazel runfiles for $0"
   exit 1
 fi
-# --- end runfiles.bash initialization ---
 
-"$(rlocation "$TEST_WORKSPACE/$1")"
+target_path="$TEST_WORKSPACE/$1"
+if [[ -n "${RUNFILES_DIR:-}" ]]; then
+  exec "${RUNFILES_DIR}/${target_path}"
+fi
+
+exec "$(resolve_manifest_runfile "${target_path}")"

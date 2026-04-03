@@ -1,5 +1,16 @@
+load("@bazel_lib//lib:diff_test.bzl", "diff_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_python//python:defs.bzl", "py_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//foreign_cc:defs.bzl", "foreign_cc_shared_library")
-load(":tests.bzl", "foreign_cc_shared_library_default_test")
+load("//test/facade_shared_library:tests.bzl", "runfiles_presence_test", "shared_library_output_summary", "shared_library_shape_summary")
+load(
+    ":tests.bzl",
+    "foreign_cc_shared_library_default_test",
+    "foreign_cc_shared_library_expect_failure_test",
+    "foreign_cc_shared_library_hint_test",
+    "foreign_cc_shared_library_info_test",
+)
 
 package(default_visibility = ["//visibility:public"])
 
@@ -11,6 +22,11 @@ config_setting(
 config_setting(
     name = "windows",
     constraint_values = ["@platforms//os:windows"],
+)
+
+cc_library(
+    name = "exports_filter_marker",
+    hdrs = ["//test/facade_library:include/demo.h"],
 )
 
 foreign_cc_shared_library(
@@ -32,9 +48,321 @@ foreign_cc_shared_library(
     }),
 )
 
+foreign_cc_shared_library(
+    name = "demo_foreign_shared_with_hints",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    link_once_static_libs = ["//test/facade_library:native_demo"],
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_library:native_demo"],
+    exports = ["//test/facade_library:native_demo"],
+)
+
+foreign_cc_shared_library(
+    name = "demo_foreign_shared_with_native_dep",
+    src = "//test/facade_library:demo_raw",
+    dynamic_deps = ["//test/facade_shared_library:leaf_shared_public"],
+    emit_cc_shared_library_info = True,
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    link_once_static_libs = ["//test/facade_library:native_demo"],
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_library:native_demo"],
+    exports = ["//test/facade_library:native_demo"],
+)
+
+foreign_cc_shared_library(
+    name = "demo_foreign_shared_with_runtime_extras",
+    src = "//test/facade_library:demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+)
+
+foreign_cc_shared_library(
+    name = "demo_foreign_shared_with_dep",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    link_once_static_libs = ["//test/facade_library:native_demo"],
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_library:native_demo"],
+    deps = ["//test/facade_library:demo_foreign_import"],
+)
+
+foreign_cc_shared_library(
+    name = "demo_foreign_shared_with_roots",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    link_once_static_libs = ["//test/facade_library:native_demo"],
+    roots = ["//test/facade_library:demo_foreign_import"],
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_library:native_demo"],
+)
+
+foreign_cc_shared_library(
+    name = "demo_foreign_shared_with_exports_filter",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    exports_filter = ["exports_filter_marker"],
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_library:native_demo"],
+)
+
+foreign_cc_shared_library(
+    name = "demo_foreign_shared_named",
+    src = "//test/facade_library:demo_raw",
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_lib_name = select({
+        ":macos": "custom_named_leaf.dylib",
+        ":windows": "custom_named_leaf.dll",
+        "//conditions:default": "custom_named_leaf.so",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+)
+
+filegroup(
+    name = "demo_foreign_shared_validation_report",
+    srcs = [":demo_foreign_shared"],
+    output_group = "_validation",
+)
+
+py_test(
+    name = "demo_foreign_shared_validation_report_test",
+    size = "small",
+    srcs = ["check_validation_report.py"],
+    args = ["$(location :demo_foreign_shared_validation_report)"] + select({
+        ":macos": ["validated install name: libdemo.1.dylib"],
+        ":windows": ["skipped: Windows shared-library identity validation is unavailable from the public C++ toolchain API"],
+        "//conditions:default": ["validated soname: libdemo.so.1"],
+    }),
+    data = [":demo_foreign_shared_validation_report"],
+    main = "check_validation_report.py",
+    python_version = "PY3",
+)
+
+shared_library_output_summary(
+    name = "demo_foreign_shared_named_output_summary",
+    target = ":demo_foreign_shared_named",
+)
+
+diff_test(
+    name = "demo_foreign_shared_named_output_matches_native_test",
+    file1 = ":demo_foreign_shared_named_output_summary",
+    file2 = "//test/facade_shared_library:demo_foreign_shared_named_output_summary",
+)
+
+foreign_cc_shared_library(
+    name = "ambiguous_foreign_shared",
+    src = "//test/facade_multi_library:multi_raw",
+    tags = ["manual"],
+)
+
+foreign_cc_shared_library(
+    name = "invalid_foreign_shared",
+    src = "//test/facade_library:demo_raw",
+    shared_library = select({
+        ":windows": "missing.dll",
+        "//conditions:default": "libmissing.so",
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_shared_library(
+    name = "invalid_foreign_shared_multiple_owners",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = [
+        "//test/facade_library:native_demo",
+        "//test/facade_shared_library:leaf_shared_public",
+    ],
+    tags = ["manual"],
+)
+
+foreign_cc_shared_library(
+    name = "invalid_foreign_shared_non_info_dynamic_dep",
+    src = "//test/facade_library:demo_raw",
+    dynamic_deps = ["//test/facade_library:demo_foreign_explicit"],
+    emit_cc_shared_library_info = True,
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_library:native_demo"],
+    tags = ["manual"],
+)
+
+foreign_cc_shared_library(
+    name = "invalid_foreign_shared_roots_and_deps",
+    src = "//test/facade_library:demo_raw",
+    roots = ["//test/facade_library:demo_foreign_import"],
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    tags = ["manual"],
+    deps = ["//test/facade_library:demo_foreign_import"],
+)
+
+foreign_cc_shared_library(
+    name = "invalid_foreign_shared_runtime",
+    src = "//test/facade_library:demo_raw",
+    runtime_shared_library = select({
+        ":windows": "missing.dll",
+        "//conditions:default": "libmissing.so.9",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_shared_library(
+    name = "invalid_foreign_shared_additional_runtime",
+    src = "//test/facade_library:demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":windows": ["missing.dll"],
+        "//conditions:default": ["libmissing.so.9"],
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_shared_library(
+    name = "invalid_foreign_shared_interface",
+    src = "//test/facade_library:demo_raw",
+    interface_library = "missing.lib",
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    tags = ["manual"],
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_binary(
+    name = "foreign_shared_dynamic_dep_consumer",
+    srcs = ["src/main.c"],
+    dynamic_deps = [":demo_foreign_shared_with_hints"],
+)
+
+cc_binary(
+    name = "foreign_shared_mixed_dynamic_dep_consumer",
+    srcs = ["src/main.c"],
+    dynamic_deps = [":demo_foreign_shared_with_native_dep"],
+)
+
 foreign_cc_shared_library_default_test(
     name = "demo_foreign_shared_default_test",
     size = "small",
+    expect_validation_output_group = True,
     expected_default_files = select({
         ":macos": ["libdemo_foreign_shared.dylib"],
         ":windows": ["demo_foreign_shared.dll"],
@@ -56,4 +384,349 @@ foreign_cc_shared_library_default_test(
         "//conditions:default": ["libdemo.so.1"],
     }),
     target_under_test = ":demo_foreign_shared",
+)
+
+foreign_cc_shared_library_default_test(
+    name = "demo_foreign_shared_runtime_extras_test",
+    size = "small",
+    expect_validation_output_group = True,
+    expected_default_files = select({
+        ":macos": ["libdemo_foreign_shared_with_runtime_extras.dylib"],
+        ":windows": ["demo_foreign_shared_with_runtime_extras.dll"],
+        "//conditions:default": ["libdemo_foreign_shared_with_runtime_extras.so"],
+    }),
+    expected_interface_files = select({
+        ":macos": ["libdemo_foreign_shared_with_runtime_extras.dylib"],
+        ":windows": ["demo_foreign_shared_with_runtime_extras.if.lib"],
+        "//conditions:default": ["libdemo_foreign_shared_with_runtime_extras.so"],
+    }),
+    expected_main_files = select({
+        ":macos": ["libdemo_foreign_shared_with_runtime_extras.dylib"],
+        ":windows": ["demo_foreign_shared_with_runtime_extras.dll"],
+        "//conditions:default": ["libdemo_foreign_shared_with_runtime_extras.so"],
+    }),
+    expected_runfiles = select({
+        ":macos": [
+            "libdemo.1.dylib",
+            "libdemo.1.2.3.dylib",
+        ],
+        ":windows": ["demo.dll"],
+        "//conditions:default": [
+            "libdemo.so.1",
+            "libdemo.so.1.2.3",
+        ],
+    }),
+    target_under_test = ":demo_foreign_shared_with_runtime_extras",
+)
+
+foreign_cc_shared_library_hint_test(
+    name = "demo_foreign_shared_hint_default_test",
+    size = "small",
+    expected_attributes = ["dynamic_deps"],
+    expected_owners = ["//test/facade_foreign_shared_library:demo_foreign_shared"],
+    target_under_test = ":demo_foreign_shared",
+)
+
+foreign_cc_shared_library_hint_test(
+    name = "demo_foreign_shared_hint_override_test",
+    size = "small",
+    expected_attributes = [
+        "dynamic_deps",
+        "exports",
+    ],
+    expected_owners = ["//test/facade_library:native_demo"],
+    target_under_test = ":demo_foreign_shared_with_hints",
+)
+
+foreign_cc_shared_library_hint_test(
+    name = "demo_foreign_shared_hint_deps_test",
+    size = "small",
+    expected_attributes = [
+        "dynamic_deps",
+        "deps",
+    ],
+    expected_owners = ["//test/facade_library:native_demo"],
+    target_under_test = ":demo_foreign_shared_with_dep",
+)
+
+foreign_cc_shared_library_hint_test(
+    name = "demo_foreign_shared_hint_roots_test",
+    size = "small",
+    expected_attributes = [
+        "dynamic_deps",
+        "roots",
+    ],
+    expected_owners = ["//test/facade_library:native_demo"],
+    target_under_test = ":demo_foreign_shared_with_roots",
+)
+
+foreign_cc_shared_library_info_test(
+    name = "demo_foreign_shared_info_default_test",
+    size = "small",
+    expect_info = False,
+    target_under_test = ":demo_foreign_shared",
+)
+
+foreign_cc_shared_library_info_test(
+    name = "demo_foreign_shared_info_override_test",
+    size = "small",
+    expect_info = True,
+    expected_dynamic_dep_count = 0,
+    expected_dynamic_dep_owners = [],
+    expected_exports = ["//test/facade_library:native_demo"],
+    expected_link_once_static_lib_count = 1,
+    expected_link_once_static_libs = ["//test/facade_library:native_demo"],
+    expected_linker_input_libraries = select({
+        ":macos": ["dynamic=libdemo.1.dylib|interface=|static=|pic_static="],
+        ":windows": ["dynamic=demo.dll|interface=demo_foreign_shared_with_hints.if.lib|static=|pic_static="],
+        "//conditions:default": ["dynamic=libdemo.so.1|interface=|static=|pic_static="],
+    }),
+    target_under_test = ":demo_foreign_shared_with_hints",
+)
+
+foreign_cc_shared_library_info_test(
+    name = "demo_foreign_shared_info_dynamic_dep_test",
+    size = "small",
+    expect_info = True,
+    expected_dynamic_dep_count = 1,
+    expected_dynamic_dep_owners = ["//test/facade_shared_library:leaf_shared"],
+    expected_exports = ["//test/facade_library:native_demo"],
+    expected_link_once_static_lib_count = 1,
+    expected_link_once_static_libs = ["//test/facade_library:native_demo"],
+    expected_linker_input_libraries = select({
+        ":macos": ["dynamic=libdemo.1.dylib|interface=|static=|pic_static="],
+        ":windows": ["dynamic=demo.dll|interface=demo_foreign_shared_with_native_dep.if.lib|static=|pic_static="],
+        "//conditions:default": ["dynamic=libdemo.so.1|interface=|static=|pic_static="],
+    }),
+    target_under_test = ":demo_foreign_shared_with_native_dep",
+)
+
+foreign_cc_shared_library_info_test(
+    name = "demo_foreign_shared_info_deps_export_test",
+    size = "small",
+    expect_info = True,
+    expected_dynamic_dep_count = 0,
+    expected_dynamic_dep_owners = [],
+    expected_exports = ["//test/facade_library:demo_foreign_import"],
+    expected_link_once_static_lib_count = 1,
+    expected_link_once_static_libs = ["//test/facade_library:native_demo"],
+    expected_linker_input_libraries = select({
+        ":macos": ["dynamic=libdemo.1.dylib|interface=|static=|pic_static="],
+        ":windows": ["dynamic=demo.dll|interface=demo_foreign_shared_with_dep.if.lib|static=|pic_static="],
+        "//conditions:default": ["dynamic=libdemo.so.1|interface=|static=|pic_static="],
+    }),
+    target_under_test = ":demo_foreign_shared_with_dep",
+)
+
+foreign_cc_shared_library_info_test(
+    name = "demo_foreign_shared_info_roots_export_test",
+    size = "small",
+    expect_info = True,
+    expected_dynamic_dep_count = 0,
+    expected_dynamic_dep_owners = [],
+    expected_exports = ["//test/facade_library:demo_foreign_import"],
+    expected_link_once_static_lib_count = 1,
+    expected_link_once_static_libs = ["//test/facade_library:native_demo"],
+    expected_linker_input_libraries = select({
+        ":macos": ["dynamic=libdemo.1.dylib|interface=|static=|pic_static="],
+        ":windows": ["dynamic=demo.dll|interface=demo_foreign_shared_with_roots.if.lib|static=|pic_static="],
+        "//conditions:default": ["dynamic=libdemo.so.1|interface=|static=|pic_static="],
+    }),
+    target_under_test = ":demo_foreign_shared_with_roots",
+)
+
+foreign_cc_shared_library_info_test(
+    name = "demo_foreign_shared_info_exports_filter_test",
+    size = "small",
+    expect_info = True,
+    expected_dynamic_dep_count = 0,
+    expected_dynamic_dep_owners = [],
+    expected_exports = ["//test/facade_foreign_shared_library:exports_filter_marker"],
+    expected_link_once_static_lib_count = 0,
+    expected_link_once_static_libs = [],
+    expected_linker_input_libraries = select({
+        ":macos": ["dynamic=libdemo.1.dylib|interface=|static=|pic_static="],
+        ":windows": ["dynamic=demo.dll|interface=demo_foreign_shared_with_exports_filter.if.lib|static=|pic_static="],
+        "//conditions:default": ["dynamic=libdemo.so.1|interface=|static=|pic_static="],
+    }),
+    target_under_test = ":demo_foreign_shared_with_exports_filter",
+)
+
+shared_library_shape_summary(
+    name = "demo_foreign_shared_shape_summary",
+    target = ":demo_foreign_shared_with_hints",
+)
+
+diff_test(
+    name = "demo_foreign_shared_shape_matches_native_test",
+    file1 = ":demo_foreign_shared_shape_summary",
+    file2 = "//test/facade_shared_library:leaf_shared_shape_summary",
+)
+
+shared_library_shape_summary(
+    name = "demo_foreign_shared_dynamic_dep_shape_summary",
+    target = ":demo_foreign_shared_with_native_dep",
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+diff_test(
+    name = "demo_foreign_shared_dynamic_dep_shape_matches_native_test",
+    file1 = ":demo_foreign_shared_dynamic_dep_shape_summary",
+    file2 = "//test/facade_shared_library:mid_shared_shape_summary",
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+runfiles_presence_test(
+    name = "demo_foreign_shared_no_dynamic_dep_runfiles_test",
+    size = "small",
+    forbidden_basenames = select({
+        ":macos": ["libleaf_shared.dylib"],
+        ":windows": ["leaf_shared.dll"],
+        "//conditions:default": ["libleaf_shared.so"],
+    }),
+    target_under_test = ":demo_foreign_shared",
+)
+
+runfiles_presence_test(
+    name = "demo_foreign_shared_dynamic_dep_runfiles_test",
+    size = "small",
+    required_basenames = select({
+        ":macos": ["libleaf_shared.dylib"],
+        ":windows": ["leaf_shared.dll"],
+        "//conditions:default": ["libleaf_shared.so"],
+    }),
+    target_under_test = ":demo_foreign_shared_with_native_dep",
+)
+
+runfiles_presence_test(
+    name = "demo_foreign_shared_dep_runfiles_test",
+    size = "small",
+    required_basenames = select({
+        ":macos": ["libdemo.dylib"],
+        "//conditions:default": ["libdemo.so"],
+    }),
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    target_under_test = ":demo_foreign_shared_with_dep",
+)
+
+runfiles_presence_test(
+    name = "foreign_shared_dynamic_dep_consumer_runfiles_test",
+    size = "small",
+    forbidden_basenames = select({
+        ":macos": ["libdemo_foreign_shared_with_hints.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo_foreign_shared_with_hints.so"],
+    }),
+    required_basenames = select({
+        ":macos": ["libdemo.1.dylib"],
+        ":windows": ["demo.dll"],
+        "//conditions:default": ["libdemo.so.1"],
+    }),
+    target_under_test = ":foreign_shared_dynamic_dep_consumer",
+)
+
+sh_test(
+    name = "foreign_shared_dynamic_dep_consumer_runtime_test",
+    size = "small",
+    srcs = ["//test/facade_binary:run_binary_test.sh"],
+    args = ["test/facade_foreign_shared_library/foreign_shared_dynamic_dep_consumer"],
+    data = [":foreign_shared_dynamic_dep_consumer"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+runfiles_presence_test(
+    name = "foreign_shared_mixed_dynamic_dep_consumer_runfiles_test",
+    size = "small",
+    forbidden_basenames = select({
+        ":macos": ["libdemo_foreign_shared_with_native_dep.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo_foreign_shared_with_native_dep.so"],
+    }),
+    required_basenames = select({
+        ":macos": [
+            "libdemo.1.dylib",
+            "libleaf_shared.dylib",
+        ],
+        ":windows": [
+            "demo.dll",
+            "leaf_shared.dll",
+        ],
+        "//conditions:default": [
+            "libdemo.so.1",
+            "libleaf_shared.so",
+        ],
+    }),
+    target_under_test = ":foreign_shared_mixed_dynamic_dep_consumer",
+)
+
+sh_test(
+    name = "foreign_shared_mixed_dynamic_dep_consumer_runtime_test",
+    size = "small",
+    srcs = ["//test/facade_binary:run_binary_test.sh"],
+    args = ["test/facade_foreign_shared_library/foreign_shared_mixed_dynamic_dep_consumer"],
+    data = [":foreign_shared_mixed_dynamic_dep_consumer"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+foreign_cc_shared_library_expect_failure_test(
+    name = "ambiguous_foreign_shared_failure_test",
+    failure_message = "Unable to infer a single shared-library family from",
+    target = ":ambiguous_foreign_shared",
+)
+
+foreign_cc_shared_library_expect_failure_test(
+    name = "invalid_foreign_shared_failure_test",
+    failure_message = "`shared_library` references",
+    target = ":invalid_foreign_shared",
+)
+
+foreign_cc_shared_library_expect_failure_test(
+    name = "invalid_foreign_shared_multiple_owners_failure_test",
+    failure_message = "`emit_cc_shared_library_info` requires exactly one shared-library owner",
+    target = ":invalid_foreign_shared_multiple_owners",
+)
+
+foreign_cc_shared_library_expect_failure_test(
+    name = "invalid_foreign_shared_non_info_dynamic_dep_failure_test",
+    failure_message = "`emit_cc_shared_library_info` requires every `dynamic_deps` entry to provide `CcSharedLibraryInfo`",
+    target = ":invalid_foreign_shared_non_info_dynamic_dep",
+)
+
+foreign_cc_shared_library_expect_failure_test(
+    name = "invalid_foreign_shared_roots_and_deps_failure_test",
+    failure_message = "You are using the attribute 'roots' and 'deps'. 'deps' is the new name for the attribute 'roots'.",
+    target = ":invalid_foreign_shared_roots_and_deps",
+)
+
+foreign_cc_shared_library_expect_failure_test(
+    name = "invalid_foreign_shared_runtime_failure_test",
+    failure_message = "`runtime_shared_library` references",
+    target = ":invalid_foreign_shared_runtime",
+)
+
+foreign_cc_shared_library_expect_failure_test(
+    name = "invalid_foreign_shared_additional_runtime_failure_test",
+    failure_message = "`additional_runtime_shared_libraries` references",
+    target = ":invalid_foreign_shared_additional_runtime",
+)
+
+foreign_cc_shared_library_expect_failure_test(
+    name = "invalid_foreign_shared_interface_failure_test",
+    failure_message = "`interface_library` references",
+    target = ":invalid_foreign_shared_interface",
 )

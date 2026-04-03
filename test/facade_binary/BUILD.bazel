@@ -1,6 +1,6 @@
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//foreign_cc:defs.bzl", "cmake", "foreign_cc_binary")
-load(":tests.bzl", "foreign_cc_binary_default_test", "foreign_cc_binary_explicit_test")
+load(":tests.bzl", "foreign_cc_binary_default_test", "foreign_cc_binary_expect_failure_test", "foreign_cc_binary_explicit_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -22,6 +22,11 @@ filegroup(
     ]),
 )
 
+filegroup(
+    name = "binary_data",
+    srcs = ["include/helper.h"],
+)
+
 cmake(
     name = "binary_raw",
     generate_crosstool_file = False,
@@ -29,6 +34,40 @@ cmake(
     out_binaries = select({
         ":windows": ["app.exe"],
         "//conditions:default": ["app"],
+    }),
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": ["helper.lib"],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": [
+            "libhelper.dylib",
+            "libhelper.3.dylib",
+            "libhelper.3.4.5.dylib",
+        ],
+        ":windows": ["helper.dll"],
+        "//conditions:default": [
+            "libhelper.so",
+            "libhelper.so.3",
+            "libhelper.so.3.4.5",
+        ],
+    }),
+)
+
+cmake(
+    name = "binary_multi_raw",
+    generate_crosstool_file = False,
+    lib_source = ":srcs",
+    out_binaries = select({
+        ":windows": [
+            "app.exe",
+            "app_alt.exe",
+        ],
+        "//conditions:default": [
+            "app",
+            "app_alt",
+        ],
     }),
     out_include_dir = "include",
     out_interface_libs = select({
@@ -75,6 +114,80 @@ foreign_cc_binary(
     }),
 )
 
+foreign_cc_binary(
+    name = "binary_foreign_ambiguous",
+    src = ":binary_multi_raw",
+    tags = ["manual"],
+)
+
+foreign_cc_binary(
+    name = "binary_foreign_multi_explicit",
+    src = ":binary_multi_raw",
+    binary = select({
+        ":windows": "app_alt.exe",
+        "//conditions:default": "app_alt",
+    }),
+    runtime_shared_libraries = select({
+        ":macos": [
+            "libhelper.3.dylib",
+            "libhelper.3.4.5.dylib",
+        ],
+        ":windows": ["helper.dll"],
+        "//conditions:default": [
+            "libhelper.so.3",
+            "libhelper.so.3.4.5",
+        ],
+    }),
+)
+
+foreign_cc_binary(
+    name = "binary_foreign_invalid_binary",
+    src = ":binary_raw",
+    binary = select({
+        ":windows": "missing.exe",
+        "//conditions:default": "missing",
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_binary(
+    name = "binary_foreign_invalid_runtime_shared",
+    src = ":binary_raw",
+    runtime_shared_libraries = select({
+        ":windows": ["missing.dll"],
+        "//conditions:default": ["libmissing.so.9"],
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_binary(
+    name = "binary_foreign_with_dep_and_data",
+    src = ":binary_raw",
+    binary = select({
+        ":windows": "app.exe",
+        "//conditions:default": "app",
+    }),
+    data = [":binary_data"],
+    runtime_shared_libraries = select({
+        ":macos": [
+            "libhelper.3.dylib",
+            "libhelper.3.4.5.dylib",
+        ],
+        ":windows": ["helper.dll"],
+        "//conditions:default": [
+            "libhelper.so.3",
+            "libhelper.so.3.4.5",
+        ],
+    }),
+    deps = ["//test/facade_library:demo_foreign_import"],
+)
+
+foreign_cc_binary(
+    name = "binary_foreign_no_binary_outputs",
+    src = "//test/facade_library:demo_raw",
+    tags = ["manual"],
+)
+
 foreign_cc_binary_explicit_test(
     name = "foreign_cc_binary_explicit_test",
     size = "small",
@@ -88,24 +201,78 @@ foreign_cc_binary_explicit_test(
             "binary_foreign_explicit",
             "libhelper.3.dylib",
             "libhelper.3.4.5.dylib",
-            "runfiles.bash",
-            "app",
         ],
         ":windows": [
             "binary_foreign_explicit",
             "helper.dll",
-            "runfiles.bash",
-            "app.exe",
         ],
         "//conditions:default": [
-            "app",
             "binary_foreign_explicit",
             "libhelper.so.3",
             "libhelper.so.3.4.5",
-            "runfiles.bash",
         ],
     }),
     target_under_test = ":binary_foreign_explicit",
+)
+
+foreign_cc_binary_explicit_test(
+    name = "foreign_cc_binary_multi_explicit_test",
+    size = "small",
+    expected_binary = select({
+        ":windows": "app_alt.exe",
+        "//conditions:default": "app_alt",
+    }),
+    expected_executable = "binary_foreign_multi_explicit",
+    expected_runfiles = select({
+        ":macos": [
+            "binary_foreign_multi_explicit",
+            "libhelper.3.dylib",
+            "libhelper.3.4.5.dylib",
+        ],
+        ":windows": [
+            "binary_foreign_multi_explicit",
+            "helper.dll",
+        ],
+        "//conditions:default": [
+            "binary_foreign_multi_explicit",
+            "libhelper.so.3",
+            "libhelper.so.3.4.5",
+        ],
+    }),
+    target_under_test = ":binary_foreign_multi_explicit",
+)
+
+foreign_cc_binary_explicit_test(
+    name = "foreign_cc_binary_with_dep_and_data_test",
+    size = "small",
+    expected_binary = select({
+        ":windows": "app.exe",
+        "//conditions:default": "app",
+    }),
+    expected_executable = "binary_foreign_with_dep_and_data",
+    expected_runfiles = select({
+        ":macos": [
+            "binary_foreign_with_dep_and_data",
+            "helper.h",
+            "libdemo.dylib",
+            "libhelper.3.dylib",
+            "libhelper.3.4.5.dylib",
+        ],
+        ":windows": [
+            "binary_foreign_with_dep_and_data",
+            "demo.dll",
+            "helper.dll",
+            "helper.h",
+        ],
+        "//conditions:default": [
+            "binary_foreign_with_dep_and_data",
+            "helper.h",
+            "libdemo.so",
+            "libhelper.so.3",
+            "libhelper.so.3.4.5",
+        ],
+    }),
+    target_under_test = ":binary_foreign_with_dep_and_data",
 )
 
 foreign_cc_binary_default_test(
@@ -118,26 +285,20 @@ foreign_cc_binary_default_test(
     expected_executable = "binary_foreign_default",
     expected_runfiles = select({
         ":macos": [
-            "app",
             "binary_foreign_default",
             "libhelper.3.4.5.dylib",
             "libhelper.3.dylib",
             "libhelper.dylib",
-            "runfiles.bash",
         ],
         ":windows": [
-            "app.exe",
             "binary_foreign_default",
             "helper.dll",
-            "runfiles.bash",
         ],
         "//conditions:default": [
-            "app",
             "binary_foreign_default",
             "libhelper.so",
             "libhelper.so.3",
             "libhelper.so.3.4.5",
-            "runfiles.bash",
         ],
     }),
     target_under_test = ":binary_foreign_default",
@@ -165,4 +326,28 @@ sh_test(
         ":windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
+)
+
+foreign_cc_binary_expect_failure_test(
+    name = "foreign_cc_binary_ambiguous_failure_test",
+    failure_message = "Unable to infer a single binary from",
+    target = ":binary_foreign_ambiguous",
+)
+
+foreign_cc_binary_expect_failure_test(
+    name = "foreign_cc_binary_invalid_binary_failure_test",
+    failure_message = "`binary` references",
+    target = ":binary_foreign_invalid_binary",
+)
+
+foreign_cc_binary_expect_failure_test(
+    name = "foreign_cc_binary_invalid_runtime_shared_failure_test",
+    failure_message = "`runtime_shared_libraries` references",
+    target = ":binary_foreign_invalid_runtime_shared",
+)
+
+foreign_cc_binary_expect_failure_test(
+    name = "foreign_cc_binary_no_binary_outputs_failure_test",
+    failure_message = "`foreign_cc_binary` could not find any direct binary outputs",
+    target = ":binary_foreign_no_binary_outputs",
 )

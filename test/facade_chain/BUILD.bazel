@@ -100,15 +100,35 @@ cc_import(
     }),
     shared_library = ":leaf_shared",
     static_library = ":leaf_static",
+    alwayslink = True,
+)
+
+cc_library(
+    name = "leaf_native",
+    defines = ["LEAF_CHAIN_DEFINE=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:kernel32.lib"],
+        "//conditions:default": ["-lm"],
+    }),
+    linkstatic = False,
+    deps = [":leaf_import"],
 )
 
 foreign_cc_library(
     name = "leaf_foreign",
     src = ":leaf_raw",
+    defines = ["LEAF_CHAIN_DEFINE=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:kernel32.lib"],
+        "//conditions:default": ["-lm"],
+    }),
     static_suffix = select({
         ":windows": "_static",
         "//conditions:default": "",
     }),
+    alwayslink = True,
 )
 
 cmake(
@@ -129,7 +149,7 @@ cmake(
         ":windows": ["mid_static.lib"],
         "//conditions:default": ["libmid.a"],
     }),
-    deps = [":leaf_import"],
+    deps = [":leaf_native"],
 )
 
 cmake(
@@ -235,15 +255,27 @@ cc_import(
 
 cc_library(
     name = "mid_native_n",
+    defines = ["MID_CHAIN_DEFINE_N=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:user32.lib"],
+        "//conditions:default": ["-pthread"],
+    }),
     linkstatic = False,
     deps = [
-        ":leaf_import",
+        ":leaf_native",
         ":mid_import_n",
     ],
 )
 
 cc_library(
     name = "mid_native_f",
+    defines = ["MID_CHAIN_DEFINE_F=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:user32.lib"],
+        "//conditions:default": ["-pthread"],
+    }),
     linkstatic = False,
     deps = [
         ":leaf_foreign",
@@ -254,6 +286,12 @@ cc_library(
 foreign_cc_library(
     name = "mid_foreign_n",
     src = ":mid_raw_n",
+    defines = ["MID_CHAIN_DEFINE_N=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:user32.lib"],
+        "//conditions:default": ["-pthread"],
+    }),
     static_suffix = select({
         ":windows": "_static",
         "//conditions:default": "",
@@ -263,6 +301,12 @@ foreign_cc_library(
 foreign_cc_library(
     name = "mid_foreign_f",
     src = ":mid_raw_f",
+    defines = ["MID_CHAIN_DEFINE_F=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:user32.lib"],
+        "//conditions:default": ["-pthread"],
+    }),
     static_suffix = select({
         ":windows": "_static",
         "//conditions:default": "",
@@ -515,6 +559,12 @@ cc_import(
 
 cc_library(
     name = "top_native_nn",
+    defines = ["TOP_CHAIN_DEFINE_NN=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
     linkstatic = False,
     deps = [
         ":mid_native_n",
@@ -524,6 +574,12 @@ cc_library(
 
 cc_library(
     name = "top_native_nf",
+    defines = ["TOP_CHAIN_DEFINE_NF=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
     linkstatic = False,
     deps = [
         ":mid_foreign_n",
@@ -533,6 +589,12 @@ cc_library(
 
 cc_library(
     name = "top_native_fn",
+    defines = ["TOP_CHAIN_DEFINE_FN=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
     linkstatic = False,
     deps = [
         ":mid_native_f",
@@ -542,6 +604,12 @@ cc_library(
 
 cc_library(
     name = "top_native_ff",
+    defines = ["TOP_CHAIN_DEFINE_FF=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
     linkstatic = False,
     deps = [
         ":mid_foreign_f",
@@ -552,6 +620,12 @@ cc_library(
 foreign_cc_library(
     name = "top_foreign_nn",
     src = ":top_raw_nn",
+    defines = ["TOP_CHAIN_DEFINE_NN=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
     static_suffix = select({
         ":windows": "_static",
         "//conditions:default": "",
@@ -561,6 +635,12 @@ foreign_cc_library(
 foreign_cc_library(
     name = "top_foreign_nf",
     src = ":top_raw_nf",
+    defines = ["TOP_CHAIN_DEFINE_NF=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
     static_suffix = select({
         ":windows": "_static",
         "//conditions:default": "",
@@ -570,6 +650,12 @@ foreign_cc_library(
 foreign_cc_library(
     name = "top_foreign_fn",
     src = ":top_raw_fn",
+    defines = ["TOP_CHAIN_DEFINE_FN=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
     static_suffix = select({
         ":windows": "_static",
         "//conditions:default": "",
@@ -579,6 +665,12 @@ foreign_cc_library(
 foreign_cc_library(
     name = "top_foreign_ff",
     src = ":top_raw_ff",
+    defines = ["TOP_CHAIN_DEFINE_FF=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
     static_suffix = select({
         ":windows": "_static",
         "//conditions:default": "",

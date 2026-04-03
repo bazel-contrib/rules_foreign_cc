@@ -1,7 +1,7 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import")
-load("//foreign_cc:defs.bzl", "cmake", "foreign_cc_library")
+load("//foreign_cc:defs.bzl", "cmake", "foreign_cc_import", "foreign_cc_library")
 load("//test:facade_test_utils.bzl", "select_foreign_output")
-load(":tests.bzl", "first_foreign_test", "first_matches_cc_import_test", "second_foreign_test", "second_matches_cc_import_test")
+load(":tests.bzl", "foreign_cc_multi_library_expect_failure_test", "matches_cc_import_test", "selected_foreign_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -213,6 +213,18 @@ foreign_cc_library(
     }),
 )
 
+foreign_cc_library(
+    name = "ambiguous_foreign_library",
+    src = ":multi_raw",
+    tags = ["manual"],
+)
+
+foreign_cc_import(
+    name = "ambiguous_foreign_import",
+    src = ":multi_raw",
+    tags = ["manual"],
+)
+
 cc_binary(
     name = "first_consumer",
     srcs = ["src/first_main.c"],
@@ -227,7 +239,7 @@ cc_binary(
     deps = [":second_foreign"],
 )
 
-first_foreign_test(
+selected_foreign_test(
     name = "first_foreign_test",
     size = "small",
     expected_dynamic = select({
@@ -247,7 +259,7 @@ first_foreign_test(
     target_under_test = ":first_foreign",
 )
 
-second_foreign_test(
+selected_foreign_test(
     name = "second_foreign_test",
     size = "small",
     expected_dynamic = select({
@@ -267,16 +279,28 @@ second_foreign_test(
     target_under_test = ":second_foreign",
 )
 
-first_matches_cc_import_test(
+matches_cc_import_test(
     name = "first_matches_cc_import_test",
     size = "small",
     control = ":first_cc_import_control",
     target_under_test = ":first_foreign",
 )
 
-second_matches_cc_import_test(
+matches_cc_import_test(
     name = "second_matches_cc_import_test",
     size = "small",
     control = ":second_cc_import_control",
     target_under_test = ":second_foreign",
+)
+
+foreign_cc_multi_library_expect_failure_test(
+    name = "ambiguous_foreign_library_failure_test",
+    failure_message = "Unable to infer a single shared-library family from",
+    target = ":ambiguous_foreign_library",
+)
+
+foreign_cc_multi_library_expect_failure_test(
+    name = "ambiguous_foreign_import_failure_test",
+    failure_message = "Unable to infer a single shared-library family from",
+    target = ":ambiguous_foreign_import",
 )

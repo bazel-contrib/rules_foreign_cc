@@ -16,7 +16,11 @@ add_executable(app src/main.c)
 target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(app PRIVATE helper)
 
-install(TARGETS helper app
+add_executable(app_alt src/main.c)
+target_include_directories(app_alt PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(app_alt PRIVATE helper)
+
+install(TARGETS helper app app_alt
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin

@@ -2,43 +2,19 @@
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
-
-def _library_files(target):
-    linker_inputs = target[CcInfo].linking_context.linker_inputs.to_list()
-    libraries = []
-    for linker_input in linker_inputs:
-        for library in linker_input.libraries:
-            libraries.append(struct(
-                dynamic = library.dynamic_library.basename if library.dynamic_library else "",
-                interface = library.interface_library.basename if library.interface_library else "",
-                static = library.static_library.basename if library.static_library else (
-                    library.pic_static_library.basename if library.pic_static_library else ""
-                ),
-            ))
-    return libraries
-
-def _library_summary(target):
-    libraries = _library_files(target)
-    return sorted([
-        "{}|{}|{}".format(lib.dynamic, lib.interface, lib.static)
-        for lib in libraries
-    ])
-
-def _runfiles_basenames(target):
-    basenames = {}
-    for file in target[DefaultInfo].default_runfiles.files.to_list():
-        if file.is_directory:
-            continue
-        basenames[file.basename] = True
-    return sorted(basenames.keys())
+load("//test:facade_test_utils.bzl", "cc_defines", "cc_library_summary", "cc_linkopts", "default_files_basenames", "default_runfiles_basenames", "system_includes")
 
 def _foreign_chain_matches_native_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
     control = ctx.attr.control
 
-    asserts.equals(env, _library_summary(control), _library_summary(target))
-    asserts.equals(env, _runfiles_basenames(control), _runfiles_basenames(target))
+    asserts.equals(env, default_files_basenames(control), default_files_basenames(target))
+    asserts.equals(env, cc_library_summary(control, include_alwayslink = True), cc_library_summary(target, include_alwayslink = True))
+    asserts.equals(env, cc_linkopts(control), cc_linkopts(target))
+    asserts.equals(env, default_runfiles_basenames(control), default_runfiles_basenames(target))
+    asserts.equals(env, cc_defines(control), cc_defines(target))
+    asserts.equals(env, system_includes(control), system_includes(target))
 
     return analysistest.end(env)
 

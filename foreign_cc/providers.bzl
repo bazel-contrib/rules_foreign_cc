@@ -19,6 +19,7 @@ It should be treated as unstable implementation detail for now.
         "data_dirs": "List of direct data directory outputs",
         "data_files": "List of direct data file outputs",
         "deps_cc_info": "CcInfo representing the producer target's transitive deps only",
+        "header_manifest": "Manifest of relative header paths under include_dir, or None",
         "include_dir": "Direct include directory output, or None",
         "interface_libraries": "List of direct interface library output files",
         "shared_libraries": "List of direct shared library output files",

@@ -1,5 +1,7 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//test/facade_shared_library:tests.bzl", "runfiles_presence_test")
 load(":native_static_library_macro.bzl", "cc_static_library")
 load(":tests.bzl", "native_cc_static_library_default_test")
 
@@ -26,6 +28,13 @@ cc_library(
 )
 
 cc_library(
+    name = "combo_obj",
+    srcs = ["src/combo.c"],
+    hdrs = ["include/combo.h"],
+    includes = ["include"],
+)
+
+cc_library(
     name = "duplicate_linkopts",
     linkopts = [
         "linkopts_only_arg_1",
@@ -42,6 +51,11 @@ cc_library(
         "linkopts_only_arg_1",
     ],
     deps = [":duplicate_linkopts"],
+)
+
+cc_library(
+    name = "late_linkopts",
+    linkopts = ["late_dep_arg"],
 )
 
 cc_import(
@@ -64,6 +78,36 @@ cc_static_library(
     ],
 )
 
+cc_static_library(
+    name = "combo_native_static_with_dep",
+    deps = [
+        ":late_linkopts",
+        ":linkopts_only",
+        ":mid_obj",
+        ":prebuilt_dep",
+    ],
+)
+
+cc_static_library(
+    name = "combo_native_static_with_runfiles_dep",
+    deps = [
+        ":linkopts_only",
+        ":mid_obj",
+        ":prebuilt_dep",
+        "//test/facade_static_library:runfiles_dep",
+    ],
+)
+
+cc_static_library(
+    name = "combo_native_consumer_static",
+    deps = [
+        ":combo_obj",
+        "//test/facade_library:demo_cc_import_control",
+        "//test/facade_static_library:dep_1",
+        "//test/facade_static_library:linkopts_only",
+    ],
+)
+
 filegroup(
     name = "combo_native_linkdeps",
     srcs = [":combo_native_static"],
@@ -76,16 +120,57 @@ filegroup(
     output_group = "linkopts",
 )
 
+filegroup(
+    name = "combo_native_with_dep_linkopts",
+    srcs = [":combo_native_static_with_dep"],
+    output_group = "linkopts",
+)
+
+cc_import(
+    name = "combo_native_import",
+    hdrs = ["include/combo.h"],
+    static_library = ":combo_native_consumer_static",
+)
+
+cc_binary(
+    name = "combo_native_consumer",
+    srcs = ["src/combo_main.c"],
+    includes = ["include"],
+    deps = [":combo_native_import"],
+)
+
 native_cc_static_library_default_test(
     name = "combo_native_default_test",
     size = "small",
+    expect_validation_output_group = select({
+        ":windows": False,
+        "//conditions:default": True,
+    }),
     expected_default_files = select({
         ":windows": ["combo_native_static.lib"],
         "//conditions:default": ["libcombo_native_static.a"],
     }),
     expected_linkdeps_file = "combo_native_static_linkdeps.txt",
     expected_linkopts_file = "combo_native_static_linkopts.txt",
+    expected_runfiles = [],
     target_under_test = ":combo_native_static",
+)
+
+native_cc_static_library_default_test(
+    name = "combo_native_with_runfiles_dep_test",
+    size = "small",
+    expect_validation_output_group = select({
+        ":windows": False,
+        "//conditions:default": True,
+    }),
+    expected_default_files = select({
+        ":windows": ["combo_native_static_with_runfiles_dep.lib"],
+        "//conditions:default": ["libcombo_native_static_with_runfiles_dep.a"],
+    }),
+    expected_linkdeps_file = "combo_native_static_with_runfiles_dep_linkdeps.txt",
+    expected_linkopts_file = "combo_native_static_with_runfiles_dep_linkopts.txt",
+    expected_runfiles = ["runtime_note.txt"],
+    target_under_test = ":combo_native_static_with_runfiles_dep",
 )
 
 sh_test(
@@ -122,4 +207,32 @@ sh_test(
         ":windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
+)
+
+sh_test(
+    name = "combo_native_with_dep_linkopts_content_test",
+    size = "small",
+    srcs = ["check_text_file.sh"],
+    args = [
+        "$(location :combo_native_with_dep_linkopts)",
+        "$(location :expected_linkopts_with_dep.txt)",
+    ],
+    data = [
+        ":combo_native_with_dep_linkopts",
+        ":expected_linkopts_with_dep.txt",
+    ],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+runfiles_presence_test(
+    name = "combo_native_consumer_runfiles_test",
+    forbidden_basenames = select({
+        ":windows": ["demo.dll"],
+        "//conditions:default": ["libdemo.so"],
+    }),
+    required_basenames = [],
+    target_under_test = ":combo_native_consumer",
 )
