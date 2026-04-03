@@ -7,6 +7,25 @@ ForeignCcDepsInfo = provider(
     },
 )
 
+ForeignCcFacadeInputsInfo = provider(
+    doc = """Internal provider carrying direct foreign_cc outputs for facade rules.
+
+This provider is intended for rules like `foreign_cc_library` that need the direct outputs
+of a raw foreign_cc producer target without reverse-engineering them from aggregate `CcInfo`.
+It should be treated as unstable implementation detail for now.
+""",
+    fields = {
+        "binary_files": "List of direct binary output files",
+        "data_dirs": "List of direct data directory outputs",
+        "data_files": "List of direct data file outputs",
+        "deps_cc_info": "CcInfo representing the producer target's transitive deps only",
+        "include_dir": "Direct include directory output, or None",
+        "interface_libraries": "List of direct interface library output files",
+        "shared_libraries": "List of direct shared library output files",
+        "static_libraries": "List of direct static library output files",
+    },
+)
+
 ForeignCcArtifactInfo = provider(
     doc = """Groups information about the external library install directory,
 and relative bin, include and lib directories.

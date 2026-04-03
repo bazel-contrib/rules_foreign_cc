@@ -7,7 +7,7 @@ load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
-load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
+load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo", "ForeignCcFacadeInputsInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load("//foreign_cc/private:resource_sets.bzl", "SIZE_ATTRIBUTES", "get_resource_env_vars")
 load(
@@ -593,6 +593,10 @@ def cc_external_rule_impl(ctx, attrs):
         lib_dir_name = attrs.out_lib_dir,
         include_dir_name = attrs.out_include_dir,
     )
+    deps_cc_info = CcInfo(
+        compilation_context = inputs.deps_compilation_info,
+        linking_context = inputs.deps_linking_info,
+    )
     output_groups = (
         outputs.out_binary_files +
         outputs.libraries.static_libraries +
@@ -618,6 +622,16 @@ def cc_external_rule_impl(ctx, attrs):
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
         )),
+        ForeignCcFacadeInputsInfo(
+            binary_files = outputs.out_binary_files,
+            data_dirs = outputs.data_dirs,
+            data_files = outputs.data_files,
+            deps_cc_info = deps_cc_info,
+            include_dir = outputs.out_include_dir if outputs.out_include_dir else None,
+            interface_libraries = outputs.libraries.interface_libraries,
+            shared_libraries = outputs.libraries.shared_libraries,
+            static_libraries = outputs.libraries.static_libraries,
+        ),
         CcInfo(
             compilation_context = out_cc_info.compilation_context,
             linking_context = out_cc_info.linking_context,

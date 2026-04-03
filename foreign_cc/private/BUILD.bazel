@@ -104,6 +104,18 @@ bzl_library(
 )
 
 bzl_library(
+    name = "facade_rules",
+    srcs = ["facade_rules.bzl"],
+    visibility = ["//foreign_cc:__subpackages__"],
+    deps = [
+        ":cc_toolchain_util",
+        ":framework",
+        "//foreign_cc:providers",
+        "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    ],
+)
+
+bzl_library(
     name = "run_shell_file_utils",
     srcs = ["run_shell_file_utils.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],

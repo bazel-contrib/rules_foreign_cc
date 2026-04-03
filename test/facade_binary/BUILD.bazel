@@ -1,0 +1,168 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//foreign_cc:defs.bzl", "cmake", "foreign_cc_binary")
+load(":tests.bzl", "foreign_cc_binary_default_test", "foreign_cc_binary_explicit_test")
+
+package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = ["CMakeLists.txt"] + glob([
+        "include/**",
+        "src/**",
+    ]),
+)
+
+cmake(
+    name = "binary_raw",
+    generate_crosstool_file = False,
+    lib_source = ":srcs",
+    out_binaries = select({
+        ":windows": ["app.exe"],
+        "//conditions:default": ["app"],
+    }),
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": ["helper.lib"],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": [
+            "libhelper.dylib",
+            "libhelper.3.dylib",
+            "libhelper.3.4.5.dylib",
+        ],
+        ":windows": ["helper.dll"],
+        "//conditions:default": [
+            "libhelper.so",
+            "libhelper.so.3",
+            "libhelper.so.3.4.5",
+        ],
+    }),
+)
+
+foreign_cc_binary(
+    name = "binary_foreign_default",
+    src = ":binary_raw",
+)
+
+foreign_cc_binary(
+    name = "binary_foreign_explicit",
+    src = ":binary_raw",
+    binary = select({
+        ":windows": "app.exe",
+        "//conditions:default": "app",
+    }),
+    runtime_shared_libraries = select({
+        ":macos": [
+            "libhelper.3.dylib",
+            "libhelper.3.4.5.dylib",
+        ],
+        ":windows": ["helper.dll"],
+        "//conditions:default": [
+            "libhelper.so.3",
+            "libhelper.so.3.4.5",
+        ],
+    }),
+)
+
+foreign_cc_binary_explicit_test(
+    name = "foreign_cc_binary_explicit_test",
+    size = "small",
+    expected_binary = select({
+        ":windows": "app.exe",
+        "//conditions:default": "app",
+    }),
+    expected_executable = "binary_foreign_explicit",
+    expected_runfiles = select({
+        ":macos": [
+            "binary_foreign_explicit",
+            "libhelper.3.dylib",
+            "libhelper.3.4.5.dylib",
+            "runfiles.bash",
+            "app",
+        ],
+        ":windows": [
+            "binary_foreign_explicit",
+            "helper.dll",
+            "runfiles.bash",
+            "app.exe",
+        ],
+        "//conditions:default": [
+            "app",
+            "binary_foreign_explicit",
+            "libhelper.so.3",
+            "libhelper.so.3.4.5",
+            "runfiles.bash",
+        ],
+    }),
+    target_under_test = ":binary_foreign_explicit",
+)
+
+foreign_cc_binary_default_test(
+    name = "foreign_cc_binary_default_test",
+    size = "small",
+    expected_binary = select({
+        ":windows": "app.exe",
+        "//conditions:default": "app",
+    }),
+    expected_executable = "binary_foreign_default",
+    expected_runfiles = select({
+        ":macos": [
+            "app",
+            "binary_foreign_default",
+            "libhelper.3.4.5.dylib",
+            "libhelper.3.dylib",
+            "libhelper.dylib",
+            "runfiles.bash",
+        ],
+        ":windows": [
+            "app.exe",
+            "binary_foreign_default",
+            "helper.dll",
+            "runfiles.bash",
+        ],
+        "//conditions:default": [
+            "app",
+            "binary_foreign_default",
+            "libhelper.so",
+            "libhelper.so.3",
+            "libhelper.so.3.4.5",
+            "runfiles.bash",
+        ],
+    }),
+    target_under_test = ":binary_foreign_default",
+)
+
+sh_test(
+    name = "binary_foreign_default_runtime_test",
+    size = "small",
+    srcs = ["run_binary_test.sh"],
+    args = ["test/facade_binary/binary_foreign_default"],
+    data = [":binary_foreign_default"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_test(
+    name = "binary_foreign_explicit_runtime_test",
+    size = "small",
+    srcs = ["run_binary_test.sh"],
+    args = ["test/facade_binary/binary_foreign_explicit"],
+    data = [":binary_foreign_explicit"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)

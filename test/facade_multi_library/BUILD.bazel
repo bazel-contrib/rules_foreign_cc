@@ -1,0 +1,294 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import")
+load("//foreign_cc:defs.bzl", "cmake", "foreign_cc_library")
+load("//test:facade_test_utils.bzl", "select_foreign_output")
+load(":tests.bzl", "first_foreign_test", "first_matches_cc_import_test", "second_foreign_test", "second_matches_cc_import_test")
+
+package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = ["CMakeLists.txt"] + glob([
+        "include/**",
+        "src/**",
+    ]),
+)
+
+cmake(
+    name = "multi_raw",
+    generate_crosstool_file = False,
+    lib_source = ":srcs",
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": [
+            "first.lib",
+            "second.lib",
+        ],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": [
+            "libfirst.dylib",
+            "libfirst.1.dylib",
+            "libfirst.1.0.0.dylib",
+            "libsecond.dylib",
+            "libsecond.2.dylib",
+            "libsecond.2.0.0.dylib",
+        ],
+        ":windows": [
+            "first.dll",
+            "second.dll",
+        ],
+        "//conditions:default": [
+            "libfirst.so",
+            "libfirst.so.1",
+            "libfirst.so.1.0.0",
+            "libsecond.so",
+            "libsecond.so.2",
+            "libsecond.so.2.0.0",
+        ],
+    }),
+    out_static_libs = select({
+        ":windows": [
+            "first_static.lib",
+            "second_static.lib",
+        ],
+        "//conditions:default": [
+            "libfirst.a",
+            "libsecond.a",
+        ],
+    }),
+)
+
+select_foreign_output(
+    name = "first_shared_dev",
+    src = ":multi_raw",
+    basename = select({
+        ":macos": "libfirst.dylib",
+        ":windows": "first.dll",
+        "//conditions:default": "libfirst.so",
+    }),
+)
+
+select_foreign_output(
+    name = "first_static",
+    src = ":multi_raw",
+    basename = select({
+        ":windows": "first_static.lib",
+        "//conditions:default": "libfirst.a",
+    }),
+)
+
+select_foreign_output(
+    name = "second_shared_dev",
+    src = ":multi_raw",
+    basename = select({
+        ":macos": "libsecond.dylib",
+        ":windows": "second.dll",
+        "//conditions:default": "libsecond.so",
+    }),
+)
+
+select_foreign_output(
+    name = "second_static",
+    src = ":multi_raw",
+    basename = select({
+        ":windows": "second_static.lib",
+        "//conditions:default": "libsecond.a",
+    }),
+)
+
+select_foreign_output(
+    name = "first_interface",
+    src = ":multi_raw",
+    basename = "first.lib",
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+select_foreign_output(
+    name = "second_interface",
+    src = ":multi_raw",
+    basename = "second.lib",
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_import(
+    name = "first_cc_import_control",
+    hdrs = ["include/first.h"],
+    interface_library = select({
+        ":windows": ":first_interface",
+        "//conditions:default": None,
+    }),
+    shared_library = ":first_shared_dev",
+    static_library = ":first_static",
+)
+
+cc_import(
+    name = "second_cc_import_control",
+    hdrs = ["include/second.h"],
+    interface_library = select({
+        ":windows": ":second_interface",
+        "//conditions:default": None,
+    }),
+    shared_library = ":second_shared_dev",
+    static_library = ":second_static",
+)
+
+foreign_cc_library(
+    name = "first_foreign",
+    src = ":multi_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libfirst.1.0.0.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libfirst.so.1.0.0"],
+    }),
+    interface_library = select({
+        ":windows": "first.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libfirst.1.dylib",
+        ":windows": "first.dll",
+        "//conditions:default": "libfirst.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libfirst.dylib",
+        ":windows": "first.dll",
+        "//conditions:default": "libfirst.so",
+    }),
+    static_library = select({
+        ":windows": "first_static.lib",
+        "//conditions:default": "libfirst.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_library(
+    name = "second_foreign",
+    src = ":multi_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libsecond.2.0.0.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libsecond.so.2.0.0"],
+    }),
+    interface_library = select({
+        ":windows": "second.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libsecond.2.dylib",
+        ":windows": "second.dll",
+        "//conditions:default": "libsecond.so.2",
+    }),
+    shared_library = select({
+        ":macos": "libsecond.dylib",
+        ":windows": "second.dll",
+        "//conditions:default": "libsecond.so",
+    }),
+    static_library = select({
+        ":windows": "second_static.lib",
+        "//conditions:default": "libsecond.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+cc_binary(
+    name = "first_consumer",
+    srcs = ["src/first_main.c"],
+    linkstatic = False,
+    deps = [":first_foreign"],
+)
+
+cc_binary(
+    name = "second_consumer",
+    srcs = ["src/second_main.c"],
+    linkstatic = False,
+    deps = [":second_foreign"],
+)
+
+first_foreign_test(
+    name = "first_foreign_test",
+    size = "small",
+    expected_dynamic = select({
+        ":macos": "libfirst.dylib",
+        ":windows": "first.dll",
+        "//conditions:default": "libfirst.so",
+    }),
+    expected_runfiles = select({
+        ":macos": [
+            "libfirst.1.dylib",
+            "libfirst.1.0.0.dylib",
+        ],
+        ":windows": ["first.dll"],
+        "//conditions:default": [
+            "libfirst.so.1",
+            "libfirst.so.1.0.0",
+        ],
+    }),
+    expected_static = select({
+        ":windows": "first_static.lib",
+        "//conditions:default": "libfirst.a",
+    }),
+    target_under_test = ":first_foreign",
+)
+
+second_foreign_test(
+    name = "second_foreign_test",
+    size = "small",
+    expected_dynamic = select({
+        ":macos": "libsecond.dylib",
+        ":windows": "second.dll",
+        "//conditions:default": "libsecond.so",
+    }),
+    expected_runfiles = select({
+        ":macos": [
+            "libsecond.2.dylib",
+            "libsecond.2.0.0.dylib",
+        ],
+        ":windows": ["second.dll"],
+        "//conditions:default": [
+            "libsecond.so.2",
+            "libsecond.so.2.0.0",
+        ],
+    }),
+    expected_static = select({
+        ":windows": "second_static.lib",
+        "//conditions:default": "libsecond.a",
+    }),
+    target_under_test = ":second_foreign",
+)
+
+first_matches_cc_import_test(
+    name = "first_matches_cc_import_test",
+    size = "small",
+    control = ":first_cc_import_control",
+    target_under_test = ":first_foreign",
+)
+
+second_matches_cc_import_test(
+    name = "second_matches_cc_import_test",
+    size = "small",
+    control = ":second_cc_import_control",
+    target_under_test = ":second_foreign",
+)

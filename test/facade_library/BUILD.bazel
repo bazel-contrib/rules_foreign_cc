@@ -1,0 +1,307 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library")
+load("//foreign_cc:defs.bzl", "cmake", "foreign_cc_import", "foreign_cc_library")
+load("//test:facade_test_utils.bzl", "select_foreign_output")
+load(":tests.bzl", "foreign_cc_import_explicit_test", "foreign_cc_import_matches_cc_import_test", "foreign_cc_library_explicit_test", "foreign_cc_library_inferred_test")
+
+package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = ["CMakeLists.txt"] + glob([
+        "include/**",
+        "src/**",
+    ]),
+)
+
+cc_library(
+    name = "native_demo",
+    srcs = ["src/demo.c"],
+    hdrs = ["include/demo.h"],
+    includes = ["include"],
+    linkstatic = False,
+    local_defines = select({
+        ":windows": ["DEMO_SHARED_EXPORTS"],
+        "//conditions:default": [],
+    }),
+)
+
+cmake(
+    name = "demo_raw",
+    generate_crosstool_file = False,
+    lib_source = ":srcs",
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": ["demo.lib"],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": [
+            "libdemo.dylib",
+            "libdemo.1.dylib",
+            "libdemo.1.2.3.dylib",
+        ],
+        ":windows": ["demo.dll"],
+        "//conditions:default": [
+            "libdemo.so",
+            "libdemo.so.1",
+            "libdemo.so.1.2.3",
+        ],
+    }),
+    out_static_libs = select({
+        ":windows": ["demo_static.lib"],
+        "//conditions:default": ["libdemo.a"],
+    }),
+)
+
+select_foreign_output(
+    name = "demo_shared_dev",
+    src = ":demo_raw",
+    basename = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+)
+
+select_foreign_output(
+    name = "demo_static",
+    src = ":demo_raw",
+    basename = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+)
+
+select_foreign_output(
+    name = "demo_interface",
+    src = ":demo_raw",
+    basename = "demo.lib",
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_import(
+    name = "demo_cc_import_control",
+    hdrs = ["include/demo.h"],
+    interface_library = select({
+        ":windows": ":demo_interface",
+        "//conditions:default": None,
+    }),
+    shared_library = ":demo_shared_dev",
+    static_library = ":demo_static",
+)
+
+foreign_cc_library(
+    name = "demo_foreign_explicit",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_library(
+    name = "demo_foreign_inferred",
+    src = ":demo_raw",
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+cc_binary(
+    name = "native_consumer",
+    srcs = ["src/main.c"],
+    linkstatic = False,
+    deps = [":native_demo"],
+)
+
+cc_binary(
+    name = "foreign_consumer_explicit",
+    srcs = ["src/main.c"],
+    linkstatic = False,
+    deps = [":demo_foreign_explicit"],
+)
+
+cc_binary(
+    name = "foreign_consumer_inferred",
+    srcs = ["src/main.c"],
+    linkstatic = False,
+    deps = [":demo_foreign_inferred"],
+)
+
+cc_binary(
+    name = "foreign_import_consumer",
+    srcs = ["src/main.c"],
+    linkstatic = False,
+    deps = [":demo_foreign_import"],
+)
+
+foreign_cc_library_explicit_test(
+    name = "foreign_cc_library_explicit_test",
+    size = "small",
+    expected_default_files = select({
+        ":macos": [
+            "libdemo.a",
+            "libdemo.dylib",
+        ],
+        ":windows": [
+            "demo.dll",
+            "demo_static.lib",
+        ],
+        "//conditions:default": [
+            "libdemo.a",
+            "libdemo.so",
+        ],
+    }),
+    expected_dynamic = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    expected_runfiles = select({
+        ":macos": [
+            "libdemo.1.dylib",
+            "libdemo.1.2.3.dylib",
+        ],
+        ":windows": ["demo.dll"],
+        "//conditions:default": [
+            "libdemo.so.1",
+            "libdemo.so.1.2.3",
+        ],
+    }),
+    expected_static = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    target_under_test = ":demo_foreign_explicit",
+)
+
+foreign_cc_library_inferred_test(
+    name = "foreign_cc_library_inferred_test",
+    size = "small",
+    expected_dynamic = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    expected_static = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    target_under_test = ":demo_foreign_inferred",
+)
+
+foreign_cc_import_explicit_test(
+    name = "foreign_cc_import_explicit_test",
+    size = "small",
+    expected_default_files = select({
+        ":macos": [
+            "libdemo.a",
+            "libdemo.dylib",
+        ],
+        ":windows": [
+            "demo.dll",
+            "demo_static.lib",
+        ],
+        "//conditions:default": [
+            "libdemo.a",
+            "libdemo.so",
+        ],
+    }),
+    expected_dynamic = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    expected_runfiles = select({
+        ":macos": [
+            "libdemo.1.dylib",
+            "libdemo.1.2.3.dylib",
+        ],
+        ":windows": ["demo.dll"],
+        "//conditions:default": [
+            "libdemo.so.1",
+            "libdemo.so.1.2.3",
+        ],
+    }),
+    expected_static = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    target_under_test = ":demo_foreign_import",
+)
+
+foreign_cc_import_matches_cc_import_test(
+    name = "foreign_cc_import_matches_cc_import_test",
+    size = "small",
+    control = ":demo_cc_import_control",
+    target_under_test = ":demo_foreign_import",
+)

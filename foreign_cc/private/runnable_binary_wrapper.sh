@@ -2,14 +2,20 @@
 
 # shellcheck disable=SC1090
 
+if [[ "$0" != /* ]]; then
+    exec "$PWD/$0" "$@"
+fi
+
+WRAPPER_PATH="$0"
+
 # --- begin runfiles.bash initialization v3 ---
 # Copy-pasted from the Bazel Bash runfiles library v3.
 set -uo pipefail; set +e; f=bazel_tools/tools/bash/runfiles/runfiles.bash
 source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
     source "$(grep -sm1 "^$f " "${RUNFILES_MANIFEST_FILE:-/dev/null}" | cut -f2- -d' ')" 2>/dev/null || \
-    source "$0.runfiles/$f" 2>/dev/null || \
-    source "$(grep -sm1 "^$f " "$0.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
-    source "$(grep -sm1 "^$f " "$0.exe.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
+    source "$WRAPPER_PATH.runfiles/$f" 2>/dev/null || \
+    source "$(grep -sm1 "^$f " "$WRAPPER_PATH.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
+    source "$(grep -sm1 "^$f " "$WRAPPER_PATH.exe.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
     { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
 # --- end runfiles.bash initialization v3 ---
 
@@ -25,7 +31,9 @@ RUNFILES_DIR=$( cd "${RUNFILES_DIR}" ; pwd -P )
 cd "${RUNFILES_DIR}"
 
 EXE=EXECUTABLE
-EXE_PATH=$(rlocation "${EXE#external/}")
+# This wrapper already injects a concrete runfiles path, so repo inference is
+# unnecessary and can mis-handle direct bazel-bin execution under Bzlmod.
+EXE_PATH=$(rlocation "${EXE#external/}" "")
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     SHARED_LIB_SUFFIX=".so*"
