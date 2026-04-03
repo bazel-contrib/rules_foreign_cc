@@ -2,6 +2,7 @@
 
 - [cmake](./cmake.md)
 - [configure_make](./configure_make.md)
+- [facade](./facade.md)
 - [make](./make.md)
 - [meson](./meson.md)
 - [ninja](./ninja.md)
