@@ -108,8 +108,14 @@ def _select_library_outputs(ctx, facade_inputs):
     shared_libraries = facade_inputs.shared_libraries
     interface_libraries = facade_inputs.interface_libraries
     static_libraries = facade_inputs.static_libraries
+    interface_library_name = getattr(ctx.attr, "interface_library", "")
+    static_library_name = getattr(ctx.attr, "static_library", "")
+    system_provided = getattr(ctx.attr, "system_provided", False)
 
-    if ctx.attr.shared_library:
+    if system_provided and not ctx.attr.shared_library:
+        selected_shared = None
+        runtime_shared_files = []
+    elif ctx.attr.shared_library:
         selected_shared = _file_by_basename(shared_libraries, ctx.attr.shared_library)
         if selected_shared == None:
             fail("`shared_library` references `{}`, which is not a direct shared-library output of `{}`".format(
@@ -143,21 +149,23 @@ def _select_library_outputs(ctx, facade_inputs):
     if not runtime_shared_files and selected_shared:
         runtime_shared_files = [selected_shared]
 
-    if ctx.attr.interface_library:
-        interface_library = _file_by_basename(interface_libraries, ctx.attr.interface_library)
+    if interface_library_name:
+        interface_library = _file_by_basename(interface_libraries, interface_library_name)
+        if interface_library == None:
+            interface_library = _file_by_basename(shared_libraries, interface_library_name)
         if interface_library == None:
             fail("`interface_library` references `{}`, which is not a direct interface-library output of `{}`".format(
-                ctx.attr.interface_library,
+                interface_library_name,
                 ctx.attr.src.label,
             ))
     else:
         interface_library = _infer_single_file(interface_libraries, _interface_stem, "interface library") if interface_libraries else None
 
-    if ctx.attr.static_library:
-        static_library = _file_by_basename(static_libraries, ctx.attr.static_library)
+    if static_library_name:
+        static_library = _file_by_basename(static_libraries, static_library_name)
         if static_library == None:
             fail("`static_library` references `{}`, which is not a direct static-library output of `{}`".format(
-                ctx.attr.static_library,
+                static_library_name,
                 ctx.attr.src.label,
             ))
     else:
@@ -228,6 +236,23 @@ def _collect_transitive_shared_libraries(cc_info):
 def _foreign_cc_library_impl(ctx):
     facade_inputs = ctx.attr.src[ForeignCcFacadeInputsInfo]
     selected = _select_library_outputs(ctx, facade_inputs)
+    import_like = hasattr(ctx.attr, "system_provided")
+    system_provided = getattr(ctx.attr, "system_provided", False)
+
+    if system_provided:
+        if ctx.attr.shared_library:
+            fail("'shared_library' shouldn't be specified when 'system_provided' is true")
+        interface_library = selected.interface_library if selected.interface_library else selected.shared_library
+        if interface_library == None and selected.static_library == None:
+            fail("'interface_library' should be specified when 'system_provided' is true")
+        selected = struct(
+            interface_library = interface_library,
+            runtime_shared_files = [],
+            shared_library = None,
+            static_library = selected.static_library,
+        )
+    elif import_like and ctx.attr.interface_library and not ctx.attr.shared_library:
+        fail("'shared_library' should be specified when 'system_provided' is false")
 
     compilation_context = _create_compilation_context(ctx, facade_inputs.include_dir)
     direct_linking_context = create_linking_info(
@@ -245,9 +270,6 @@ def _foreign_cc_library_impl(ctx):
     )
     merged_cc_info = cc_common.merge_cc_infos(cc_infos = [direct_cc_info, facade_inputs.deps_cc_info])
 
-    runfiles = ctx.runfiles(
-        files = selected.runtime_shared_files + _collect_transitive_shared_libraries(facade_inputs.deps_cc_info),
-    )
     output_groups = {}
     if selected.static_library:
         output_groups["archive"] = depset([selected.static_library])
@@ -260,7 +282,7 @@ def _foreign_cc_library_impl(ctx):
         output_groups["dynamic_library"] = depset(dynamic_outputs)
 
     return [
-        _create_default_info(ctx, selected, runfiles),
+        _create_default_info(ctx, selected, ctx.runfiles()),
         merged_cc_info,
         OutputGroupInfo(**output_groups),
     ]
@@ -379,6 +401,7 @@ foreign_cc_import = rule(
         ),
         "static_library": attr.string(default = ""),
         "static_suffix": attr.string(default = ""),
+        "system_provided": attr.bool(default = False),
         "_cc_toolchain": attr.label(
             default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
         ),

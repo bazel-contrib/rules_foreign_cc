@@ -24,12 +24,21 @@ def _library_summary(target):
         for lib in libraries
     ])
 
+def _runfiles_basenames(target):
+    basenames = {}
+    for file in target[DefaultInfo].default_runfiles.files.to_list():
+        if file.is_directory:
+            continue
+        basenames[file.basename] = True
+    return sorted(basenames.keys())
+
 def _foreign_chain_matches_native_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
     control = ctx.attr.control
 
     asserts.equals(env, _library_summary(control), _library_summary(target))
+    asserts.equals(env, _runfiles_basenames(control), _runfiles_basenames(target))
 
     return analysistest.end(env)
 

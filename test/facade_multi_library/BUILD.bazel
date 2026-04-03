@@ -236,15 +236,9 @@ first_foreign_test(
         "//conditions:default": "libfirst.so",
     }),
     expected_runfiles = select({
-        ":macos": [
-            "libfirst.1.dylib",
-            "libfirst.1.0.0.dylib",
-        ],
-        ":windows": ["first.dll"],
-        "//conditions:default": [
-            "libfirst.so.1",
-            "libfirst.so.1.0.0",
-        ],
+        ":macos": [],
+        ":windows": [],
+        "//conditions:default": [],
     }),
     expected_static = select({
         ":windows": "first_static.lib",
@@ -262,15 +256,9 @@ second_foreign_test(
         "//conditions:default": "libsecond.so",
     }),
     expected_runfiles = select({
-        ":macos": [
-            "libsecond.2.dylib",
-            "libsecond.2.0.0.dylib",
-        ],
-        ":windows": ["second.dll"],
-        "//conditions:default": [
-            "libsecond.so.2",
-            "libsecond.so.2.0.0",
-        ],
+        ":macos": [],
+        ":windows": [],
+        "//conditions:default": [],
     }),
     expected_static = select({
         ":windows": "second_static.lib",

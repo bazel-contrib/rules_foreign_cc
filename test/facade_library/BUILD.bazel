@@ -1,7 +1,8 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library")
 load("//foreign_cc:defs.bzl", "cmake", "foreign_cc_import", "foreign_cc_library")
 load("//test:facade_test_utils.bzl", "select_foreign_output")
-load(":tests.bzl", "foreign_cc_import_explicit_test", "foreign_cc_import_matches_cc_import_test", "foreign_cc_library_explicit_test", "foreign_cc_library_inferred_test")
+load("//test/facade_shared_library:tests.bzl", "runfiles_presence_test")
+load(":tests.bzl", "foreign_cc_import_explicit_test", "foreign_cc_import_matches_cc_import_test", "foreign_cc_includes_match_test", "foreign_cc_library_expect_failure_test", "foreign_cc_library_explicit_test", "foreign_cc_library_inferred_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -103,6 +104,69 @@ cc_import(
     static_library = ":demo_static",
 )
 
+cc_import(
+    name = "demo_cc_import_alwayslink_control",
+    hdrs = ["include/demo.h"],
+    interface_library = select({
+        ":windows": ":demo_interface",
+        "//conditions:default": None,
+    }),
+    shared_library = ":demo_shared_dev",
+    static_library = ":demo_static",
+    alwayslink = True,
+)
+
+cc_import(
+    name = "demo_cc_import_linkopts_control",
+    hdrs = ["include/demo.h"],
+    interface_library = select({
+        ":windows": ":demo_interface",
+        "//conditions:default": None,
+    }),
+    linkopts = select({
+        ":windows": ["/NODEFAULTLIB:demo_static.lib"],
+        "//conditions:default": ["-Wl,--no-undefined"],
+    }),
+    shared_library = ":demo_shared_dev",
+    static_library = ":demo_static",
+)
+
+cc_import(
+    name = "demo_cc_import_system_provided_control",
+    hdrs = ["include/demo.h"],
+    includes = ["include"],
+    interface_library = select({
+        ":macos": ":demo_shared_dev",
+        ":windows": ":demo_interface",
+        "//conditions:default": ":demo_shared_dev",
+    }),
+    static_library = ":demo_static",
+    system_provided = True,
+)
+
+cc_library(
+    name = "demo_cc_library_defines_control",
+    defines = ["DEMO_IMPORT_DEFINE=1"],
+    deps = [":demo_cc_import_control"],
+)
+
+cc_library(
+    name = "demo_cc_library_includes_control",
+    includes = [
+        "include",
+        "include/generated",
+    ],
+    deps = [":demo_cc_import_control"],
+)
+
+cc_binary(
+    name = "native_system_provided_consumer",
+    srcs = ["src/main.c"],
+    includes = ["test/facade_library/include"],
+    tags = ["manual"],
+    deps = [":demo_cc_import_system_provided_control"],
+)
+
 foreign_cc_library(
     name = "demo_foreign_explicit",
     src = ":demo_raw",
@@ -144,6 +208,39 @@ foreign_cc_library(
     }),
 )
 
+foreign_cc_library(
+    name = "demo_foreign_alwayslink",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+    alwayslink = True,
+)
+
 foreign_cc_import(
     name = "demo_foreign_import",
     src = ":demo_raw",
@@ -152,6 +249,340 @@ foreign_cc_import(
         ":windows": [],
         "//conditions:default": ["libdemo.so.1.2.3"],
     }),
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import_alwayslink",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+    alwayslink = True,
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import_linkopts",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    linkopts = select({
+        ":windows": ["/NODEFAULTLIB:demo_static.lib"],
+        "//conditions:default": ["-Wl,--no-undefined"],
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import_system_provided",
+    src = ":demo_raw",
+    interface_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.lib",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    system_provided = True,
+)
+
+cc_binary(
+    name = "foreign_import_system_provided_consumer",
+    srcs = ["src/main.c"],
+    includes = ["test/facade_library/include"],
+    tags = ["manual"],
+    deps = [":demo_foreign_import_system_provided"],
+)
+
+foreign_cc_library(
+    name = "demo_foreign_linkopts",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    linkopts = select({
+        ":windows": ["/NODEFAULTLIB:demo_static.lib"],
+        "//conditions:default": ["-Wl,--no-undefined"],
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import_defines",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    defines = ["DEMO_IMPORT_DEFINE=1"],
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_library(
+    name = "demo_foreign_defines",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    defines = ["DEMO_IMPORT_DEFINE=1"],
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_library(
+    name = "demo_foreign_invalid_shared",
+    src = ":demo_raw",
+    shared_library = select({
+        ":windows": "missing.dll",
+        "//conditions:default": "libmissing.so",
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import_invalid_static",
+    src = ":demo_raw",
+    static_library = select({
+        ":windows": "missing.lib",
+        "//conditions:default": "libmissing.a",
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_library(
+    name = "demo_foreign_invalid_runtime",
+    src = ":demo_raw",
+    runtime_shared_library = select({
+        ":windows": "missing.dll",
+        "//conditions:default": "libmissing.so.9",
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import_invalid_runtime_extra",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":windows": ["missing.dll"],
+        "//conditions:default": ["libmissing.so.9"],
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import_invalid_interface",
+    src = ":demo_raw",
+    interface_library = "missing.lib",
+    tags = ["manual"],
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import_invalid_system_provided_shared",
+    src = ":demo_raw",
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    system_provided = True,
+    tags = ["manual"],
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import_missing_system_provided",
+    src = ":demo_raw",
+    interface_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.lib",
+        "//conditions:default": "libdemo.so",
+    }),
+    tags = ["manual"],
+)
+
+foreign_cc_import(
+    name = "demo_foreign_import_includes",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    includes = ["generated"],
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    static_library = select({
+        ":windows": "demo_static.lib",
+        "//conditions:default": "libdemo.a",
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_library(
+    name = "demo_foreign_includes",
+    src = ":demo_raw",
+    additional_runtime_shared_libraries = select({
+        ":macos": ["libdemo.1.2.3.dylib"],
+        ":windows": [],
+        "//conditions:default": ["libdemo.so.1.2.3"],
+    }),
+    includes = ["generated"],
     interface_library = select({
         ":windows": "demo.lib",
         "//conditions:default": "",
@@ -227,15 +658,9 @@ foreign_cc_library_explicit_test(
         "//conditions:default": "libdemo.so",
     }),
     expected_runfiles = select({
-        ":macos": [
-            "libdemo.1.dylib",
-            "libdemo.1.2.3.dylib",
-        ],
-        ":windows": ["demo.dll"],
-        "//conditions:default": [
-            "libdemo.so.1",
-            "libdemo.so.1.2.3",
-        ],
+        ":macos": [],
+        ":windows": [],
+        "//conditions:default": [],
     }),
     expected_static = select({
         ":windows": "demo_static.lib",
@@ -282,15 +707,9 @@ foreign_cc_import_explicit_test(
         "//conditions:default": "libdemo.so",
     }),
     expected_runfiles = select({
-        ":macos": [
-            "libdemo.1.dylib",
-            "libdemo.1.2.3.dylib",
-        ],
-        ":windows": ["demo.dll"],
-        "//conditions:default": [
-            "libdemo.so.1",
-            "libdemo.so.1.2.3",
-        ],
+        ":macos": [],
+        ":windows": [],
+        "//conditions:default": [],
     }),
     expected_static = select({
         ":windows": "demo_static.lib",
@@ -304,4 +723,129 @@ foreign_cc_import_matches_cc_import_test(
     size = "small",
     control = ":demo_cc_import_control",
     target_under_test = ":demo_foreign_import",
+)
+
+foreign_cc_import_matches_cc_import_test(
+    name = "foreign_cc_import_alwayslink_matches_cc_import_test",
+    size = "small",
+    control = ":demo_cc_import_alwayslink_control",
+    target_under_test = ":demo_foreign_import_alwayslink",
+)
+
+foreign_cc_import_matches_cc_import_test(
+    name = "foreign_cc_library_alwayslink_matches_cc_import_test",
+    size = "small",
+    control = ":demo_cc_import_alwayslink_control",
+    target_under_test = ":demo_foreign_alwayslink",
+)
+
+foreign_cc_import_matches_cc_import_test(
+    name = "foreign_cc_import_linkopts_matches_cc_import_test",
+    size = "small",
+    control = ":demo_cc_import_linkopts_control",
+    target_under_test = ":demo_foreign_import_linkopts",
+)
+
+foreign_cc_import_matches_cc_import_test(
+    name = "foreign_cc_import_system_provided_matches_cc_import_test",
+    size = "small",
+    control = ":demo_cc_import_system_provided_control",
+    target_under_test = ":demo_foreign_import_system_provided",
+)
+
+runfiles_presence_test(
+    name = "native_system_provided_consumer_runfiles_test",
+    forbidden_basenames = select({
+        ":macos": ["libdemo.1.dylib"],
+        ":windows": ["demo.dll"],
+        "//conditions:default": ["libdemo.so.1"],
+    }),
+    target_under_test = ":native_system_provided_consumer",
+)
+
+runfiles_presence_test(
+    name = "foreign_import_system_provided_consumer_runfiles_test",
+    forbidden_basenames = select({
+        ":macos": ["libdemo.1.dylib"],
+        ":windows": ["demo.dll"],
+        "//conditions:default": ["libdemo.so.1"],
+    }),
+    target_under_test = ":foreign_import_system_provided_consumer",
+)
+
+foreign_cc_import_matches_cc_import_test(
+    name = "foreign_cc_library_linkopts_matches_cc_import_test",
+    size = "small",
+    control = ":demo_cc_import_linkopts_control",
+    target_under_test = ":demo_foreign_linkopts",
+)
+
+foreign_cc_import_matches_cc_import_test(
+    name = "foreign_cc_import_defines_matches_cc_import_test",
+    size = "small",
+    control = ":demo_cc_library_defines_control",
+    target_under_test = ":demo_foreign_import_defines",
+)
+
+foreign_cc_import_matches_cc_import_test(
+    name = "foreign_cc_library_defines_matches_cc_import_test",
+    size = "small",
+    control = ":demo_cc_library_defines_control",
+    target_under_test = ":demo_foreign_defines",
+)
+
+foreign_cc_library_expect_failure_test(
+    name = "foreign_cc_library_invalid_shared_failure_test",
+    failure_message = "`shared_library` references",
+    target = ":demo_foreign_invalid_shared",
+)
+
+foreign_cc_library_expect_failure_test(
+    name = "foreign_cc_import_invalid_system_provided_shared_failure_test",
+    failure_message = "'shared_library' shouldn't be specified when 'system_provided' is true",
+    target = ":demo_foreign_import_invalid_system_provided_shared",
+)
+
+foreign_cc_library_expect_failure_test(
+    name = "foreign_cc_import_missing_system_provided_failure_test",
+    failure_message = "'shared_library' should be specified when 'system_provided' is false",
+    target = ":demo_foreign_import_missing_system_provided",
+)
+
+foreign_cc_library_expect_failure_test(
+    name = "foreign_cc_import_invalid_static_failure_test",
+    failure_message = "`static_library` references",
+    target = ":demo_foreign_import_invalid_static",
+)
+
+foreign_cc_library_expect_failure_test(
+    name = "foreign_cc_library_invalid_runtime_failure_test",
+    failure_message = "`runtime_shared_library` references",
+    target = ":demo_foreign_invalid_runtime",
+)
+
+foreign_cc_library_expect_failure_test(
+    name = "foreign_cc_import_invalid_runtime_extra_failure_test",
+    failure_message = "`additional_runtime_shared_libraries` references",
+    target = ":demo_foreign_import_invalid_runtime_extra",
+)
+
+foreign_cc_library_expect_failure_test(
+    name = "foreign_cc_import_invalid_interface_failure_test",
+    failure_message = "`interface_library` references",
+    target = ":demo_foreign_import_invalid_interface",
+)
+
+foreign_cc_includes_match_test(
+    name = "foreign_cc_import_includes_match_test",
+    size = "small",
+    control = ":demo_cc_library_includes_control",
+    target_under_test = ":demo_foreign_import_includes",
+)
+
+foreign_cc_includes_match_test(
+    name = "foreign_cc_library_includes_match_test",
+    size = "small",
+    control = ":demo_cc_library_includes_control",
+    target_under_test = ":demo_foreign_includes",
 )
