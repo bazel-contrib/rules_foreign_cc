@@ -4,6 +4,7 @@ module(
 )
 
 bazel_dep(name = "bazel_features", version = "1.36.0")
+bazel_dep(name = "bazel_lib", version = "3.2.0")
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "apple_support", version = "1.24.5", repo_name = "build_bazel_apple_support")
 bazel_dep(name = "platforms", version = "1.0.0")
@@ -52,6 +53,9 @@ python.toolchain(
     is_default = True,
     python_version = "3.10",
 )
+
+bazel_lib_toolchains = use_extension("@bazel_lib//lib:extensions.bzl", "toolchains")
+bazel_lib_toolchains.coreutils()
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(

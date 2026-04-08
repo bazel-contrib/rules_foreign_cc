@@ -3,6 +3,13 @@ workspace(name = "rules_foreign_cc_examples_third_party")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
+    name = "bazel_lib",
+    sha256 = "e733937de2f542436c5d3d618e22c638489b40dfd251284050357babe71103d7",
+    strip_prefix = "bazel-lib-3.2.0",
+    url = "https://github.com/bazel-contrib/bazel-lib/releases/download/v3.2.0/bazel-lib-v3.2.0.tar.gz",
+)
+
+http_archive(
     name = "bazel_skylib",
     sha256 = "3b5b49006181f5f8ff626ef8ddceaa95e9bb8ad294f7b5d7b11ea9f7ddaf8c59",
     urls = [
@@ -28,6 +35,7 @@ load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
 
 compatibility_proxy_repo()
 
+load("@bazel_lib//lib:repositories.bzl", "register_coreutils_toolchains")
 load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
 
 py_repositories()
@@ -124,3 +132,5 @@ load("@rules_perl//perl:deps.bzl", "perl_register_toolchains", "perl_rules_depen
 perl_rules_dependencies()
 
 perl_register_toolchains()
+
+register_coreutils_toolchains()
