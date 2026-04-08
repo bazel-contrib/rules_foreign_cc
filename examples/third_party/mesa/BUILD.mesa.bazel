@@ -29,6 +29,15 @@ meson_with_requirements(
         ],
     }),
     env = select({
+        "@platforms//os:linux": {
+            "BISON_PKGDATADIR": "$$(dirname $$EXT_BUILD_ROOT/$(location @bison//:gen_dir))/bison/share/bison",
+            # Mesa currently still learns a dead libdrm -L path from staged
+            # pkg-config metadata in CI. Keep a correct search path ahead of it
+            # until the staged metadata rewrite is proven to land in the action.
+            "LDFLAGS": "-L$$EXT_BUILD_DEPS$$/libdrm/lib/x86_64-linux-gnu $${LDFLAGS:-}",
+            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @bison//:gen_dir))/bison/bin:$$(dirname $$EXT_BUILD_ROOT/$(location @flex//:flex_exe)):$$(dirname $$EXT_BUILD_ROOT/$(location @m4//:m4_exe)):$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
+        },
         "@platforms//os:windows": {
             "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @winflexbison//:gen_dir))/winflexbison:$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
         },

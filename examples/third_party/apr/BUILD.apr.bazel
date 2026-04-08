@@ -35,7 +35,7 @@ make_variant(
     ],
     lib_name = LIB_NAME,
     lib_source = ":all_srcs",
-    out_static_libs = ["apr-1.lib"],
+    out_static_libs = ["libapr-1.lib"],
     target_compatible_with = select({
         "@platforms//os:windows": [],
         "//conditions:default": ["@platforms//:incompatible"],

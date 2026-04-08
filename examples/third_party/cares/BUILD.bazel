@@ -6,6 +6,10 @@ cc_test(
     name = "test",
     size = "small",
     srcs = ["c-ares-test.cpp"],
+    local_defines = select({
+        "@platforms//os:windows": ["CARES_STATICLIB"],
+        "//conditions:default": [],
+    }),
     visibility = ["//:__pkg__"],
     deps = ["@cares"],
 )
@@ -13,6 +17,10 @@ cc_test(
 cc_library(
     name = "lib",
     srcs = ["c-ares-test.cpp"],
+    local_defines = select({
+        "@platforms//os:windows": ["CARES_STATICLIB"],
+        "//conditions:default": [],
+    }),
     deps = ["@cares"],
 )
 

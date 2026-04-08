@@ -14,6 +14,8 @@ function(post _filename)
     # EXT_BUILD_ROOT and we want the replacement to be the most specific
     string(REPLACE "${CMAKE_BINARY_DIR}" "{{CMAKE_BINARY_DIR}}" RAW "${RAW}")
     string(REPLACE "${CMAKE_SOURCE_DIR}" "{{CMAKE_SOURCE_DIR}}" RAW "${RAW}")
+    string(REPLACE "$ENV{BUILD_TMPDIR}" "{{BUILD_TMPDIR}}" RAW "${RAW}")
+    string(REPLACE "$ENV{EXT_BUILD_DEPS}" "{{EXT_BUILD_DEPS}}" RAW "${RAW}")
     string(REPLACE "$ENV{INSTALLDIR}" "{{INSTALLDIR}}" RAW "${RAW}")
     string(REPLACE "$ENV{EXT_BUILD_ROOT}" "{{EXT_BUILD_ROOT}}" RAW "${RAW}")
 

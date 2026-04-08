@@ -22,23 +22,23 @@ ninja(
     }),
     out_include_dir = "",
     out_static_libs = select({
-        "@platforms//os:windows": ["gn_lib.lib"],
+        "@platforms//os:windows": [],
         "//conditions:default": ["gn_lib.a"],
     }),
     # gn has no install step, manually grab the artifacts
     postfix_script = select({
-        "@platforms//os:windows": " && ".join([
-            "cp -a out/gn_lib.lib $$INSTALLDIR/lib",
-            "cp -a out/gn.exe $$INSTALLDIR/bin",
+        "@platforms//os:windows": "\n".join([
+            "mkdir -p \"$$INSTALLDIR/bin\"",
+            "cp -p ./out/gn.exe \"$$INSTALLDIR/bin/gn.exe\"",
         ]),
         "//conditions:default": " && ".join([
             "cp -a out/gn_lib.a $$INSTALLDIR/lib",
             "cp -a out/gn $$INSTALLDIR/bin",
         ]),
     }),
-    target_compatible_with = select({
-        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"],
-        "//conditions:default": [],
+    targets = select({
+        "@platforms//os:windows": ["gn.exe"],
+        "//conditions:default": [""],
     }),
 )
 
