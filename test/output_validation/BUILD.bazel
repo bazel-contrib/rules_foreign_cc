@@ -1,0 +1,64 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+load("//test:output_group_file_rule.bzl", "output_group_file")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        "CMakeLists.txt",
+        "repro.c",
+        "repro.h",
+    ],
+)
+
+cmake(
+    name = "output_validation_script_fixture",
+    generate_args = ["-GNinja"],
+    lib_name = "repro_fixture",
+    lib_source = ":srcs",
+    out_static_libs = select({
+        "@platforms//os:windows": ["repro.lib"],
+        "//conditions:default": ["librepro.a"],
+    }),
+    tags = ["manual"],
+)
+
+output_group_file(
+    name = "wrong_output_in_action_check_script",
+    output_group = "CMake_logs",
+    target = ":output_validation_script_fixture",
+)
+
+# TODO: We don't have a good way of validating that actions fail with the
+# expected error message, so this target can be bazel built to perform a manual
+# test.
+cmake(
+    name = "wrong_output_in_action_check",
+    generate_args = ["-GNinja"],
+    lib_name = "repro",
+    lib_source = ":srcs",
+    out_static_libs = select({
+        "@platforms//os:windows": [
+            "repro.lib",
+            "repro_same_dir.lib",
+        ],
+        "//conditions:default": [
+            "librepro.a",
+            "librepro_same_dir.a",
+        ],
+    }),
+    postfix_script = select({
+        "@platforms//os:windows": "\n".join([
+            "mkdir -p \"$$INSTALLDIR/wrong\"",
+            "mv \"$$INSTALLDIR/lib/repro.lib\" \"$$INSTALLDIR/wrong/repro.lib\"",
+            "cp \"$$INSTALLDIR/wrong/repro.lib\" \"$$INSTALLDIR/lib/repro-renamed.lib\"",
+        ]),
+        "//conditions:default": "\n".join([
+            "mkdir -p \"$$INSTALLDIR/wrong\"",
+            "mv \"$$INSTALLDIR/lib/librepro.a\" \"$$INSTALLDIR/wrong/librepro.a\"",
+            "cp \"$$INSTALLDIR/wrong/librepro.a\" \"$$INSTALLDIR/lib/librepro-renamed.a\"",
+        ]),
+    }),
+    tags = ["manual"],
+)
