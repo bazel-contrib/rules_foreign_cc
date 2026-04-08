@@ -20,6 +20,7 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load("//foreign_cc/private:resource_sets.bzl", "inject_make_parallelism_args")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//toolchains/native_tools:tool_access.bzl",
@@ -86,6 +87,7 @@ def _create_configure_script(configureParameters):
         ctx.expand_location(arg, data)
         for arg in ctx.attr.args
     ])
+    args = inject_make_parallelism_args(ctx.attr, attrs.make_path, args)
 
     user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data)
 

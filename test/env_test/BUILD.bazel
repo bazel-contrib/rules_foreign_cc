@@ -21,8 +21,6 @@ STANDARD_VARS = {
 env_test_make(
     name = "make_default",
     check_makevars = STANDARD_VARS | {
-        # Note that we set GNUMAKEFLAGS, but make itself will convert it into
-        # MAKEFLAGS, so we'll just see MAKEFLAGS set here
         "GNUMAKEFLAGS": "",
         "MAKEFLAGS": " -- PREFIX={{INSTALLDIR}}",
     },
@@ -31,8 +29,6 @@ env_test_make(
 env_test_make(
     name = "make_tiny",
     check_makevars = STANDARD_VARS | {
-        # Note that we set GNUMAKEFLAGS, but make itself will convert it into
-        # MAKEFLAGS, so we'll just see MAKEFLAGS set here
         "GNUMAKEFLAGS": "",
         "MAKEFLAGS": " -j1 -- PREFIX={{INSTALLDIR}}",
     },
@@ -122,9 +118,7 @@ env_test_cmake(
         "BUILD_TMPDIR": "{{CMAKE_BINARY_DIR}}",
         "CMAKEVARS_FILE": "{{INSTALLDIR}}/cmakevars.out",
         "CMAKE_BUILD_PARALLEL_LEVEL": "1",
-        # Note that we set GNUMAKEFLAGS, but make itself will convert it into
-        # MAKEFLAGS, so for the cmake test we won't see it converted yet.
-        "GNUMAKEFLAGS": "-j1",
+        "GNUMAKEFLAGS": "",
         "MAKEFLAGS": "",
         "NINJA_JOBS": "1",
     },
