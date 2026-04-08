@@ -1,0 +1,19 @@
+load("//zlib:matrix_defs.bzl", "zlib_cmake_consumer")
+
+# Foreign shared producer. This is the cleanest package-discovery path for a
+# foreign build consuming another foreign build's shared library.
+zlib_cmake_consumer(
+    name = "app",
+    cache_entries = {
+        "ZLIB_ROOT": "$$EXT_BUILD_DEPS$$/zlib_foreign_shared",
+    },
+    expected_linkage = "dynamic",
+    runnable = True,
+    runnable_library_pattern = "examples_zlib",
+    deps = ["@examples_zlib//:zlib_foreign_shared"],
+)
+
+alias(
+    name = "test",
+    actual = ":app_test",
+)
