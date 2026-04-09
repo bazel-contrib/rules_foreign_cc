@@ -1096,13 +1096,13 @@ def _define_inputs(attrs):
     tools_files = []
     input_files = []
     for tool in attrs.tools_data:
-        tool_entries.append(struct(
-            path = tool.bin_entry_path or tool.path,
-            launcher_support_files = tool.launcher_support_files,
-            runfiles_manifest = tool.runfiles_manifest,
-            repo_mapping_manifest = tool.repo_mapping_manifest,
-        ))
         if tool.target:
+            tool_entries.append(struct(
+                path = tool.bin_entry_path or tool.path,
+                launcher_support_files = tool.launcher_support_files,
+                runfiles_manifest = tool.runfiles_manifest,
+                repo_mapping_manifest = tool.repo_mapping_manifest,
+            ))
             tools_files += tool.launcher_support_files
             tools_files += _list(tool.runfiles_manifest)
             tools_files += _list(tool.repo_mapping_manifest)
