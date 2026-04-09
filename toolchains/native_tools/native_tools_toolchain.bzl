@@ -6,6 +6,7 @@ ToolInfo = provider(
     fields = {
         "env": "Environment variables to set when using this tool e.g. M4",
         "invoke_path": "Path the foreign build should invoke for this tool.",
+        "launcher_support_files": "Optional direct launcher-adjacent files that must be staged next to the tool entry.",
         "path": (
             "Absolute path to the tool in case the tool is preinstalled on the machine. " +
             "Relative path to the tool in case the tool is built as part of a build; the path should be relative " +
@@ -41,11 +42,32 @@ def _resolve_tool_path(ctx, path, target, tools):
 
     return resolved_bash_command[-1]
 
+def _launcher_support_files(target):
+    executable = target[DefaultInfo].files_to_run.executable
+    if not executable:
+        return []
+
+    executable_dir = executable.dirname
+    executable_basename = executable.basename
+    executable_stem = executable_basename[:-4] if executable_basename.endswith(".exe") else executable_basename
+
+    launcher_support_files = []
+    for file in target[DefaultInfo].files.to_list():
+        if file.dirname != executable_dir or file.basename == executable_basename:
+            continue
+
+        # Keep only launcher-adjacent outputs that Bazel emitted for this tool.
+        if file.basename == executable_stem or file.basename.startswith(executable_stem + "."):
+            launcher_support_files.append(file)
+
+    return launcher_support_files
+
 def _native_tool_toolchain_impl(ctx):
     if not ctx.attr.path and not ctx.attr.target:
         fail("Either path or target (and path) should be defined for the tool.")
     path = None
     env = {}
+    launcher_support_files = []
     runfiles_manifest = None
     repo_mapping_manifest = None
     staged_path = None
@@ -56,6 +78,7 @@ def _native_tool_toolchain_impl(ctx):
         for k, v in ctx.attr.env.items():
             env[k] = _resolve_tool_path(ctx, v, ctx.attr.target, ctx.attr.tools)
 
+        launcher_support_files = _launcher_support_files(ctx.attr.target)
         runfiles_manifest = ctx.attr.target[DefaultInfo].files_to_run.runfiles_manifest
         repo_mapping_manifest = ctx.attr.target[DefaultInfo].files_to_run.repo_mapping_manifest
 
@@ -65,6 +88,7 @@ def _native_tool_toolchain_impl(ctx):
     return platform_common.ToolchainInfo(data = ToolInfo(
         env = env,
         invoke_path = path,
+        launcher_support_files = launcher_support_files,
         path = path,
         runfiles_manifest = runfiles_manifest,
         repo_mapping_manifest = repo_mapping_manifest,

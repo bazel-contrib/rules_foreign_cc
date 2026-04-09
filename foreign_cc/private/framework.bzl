@@ -819,12 +819,14 @@ def _copy_deps_and_tools(files):
 
     if files.tool_entries:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
-    for tool in files.tool_entries:
-        lines.append("##symlink_to_dir## {} $$EXT_BUILD_DEPS$$/bin/ False".format(_tool_source_path(tool.path)))
-        if tool.runfiles_manifest:
-            lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(tool.runfiles_manifest)))
-        if tool.repo_mapping_manifest:
-            lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(tool.repo_mapping_manifest)))
+        for tool in files.tool_entries:
+            lines.append("##symlink_to_dir## {} $$EXT_BUILD_DEPS$$/bin/ False".format(_tool_source_path(tool.path)))
+            for launcher_support_file in tool.launcher_support_files:
+                lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(launcher_support_file)))
+            if tool.runfiles_manifest:
+                lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(tool.runfiles_manifest)))
+            if tool.repo_mapping_manifest:
+                lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(tool.repo_mapping_manifest)))
 
     for ext_dir in files.ext_build_dirs:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
@@ -1096,12 +1098,12 @@ def _define_inputs(attrs):
     for tool in attrs.tools_data:
         tool_entries.append(struct(
             path = tool.bin_entry_path or tool.path,
+            launcher_support_files = tool.launcher_support_files,
             runfiles_manifest = tool.runfiles_manifest,
             repo_mapping_manifest = tool.repo_mapping_manifest,
         ))
         if tool.target:
-            for file_list in tool.target.files.to_list():
-                tools_files += _list(file_list)
+            tools_files += tool.launcher_support_files
             tools_files += _list(tool.runfiles_manifest)
             tools_files += _list(tool.repo_mapping_manifest)
 
