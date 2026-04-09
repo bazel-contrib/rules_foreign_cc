@@ -387,6 +387,19 @@ def get_env_prelude(ctx, installdir, data_dependencies, tools_env):
 
     return env_snippet
 
+def _short_path_env_aliases(ctx):
+    if not targets_windows(ctx, None):
+        return []
+
+    return [
+        "export BUILD_TMPDIR_REAL=\"$BUILD_TMPDIR\"",
+        "export EXT_BUILD_DEPS_REAL=\"$EXT_BUILD_DEPS\"",
+        "export RFC_SHORT_PATH_ROOT_REAL=\"$(mktemp -d \"${TMP:-/tmp}/rfc.XXXXXX\")\"",
+        "export RFC_SHORT_PATH_ROOT=\"$(to_mixed_path \"$RFC_SHORT_PATH_ROOT_REAL\")\"",
+        "export BUILD_TMPDIR=\"$RFC_SHORT_PATH_ROOT/b\"",
+        "export EXT_BUILD_DEPS=\"$RFC_SHORT_PATH_ROOT/d\"",
+    ]
+
 def cc_external_rule_impl(ctx, attrs):
     """Framework function for performing external C/C++ building.
 
@@ -483,6 +496,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##script_prelude##",
     ] + env_prelude + [
         "##path## $$EXT_BUILD_ROOT$$",
+    ] + _short_path_env_aliases(ctx) + [
         "##rm_rf## $$BUILD_TMPDIR$$",
         "##rm_rf## $$EXT_BUILD_DEPS$$",
         "##mkdirs## $$INSTALLDIR$$",
@@ -653,8 +667,9 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         ctx,
         "cleanup_on_success",
         "\n".join([
-            "##rm_rf## $$BUILD_TMPDIR$$",
-            "##rm_rf## $$EXT_BUILD_DEPS$$",
+            "##rm_rf## ${RFC_SHORT_PATH_ROOT_REAL:-}",
+            "##rm_rf## ${BUILD_TMPDIR_REAL:-$$BUILD_TMPDIR$$}",
+            "##rm_rf## ${EXT_BUILD_DEPS_REAL:-$$EXT_BUILD_DEPS$$}",
         ]),
     )
     cleanup_on_failure_function = create_function(
@@ -671,9 +686,10 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
             "##echo## \"rules_foreign_cc: Build log location: $$BUILD_LOG$$\"",
             "##echo## \"rules_foreign_cc: Keeping these below directories for debug, but note that the directories inside a sandbox\"",
             "##echo## \"rules_foreign_cc: are still cleaned unless you specify the '--sandbox_debug' Bazel command line flag.\"",
-            "##echo## \"rules_foreign_cc: Build Dir: $$BUILD_TMPDIR$$\"",
-            "##echo## \"rules_foreign_cc: Deps Dir: $$EXT_BUILD_DEPS$$\"",
+            "##echo## \"rules_foreign_cc: Build Dir: ${BUILD_TMPDIR_REAL:-$$BUILD_TMPDIR$$}\"",
+            "##echo## \"rules_foreign_cc: Deps Dir: ${EXT_BUILD_DEPS_REAL:-$$EXT_BUILD_DEPS$$}\"",
             "##echo## \"\"",
+            "##rm_rf## ${RFC_SHORT_PATH_ROOT_REAL:-}",
         ]),
     )
     trap_function = "##cleanup_function## cleanup_on_success cleanup_on_failure"

@@ -240,8 +240,7 @@ fi
     return FunctionAndCallInfo(text = text)
 
 def script_prelude():
-    return """\
-set -euo pipefail
+    return """set -euo pipefail
 if [ -f /usr/bin/find ]; then
   REAL_FIND="/usr/bin/find"
 else
@@ -249,6 +248,9 @@ else
 fi
 find() {
   "$REAL_FIND" "$@"
+}
+to_mixed_path() {
+  cygpath -am "$1"
 }
 export MSYS_NO_PATHCONV=1
 export MSYS2_ARG_CONV_EXCL="*"
