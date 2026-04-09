@@ -294,7 +294,7 @@ def meson_with_requirements(name, requirements, **kwargs):
         },
         path = "$(execpath :meson_tool_for_{})".format(name),
         staged_path = select({
-            "@platforms//os:windows": "bin/meson_tool_for_{}.exe".format(name),
+            "@platforms//os:windows": "bin/meson_tool_for_{}".format(name),
             "//conditions:default": "",
         }),
         target = ":meson_tool_for_{}".format(name),

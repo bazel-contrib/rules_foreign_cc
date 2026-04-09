@@ -156,7 +156,7 @@ native_tool_toolchain(
     },
     path = "$(execpath :meson_tool)",
     staged_path = select({
-        "@platforms//os:windows": "bin/meson_tool.exe",
+        "@platforms//os:windows": "bin/meson_tool",
         "//conditions:default": "",
     }),
     target = ":meson_tool",
