@@ -11,7 +11,7 @@ def bison_repositories():
         build_file = Label("//bison:BUILD.bison.bazel"),
         strip_prefix = "bison-3.8.2",
         urls = [
-            "https://ftpmirror.gnu.org/gnu/bison/bison-3.8.2.tar.gz",
+            "https://mirror.bazel.build/ftp.gnu.org/gnu/bison/bison-3.8.2.tar.xz",
         ],
-        integrity = "sha256-BsnhO99+sk1M62tZIFpPZ8LH5yExGWREMP6C+9FKCrs=",
+        integrity = "sha256-m7oCFMz38QecXVkhAEUie89hlRmEDr+oDNOEnP9aW/I=",
     )
