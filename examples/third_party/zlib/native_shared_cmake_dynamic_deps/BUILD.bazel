@@ -1,0 +1,20 @@
+load("//zlib:matrix_defs.bzl", "zlib_cmake_consumer")
+
+# Shared native producer through explicit dynamic_deps. This is the foreign_cc
+# analogue of the rules_cc dynamic_deps pattern.
+zlib_cmake_consumer(
+    name = "app",
+    cache_entries = {
+        "ZLIB_ROOT": "$$EXT_BUILD_DEPS$$",
+    },
+    dynamic_deps = ["@examples_zlib//:zlib_native_shared"],
+    expected_linkage = "dynamic",
+    runnable = True,
+    runnable_library_pattern = "examples_zlib",
+    deps = ["@examples_zlib//:zlib_dynamic_headers"],
+)
+
+alias(
+    name = "test",
+    actual = ":app_test",
+)

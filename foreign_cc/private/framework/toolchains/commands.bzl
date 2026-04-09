@@ -76,6 +76,20 @@ PLATFORM_COMMANDS = {
         ],
         doc = "Copies contents of the directory to target directory",
     ),
+    "copy_file": _command_info(
+        arguments = [
+            _argument_info(name = "source", data_type = type(""), doc = "Source file"),
+            _argument_info(name = "target", data_type = type(""), doc = "Target file"),
+        ],
+        doc = "Copies a file to an exact target path",
+    ),
+    "copy_file_to_dir": _command_info(
+        arguments = [
+            _argument_info(name = "source", data_type = type(""), doc = "Source file"),
+            _argument_info(name = "target", data_type = type(""), doc = "Target directory"),
+        ],
+        doc = "Copies a file into the target directory",
+    ),
     "define_absolute_paths": _command_info(
         arguments = [
             _argument_info(name = "dir_", data_type = type(""), doc = "Directory where to replace"),

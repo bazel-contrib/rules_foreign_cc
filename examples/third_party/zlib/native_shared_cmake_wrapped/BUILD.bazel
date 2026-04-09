@@ -1,0 +1,18 @@
+load("//zlib:matrix_defs.bzl", "zlib_cmake_consumer")
+
+# Shared native producer through the wrapped cc_library path. This checks
+# whether a plain deps edge is enough for foreign_cc to rediscover the shared
+# library like a normal C++ consumer would.
+zlib_cmake_consumer(
+    name = "app",
+    cache_entries = {
+        "ZLIB_ROOT": "$$EXT_BUILD_DEPS$$",
+    },
+    expected_linkage = "dynamic",
+    deps = ["@examples_zlib//:zlib_dynamic"],
+)
+
+alias(
+    name = "test",
+    actual = ":app_test",
+)

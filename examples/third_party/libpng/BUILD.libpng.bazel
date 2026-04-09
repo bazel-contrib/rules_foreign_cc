@@ -16,9 +16,18 @@ cmake(
         "CMAKE_BUILD_TYPE": "RELEASE",
         "CMAKE_POLICY_DEFAULT_CMP0074": "NEW",
         "ZLIB_ROOT": "$$EXT_BUILD_DEPS/zlib",
-    },
+    } | select({
+        "@platforms//os:windows": {
+            # Keep the archive name stable under MSVC so Bazel can find it.
+            "CMAKE_DEBUG_POSTFIX": "",
+        },
+        "//conditions:default": {},
+    }),
     lib_source = "//:all_srcs",
     out_include_dir = "include/libpng16",
-    out_static_libs = ["libpng16.a"],
+    out_static_libs = select({
+        "@platforms//os:windows": ["libpng16_static.lib"],
+        "//conditions:default": ["libpng16.a"],
+    }),
     deps = ["@examples_zlib//:zlib"],
 )

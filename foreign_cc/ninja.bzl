@@ -71,7 +71,9 @@ def _create_ninja_script(configureParameters):
     ])
 
     # Set the directory location for the build commands
-    directory = "$$EXT_BUILD_ROOT$$/{}".format(root)
+    # Ninja builds are staged into BUILD_TMPDIR, so the default -C target
+    # needs to point there rather than the original source tree.
+    directory = "$$BUILD_TMPDIR$$"
     if ctx.attr.directory:
         directory = ctx.expand_location(ctx.attr.directory, data)
 

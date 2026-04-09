@@ -64,5 +64,10 @@ if [ ${#SHARED_LIBS_DIRS_ARRAY[@]} -ne 0 ]; then
     set -u
 fi
 
+if [[ "${RFCC_TRACE_LIB_PATH:-}" == "1" ]]; then
+    >&2 echo "RFCC_RUNNABLE_LIB_PATH_VAR=${LIB_PATH_VAR}"
+    >&2 echo "RFCC_RUNNABLE_LIB_PATH_VALUE=${!LIB_PATH_VAR:-}"
+fi
+
 cd - &> /dev/null
 exec ${EXE_PATH} "$@"

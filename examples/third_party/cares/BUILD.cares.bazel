@@ -23,8 +23,4 @@ cmake(
         "@platforms//os:windows": ["cares.lib"],
         "//conditions:default": ["libcares.a"],
     }),
-    target_compatible_with = select({
-        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"],
-        "//conditions:default": [],
-    }),
 )

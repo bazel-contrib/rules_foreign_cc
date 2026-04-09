@@ -36,7 +36,7 @@ build $builddir/liba.o: compile liba.cpp
 
 build $lib: ar $builddir/liba.o
 
-build install: install
+build install: install $lib
 
 # Entrypoint
 

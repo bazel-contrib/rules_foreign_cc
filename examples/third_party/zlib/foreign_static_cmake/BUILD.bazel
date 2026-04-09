@@ -1,0 +1,16 @@
+load("//zlib:matrix_defs.bzl", "zlib_cmake_consumer")
+
+# Baseline package-discovery case against the foreign static producer.
+zlib_cmake_consumer(
+    name = "app",
+    cache_entries = {
+        "ZLIB_ROOT": "$$EXT_BUILD_DEPS$$/zlib",
+    },
+    expected_linkage = "static",
+    deps = ["@examples_zlib//:zlib"],
+)
+
+alias(
+    name = "test",
+    actual = ":app_test",
+)

@@ -6,7 +6,7 @@ $(BUILD_DIR)/lib/liba.a: liba.cpp liba.h
 	rm -rf $(BUILD_DIR)/lib
 	mkdir -p $(BUILD_DIR)/lib
 	bash $(CC_WRAPPER) compile liba.cpp $(BUILD_DIR)/lib/liba.o
-	bash $(CC_WRAPPER) static_link $(BUILD_DIR)/lib/liba.o  $(BUILD_DIR)/lib/liba.a
+	bash $(CC_WRAPPER) static_link $(BUILD_DIR)/lib/liba.o $(BUILD_DIR)/lib/liba.a
 
 .PHONY: all
 

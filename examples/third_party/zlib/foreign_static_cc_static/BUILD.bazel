@@ -1,0 +1,16 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("//zlib:matrix_defs.bzl", "zlib_linkage_test")
+
+cc_binary(
+    name = "bin",
+    srcs = ["//zlib:zlib-example.cpp"],
+    linkstatic = True,
+    deps = ["@examples_zlib//:zlib_foreign_static"],
+)
+
+zlib_linkage_test(
+    name = "test",
+    data = [":bin"],
+    expected_linkage = "static",
+    inspect_target = ":bin",
+)

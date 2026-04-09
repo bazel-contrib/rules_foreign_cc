@@ -11,8 +11,8 @@ def zlib_repositories():
         sha256 = "9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23",
         strip_prefix = "zlib-1.3.1",
         patches = [
-            # This patch modifies zlib so that on windows the generated lib matches that stated in the generated pkgconfig pc file for consumption by dependent rules
-            # Similar patches are used in vcpkg and conan to resolve the same issue
+            # Preserve the conventional Windows zlib DLL/import-lib names and
+            # give static builds conventional FindZLIB names.
             Label("//zlib:zlib.patch"),
         ],
         urls = [

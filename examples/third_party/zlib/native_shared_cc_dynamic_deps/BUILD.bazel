@@ -1,0 +1,20 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("//zlib:matrix_defs.bzl", "zlib_linkage_test")
+
+# This is the explicit dynamic_deps path described by rules_cc. The consumer
+# still receives compilation info from deps, and the shared library is provided
+# separately via dynamic_deps.
+cc_binary(
+    name = "bin",
+    srcs = ["//zlib:zlib-example.cpp"],
+    dynamic_deps = ["@examples_zlib//:zlib_native_shared"],
+    linkstatic = False,
+    deps = ["@examples_zlib//:zlib_dynamic_headers"],
+)
+
+zlib_linkage_test(
+    name = "test",
+    data = [":bin"],
+    expected_linkage = "dynamic",
+    inspect_target = ":bin",
+)

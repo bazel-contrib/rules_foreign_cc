@@ -392,6 +392,19 @@ def get_env_prelude(ctx, installdir, data_dependencies, tools_env):
 
     return env_snippet
 
+def _short_path_env_aliases(ctx):
+    if not targets_windows(ctx, None):
+        return []
+
+    return [
+        "export BUILD_TMPDIR_REAL=\"$BUILD_TMPDIR\"",
+        "export EXT_BUILD_DEPS_REAL=\"$EXT_BUILD_DEPS\"",
+        "export RFC_SHORT_PATH_ROOT_REAL=\"$(mktemp -d \"${TMP:-/tmp}/rfc.XXXXXX\")\"",
+        "export RFC_SHORT_PATH_ROOT=\"$(to_mixed_path \"$RFC_SHORT_PATH_ROOT_REAL\")\"",
+        "export BUILD_TMPDIR=\"$RFC_SHORT_PATH_ROOT/b\"",
+        "export EXT_BUILD_DEPS=\"$RFC_SHORT_PATH_ROOT/d\"",
+    ]
+
 def cc_external_rule_impl(ctx, attrs):
     """Framework function for performing external C/C++ building.
 
@@ -446,7 +459,7 @@ def cc_external_rule_impl(ctx, attrs):
     _print_deprecation_warnings(ctx)
     lib_name = attrs.lib_name or ctx.attr.name
 
-    inputs = _define_inputs(attrs)
+    inputs = _define_inputs(ctx, attrs)
     outputs = _define_outputs(ctx, attrs, lib_name)
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
@@ -495,6 +508,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##script_prelude##",
     ] + env_prelude + [
         "##path## $$EXT_BUILD_ROOT$$",
+    ] + _short_path_env_aliases(ctx) + [
         "##rm_rf## $$BUILD_TMPDIR$$",
         "##rm_rf## $$EXT_BUILD_DEPS$$",
         "##mkdirs## $$INSTALLDIR$$",
@@ -609,6 +623,7 @@ def cc_external_rule_impl(ctx, attrs):
         outputs.out_binary_files +
         outputs.libraries.static_libraries +
         outputs.libraries.shared_libraries +
+        outputs.libraries.interface_libraries +
         ([outputs.out_include_dir] if outputs.out_include_dir else []) +
         (outputs.data_dirs if outputs.data_dirs else []) +
         (outputs.data_files if outputs.data_files else [])
@@ -664,8 +679,9 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         ctx,
         "cleanup_on_success",
         "\n".join([
-            "##rm_rf## $$BUILD_TMPDIR$$",
-            "##rm_rf## $$EXT_BUILD_DEPS$$",
+            "##rm_rf## ${RFC_SHORT_PATH_ROOT_REAL:-}",
+            "##rm_rf## ${BUILD_TMPDIR_REAL:-$$BUILD_TMPDIR$$}",
+            "##rm_rf## ${EXT_BUILD_DEPS_REAL:-$$EXT_BUILD_DEPS$$}",
         ]),
     )
     cleanup_on_failure_function = create_function(
@@ -682,9 +698,10 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
             "##echo## \"rules_foreign_cc: Build log location: $$BUILD_LOG$$\"",
             "##echo## \"rules_foreign_cc: Keeping these below directories for debug, but note that the directories inside a sandbox\"",
             "##echo## \"rules_foreign_cc: are still cleaned unless you specify the '--sandbox_debug' Bazel command line flag.\"",
-            "##echo## \"rules_foreign_cc: Build Dir: $$BUILD_TMPDIR$$\"",
-            "##echo## \"rules_foreign_cc: Deps Dir: $$EXT_BUILD_DEPS$$\"",
+            "##echo## \"rules_foreign_cc: Build Dir: ${BUILD_TMPDIR_REAL:-$$BUILD_TMPDIR$$}\"",
+            "##echo## \"rules_foreign_cc: Deps Dir: ${EXT_BUILD_DEPS_REAL:-$$EXT_BUILD_DEPS$$}\"",
             "##echo## \"\"",
+            "##rm_rf## ${RFC_SHORT_PATH_ROOT_REAL:-}",
         ]),
     )
     trap_function = "##cleanup_function## cleanup_on_success cleanup_on_failure"
@@ -802,24 +819,76 @@ def _list(item):
 
 def _copy_deps_and_tools(files):
     lines = []
+    lines += _copy_contents_to_dir("lib", files.dynamic_libs)
+    lines += _copy_aliases_to_dir("lib", files.dynamic_lib_aliases)
     lines += _symlink_contents_to_dir("lib", files.libs)
     lines += _symlink_contents_to_dir("include", files.headers + files.include_dirs)
 
     if files.tools_files:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
+        lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/tools")
     for tool in files.tools_files:
-        tool_prefix = "$EXT_BUILD_ROOT/"
-        tool = tool[len(tool_prefix):] if tool.startswith(tool_prefix) else tool
-        tool_runfiles = "{}.runfiles".format(tool)
-        tool_runfiles_manifest = "{}.runfiles_manifest".format(tool)
-        tool_exe_runfiles_manifest = "{}.exe.runfiles_manifest".format(tool)
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_runfiles))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_runfiles_manifest))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_exe_runfiles_manifest))
+        tool_path = _file_path(tool).strip()
+        if not tool_path:
+            continue
+        if getattr(tool, "is_directory", False):
+            lines.append("##copy_dir_contents_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/tools/{}\"".format(
+                tool_path,
+                paths.basename(tool_path),
+            ))
+        else:
+            lines.append("##copy_file_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/bin\"".format(tool_path))
+
+    for tool in files.tools_runfiles:
+        runfiles_root = "{}.runfiles".format(tool.staged_path)
+        lines.append("##mkdirs## \"{}\"".format(runfiles_root))
+        if tool.runfiles_manifest:
+            lines.append("##copy_file## \"$$EXT_BUILD_ROOT$$/{}\" \"{}_manifest\"".format(
+                _file_path(tool.runfiles_manifest),
+                runfiles_root,
+            ))
+        if tool.repo_mapping_manifest:
+            lines.append("##copy_file## \"$$EXT_BUILD_ROOT$$/{}\" \"{}/_repo_mapping\"".format(
+                _file_path(tool.repo_mapping_manifest),
+                runfiles_root,
+            ))
+        for runfile in tool.files:
+            runfile_path = _runfiles_path(runfile, tool.workspace_name).strip()
+            if not runfile_path:
+                continue
+            target_path = "{}/{}".format(runfiles_root, runfile_path)
+            lines.append("##mkdirs## \"{}\"".format(paths.dirname(target_path)))
+            lines.append("##copy_file## \"$$EXT_BUILD_ROOT$$/{}\" \"{}\"".format(
+                _file_path(runfile).strip(),
+                target_path,
+            ))
 
     for ext_dir in files.ext_build_dirs:
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
+        ext_dir_path = _file_path(ext_dir)
+        dep_name = paths.basename(ext_dir_path)
+        staged_dir = "$$EXT_BUILD_DEPS$$/{}".format(dep_name)
+        source_dir = "$$EXT_BUILD_ROOT$$/{}".format(ext_dir_path)
+        original_source_dir = "$$EXT_BUILD_ROOT$$/{}".format(
+            ext_dir_path.replace(
+                "/copy_{name}/{name}".format(name = dep_name),
+                "/{name}".format(name = dep_name),
+            ),
+        )
+        lines.append("##symlink_to_dir## {} $$EXT_BUILD_DEPS$$ True".format(source_dir))
+
+        # Foreign deps are staged under EXT_BUILD_DEPS/<dep>, but copied pkg-config
+        # and CMake metadata can still embed either the copied tree or the
+        # original install root path unless we rewrite both after staging.
+        lines.append("##replace_in_files## {} {} {}".format(
+            staged_dir,
+            source_dir,
+            staged_dir,
+        ))
+        lines.append("##replace_in_files## {} {} {}".format(
+            staged_dir,
+            original_source_dir,
+            staged_dir,
+        ))
 
     lines.append("##path## $$EXT_BUILD_DEPS$$/bin")
 
@@ -841,8 +910,53 @@ $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, dir_name))
 
     return lines
 
+def _copy_contents_to_dir(dir_name, files_list):
+    files_list = collections.uniq(files_list)
+    if len(files_list) == 0:
+        return []
+
+    lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
+    for file in files_list:
+        path = _file_path(file).strip()
+        if path:
+            lines.append("##copy_file_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name))
+
+    return lines
+
+def _copy_aliases_to_dir(dir_name, aliases):
+    aliases = collections.uniq(aliases)
+    if len(aliases) == 0:
+        return []
+
+    lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
+    for alias in aliases:
+        path = _file_path(alias.src).strip()
+        if path:
+            lines.append("##copy_file## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}/{}".format(
+                path,
+                dir_name,
+                alias.basename,
+            ))
+
+    return lines
+
 def _file_path(file):
     return file if type(file) == "string" else file.path
+
+def _runfiles_path(file, workspace_name):
+    if type(file) == "string":
+        return file
+
+    short_path = getattr(file, "short_path", file.path)
+    if short_path.startswith("../"):
+        return short_path[3:]
+
+    owner = getattr(file, "owner", None)
+    owner_workspace_name = getattr(owner, "workspace_name", "")
+    if owner_workspace_name:
+        return owner_workspace_name + "/" + short_path
+
+    return workspace_name + "/" + short_path
 
 _FORBIDDEN_FOR_FILENAME = ["\\", "/", ":", "*", "\"", "<", ">", "|"]
 
@@ -1028,11 +1142,16 @@ InputFiles = provider(
             "Include directories built by Bazel. Will be copied " +
             "into $EXT_BUILD_DEPS/include."
         ),
-        libs = "Library files built by Bazel. Will be copied into $EXT_BUILD_DEPS/lib.",
+        libs = "Non-shared library files built by Bazel. Will be symlinked into $EXT_BUILD_DEPS/lib.",
+        # Shared libraries are packaged for foreign discovery rather than symlinked
+        # so consumers like CMake do not learn a temp Bazel path as the install name.
+        dynamic_libs = "Shared-library inputs that should be copied into $EXT_BUILD_DEPS/lib as real files.",
+        dynamic_lib_aliases = "Additional alias files for shared-library inputs under $EXT_BUILD_DEPS/lib.",
         tools_files = (
-            "Files and directories with tools needed for configuration/building " +
-            "to be copied into the bin folder, which is added to the PATH"
+            "Tool runtime files and directories that should be staged under " +
+            "$EXT_BUILD_DEPS for foreign builds."
         ),
+        tools_runfiles = "Structured runfiles trees that should be staged next to staged tools.",
         ext_build_dirs = (
             "Directories with libraries, built by framework function. " +
             "This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents."
@@ -1043,12 +1162,15 @@ InputFiles = provider(
     ),
 )
 
-def _define_inputs(attrs):
+def _define_inputs(ctx, attrs):
     cc_infos = []
+    is_windows = targets_windows(ctx, None)
 
     bazel_headers = []
     bazel_system_includes = []
     bazel_libs = []
+    bazel_dynamic_libs = []
+    bazel_dynamic_lib_aliases = []
 
     # This framework function-built libraries: copy result directories under
     # $EXT_BUILD_DEPS/lib-name
@@ -1065,11 +1187,16 @@ def _define_inputs(attrs):
             headers_info = _get_headers(dep[CcInfo].compilation_context)
             bazel_headers += headers_info.headers
             bazel_system_includes += headers_info.include_dirs
-            bazel_libs += _collect_libs(dep[CcInfo].linking_context)
+            bazel_libs += _collect_static_libs(dep[CcInfo].linking_context)
+            shared_info = _collect_shared_libs_from_context(dep[CcInfo].linking_context, is_windows)
+            bazel_dynamic_libs += shared_info.libs
+            bazel_dynamic_lib_aliases += shared_info.aliases
 
     for dynamic_dep in attrs.dynamic_deps:
         linker_input = dynamic_dep[CcSharedLibraryInfo].linker_input
-        bazel_libs += _collect_shared_libs(linker_input)
+        shared_info = _collect_shared_libs(linker_input, is_windows)
+        bazel_dynamic_libs += shared_info.libs
+        bazel_dynamic_lib_aliases += shared_info.aliases
         linking_context = cc_common.create_linking_context(
             linker_inputs = depset(direct = [linker_input]),
         )
@@ -1082,14 +1209,23 @@ def _define_inputs(attrs):
     # but filter out repeating directories
     ext_build_dirs = uniq_list_keep_order(ext_build_dirs)
 
-    tools = []
     tools_files = []
+    tools_runfiles = []
     input_files = []
     for tool in attrs.tools_data:
-        tools.append(tool.path)
-        if tool.target:
-            for file_list in tool.target.files.to_list():
-                tools_files += _list(file_list)
+        if tool.target and getattr(tool, "stage_runtime", False):
+            tools_files += tool.runtime_files.to_list()
+            runfiles_files = tool.runfiles_files.to_list()
+            runfiles_manifest = tool.runfiles_manifest
+            repo_mapping_manifest = tool.repo_mapping_manifest
+            if runfiles_files or runfiles_manifest or repo_mapping_manifest:
+                tools_runfiles.append(struct(
+                    files = runfiles_files,
+                    runfiles_manifest = runfiles_manifest,
+                    repo_mapping_manifest = repo_mapping_manifest,
+                    staged_path = tool.path,
+                    workspace_name = ctx.workspace_name,
+                ))
 
     # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:
@@ -1108,15 +1244,25 @@ def _define_inputs(attrs):
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
-        tools_files = tools,
+        dynamic_libs = bazel_dynamic_libs,
+        dynamic_lib_aliases = bazel_dynamic_lib_aliases,
+        tools_files = tools_files,
+        tools_runfiles = tools_runfiles,
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
         declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
                           bazel_libs +
+                          bazel_dynamic_libs +
+                          [alias.src for alias in bazel_dynamic_lib_aliases] +
                           tools_files +
+                          [runfile for tool in tools_runfiles for runfile in tool.files] +
+                          [tool.runfiles_manifest for tool in tools_runfiles if tool.runfiles_manifest] +
+                          [tool.repo_mapping_manifest for tool in tools_runfiles if tool.repo_mapping_manifest] +
                           input_files +
-                          cc_info_merged.compilation_context.headers.to_list() + _collect_libs(cc_info_merged.linking_context) +
+                          cc_info_merged.compilation_context.headers.to_list() +
+                          _collect_static_libs(cc_info_merged.linking_context) +
+                          _collect_shared_libs_from_context(cc_info_merged.linking_context).libs +
                           ext_build_dirs,
     )
 
@@ -1181,32 +1327,50 @@ def _define_out_cc_info(ctx, attrs, inputs, outputs):
 
     return cc_common.merge_cc_infos(cc_infos = [cc_info, inputs_info])
 
-def _extract_libraries(library_to_link):
-    return [
-        library_to_link.static_library,
-        library_to_link.pic_static_library,
-        library_to_link.dynamic_library,
-        library_to_link.resolved_symlink_dynamic_library,
-        library_to_link.interface_library,
-        library_to_link.resolved_symlink_interface_library,
-    ]
-
-def _collect_libs(cc_linking):
+def _collect_static_libs(cc_linking):
     libs = []
     for li in cc_linking.linker_inputs.to_list():
         for library_to_link in li.libraries:
-            for library in _extract_libraries(library_to_link):
+            for library in [
+                library_to_link.static_library,
+                library_to_link.pic_static_library,
+            ]:
                 if library:
                     libs.append(library)
     return collections.uniq(libs)
 
-def _collect_shared_libs(cc_linker_input):
+def _collect_shared_libs_from_context(cc_linking, is_windows = False):
     libs = []
+    aliases = []
+    for li in cc_linking.linker_inputs.to_list():
+        shared_info = _collect_shared_libs(li, is_windows)
+        libs += shared_info.libs
+        aliases += shared_info.aliases
+    return struct(libs = collections.uniq(libs), aliases = collections.uniq(aliases))
+
+def _collect_shared_libs(cc_linker_input, is_windows = False):
+    libs_by_basename = {}
+    aliases = []
     for library_to_link in cc_linker_input.libraries:
-        for library in _extract_libraries(library_to_link):
+        for library in [
+            library_to_link.resolved_symlink_dynamic_library,
+            library_to_link.resolved_symlink_interface_library,
+            library_to_link.dynamic_library,
+            library_to_link.interface_library,
+        ]:
             if library:
-                libs.append(library)
-    return collections.uniq(libs)
+                libs_by_basename[library.basename] = library
+
+        if is_windows:
+            dynamic_library = library_to_link.resolved_symlink_dynamic_library or library_to_link.dynamic_library
+            interface_library = library_to_link.resolved_symlink_interface_library or library_to_link.interface_library
+            if dynamic_library and interface_library and interface_library.basename.endswith(".if.lib"):
+                aliases.append(struct(
+                    src = interface_library,
+                    basename = dynamic_library.basename.removesuffix(".dll") + ".lib",
+                ))
+
+    return struct(libs = libs_by_basename.values(), aliases = aliases)
 
 def expand_locations_and_make_variables(ctx, unexpanded, attr_name, data):
     """Expand locations and make variables while ensuring that `execpath` is always set to an absolute path

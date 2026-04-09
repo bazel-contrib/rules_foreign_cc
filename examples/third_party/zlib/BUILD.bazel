@@ -1,16 +1,18 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake", "runnable_binary")
-load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load(":matrix_defs.bzl", "zlib_linkage_test")
 
 exports_files(
     [
         "BUILD.zlib.bazel",
+        "run_runnable_binary.sh",
+        "verify_zlib_linkage.sh",
+        "zlib-example.cpp",
     ],
     visibility = ["//visibility:public"],
 )
 
 filegroup(
-    name = "shared_usage_srcs",
+    name = "cmake_usage_srcs",
     srcs = [
         "CMakeLists.txt",
         "zlib-example.cpp",
@@ -18,58 +20,38 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+# Keep one Bazel-native baseline in the root package so there is still a
+# straightforward non-matrix example next to the source file.
 cc_binary(
     name = "zlib_usage_example",
     srcs = ["zlib-example.cpp"],
-    target_compatible_with = select({
-        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"],
-        "//conditions:default": [],
-    }),
     deps = ["@examples_zlib//:zlib"],
 )
 
-sh_test(
+zlib_linkage_test(
     name = "test_zlib",
-    size = "small",
-    srcs = ["test_zlib.sh"],
-    args = ["$(rlocationpath :zlib_usage_example)"],
-    data = [
-        ":zlib_usage_example",
-        "@bazel_tools//tools/bash/runfiles",
-    ],
-    visibility = ["//:__pkg__"],
-)
-
-cmake(
-    name = "zlib_shared_usage_example",
-    dynamic_deps = ["@examples_zlib//:zlib_shared"],
-    lib_source = "shared_usage_srcs",
-    out_binaries = ["zlib-example"],
-    target_compatible_with = select({
-        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"],
-        "//conditions:default": [],
-    }),
-    deps = ["@examples_zlib//:zlib_static"],
-)
-
-runnable_binary(
-    name = "run-zlib-example",
-    binary = "zlib-example",
-    foreign_cc_target = ":zlib_shared_usage_example",
-)
-
-sh_test(
-    name = "test_shared_zlib",
-    size = "small",
-    srcs = ["test_shared_zlib.sh"],
-    args = ["$(rlocationpaths :zlib_shared_usage_example)"],
-    data = [
-        ":zlib_shared_usage_example",
-        "@bazel_tools//tools/bash/runfiles",
-    ],
-    visibility = ["//:__pkg__"],
+    data = [":zlib_usage_example"],
+    expected_linkage = "static",
+    inspect_target = ":zlib_usage_example",
 )
 
 test_suite(
     name = "all_tests",
+    tests = [
+        ":test_zlib",
+        "//zlib/foreign_shared_cc_dynamic:test",
+        "//zlib/foreign_shared_cmake:app_run_test",
+        "//zlib/foreign_shared_cmake:app_test",
+        "//zlib/foreign_static_cc_dynamic:test",
+        "//zlib/foreign_static_cc_static:test",
+        "//zlib/foreign_static_cmake:app_test",
+        "//zlib/native_shared_cc_dynamic_deps:test",
+        "//zlib/native_shared_cc_wrapped:test",
+        "//zlib/native_shared_cmake_dynamic_deps:app_run_test",
+        "//zlib/native_shared_cmake_dynamic_deps:app_test",
+        "//zlib/native_shared_cmake_wrapped:app_test",
+        "//zlib/native_static_cc_dynamic:test",
+        "//zlib/native_static_cc_static:test",
+        "//zlib/native_static_cmake:app_test",
+    ],
 )

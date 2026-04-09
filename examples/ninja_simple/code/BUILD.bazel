@@ -2,6 +2,7 @@ filegroup(
     name = "srcs",
     srcs = [
         "build.ninja",
+        "build.windows.ninja",
         "liba.cpp",
         "liba.h",
     ],

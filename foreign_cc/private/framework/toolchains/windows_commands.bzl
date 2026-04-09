@@ -107,8 +107,31 @@ fi
 """,
     )
 
+def _strip_outer_quotes(text):
+    if len(text) >= 2 and text.startswith("\"") and text.endswith("\""):
+        return text[1:-1]
+    return text
+
 def copy_dir_contents_to_dir(source, target):
+    source = _strip_outer_quotes(source)
+    target = _strip_outer_quotes(target)
     return """cp -L -r --no-target-directory "{source}" "{target}" && $REAL_FIND "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+        source = source,
+        target = target,
+    )
+
+def copy_file_to_dir(source, target):
+    source = _strip_outer_quotes(source)
+    target = _strip_outer_quotes(target)
+    return """cp -L "{source}" "{target}/" && touch -r "{source}" "{target}/$(basename "{source}")" """.format(
+        source = source,
+        target = target,
+    )
+
+def copy_file(source, target):
+    source = _strip_outer_quotes(source)
+    target = _strip_outer_quotes(target)
+    return """cp -L "{source}" "{target}" && touch -r "{source}" "{target}" """.format(
         source = source,
         target = target,
     )
@@ -217,8 +240,7 @@ fi
     return FunctionAndCallInfo(text = text)
 
 def script_prelude():
-    return """\
-set -euo pipefail
+    return """set -euo pipefail
 if [ -f /usr/bin/find ]; then
   REAL_FIND="/usr/bin/find"
 else
@@ -226,6 +248,9 @@ else
 fi
 find() {
   "$REAL_FIND" "$@"
+}
+to_mixed_path() {
+  cygpath -am "$1"
 }
 export MSYS_NO_PATHCONV=1
 export MSYS2_ARG_CONV_EXCL="*"
@@ -321,6 +346,8 @@ commands = struct(
     children_to_path = children_to_path,
     cleanup_function = cleanup_function,
     copy_dir_contents_to_dir = copy_dir_contents_to_dir,
+    copy_file_to_dir = copy_file_to_dir,
+    copy_file = copy_file,
     define_absolute_paths = define_absolute_paths,
     define_function = define_function,
     define_sandbox_paths = define_sandbox_paths,

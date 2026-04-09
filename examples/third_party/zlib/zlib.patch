@@ -1,8 +1,7 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 15ceebe..2f08574 100644
 --- CMakeLists.txt
 +++ CMakeLists.txt
-@@ -59,7 +59,6 @@ endif()
+@@ -59,23 +59,11 @@
  check_include_file(unistd.h Z_HAVE_UNISTD_H)
  
  if(MSVC)
@@ -10,7 +9,23 @@ index 15ceebe..2f08574 100644
      add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
      add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
      include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-@@ -122,7 +121,7 @@ set(ZLIB_SRCS
+ endif()
+ 
+-if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+-    # If we're doing an out of source build and the user has a zconf.h
+-    # in their source tree...
+-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h)
+-        message(STATUS "Renaming")
+-        message(STATUS "    ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h")
+-        message(STATUS "to 'zconf.h.included' because this file is included with zlib")
+-        message(STATUS "but CMake generates it automatically in the build directory.")
+-        file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.included)
+-  endif()
+-endif()
+ 
+ set(ZLIB_PC ${CMAKE_CURRENT_BINARY_DIR}/zlib.pc)
+ configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/zlib.pc.cmakein
+@@ -122,7 +110,7 @@
      zutil.c
  )
  
@@ -19,7 +34,7 @@ index 15ceebe..2f08574 100644
      set(ZLIB_DLL_SRCS
          win32/zlib1.rc # If present will override custom build rule below.
      )
-@@ -133,7 +132,7 @@ file(READ ${CMAKE_CURRENT_SOURCE_DIR}/zlib.h _zlib_h_contents)
+@@ -133,7 +121,7 @@
  string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
      "\\1" ZLIB_FULL_VERSION ${_zlib_h_contents})
  
@@ -28,7 +43,7 @@ index 15ceebe..2f08574 100644
      # This gets us DLL resource information when compiling on MinGW.
      if(NOT CMAKE_RC_COMPILER)
          set(CMAKE_RC_COMPILER windres.exe)
-@@ -147,14 +146,16 @@ if(MINGW)
+@@ -147,14 +135,16 @@
                              -o ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj
                              -i ${CMAKE_CURRENT_SOURCE_DIR}/win32/zlib1.rc)
      set(ZLIB_DLL_SRCS ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
@@ -48,7 +63,7 @@ index 15ceebe..2f08574 100644
  
  if(NOT CYGWIN)
      # This property causes shared libraries on Linux to have the full version
-@@ -167,19 +168,25 @@ if(NOT CYGWIN)
+@@ -167,19 +157,26 @@
      set_target_properties(zlib PROPERTIES VERSION ${ZLIB_FULL_VERSION})
  endif()
  
@@ -56,6 +71,8 @@ index 15ceebe..2f08574 100644
 +if(WIN32 AND NOT MINGW)
 +    if(BUILD_SHARED_LIBS)
 +        set_target_properties(zlib PROPERTIES ARCHIVE_OUTPUT_NAME zdll)
++    else()
++        set_target_properties(zlib PROPERTIES OUTPUT_NAME zlibstatic)
 +    endif()
 +else()
      # On unix-like platforms the library is almost always called libz
@@ -72,10 +89,21 @@ index 15ceebe..2f08574 100644
 +    set_target_properties(zlib PROPERTIES PREFIX "" RUNTIME_OUTPUT_NAME "zlib1")
  endif()
  
-+
  if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
 -    install(TARGETS zlib zlibstatic
 +    install(TARGETS zlib
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
+diff --git a/zlib.h b/zlib.h
+--- zlib.h
++++ zlib.h
+@@ -31,7 +31,7 @@
+ #ifndef ZLIB_H
+ #define ZLIB_H
+ 
+-#include "zconf.h"
++#include <zconf.h>
+ 
+ #ifdef __cplusplus
+ extern "C" {
