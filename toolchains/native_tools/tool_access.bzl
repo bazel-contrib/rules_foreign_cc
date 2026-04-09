@@ -57,18 +57,22 @@ def _access_and_expect_label_copied(toolchain_type_, ctx):
             target = tool_data.target,
             env = tool_env,
             bin_entry_path = "$$EXT_BUILD_ROOT$$/{}".format(tool_data.invoke_path),
+            launcher_runfiles_dir = tool_data.launcher_runfiles_dir,
             launcher_support_files = tool_data.launcher_support_files,
             path = resolved_tool_path,
             runfiles_manifest = tool_data.runfiles_manifest,
             repo_mapping_manifest = tool_data.repo_mapping_manifest,
+            staged_path = tool_data.staged_path,
         )
     else:
         return struct(
             target = None,
             env = tool_data.env,
             bin_entry_path = None,
+            launcher_runfiles_dir = None,
             launcher_support_files = [],
             path = tool_data.path,
             runfiles_manifest = None,
             repo_mapping_manifest = None,
+            staged_path = None,
         )

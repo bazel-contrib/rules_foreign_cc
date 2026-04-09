@@ -6,6 +6,7 @@ ToolInfo = provider(
     fields = {
         "env": "Environment variables to set when using this tool e.g. M4",
         "invoke_path": "Path the foreign build should invoke for this tool.",
+        "launcher_runfiles_dir": "Optional launcher runfiles directory that must be staged alongside relocated launchers.",
         "launcher_support_files": "Optional direct launcher-adjacent files that must be staged next to the tool entry.",
         "path": (
             "Absolute path to the tool in case the tool is preinstalled on the machine. " +
@@ -62,11 +63,18 @@ def _launcher_support_files(target):
 
     return launcher_support_files
 
+def _launcher_runfiles_dir(target):
+    executable = target[DefaultInfo].files_to_run.executable
+    if not executable:
+        return None
+    return executable.path + ".runfiles"
+
 def _native_tool_toolchain_impl(ctx):
     if not ctx.attr.path and not ctx.attr.target:
         fail("Either path or target (and path) should be defined for the tool.")
     path = None
     env = {}
+    launcher_runfiles_dir = None
     launcher_support_files = []
     runfiles_manifest = None
     repo_mapping_manifest = None
@@ -78,6 +86,7 @@ def _native_tool_toolchain_impl(ctx):
         for k, v in ctx.attr.env.items():
             env[k] = _resolve_tool_path(ctx, v, ctx.attr.target, ctx.attr.tools)
 
+        launcher_runfiles_dir = _launcher_runfiles_dir(ctx.attr.target)
         launcher_support_files = _launcher_support_files(ctx.attr.target)
         runfiles_manifest = ctx.attr.target[DefaultInfo].files_to_run.runfiles_manifest
         repo_mapping_manifest = ctx.attr.target[DefaultInfo].files_to_run.repo_mapping_manifest
@@ -88,6 +97,7 @@ def _native_tool_toolchain_impl(ctx):
     return platform_common.ToolchainInfo(data = ToolInfo(
         env = env,
         invoke_path = path,
+        launcher_runfiles_dir = launcher_runfiles_dir,
         launcher_support_files = launcher_support_files,
         path = path,
         runfiles_manifest = runfiles_manifest,

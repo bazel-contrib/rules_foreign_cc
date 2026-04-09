@@ -812,6 +812,13 @@ def _tool_source_path(path):
         return path
     return "$$EXT_BUILD_ROOT$$/{}".format(path)
 
+def _staged_launcher_runfiles_path(staged_path):
+    if not staged_path:
+        return None
+    if staged_path.endswith(".exe"):
+        return staged_path + ".runfiles"
+    return staged_path + ".exe.runfiles"
+
 def _copy_deps_and_tools(files):
     lines = []
     lines += _symlink_contents_to_dir("lib", files.libs)
@@ -821,6 +828,12 @@ def _copy_deps_and_tools(files):
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
         for tool in files.tool_entries:
             lines.append("##symlink_to_dir## {} $$EXT_BUILD_DEPS$$/bin/ False".format(_tool_source_path(tool.path)))
+            staged_launcher_runfiles_path = _staged_launcher_runfiles_path(tool.staged_path)
+            if tool.launcher_runfiles_dir and staged_launcher_runfiles_path:
+                lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} False".format(
+                    tool.launcher_runfiles_dir,
+                    staged_launcher_runfiles_path,
+                ))
             for launcher_support_file in tool.launcher_support_files:
                 lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(launcher_support_file)))
             if tool.runfiles_manifest:
@@ -1099,9 +1112,11 @@ def _define_inputs(attrs):
         if tool.target:
             tool_entries.append(struct(
                 path = tool.bin_entry_path or tool.path,
+                launcher_runfiles_dir = tool.launcher_runfiles_dir,
                 launcher_support_files = tool.launcher_support_files,
                 runfiles_manifest = tool.runfiles_manifest,
                 repo_mapping_manifest = tool.repo_mapping_manifest,
+                staged_path = tool.staged_path,
             ))
             tools_files += tool.launcher_support_files
             tools_files += _list(tool.runfiles_manifest)
