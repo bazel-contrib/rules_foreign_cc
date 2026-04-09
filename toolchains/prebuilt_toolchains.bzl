@@ -37,7 +37,6 @@ filegroup(
 native_tool_toolchain(
     name = "cmake_tool",
     path = "$(execpath :cmake_bin)",
-    staged_path = "bin/{bin}",
     target = ":cmake_data",
     env = {env},
     tools = [":cmake_bin"],

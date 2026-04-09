@@ -27,16 +27,6 @@ if grep -Fq ".exe.runfiles_manifest" "$script"; then
   exit 1
 fi
 
-if grep -Fq ".runfiles/MANIFEST" "$script"; then
-  echo "unexpected explicit runfiles manifest staging in $script" >&2
-  exit 1
-fi
-
-if grep -Fq ".repo_mapping" "$script"; then
-  echo "unexpected repo_mapping staging in $script" >&2
-  exit 1
-fi
-
 if grep -Fq "$ext_build_root_prefix" "$script"; then
   echo "unexpected doubly-prefixed EXT_BUILD_ROOT staging in $script" >&2
   exit 1

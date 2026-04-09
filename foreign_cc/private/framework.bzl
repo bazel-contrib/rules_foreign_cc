@@ -821,6 +821,10 @@ def _copy_deps_and_tools(files):
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
     for tool in files.tool_entries:
         lines.append("##symlink_to_dir## {} $$EXT_BUILD_DEPS$$/bin/ False".format(_tool_source_path(tool.path)))
+        if tool.runfiles_manifest:
+            lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(tool.runfiles_manifest)))
+        if tool.repo_mapping_manifest:
+            lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(tool.repo_mapping_manifest)))
 
     for ext_dir in files.ext_build_dirs:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
@@ -1092,10 +1096,14 @@ def _define_inputs(attrs):
     for tool in attrs.tools_data:
         tool_entries.append(struct(
             path = tool.bin_entry_path or tool.path,
+            runfiles_manifest = tool.runfiles_manifest,
+            repo_mapping_manifest = tool.repo_mapping_manifest,
         ))
         if tool.target:
             for file_list in tool.target.files.to_list():
                 tools_files += _list(file_list)
+            tools_files += _list(tool.runfiles_manifest)
+            tools_files += _list(tool.repo_mapping_manifest)
 
     # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:
