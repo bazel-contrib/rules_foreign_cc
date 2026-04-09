@@ -830,7 +830,7 @@ def _copy_deps_and_tools(files):
             lines.append("##symlink_to_dir## {} $$EXT_BUILD_DEPS$$/bin/ False".format(_tool_source_path(tool.path)))
             staged_launcher_runfiles_path = _staged_launcher_runfiles_path(tool.staged_path)
             if tool.launcher_runfiles_dir and staged_launcher_runfiles_path:
-                lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} False".format(
+                lines.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} False".format(
                     tool.launcher_runfiles_dir,
                     staged_launcher_runfiles_path,
                 ))
