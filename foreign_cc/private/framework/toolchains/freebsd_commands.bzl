@@ -94,7 +94,15 @@ fi
 """,
     )
 
+def _strip_outer_quotes(text):
+    if len(text) >= 2 and text.startswith("\"") and text.endswith("\""):
+        return text[1:-1]
+    return text
+
 def copy_dir_contents_to_dir(source, target):
+    source = _strip_outer_quotes(source)
+    target = _strip_outer_quotes(target)
+
     # Beause FreeBSD `cp` doesn't have `--no-target-directory`, we have to
     # do something more complex for this environment.
     return """\
@@ -105,6 +113,22 @@ else
 fi
 find "{target}" -type f -exec touch -r "{source}" "{{}}" \\;
 """.format(
+        source = source,
+        target = target,
+    )
+
+def copy_file_to_dir(source, target):
+    source = _strip_outer_quotes(source)
+    target = _strip_outer_quotes(target)
+    return """cp -L "{source}" "{target}/" && touch -r "{source}" "{target}/$(basename "{source}")" """.format(
+        source = source,
+        target = target,
+    )
+
+def copy_file(source, target):
+    source = _strip_outer_quotes(source)
+    target = _strip_outer_quotes(target)
+    return """cp -L "{source}" "{target}" && touch -r "{source}" "{target}" """.format(
         source = source,
         target = target,
     )
@@ -295,6 +319,8 @@ commands = struct(
     children_to_path = children_to_path,
     cleanup_function = cleanup_function,
     copy_dir_contents_to_dir = copy_dir_contents_to_dir,
+    copy_file_to_dir = copy_file_to_dir,
+    copy_file = copy_file,
     define_absolute_paths = define_absolute_paths,
     define_function = define_function,
     define_sandbox_paths = define_sandbox_paths,

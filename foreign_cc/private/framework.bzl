@@ -441,7 +441,7 @@ def cc_external_rule_impl(ctx, attrs):
     _print_deprecation_warnings(ctx)
     lib_name = attrs.lib_name or ctx.attr.name
 
-    inputs = _define_inputs(attrs)
+    inputs = _define_inputs(ctx, attrs)
     outputs = _define_outputs(ctx, attrs, lib_name)
     out_cc_info = _define_out_cc_info(ctx, attrs, inputs, outputs)
 
@@ -597,6 +597,7 @@ def cc_external_rule_impl(ctx, attrs):
         outputs.out_binary_files +
         outputs.libraries.static_libraries +
         outputs.libraries.shared_libraries +
+        outputs.libraries.interface_libraries +
         ([outputs.out_include_dir] if outputs.out_include_dir else []) +
         (outputs.data_dirs if outputs.data_dirs else []) +
         (outputs.data_files if outputs.data_files else [])
@@ -790,6 +791,8 @@ def _list(item):
 
 def _copy_deps_and_tools(files):
     lines = []
+    lines += _copy_contents_to_dir("lib", files.dynamic_libs)
+    lines += _copy_aliases_to_dir("lib", files.dynamic_lib_aliases)
     lines += _symlink_contents_to_dir("lib", files.libs)
     lines += _symlink_contents_to_dir("include", files.headers + files.include_dirs)
 
@@ -807,7 +810,31 @@ def _copy_deps_and_tools(files):
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_exe_runfiles_manifest))
 
     for ext_dir in files.ext_build_dirs:
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
+        ext_dir_path = _file_path(ext_dir)
+        dep_name = paths.basename(ext_dir_path)
+        staged_dir = "$$EXT_BUILD_DEPS$$/{}".format(dep_name)
+        source_dir = "$$EXT_BUILD_ROOT$$/{}".format(ext_dir_path)
+        original_source_dir = "$$EXT_BUILD_ROOT$$/{}".format(
+            ext_dir_path.replace(
+                "/copy_{name}/{name}".format(name = dep_name),
+                "/{name}".format(name = dep_name),
+            ),
+        )
+        lines.append("##symlink_to_dir## {} $$EXT_BUILD_DEPS$$ True".format(source_dir))
+
+        # Foreign deps are staged under EXT_BUILD_DEPS/<dep>, but copied pkg-config
+        # and CMake metadata can still embed either the copied tree or the
+        # original install root path unless we rewrite both after staging.
+        lines.append("##replace_in_files## {} {} {}".format(
+            staged_dir,
+            source_dir,
+            staged_dir,
+        ))
+        lines.append("##replace_in_files## {} {} {}".format(
+            staged_dir,
+            original_source_dir,
+            staged_dir,
+        ))
 
     lines.append("##path## $$EXT_BUILD_DEPS$$/bin")
 
@@ -826,6 +853,36 @@ def _symlink_contents_to_dir(dir_name, files_list):
         if path:
             lines.append("##symlink_contents_to_dir## \
 $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} True".format(path, dir_name))
+
+    return lines
+
+def _copy_contents_to_dir(dir_name, files_list):
+    files_list = collections.uniq(files_list)
+    if len(files_list) == 0:
+        return []
+
+    lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
+    for file in files_list:
+        path = _file_path(file).strip()
+        if path:
+            lines.append("##copy_file_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}".format(path, dir_name))
+
+    return lines
+
+def _copy_aliases_to_dir(dir_name, aliases):
+    aliases = collections.uniq(aliases)
+    if len(aliases) == 0:
+        return []
+
+    lines = ["##mkdirs## $$EXT_BUILD_DEPS$$/" + dir_name]
+    for alias in aliases:
+        path = _file_path(alias.src).strip()
+        if path:
+            lines.append("##copy_file## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{}/{}".format(
+                path,
+                dir_name,
+                alias.basename,
+            ))
 
     return lines
 
@@ -929,7 +986,11 @@ InputFiles = provider(
             "Include directories built by Bazel. Will be copied " +
             "into $EXT_BUILD_DEPS/include."
         ),
-        libs = "Library files built by Bazel. Will be copied into $EXT_BUILD_DEPS/lib.",
+        libs = "Non-shared library files built by Bazel. Will be symlinked into $EXT_BUILD_DEPS/lib.",
+        # Shared libraries are packaged for foreign discovery rather than symlinked
+        # so consumers like CMake do not learn a temp Bazel path as the install name.
+        dynamic_libs = "Shared-library inputs that should be copied into $EXT_BUILD_DEPS/lib as real files.",
+        dynamic_lib_aliases = "Additional alias files for shared-library inputs under $EXT_BUILD_DEPS/lib.",
         tools_files = (
             "Files and directories with tools needed for configuration/building " +
             "to be copied into the bin folder, which is added to the PATH"
@@ -944,12 +1005,15 @@ InputFiles = provider(
     ),
 )
 
-def _define_inputs(attrs):
+def _define_inputs(ctx, attrs):
     cc_infos = []
+    is_windows = targets_windows(ctx, None)
 
     bazel_headers = []
     bazel_system_includes = []
     bazel_libs = []
+    bazel_dynamic_libs = []
+    bazel_dynamic_lib_aliases = []
 
     # This framework function-built libraries: copy result directories under
     # $EXT_BUILD_DEPS/lib-name
@@ -966,11 +1030,16 @@ def _define_inputs(attrs):
             headers_info = _get_headers(dep[CcInfo].compilation_context)
             bazel_headers += headers_info.headers
             bazel_system_includes += headers_info.include_dirs
-            bazel_libs += _collect_libs(dep[CcInfo].linking_context)
+            bazel_libs += _collect_static_libs(dep[CcInfo].linking_context)
+            shared_info = _collect_shared_libs_from_context(dep[CcInfo].linking_context, is_windows)
+            bazel_dynamic_libs += shared_info.libs
+            bazel_dynamic_lib_aliases += shared_info.aliases
 
     for dynamic_dep in attrs.dynamic_deps:
         linker_input = dynamic_dep[CcSharedLibraryInfo].linker_input
-        bazel_libs += _collect_shared_libs(linker_input)
+        shared_info = _collect_shared_libs(linker_input, is_windows)
+        bazel_dynamic_libs += shared_info.libs
+        bazel_dynamic_lib_aliases += shared_info.aliases
         linking_context = cc_common.create_linking_context(
             linker_inputs = depset(direct = [linker_input]),
         )
@@ -1010,14 +1079,20 @@ def _define_inputs(attrs):
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
         tools_files = tools,
+        dynamic_libs = bazel_dynamic_libs,
+        dynamic_lib_aliases = bazel_dynamic_lib_aliases,
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
         declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
                           bazel_libs +
+                          bazel_dynamic_libs +
+                          [alias.src for alias in bazel_dynamic_lib_aliases] +
                           tools_files +
                           input_files +
-                          cc_info_merged.compilation_context.headers.to_list() + _collect_libs(cc_info_merged.linking_context) +
+                          cc_info_merged.compilation_context.headers.to_list() +
+                          _collect_static_libs(cc_info_merged.linking_context) +
+                          _collect_shared_libs_from_context(cc_info_merged.linking_context).libs +
                           ext_build_dirs,
     )
 
@@ -1082,32 +1157,50 @@ def _define_out_cc_info(ctx, attrs, inputs, outputs):
 
     return cc_common.merge_cc_infos(cc_infos = [cc_info, inputs_info])
 
-def _extract_libraries(library_to_link):
-    return [
-        library_to_link.static_library,
-        library_to_link.pic_static_library,
-        library_to_link.dynamic_library,
-        library_to_link.resolved_symlink_dynamic_library,
-        library_to_link.interface_library,
-        library_to_link.resolved_symlink_interface_library,
-    ]
-
-def _collect_libs(cc_linking):
+def _collect_static_libs(cc_linking):
     libs = []
     for li in cc_linking.linker_inputs.to_list():
         for library_to_link in li.libraries:
-            for library in _extract_libraries(library_to_link):
+            for library in [
+                library_to_link.static_library,
+                library_to_link.pic_static_library,
+            ]:
                 if library:
                     libs.append(library)
     return collections.uniq(libs)
 
-def _collect_shared_libs(cc_linker_input):
+def _collect_shared_libs_from_context(cc_linking, is_windows = False):
     libs = []
+    aliases = []
+    for li in cc_linking.linker_inputs.to_list():
+        shared_info = _collect_shared_libs(li, is_windows)
+        libs += shared_info.libs
+        aliases += shared_info.aliases
+    return struct(libs = collections.uniq(libs), aliases = collections.uniq(aliases))
+
+def _collect_shared_libs(cc_linker_input, is_windows = False):
+    libs_by_basename = {}
+    aliases = []
     for library_to_link in cc_linker_input.libraries:
-        for library in _extract_libraries(library_to_link):
+        for library in [
+            library_to_link.resolved_symlink_dynamic_library,
+            library_to_link.resolved_symlink_interface_library,
+            library_to_link.dynamic_library,
+            library_to_link.interface_library,
+        ]:
             if library:
-                libs.append(library)
-    return collections.uniq(libs)
+                libs_by_basename[library.basename] = library
+
+        if is_windows:
+            dynamic_library = library_to_link.resolved_symlink_dynamic_library or library_to_link.dynamic_library
+            interface_library = library_to_link.resolved_symlink_interface_library or library_to_link.interface_library
+            if dynamic_library and interface_library and interface_library.basename.endswith(".if.lib"):
+                aliases.append(struct(
+                    src = interface_library,
+                    basename = dynamic_library.basename.removesuffix(".dll") + ".lib",
+                ))
+
+    return struct(libs = libs_by_basename.values(), aliases = aliases)
 
 def expand_locations_and_make_variables(ctx, unexpanded, attr_name, data):
     """Expand locations and make variables while ensuring that `execpath` is always set to an absolute path
