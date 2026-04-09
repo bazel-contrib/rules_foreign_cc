@@ -798,16 +798,42 @@ def _copy_deps_and_tools(files):
 
     if files.tools_files:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
+        lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/tools")
     for tool in files.tools_files:
-        tool_prefix = "$EXT_BUILD_ROOT/"
-        tool = tool[len(tool_prefix):] if tool.startswith(tool_prefix) else tool
-        tool_runfiles = "{}.runfiles".format(tool)
-        tool_runfiles_manifest = "{}.runfiles_manifest".format(tool)
-        tool_exe_runfiles_manifest = "{}.exe.runfiles_manifest".format(tool)
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_runfiles))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_runfiles_manifest))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_exe_runfiles_manifest))
+        tool_path = _file_path(tool).strip()
+        if not tool_path:
+            continue
+        if getattr(tool, "is_directory", False):
+            lines.append("##copy_dir_contents_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/tools/{}\"".format(
+                tool_path,
+                paths.basename(tool_path),
+            ))
+        else:
+            lines.append("##copy_file_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/bin\"".format(tool_path))
+
+    for tool in files.tools_runfiles:
+        runfiles_root = "{}.runfiles".format(tool.staged_path)
+        lines.append("##mkdirs## \"{}\"".format(runfiles_root))
+        if tool.runfiles_manifest:
+            lines.append("##copy_file## \"$$EXT_BUILD_ROOT$$/{}\" \"{}_manifest\"".format(
+                _file_path(tool.runfiles_manifest),
+                runfiles_root,
+            ))
+        if tool.repo_mapping_manifest:
+            lines.append("##copy_file## \"$$EXT_BUILD_ROOT$$/{}\" \"{}/_repo_mapping\"".format(
+                _file_path(tool.repo_mapping_manifest),
+                runfiles_root,
+            ))
+        for runfile in tool.files:
+            runfile_path = _runfiles_path(runfile, tool.workspace_name).strip()
+            if not runfile_path:
+                continue
+            target_path = "{}/{}".format(runfiles_root, runfile_path)
+            lines.append("##mkdirs## \"{}\"".format(paths.dirname(target_path)))
+            lines.append("##copy_file## \"$$EXT_BUILD_ROOT$$/{}\" \"{}\"".format(
+                _file_path(runfile).strip(),
+                target_path,
+            ))
 
     for ext_dir in files.ext_build_dirs:
         ext_dir_path = _file_path(ext_dir)
@@ -888,6 +914,21 @@ def _copy_aliases_to_dir(dir_name, aliases):
 
 def _file_path(file):
     return file if type(file) == "string" else file.path
+
+def _runfiles_path(file, workspace_name):
+    if type(file) == "string":
+        return file
+
+    short_path = getattr(file, "short_path", file.path)
+    if short_path.startswith("../"):
+        return short_path[3:]
+
+    owner = getattr(file, "owner", None)
+    owner_workspace_name = getattr(owner, "workspace_name", "")
+    if owner_workspace_name:
+        return owner_workspace_name + "/" + short_path
+
+    return workspace_name + "/" + short_path
 
 _FORBIDDEN_FOR_FILENAME = ["\\", "/", ":", "*", "\"", "<", ">", "|"]
 
@@ -992,9 +1033,10 @@ InputFiles = provider(
         dynamic_libs = "Shared-library inputs that should be copied into $EXT_BUILD_DEPS/lib as real files.",
         dynamic_lib_aliases = "Additional alias files for shared-library inputs under $EXT_BUILD_DEPS/lib.",
         tools_files = (
-            "Files and directories with tools needed for configuration/building " +
-            "to be copied into the bin folder, which is added to the PATH"
+            "Tool runtime files and directories that should be staged under " +
+            "$EXT_BUILD_DEPS for foreign builds."
         ),
+        tools_runfiles = "Structured runfiles trees that should be staged next to staged tools.",
         ext_build_dirs = (
             "Directories with libraries, built by framework function. " +
             "This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents."
@@ -1052,14 +1094,23 @@ def _define_inputs(ctx, attrs):
     # but filter out repeating directories
     ext_build_dirs = uniq_list_keep_order(ext_build_dirs)
 
-    tools = []
     tools_files = []
+    tools_runfiles = []
     input_files = []
     for tool in attrs.tools_data:
-        tools.append(tool.path)
-        if tool.target:
-            for file_list in tool.target.files.to_list():
-                tools_files += _list(file_list)
+        if tool.target and getattr(tool, "stage_runtime", False):
+            tools_files += tool.runtime_files.to_list()
+            runfiles_files = tool.runfiles_files.to_list()
+            runfiles_manifest = tool.runfiles_manifest
+            repo_mapping_manifest = tool.repo_mapping_manifest
+            if runfiles_files or runfiles_manifest or repo_mapping_manifest:
+                tools_runfiles.append(struct(
+                    files = runfiles_files,
+                    runfiles_manifest = runfiles_manifest,
+                    repo_mapping_manifest = repo_mapping_manifest,
+                    staged_path = tool.path,
+                    workspace_name = ctx.workspace_name,
+                ))
 
     # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:
@@ -1078,9 +1129,10 @@ def _define_inputs(ctx, attrs):
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
-        tools_files = tools,
         dynamic_libs = bazel_dynamic_libs,
         dynamic_lib_aliases = bazel_dynamic_lib_aliases,
+        tools_files = tools_files,
+        tools_runfiles = tools_runfiles,
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
@@ -1089,6 +1141,9 @@ def _define_inputs(ctx, attrs):
                           bazel_dynamic_libs +
                           [alias.src for alias in bazel_dynamic_lib_aliases] +
                           tools_files +
+                          [runfile for tool in tools_runfiles for runfile in tool.files] +
+                          [tool.runfiles_manifest for tool in tools_runfiles if tool.runfiles_manifest] +
+                          [tool.repo_mapping_manifest for tool in tools_runfiles if tool.repo_mapping_manifest] +
                           input_files +
                           cc_info_merged.compilation_context.headers.to_list() +
                           _collect_static_libs(cc_info_merged.linking_context) +
