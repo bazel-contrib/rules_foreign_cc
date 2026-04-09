@@ -112,3 +112,38 @@ sh_test(
     args = ["$(locations //test/output_validation:wrong_output_in_action_check_script)"],
     data = ["//test/output_validation:wrong_output_in_action_check_script"],
 )
+
+filegroup(
+    name = "meson_env_test_logs",
+    testonly = True,
+    srcs = ["//test/env_test:meson_default_env_test_build"],
+    output_group = "Meson_logs",
+)
+
+sh_test(
+    name = "no_tool_runfiles_guessing_test",
+    size = "small",
+    srcs = ["assert_no_tool_runfiles_guessing.sh"],
+    args = ["$(locations :meson_env_test_logs)"],
+    data = [":meson_env_test_logs"],
+)
+
+sh_test(
+    name = "staged_tool_launchers_test",
+    size = "small",
+    srcs = ["assert_staged_tool_launchers.sh"],
+    data = [
+        "//toolchains/private:meson_tool",
+        "//toolchains/private:ninja_tool",
+        "//toolchains/private:ninja_wrapper",
+    ],
+)
+
+test_suite(
+    name = "tool_staging_smoke_tests",
+    tests = [
+        ":no_tool_runfiles_guessing_test",
+        ":staged_tool_launchers_test",
+        "//test/env_test:meson_default_env_test_shellvars_check",
+    ],
+)

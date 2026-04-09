@@ -12,10 +12,6 @@ ToolInfo = provider(
             "to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree " +
             "artifact. (Please see the example `//examples:built_cmake_toolchain`)"
         ),
-        "repo_mapping_manifest": "Optional repo mapping manifest for staged tool runfiles.",
-        "runfiles_files": "Runfiles that should be staged next to this tool when used by foreign rules.",
-        "runfiles_manifest": "Optional runfiles manifest for staged tool launchers.",
-        "runtime_files": "Files that should be staged with this tool when used by foreign rules.",
         "staged_path": "Optional path for invoking the tool from inside EXT_BUILD_DEPS.",
         "target": (
             "If the tool is preinstalled, must be None. " +
@@ -48,30 +44,13 @@ def _native_tool_toolchain_impl(ctx):
         fail("Either path or target (and path) should be defined for the tool.")
     path = None
     env = {}
-    runfiles_manifest = None
-    repo_mapping_manifest = None
-    runfiles_files = depset()
     staged_path = None
-    runtime_files = depset()
     if ctx.attr.target:
         path = _resolve_tool_path(ctx, ctx.attr.path, ctx.attr.target, ctx.attr.tools)
         staged_path = ctx.attr.staged_path and _resolve_tool_path(ctx, ctx.attr.staged_path, ctx.attr.target, ctx.attr.tools)
 
         for k, v in ctx.attr.env.items():
             env[k] = _resolve_tool_path(ctx, v, ctx.attr.target, ctx.attr.tools)
-
-        runtime_inputs = [ctx.attr.target]
-        runtime_inputs.extend(ctx.attr.tools)
-        runtime_files = depset(transitive = [
-            target[DefaultInfo].files
-            for target in runtime_inputs
-        ])
-        runfiles_files = depset(transitive = [
-            target[DefaultInfo].default_runfiles.files
-            for target in runtime_inputs
-        ])
-        runfiles_manifest = ctx.attr.target[DefaultInfo].files_to_run.runfiles_manifest
-        repo_mapping_manifest = ctx.attr.target[DefaultInfo].files_to_run.repo_mapping_manifest
 
     else:
         path = ctx.expand_location(ctx.attr.path)
@@ -80,10 +59,6 @@ def _native_tool_toolchain_impl(ctx):
         env = env,
         invoke_path = path,
         path = path,
-        runfiles_manifest = runfiles_manifest,
-        repo_mapping_manifest = repo_mapping_manifest,
-        runfiles_files = runfiles_files,
-        runtime_files = runtime_files,
         staged_path = staged_path,
         target = ctx.attr.target,
     ))

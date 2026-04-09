@@ -146,8 +146,6 @@ native_tool_toolchain(
 
 meson_tool(
     name = "meson_tool",
-    data = ["@meson_src//:runtime"],
-    main = "@meson_src//:meson.py",
     tags = ["manual"],
 )
 
@@ -155,7 +153,6 @@ native_tool_toolchain(
     name = "built_meson",
     env = {
         "MESON": "$(execpath :meson_tool)",
-        "REAL_MESON": "$(rlocationpath @meson_src//:meson.py)",
     },
     path = "$(execpath :meson_tool)",
     staged_path = select({
@@ -163,7 +160,6 @@ native_tool_toolchain(
         "//conditions:default": "",
     }),
     target = ":meson_tool",
-    tools = ["@meson_src//:meson.py"],
 )
 
 native_tool_toolchain(
