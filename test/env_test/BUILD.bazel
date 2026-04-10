@@ -12,8 +12,8 @@ _NOT_WINDOWS = select({
 })
 
 STANDARD_VARS = {
-    "BUILD_TMPDIR": "{{INSTALLDIR}}.build_tmpdir",
-    "EXT_BUILD_DEPS": "{{INSTALLDIR}}.ext_build_deps",
+    "BUILD_TMPDIR": "{{BUILD_TMPDIR}}",
+    "EXT_BUILD_DEPS": "{{EXT_BUILD_DEPS}}",
     "EXT_BUILD_ROOT": "{{EXT_BUILD_ROOT}}",
     "INSTALLDIR": "{{INSTALLDIR}}",
 }
