@@ -18,23 +18,15 @@ cmake(
         "CMAKE_DISABLE_FIND_PACKAGE_BZip2": "TRUE",
         "PCRE2_SUPPORT_LIBZ": "ON",
     } | select({
-        "@platforms//os:windows": {
-            # PCRE2 adds a "d" postfix for MSVC debug builds by default; keep the
-            # archive name stable so Bazel can locate the declared output.
-            "CMAKE_DEBUG_POSTFIX": "",
-        },
+        "@platforms//os:windows": {},
         "//conditions:default": {
             "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
         },
     }),
     lib_source = ":all_srcs",
     out_static_libs = select({
-        "@platforms//os:windows": ["pcre2-8.lib"],
+        "@platforms//os:windows": ["pcre2-8d.lib"],
         "//conditions:default": ["libpcre2-8.a"],
-    }),
-    target_compatible_with = select({
-        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"],
-        "//conditions:default": [],
     }),
     deps = ["@examples_zlib//:zlib"],
 )
