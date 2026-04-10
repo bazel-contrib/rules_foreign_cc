@@ -1,5 +1,4 @@
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
-load("@rules_foreign_cc_examples_third_party//:bzlmod_enabled.bzl", "BZLMOD_ENABLED")
 
 filegroup(
     name = "all_srcs",
@@ -24,9 +23,7 @@ cmake(
         "win_bison.exe",
     ],
     target_compatible_with = select({
-        # In bazel 7 (at least) the bzlmod paths are too long to build this.
-        # TODO: reevaluate with bazel 8
-        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"] if BZLMOD_ENABLED else [],
+        "@platforms//os:windows": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
     visibility = ["//visibility:public"],
