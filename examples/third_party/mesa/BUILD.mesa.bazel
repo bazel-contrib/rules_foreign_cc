@@ -1,4 +1,5 @@
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson_with_requirements")
+load("@rules_foreign_cc_examples_third_party//:bzlmod_enabled.bzl", "BZLMOD_ENABLED")
 load("@third_party_pip//:requirements.bzl", "requirement")
 
 filegroup(
@@ -102,6 +103,13 @@ meson_with_requirements(
     requirements = [
         requirement("mako"),
     ],
+    # Meson's Python runtime lands in a deeply-nested runfiles tree under the
+    # exec root. On bzlmod the module-path segments make this exceed MAX_PATH,
+    # so Python can't load its own DLLs. Needs tool-staging work to resolve.
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"] if BZLMOD_ENABLED else [],
+        "//conditions:default": [],
+    }),
     toolchains = ["@rules_python//python:current_py_toolchain"],
     visibility = ["//visibility:public"],
     deps = ["@examples_zlib//:zlib"] + select({
