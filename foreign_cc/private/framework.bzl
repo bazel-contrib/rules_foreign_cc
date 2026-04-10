@@ -5,6 +5,7 @@
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
@@ -247,6 +248,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
+    "_allow_building_in_tmp": attr.label(
+        default = Label("@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp"),
+        providers = [BuildSettingInfo],
+    ),
     # we need to declare this attribute to access cc_toolchain
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
@@ -392,6 +397,45 @@ def get_env_prelude(ctx, installdir, data_dependencies, tools_env):
 
     return env_snippet
 
+def _use_short_paths(ctx):
+    """Returns True if the build should use shortened paths on Windows."""
+    if not targets_windows(ctx, None):
+        return False
+    return ctx.attr._allow_building_in_tmp[BuildSettingInfo].value
+
+def _short_path_wrapper_setup(ctx):
+    """Set up short-path temp directory in the wrapper script.
+
+    Creates the temp directory and exports two variables:
+      RFCC_SHORT_PATH_ROOT      - UNIX path for shell operations (rm, mkdir, etc.)
+      RFCC_SHORT_PATH_ROOT_WIN  - mixed Windows path for tools (CMake, MSVC, etc.)
+
+    This runs in the wrapper so the cleanup trap can access RFCC_SHORT_PATH_ROOT.
+    """
+    if not _use_short_paths(ctx):
+        return []
+
+    return [
+        "export RFCC_SHORT_PATH_ROOT=\"$(mktemp -d \"${TMP:-/tmp}/rfcc.XXXXXX\")\"",
+        "export RFCC_SHORT_PATH_ROOT_WIN=\"$(to_mixed_path \"$RFCC_SHORT_PATH_ROOT\")\"",
+    ]
+
+def _short_path_env_aliases(ctx):
+    """Redirect BUILD_TMPDIR/EXT_BUILD_DEPS to short paths under RFCC_SHORT_PATH_ROOT_WIN.
+
+    Uses the mixed Windows path form so that downstream tools (CMake, pkg-config,
+    etc.) receive paths they understand. Must run after env_prelude in any script
+    that sets BUILD_TMPDIR/EXT_BUILD_DEPS, since env_prelude sets them to the
+    original long paths.
+    """
+    if not _use_short_paths(ctx):
+        return []
+
+    return [
+        "export BUILD_TMPDIR=\"$RFCC_SHORT_PATH_ROOT_WIN/b\"",
+        "export EXT_BUILD_DEPS=\"$RFCC_SHORT_PATH_ROOT_WIN/d\"",
+    ]
+
 def cc_external_rule_impl(ctx, attrs):
     """Framework function for performing external C/C++ building.
 
@@ -495,6 +539,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##script_prelude##",
     ] + env_prelude + [
         "##path## $$EXT_BUILD_ROOT$$",
+    ] + _short_path_env_aliases(ctx) + [
         "##rm_rf## $$BUILD_TMPDIR$$",
         "##rm_rf## $$EXT_BUILD_DEPS$$",
         "##mkdirs## $$INSTALLDIR$$",
@@ -666,6 +711,12 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         "\n".join([
             "##rm_rf## $$BUILD_TMPDIR$$",
             "##rm_rf## $$EXT_BUILD_DEPS$$",
+            # On Windows with short paths, BUILD_TMPDIR and EXT_BUILD_DEPS are
+            # inside RFCC_SHORT_PATH_ROOT (already removed above). Clean up the
+            # parent temp dir too. On non-Windows this var is unset.
+            "if [ -n \"${RFCC_SHORT_PATH_ROOT:-}\" ]; then",
+            "##rm_rf## ${RFCC_SHORT_PATH_ROOT}",
+            "fi",
         ]),
     )
     cleanup_on_failure_function = create_function(
@@ -697,7 +748,7 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         # the call trap is defined inside, in a way how the shell function should be called
         # see, for instance, linux_commands.bzl
         trap_function,
-    ] + env_prelude + [
+    ] + env_prelude + _short_path_wrapper_setup(ctx) + _short_path_env_aliases(ctx) + [
         "export BUILD_WRAPPER_SCRIPT=\"{}\"".format(wrapper_script_file.path),
         "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
         "export BUILD_LOG=\"{}\"".format(build_log_file.path),

@@ -1,3 +1,10 @@
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("//foreign_cc/private:resource_sets.bzl", _create_settings = "create_settings")
 
 _create_settings()
+
+bool_flag(
+    name = "allow_building_in_tmp",
+    build_setting_default = True,
+    visibility = ["//visibility:public"],
+)
