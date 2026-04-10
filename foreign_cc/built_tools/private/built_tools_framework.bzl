@@ -1,5 +1,6 @@
 """A module defining a common framework for "built_tools" rules"""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
@@ -23,6 +24,10 @@ FOREIGN_CC_BUILT_TOOLS_ATTRS = {
     "srcs": attr.label(
         doc = "The target containing the build tool's sources",
         mandatory = True,
+    ),
+    "_allow_building_in_tmp": attr.label(
+        default = Label("@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp"),
+        providers = [BuildSettingInfo],
     ),
     "_cc_toolchain": attr.label(
         default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),

@@ -8,6 +8,8 @@ all:
 		$(SED) -i.bak \
 			-e 's|$(abs_srcdir)|{{abs_srcdir}}|g' \
 			-e 's|$(abs_builddir)|{{abs_builddir}}|g' \
+			-e 's|$(BUILD_TMPDIR)|{{BUILD_TMPDIR}}|g' \
+			-e 's|$(EXT_BUILD_DEPS)|{{EXT_BUILD_DEPS}}|g' \
 			-e 's|$(INSTALLDIR)|{{INSTALLDIR}}|g' \
 			-e 's|$(EXT_BUILD_ROOT)|{{EXT_BUILD_ROOT}}|g' \
 			"$${filename}"; \

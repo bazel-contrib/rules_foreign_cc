@@ -14,6 +14,7 @@ build:windows --enable_runfiles
 startup --windows_enable_symlinks
 build:windows --action_env=MSYS=winsymlinks:nativestrict
 test:windows --action_env=MSYS=winsymlinks:nativestrict
+build:windows --@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp=True
 
 # Enable CC toolchain that supports iOS from https://github.com/bazelbuild/apple_support
 build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain
