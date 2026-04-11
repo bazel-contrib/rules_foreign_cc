@@ -12,6 +12,13 @@ filegroup(
 
 configure_make(
     name = "m4",
+    # gnulib's iconv_open-*.h regeneration rules are unconditional (not
+    # guarded by maintainer-mode) and invoke gperf, which isn't available
+    # in the sandbox.  configure_in_place gives us a writable source tree,
+    # and GPERF=true makes the regeneration a no-op (the generated headers
+    # are only #include'd on AIX/HP-UX/IRIX/OSF/Solaris/z/OS).
+    args = ["GPERF=true"],
+    configure_in_place = True,
     env = select({
         "@platforms//os:macos": {"AR": ""},
         "//conditions:default": {},
@@ -20,6 +27,7 @@ configure_make(
     out_binaries = [
         "m4",
     ],
+    out_include_dir = "",
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
