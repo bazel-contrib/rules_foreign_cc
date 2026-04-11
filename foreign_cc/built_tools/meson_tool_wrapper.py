@@ -32,13 +32,28 @@ def _find_meson_main():
     if not rlocation:
         raise RuntimeError("REAL_MESON is not set")
 
-    path = runfiles.Create().Rlocation(rlocation)
+    r = runfiles.Create()
+    path = r.Rlocation(rlocation)
     if path and os.path.isfile(path):
         return path
 
-    raise RuntimeError(
-        "Failed to locate meson main from REAL_MESON={!r}".format(rlocation)
+    # Provide detailed diagnostics for runfiles resolution failures
+    diag = ["Failed to locate meson main from REAL_MESON={!r}".format(rlocation)]
+    diag.append("  Rlocation returned: {!r}".format(path))
+    diag.append("  RUNFILES_DIR={!r}".format(os.environ.get("RUNFILES_DIR")))
+    diag.append(
+        "  RUNFILES_MANIFEST_FILE={!r}".format(os.environ.get("RUNFILES_MANIFEST_FILE"))
     )
+    rf_dir = os.environ.get("RUNFILES_DIR", "")
+    candidate = os.path.join(rf_dir, rlocation) if rf_dir else None
+    diag.append(
+        "  candidate path: {!r} exists={}".format(
+            candidate, os.path.isfile(candidate) if candidate else "N/A"
+        )
+    )
+    mf = os.environ.get("RUNFILES_MANIFEST_FILE", "")
+    diag.append("  manifest exists={}".format(os.path.isfile(mf) if mf else "N/A"))
+    raise RuntimeError("\n".join(diag))
 
 
 def main():

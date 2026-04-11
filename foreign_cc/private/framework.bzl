@@ -882,16 +882,19 @@ def _copy_deps_and_tools(files):
             source_runfiles,
             staged_runfiles,
         ))
-        if tool.runfiles_manifest:
-            lines.append("##copy_file## \"$$EXT_BUILD_ROOT$$/{}\" \"{}_manifest\"".format(
-                _file_path(tool.runfiles_manifest),
-                staged_runfiles,
-            ))
-        if tool.repo_mapping_manifest:
-            lines.append("##copy_file## \"$$EXT_BUILD_ROOT$$/{}\" \"{}/_repo_mapping\"".format(
-                _file_path(tool.repo_mapping_manifest),
-                staged_runfiles,
-            ))
+
+        # Tell the Python runfiles library where to find the staged tree.
+        # This must happen here (not in env_prelude) so that $EXT_BUILD_DEPS
+        # has already been aliased to the short path on Windows — using the
+        # long exec-root path would exceed MAX_PATH.
+        #
+        # Do NOT set RUNFILES_MANIFEST_FILE: the manifest contains absolute
+        # paths from the original build machine that are not valid in the
+        # staged tree.  _repo_mapping is inside the .runfiles tree and is
+        # already covered by the bulk copy.
+        lines.append("export RUNFILES_DIR=\"{staged_runfiles}\"".format(
+            staged_runfiles = staged_runfiles,
+        ))
 
     for ext_dir in files.ext_build_dirs:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
