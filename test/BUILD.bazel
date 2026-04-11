@@ -43,20 +43,13 @@ sh_library(
 )
 
 shellcheck_test(
-    name = "shellcheck_linux",
+    name = "shellcheck",
     size = "small",
     srcs = [":tool_build_scripts"],
-    target_compatible_with = [
-        "@platforms//os:linux",
-    ],
-)
-
-shellcheck_test(
-    name = "shellcheck_macos",
-    srcs = [":tool_build_scripts"],
-    target_compatible_with = [
-        "@platforms//os:macos",
-    ],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 cmake_script_test_suite()
