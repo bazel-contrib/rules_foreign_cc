@@ -42,6 +42,18 @@ def create_configure_script(
         configure_path = "{}/{}".format(root_path, configure_command)
 
     script.append("##export_var## MAKE {}".format(make_path))
+
+    # When the user has not requested autotools regeneration, prevent make from
+    # re-running aclocal/autoconf/autoheader/automake if timestamps are skewed
+    # (common under RBE, where the CAS strips per-file mtimes).  Setting each
+    # tool to "true" makes any accidental rerun a silent no-op — the standard
+    # technique used by Debian, Yocto, and rpmbuild.
+    if not autoconf and not autoreconf and not autogen:
+        script.append("##export_var## AUTOCONF true")
+        script.append("##export_var## AUTOHEADER true")
+        script.append("##export_var## AUTOMAKE true")
+        script.append("##export_var## ACLOCAL true")
+
     script.append("##enable_tracing##")
 
     if autogen:
