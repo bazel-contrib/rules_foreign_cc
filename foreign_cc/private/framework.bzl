@@ -709,6 +709,8 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         ctx,
         "cleanup_on_success",
         "\n".join([
+            # Temporary: extract staging timing from the build log
+            "grep TOOL_STAGING $$BUILD_LOG$$ >&2 || true",
             "##rm_rf## $$BUILD_TMPDIR$$",
             "##rm_rf## $$EXT_BUILD_DEPS$$",
             # On Windows with short paths, BUILD_TMPDIR and EXT_BUILD_DEPS are
@@ -871,6 +873,8 @@ def _copy_deps_and_tools(files):
         else:
             lines.append("##copy_file_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/bin\"".format(tool_path))
 
+    if files.tools_runfiles:
+        lines.append("##echo## \"TOOL_STAGING_START t=$(date +%s%N)\"")
     for tool in files.tools_runfiles:
         staged_runfiles = "{}.runfiles".format(tool.staged_path)
         source_runfiles = "$$EXT_BUILD_ROOT$$/{}.runfiles".format(tool.invoke_path)
@@ -895,6 +899,8 @@ def _copy_deps_and_tools(files):
         lines.append("export RUNFILES_DIR=\"{staged_runfiles}\"".format(
             staged_runfiles = staged_runfiles,
         ))
+    if files.tools_runfiles:
+        lines.append("##echo## \"TOOL_STAGING_END t=$(date +%s%N)\"")
 
     for ext_dir in files.ext_build_dirs:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
