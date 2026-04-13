@@ -39,6 +39,7 @@ configure_make(
         "svn",
         "svnversion",
     ],
+    resource_size = "enormous",
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],

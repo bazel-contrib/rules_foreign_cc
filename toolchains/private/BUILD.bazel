@@ -56,7 +56,7 @@ native_tool_toolchain(
 cmake_tool(
     name = "cmake_tool",
     srcs = "@cmake_src//:all_srcs",
-    resource_size = "medium",
+    resource_size = "enormous",
     tags = ["manual"],
 )
 

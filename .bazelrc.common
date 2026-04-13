@@ -54,3 +54,7 @@ common:bazel-7.x --show_progress
 common:bazel-8.x --incompatible_disable_autoloads_in_main_repo
 # Remind people to set good test timeouts / sizes
 common --test_verbose_timeout_warnings
+
+# Resource size tuning (default: fits 8-core machine)
+common --@rules_foreign_cc//foreign_cc/settings:size_enormous_cpu=4
+common --@rules_foreign_cc//foreign_cc/settings:size_large_cpu=3

@@ -37,6 +37,7 @@ ninja(
             "cp -a out/gn $$INSTALLDIR/bin",
         ]),
     }),
+    resource_size = "large",
     targets = select({
         "@platforms//os:windows": ["gn.exe"],
         "//conditions:default": [""],
