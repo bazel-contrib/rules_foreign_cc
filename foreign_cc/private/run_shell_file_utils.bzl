@@ -47,7 +47,7 @@ def copy_directory(actions, orig_path, copy_path):
         file = dir_copy,
         script = "\n".join([
             "##mkdirs## $$EXT_BUILD_ROOT$$/" + dir_copy.path,
-            "##copy_dir_contents_to_dir## {} $$EXT_BUILD_ROOT$$/{}".format(
+            "##copy_dir_contents_to_dir## {} $$EXT_BUILD_ROOT$$/{} True".format(
                 orig_path,
                 dir_copy.path,
             ),

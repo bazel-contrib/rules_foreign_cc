@@ -864,7 +864,7 @@ def _copy_deps_and_tools(files):
         if not tool_path:
             continue
         if getattr(tool, "is_directory", False):
-            lines.append("##copy_dir_contents_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/tools/{}\"".format(
+            lines.append("##copy_dir_contents_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/tools/{}\" True".format(
                 tool_path,
                 paths.basename(tool_path),
             ))
@@ -878,7 +878,7 @@ def _copy_deps_and_tools(files):
         # Bulk-copy the entire runfiles tree instead of copying files
         # individually. Individual cp commands have high fork+exec overhead
         # (~15s for ~2500 files on Linux, far worse on Windows).
-        lines.append("##copy_dir_contents_to_dir## \"{}\" \"{}\"".format(
+        lines.append("##copy_dir_contents_to_dir## \"{}\" \"{}\" False".format(
             source_runfiles,
             staged_runfiles,
         ))

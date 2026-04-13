@@ -97,19 +97,46 @@ fi
 """,
     )
 
-def copy_dir_contents_to_dir(source, target):
+def copy_dir_contents_to_dir(source, target, flatten_timestamps):
+    """Copy directory contents to target, optionally flattening timestamps.
+
+    Args:
+        source: Source directory whose contents are copied.
+        target: Target directory.
+        flatten_timestamps: If "True", set all file timestamps to the source
+            directory mtime (prevents autotools regeneration).
+
+    Returns:
+        str: Shell command string.
+    """
     source = _strip_outer_quotes(source)
     target = _strip_outer_quotes(target)
 
     # Beause macos `cp` doesn't have `--no-target-directory`, we have to
     # do something more complext for this environment.
-    return """\
+    if flatten_timestamps == "True":
+        return """\
 if [[ -d "{source}" ]]; then
   cp -L -R "{source}"/. "{target}"
 else
   cp -L -R "{source}" "{target}"
 fi
 find "{target}" -type f -exec touch -r "{source}" "{{}}" \\;
+""".format(
+            source = source,
+            target = target,
+        )
+
+    # Without flatten_timestamps we skip -L (dereference symlinks) and
+    # tolerate "File exists" errors.  Runfiles trees contain repo-mapping
+    # symlinks (apparent → canonical) that create duplicate destination
+    # paths; cp errors on the second copy but the file is already present.
+    return """\
+if [[ -d "{source}" ]]; then
+  cp -R "{source}"/. "{target}" 2>&1 | grep -v "File exists" >&2 || true
+else
+  cp -R "{source}" "{target}" 2>&1 | grep -v "File exists" >&2 || true
+fi
 """.format(
         source = source,
         target = target,

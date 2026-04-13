@@ -119,10 +119,31 @@ fi
 """,
     )
 
-def copy_dir_contents_to_dir(source, target):
+def copy_dir_contents_to_dir(source, target, flatten_timestamps):
+    """Copy directory contents to target, optionally flattening timestamps.
+
+    Args:
+        source: Source directory whose contents are copied.
+        target: Target directory.
+        flatten_timestamps: If "True", set all file timestamps to the source
+            directory mtime (prevents autotools regeneration).
+
+    Returns:
+        str: Shell command string.
+    """
     source = _strip_outer_quotes(source)
     target = _strip_outer_quotes(target)
-    return """cp -L -r --no-target-directory "{source}" "{target}" && $REAL_FIND "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+    if flatten_timestamps == "True":
+        return """cp -L -r --no-target-directory "{source}" "{target}" && $REAL_FIND "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+            source = source,
+            target = target,
+        )
+
+    # Without flatten_timestamps we skip -L (dereference symlinks) and
+    # tolerate "File exists" errors.  Runfiles trees contain repo-mapping
+    # symlinks (apparent → canonical) that create duplicate destination
+    # paths; cp errors on the second copy but the file is already present.
+    return """cp -r --no-target-directory "{source}" "{target}" 2>&1 | grep -v "File exists" >&2 || true""".format(
         source = source,
         target = target,
     )

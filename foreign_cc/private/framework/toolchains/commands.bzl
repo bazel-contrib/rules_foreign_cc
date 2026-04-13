@@ -73,6 +73,11 @@ PLATFORM_COMMANDS = {
                 doc = "Source directory, immediate children of which are copied",
             ),
             _argument_info(name = "target", data_type = type(""), doc = "Target directory"),
+            _argument_info(
+                name = "flatten_timestamps",
+                data_type = type(""),
+                doc = "If True, flatten all file timestamps to the source directory mtime (prevents autotools reruns)",
+            ),
         ],
         doc = "Copies contents of the directory to target directory",
     ),
