@@ -858,16 +858,43 @@ def _copy_deps_and_tools(files):
 
     if files.tools_files:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
+        lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/tools")
     for tool in files.tools_files:
-        tool_prefix = "$EXT_BUILD_ROOT/"
-        tool = tool[len(tool_prefix):] if tool.startswith(tool_prefix) else tool
-        tool_runfiles = "{}.runfiles".format(tool)
-        tool_runfiles_manifest = "{}.runfiles_manifest".format(tool)
-        tool_exe_runfiles_manifest = "{}.exe.runfiles_manifest".format(tool)
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_runfiles))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_runfiles_manifest))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_exe_runfiles_manifest))
+        tool_path = _file_path(tool).strip()
+        if not tool_path:
+            continue
+        if getattr(tool, "is_directory", False):
+            lines.append("##copy_dir_contents_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/tools/{}\" True".format(
+                tool_path,
+                paths.basename(tool_path),
+            ))
+        else:
+            lines.append("##copy_file_to_dir## \"$$EXT_BUILD_ROOT$$/{}\" \"$$EXT_BUILD_DEPS$$/bin\"".format(tool_path))
+
+    for tool in files.tools_runfiles:
+        staged_runfiles = "{}.runfiles".format(tool.staged_path)
+        source_runfiles = "$$EXT_BUILD_ROOT$$/{}.runfiles".format(tool.invoke_path)
+
+        # Bulk-copy the entire runfiles tree instead of copying files
+        # individually. Individual cp commands have high fork+exec overhead
+        # (~15s for ~2500 files on Linux, far worse on Windows).
+        lines.append("##copy_dir_contents_to_dir## \"{}\" \"{}\" False".format(
+            source_runfiles,
+            staged_runfiles,
+        ))
+
+        # Tell the Python runfiles library where to find the staged tree.
+        # This must happen here (not in env_prelude) so that $EXT_BUILD_DEPS
+        # has already been aliased to the short path on Windows — using the
+        # long exec-root path would exceed MAX_PATH.
+        #
+        # Do NOT set RUNFILES_MANIFEST_FILE: the manifest contains absolute
+        # paths from the original build machine that are not valid in the
+        # staged tree.  _repo_mapping is inside the .runfiles tree and is
+        # already covered by the bulk copy.
+        lines.append("export RUNFILES_DIR=\"{staged_runfiles}\"".format(
+            staged_runfiles = staged_runfiles,
+        ))
 
     for ext_dir in files.ext_build_dirs:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
@@ -1081,9 +1108,10 @@ InputFiles = provider(
         ),
         libs = "Library files built by Bazel. Will be copied into $EXT_BUILD_DEPS/lib.",
         tools_files = (
-            "Files and directories with tools needed for configuration/building " +
-            "to be copied into the bin folder, which is added to the PATH"
+            "Tool runtime files and directories that should be staged under " +
+            "$EXT_BUILD_DEPS for foreign builds."
         ),
+        tools_runfiles = "Structured runfiles trees that should be staged next to staged tools.",
         ext_build_dirs = (
             "Directories with libraries, built by framework function. " +
             "This directories should be copied into $EXT_BUILD_DEPS/lib-name as is, with all contents."
@@ -1133,14 +1161,23 @@ def _define_inputs(attrs):
     # but filter out repeating directories
     ext_build_dirs = uniq_list_keep_order(ext_build_dirs)
 
-    tools = []
     tools_files = []
+    tools_runfiles = []
     input_files = []
     for tool in attrs.tools_data:
-        tools.append(tool.path)
-        if tool.target:
-            for file_list in tool.target.files.to_list():
-                tools_files += _list(file_list)
+        if tool.target and getattr(tool, "stage_runtime", False):
+            tools_files += tool.runtime_files.to_list()
+            runfiles_files = tool.runfiles_files.to_list()
+            runfiles_manifest = tool.runfiles_manifest
+            repo_mapping_manifest = tool.repo_mapping_manifest
+            if runfiles_files or runfiles_manifest or repo_mapping_manifest:
+                tools_runfiles.append(struct(
+                    files = runfiles_files,
+                    invoke_path = tool.invoke_path,
+                    runfiles_manifest = runfiles_manifest,
+                    repo_mapping_manifest = repo_mapping_manifest,
+                    staged_path = tool.path,
+                ))
 
     # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:
@@ -1159,13 +1196,17 @@ def _define_inputs(attrs):
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
-        tools_files = tools,
+        tools_files = tools_files,
+        tools_runfiles = tools_runfiles,
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,
         declared_inputs = filter_containing_dirs_from_inputs(attrs.lib_source.files.to_list()) +
                           bazel_libs +
                           tools_files +
+                          [runfile for tool in tools_runfiles for runfile in tool.files] +
+                          [tool.runfiles_manifest for tool in tools_runfiles if tool.runfiles_manifest] +
+                          [tool.repo_mapping_manifest for tool in tools_runfiles if tool.repo_mapping_manifest] +
                           input_files +
                           cc_info_merged.compilation_context.headers.to_list() + _collect_libs(cc_info_merged.linking_context) +
                           ext_build_dirs,

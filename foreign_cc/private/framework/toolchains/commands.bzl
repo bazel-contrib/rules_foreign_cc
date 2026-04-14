@@ -73,8 +73,27 @@ PLATFORM_COMMANDS = {
                 doc = "Source directory, immediate children of which are copied",
             ),
             _argument_info(name = "target", data_type = type(""), doc = "Target directory"),
+            _argument_info(
+                name = "flatten_timestamps",
+                data_type = type(""),
+                doc = "If True, flatten all file timestamps to the source directory mtime (prevents autotools reruns)",
+            ),
         ],
         doc = "Copies contents of the directory to target directory",
+    ),
+    "copy_file": _command_info(
+        arguments = [
+            _argument_info(name = "source", data_type = type(""), doc = "Source file"),
+            _argument_info(name = "target", data_type = type(""), doc = "Target file"),
+        ],
+        doc = "Copies a file to an exact target path",
+    ),
+    "copy_file_to_dir": _command_info(
+        arguments = [
+            _argument_info(name = "source", data_type = type(""), doc = "Source file"),
+            _argument_info(name = "target", data_type = type(""), doc = "Target directory"),
+        ],
+        doc = "Copies a file into the target directory",
     ),
     "define_absolute_paths": _command_info(
         arguments = [
