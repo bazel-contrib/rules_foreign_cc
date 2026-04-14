@@ -2,6 +2,18 @@
 
 load(":commands.bzl", "FunctionAndCallInfo")
 
+def _strip_outer_quotes(val):
+    """Remove one layer of surrounding double-quotes if present.
+
+    The ##command## arg1 arg2 directive parser (split_arguments) keeps quoted
+    tokens together but includes the quotes in the value.  Platform command
+    functions already add their own quotes, so we strip the outer layer to
+    avoid double-quoting.
+    """
+    if len(val) >= 2 and val[0] == '"' and val[-1] == '"':
+        return val[1:-1]
+    return val
+
 def shebang():
     return "#!/usr/bin/env bash"
 
@@ -57,7 +69,7 @@ def disable_tracing():
     return "set +x"
 
 def mkdirs(path):
-    return "mkdir -p \"{path}\"".format(path = path)
+    return "mkdir -p \"{path}\"".format(path = _strip_outer_quotes(path))
 
 def rm_rf(path):
     return "rm -rf \"{path}\"".format(path = path)
@@ -107,8 +119,47 @@ fi
 """,
     )
 
-def copy_dir_contents_to_dir(source, target):
-    return """cp -L -r --no-target-directory "{source}" "{target}" && $REAL_FIND "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+def copy_dir_contents_to_dir(source, target, flatten_timestamps):
+    """Copy directory contents to target, optionally flattening timestamps.
+
+    Args:
+        source: Source directory whose contents are copied.
+        target: Target directory.
+        flatten_timestamps: If "True", set all file timestamps to the source
+            directory mtime (prevents autotools regeneration).
+
+    Returns:
+        str: Shell command string.
+    """
+    source = _strip_outer_quotes(source)
+    target = _strip_outer_quotes(target)
+    if flatten_timestamps == "True":
+        return """cp -L -r --no-target-directory "{source}" "{target}" && $REAL_FIND "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+            source = source,
+            target = target,
+        )
+
+    # Without flatten_timestamps we skip -L (dereference symlinks) and
+    # tolerate "File exists" errors.  Runfiles trees contain repo-mapping
+    # symlinks (apparent → canonical) that create duplicate destination
+    # paths; cp errors on the second copy but the file is already present.
+    return """cp -r --no-target-directory "{source}" "{target}" 2>&1 | grep -v "File exists" >&2 || true""".format(
+        source = source,
+        target = target,
+    )
+
+def copy_file_to_dir(source, target):
+    source = _strip_outer_quotes(source)
+    target = _strip_outer_quotes(target)
+    return """cp -L "{source}" "{target}/" && touch -r "{source}" "{target}/$(basename "{source}")" """.format(
+        source = source,
+        target = target,
+    )
+
+def copy_file(source, target):
+    source = _strip_outer_quotes(source)
+    target = _strip_outer_quotes(target)
+    return """cp -L "{source}" "{target}" && touch -r "{source}" "{target}" """.format(
         source = source,
         target = target,
     )
@@ -323,6 +374,8 @@ commands = struct(
     children_to_path = children_to_path,
     cleanup_function = cleanup_function,
     copy_dir_contents_to_dir = copy_dir_contents_to_dir,
+    copy_file_to_dir = copy_file_to_dir,
+    copy_file = copy_file,
     define_absolute_paths = define_absolute_paths,
     define_function = define_function,
     define_sandbox_paths = define_sandbox_paths,

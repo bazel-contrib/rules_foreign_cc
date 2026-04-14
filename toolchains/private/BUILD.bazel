@@ -70,6 +70,12 @@ native_tool_toolchain(
         "@platforms//os:windows": "$(execpath :cmake_tool)/bin/cmake.exe",
         "//conditions:default": "$(execpath :cmake_tool)/bin/cmake",
     }),
+    # cmake_tool is a staged install tree, not a standalone executable. Run it
+    # from the staged tree so CMAKE_ROOT and companion tools resolve correctly.
+    staged_path = select({
+        "@platforms//os:windows": "tools/cmake_tool_default/bin/cmake.exe",
+        "//conditions:default": "tools/cmake_tool_default/bin/cmake",
+    }),
     target = ":cmake_tool",
 )
 
@@ -152,6 +158,10 @@ native_tool_toolchain(
         "REAL_MESON": "$(rlocationpath @meson_src//:meson.py)",
     },
     path = "$(execpath :meson_tool)",
+    staged_path = select({
+        "@platforms//os:windows": "bin/meson_tool.exe",
+        "//conditions:default": "bin/meson_tool",
+    }),
     target = ":meson_tool",
     tools = ["@meson_src//:meson.py"],
 )

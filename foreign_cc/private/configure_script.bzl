@@ -37,7 +37,7 @@ def create_configure_script(
     root_path = "$$EXT_BUILD_ROOT$$/{}".format(root)
     configure_path = "{}/{}".format(root_path, configure_command)
     if configure_in_place:
-        script.append("##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
+        script.append("##copy_dir_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$ True".format(root))
         root_path = "$$BUILD_TMPDIR$$"
         configure_path = "{}/{}".format(root_path, configure_command)
 
@@ -98,7 +98,7 @@ def create_configure_script(
 
     script.extend(make_commands)
     script.append("##disable_tracing##")
-    script.append("##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n")
+    script.append("##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$ True\n")
 
     return script
 
