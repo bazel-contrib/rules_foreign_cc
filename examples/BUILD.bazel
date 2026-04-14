@@ -9,6 +9,17 @@ test_suite(
     tests = ["@rules_foreign_cc_examples_third_party//:all_tests"],
 )
 
+test_suite(
+    name = "tool_staging_smoke_tests",
+    tests = [
+        "//meson_simple:test_introspect",
+        "//meson_simple:test_lib_default",
+        "//meson_simple:test_lib_tiny",
+        "//meson_with_requirements:test_hello_prog_python",
+        "//meson_with_requirements:test_hello_runpython",
+    ],
+)
+
 compile_pip_requirements(
     name = "requirements",
     requirements_in = "requirements.txt",

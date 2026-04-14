@@ -283,8 +283,6 @@ def meson_with_requirements(name, requirements, **kwargs):
 
     meson_tool(
         name = "meson_tool_for_{}".format(name),
-        main = "@meson_src//:meson.py",
-        data = ["@meson_src//:runtime"],
         requirements = requirements,
         tags = tags + ["manual"],
     )
@@ -293,11 +291,13 @@ def meson_with_requirements(name, requirements, **kwargs):
         name = "built_meson_for_{}".format(name),
         env = {
             "MESON": "$(execpath :meson_tool_for_{})".format(name),
-            "REAL_MESON": "$(rlocationpath @meson_src//:meson.py)",
         },
         path = "$(execpath :meson_tool_for_{})".format(name),
+        staged_path = select({
+            "@platforms//os:windows": "bin/meson_tool_for_{}".format(name),
+            "//conditions:default": "",
+        }),
         target = ":meson_tool_for_{}".format(name),
-        tools = ["@meson_src//:meson.py"],
     )
 
     native.toolchain(
