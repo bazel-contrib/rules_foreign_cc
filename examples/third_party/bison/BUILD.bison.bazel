@@ -13,9 +13,18 @@ filegroup(
 # I tested and this builds for me on macOS and Linux, did not check Windows
 configure_make(
     name = "bison",
+    # gnulib's iconv_open-*.h regeneration rules invoke gperf unconditionally,
+    # and timestamp skew can trigger help2man and yacc/bison regeneration.
+    # configure_in_place gives us a writable copy with flattened (equal)
+    # timestamps, which prevents make from seeing stale outputs.
+    args = [
+        "GPERF=true",
+        "HELP2MAN=true",
+    ],
     build_data = [
         "@m4//:m4_exe",
     ],
+    configure_in_place = True,
     env = {
         "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
         "PERL": "$$EXT_BUILD_ROOT/$(PERL)",

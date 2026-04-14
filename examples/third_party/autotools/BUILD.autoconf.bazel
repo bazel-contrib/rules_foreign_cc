@@ -12,6 +12,9 @@ filegroup(
 
 configure_make(
     name = "autoconf",
+    # Suppress help2man regeneration; it's not available in the sandbox and
+    # the tarball ships pre-built man pages.
+    args = ["HELP2MAN=true"],
     build_data = [
         "@m4//:m4_exe",
     ],
