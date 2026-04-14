@@ -5,6 +5,9 @@ load("@bazel_lib//lib:resource_sets.bzl", "resource_set_for")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo", "int_flag", "string_flag")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
+_PARALLELISM_OVERCOMMIT_DEFAULT = 2
+_PARALLELISM_OVERCOMMIT_SETTING = "parallelism_overcommit"
+
 _DEFAULT_SIZE = "default"
 _SIZES = {
     "enormous": {
@@ -56,11 +59,20 @@ def _setting(size, resource, mode):
 def create_settings():
     """create the settings that configure these functions."""
     settings = {
-        "size_default": {
+        _PARALLELISM_OVERCOMMIT_SETTING: {
             "sort_key": (0, 0, 0, ""),
+            "value": _PARALLELISM_OVERCOMMIT_DEFAULT,
+        },
+        "size_default": {
+            "sort_key": (0, 0, 1, ""),
             "value": _DEFAULT_SIZE,
         },
     }
+    int_flag(
+        name = _PARALLELISM_OVERCOMMIT_SETTING,
+        build_setting_default = _PARALLELISM_OVERCOMMIT_DEFAULT,
+        visibility = ["//visibility:public"],
+    )
     string_flag(
         name = "size_default",
         build_setting_default = _DEFAULT_SIZE,
@@ -123,22 +135,31 @@ SIZE_ATTRIBUTES = {
         default = _DEFAULT_SIZE,
         mandatory = False,
         doc = """\
-Set the approximate size of this build. This does two things:
-1. Sets the environment variables to tell the underlying build system the
-   requested parallelization; examples are CMAKE_BUILD_PARALLEL_LEVEL for cmake
-   or MAKEFLAGS for autotools.
-2. Sets the resource_set attribute on the action to tell bazel how many cores
-   are being used, so it schedules appropriately.
+Set the approximate size of this build, which controls two things:
 
-The sizes map to labels, which can be used to override the meaning of the
-sizes. See @rules_foreign_cc//foreign_cc/settings:size_{size}_{cpu|mem}.
-Running `bazel run @rules_foreign_cc//foreign_cc/settings` will print out all
-the settings in bazelrc format for easy customization.
+1. The Bazel scheduler reservation, so large builds don't all run at once.
+2. The parallelism passed to the underlying build system via environment
+   variables (CMAKE_BUILD_PARALLEL_LEVEL, GNUMAKEFLAGS, NINJA_JOBS, etc.).
 
-The `serial` size is special: it sets cpu=1, and provides no override for cpu
-(just mem), so `serial` can be used for packages that are known-broken for
-parallelization.
+Build tool parallelism is set to the scheduler reservation plus a small
+overcommit (default +2, matching ninja's ncpus+2 convention). This hides
+I/O latency and lets configure_make targets — whose configure phase is
+always serial — make better use of their allocation during the parallel
+make phase. The overcommit can be tuned with
+@rules_foreign_cc//foreign_cc/settings:parallelism_overcommit.
+
+Each size maps to a cpu and mem value that can be overridden per-size.
+See @rules_foreign_cc//foreign_cc/settings:size_{size}_{cpu|mem}, or run
+`bazel run @rules_foreign_cc//foreign_cc/settings` to print all settings
+in bazelrc format.
+
+The `serial` size is special: it fixes cpu=1 with no overcommit, for
+packages that are known-broken under parallel builds.
 """,
+    ),
+    "_parallelism_overcommit": attr.label(
+        default = "//foreign_cc/settings:" + _PARALLELISM_OVERCOMMIT_SETTING,
+        providers = [BuildSettingInfo],
     ),
 } | {
     _setting(size = size, resource = resource, mode = "key"): attr.label(
@@ -170,10 +191,13 @@ def get_resource_set(attr):
     Args:
         attr: the ctx.attr associated with the target
     Returns:
-        A tuple of:
-            - the resource_set, or None if it's the bazel default
-            - cpu_cores, or 0 if it's the bazel default
-            - mem in MB, or 0 if it's the bazel default
+        A struct with:
+            - resource_set: the resource_set callback, or None if bazel default
+            - cpu: cpu_cores, or 0 if bazel default
+            - mem: mem in MB, or 0 if bazel default
+            - allow_cpu_overcommit: True if the build tool may use more
+              parallelism than the scheduler reservation (False for sizes
+              like "serial" that must enforce an exact -j value)
     """
     size = _DEFAULT_SIZE
     if attr.resource_size != _DEFAULT_SIZE:
@@ -182,7 +206,12 @@ def get_resource_set(attr):
         size = _get_size_config(attr, _DEFAULT_SIZE, None)
 
     if size == _DEFAULT_SIZE:
-        return None, 0, 0
+        return struct(
+            resource_set = None,
+            cpu = 0,
+            mem = 0,
+            allow_cpu_overcommit = False,
+        )
 
     cfg = _SIZES[size]
     cpu_value = cfg["cpu"] if _is_fixed(cfg, "cpu") else _get_size_config(attr, size, "cpu")
@@ -207,7 +236,12 @@ def get_resource_set(attr):
         actual_cpu = 0
         actual_mem = 0
 
-    return resource_set, actual_cpu, actual_mem
+    return struct(
+        resource_set = resource_set,
+        cpu = actual_cpu,
+        mem = actual_mem,
+        allow_cpu_overcommit = not _is_fixed(cfg, "cpu"),
+    )
 
 def get_resource_env_vars(attr):
     """ get the values of env vars controlling parallelism
@@ -225,28 +259,29 @@ def get_resource_env_vars(attr):
         dict[str, str] to pass to run/run_shell
     """
 
-    resource_set, cpu, _mem = get_resource_set(attr)
+    resources = get_resource_set(attr)
 
     env = None
-    if cpu > 0:
-        sc = str(cpu)
+    if resources.cpu > 0:
+        overcommit = attr._parallelism_overcommit[BuildSettingInfo].value if resources.allow_cpu_overcommit else 0
+        parallelism = str(resources.cpu + overcommit)
         env = {
-            "CMAKE_BUILD_PARALLEL_LEVEL": sc,
+            "CMAKE_BUILD_PARALLEL_LEVEL": parallelism,
 
             # we set GNUMAKEFLAGS instead of MAKEFLAGS because nmake sees
             # MAKEFLAGS but doesn't accept a -j argument, and we don't have a
             # good way of being sure that nmake isn't going to be used as part
             # of a build.
-            "GNUMAKEFLAGS": "-j" + sc,
+            "GNUMAKEFLAGS": "-j" + parallelism,
 
             # Meson starts to honor this as of 1.7.0; before that, it only uses
             # ninja's parallelization controls.
-            "MESON_NUM_PROCESSES": sc,
+            "MESON_NUM_PROCESSES": parallelism,
 
             # Note that ninja does not honor this by default; it's our wrapper
             # script that handles this.
             # https://github.com/ninja-build/ninja/issues/1482
-            "NINJA_JOBS": sc,
+            "NINJA_JOBS": parallelism,
         }
 
-    return resource_set, env
+    return resources.resource_set, env

@@ -34,7 +34,7 @@ env_test_make(
         # Note that we set GNUMAKEFLAGS, but make itself will convert it into
         # MAKEFLAGS, so we'll just see MAKEFLAGS set here
         "GNUMAKEFLAGS": "",
-        "MAKEFLAGS": " -j1 -- PREFIX={{INSTALLDIR}}",
+        "MAKEFLAGS": " -j3 --jobserver-auth={{JOBSERVER}} -- PREFIX={{INSTALLDIR}}",
     },
     make_attrs = {
         "resource_size": "tiny",
@@ -62,7 +62,7 @@ env_test_ninja(
 env_test_ninja(
     name = "ninja_tiny",
     check_shellvars = STANDARD_VARS | {
-        "NINJA_JOBS": "1",
+        "NINJA_JOBS": "3",
     },
     ninja_attrs = {
         "resource_size": "tiny",
@@ -80,8 +80,8 @@ env_test_meson(
 env_test_meson(
     name = "meson_tiny",
     check_shellvars = STANDARD_VARS | {
-        "MESON_NUM_PROCESSES": "1",
-        "NINJA_JOBS": "1",
+        "MESON_NUM_PROCESSES": "3",
+        "NINJA_JOBS": "3",
     },
     meson_attrs = {
         "resource_size": "tiny",
@@ -121,12 +121,12 @@ env_test_cmake(
         # since we replace the binary dir, this overrides the STANDARD_VARS
         "BUILD_TMPDIR": "{{CMAKE_BINARY_DIR}}",
         "CMAKEVARS_FILE": "{{INSTALLDIR}}/cmakevars.out",
-        "CMAKE_BUILD_PARALLEL_LEVEL": "1",
+        "CMAKE_BUILD_PARALLEL_LEVEL": "3",
         # Note that we set GNUMAKEFLAGS, but make itself will convert it into
         # MAKEFLAGS, so for the cmake test we won't see it converted yet.
-        "GNUMAKEFLAGS": "-j1",
+        "GNUMAKEFLAGS": "-j3",
         "MAKEFLAGS": "",
-        "NINJA_JOBS": "1",
+        "NINJA_JOBS": "3",
     },
     cmake_attrs = {
         "resource_size": "tiny",
@@ -161,7 +161,7 @@ env_test_configure_make(
         # since we replace the builddir, this overrides the STANDARD_VARS
         "BUILD_TMPDIR": "{{abs_builddir}}",
         "INSTALLDIR": "{{INSTALLDIR}}",
-        "MAKEFLAGS": " -j1",
+        "MAKEFLAGS": " -j3 --jobserver-auth={{JOBSERVER}}",
         "abs_builddir": "{{abs_builddir}}",
         "abs_srcdir": "{{abs_srcdir}}",
     },
@@ -169,7 +169,7 @@ env_test_configure_make(
         # since we replace the builddir, this overrides the STANDARD_VARS
         "BUILD_TMPDIR": "{{abs_builddir}}",
         "INSTALLDIR": "{{INSTALLDIR}}",
-        "MAKEFLAGS": " -j1",
+        "MAKEFLAGS": " -j3 --jobserver-auth={{JOBSERVER}}",
     },
     configure_make_attrs = {
         "resource_size": "tiny",

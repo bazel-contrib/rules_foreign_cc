@@ -6,6 +6,7 @@ all:
 		# Note that this is order-sensitive, since INSTALLDIR is a subdir of \
 		# EXT_BUILD_ROOT and we want the replacement to be most specific first. \
 		sed -i.bak \
+			-e 's|--jobserver-auth=[^ ]*|--jobserver-auth={{JOBSERVER}}|g' \
 			-e 's|$(BUILD_TMPDIR)|{{BUILD_TMPDIR}}|g' \
 			-e 's|$(EXT_BUILD_DEPS)|{{EXT_BUILD_DEPS}}|g' \
 			-e 's|$(INSTALLDIR)|{{INSTALLDIR}}|g' \

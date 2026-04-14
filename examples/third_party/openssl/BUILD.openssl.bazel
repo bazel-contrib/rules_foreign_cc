@@ -78,6 +78,7 @@ configure_make_variant(
         "libssl-1_1-x64.dll",
         "libcrypto-1_1-x64.dll",
     ],
+    resource_size = "enormous",
     target_compatible_with = select({
         "@platforms//os:windows": [],
         "//conditions:default": ["@platforms//:incompatible"],
@@ -126,6 +127,7 @@ configure_make(
         ]),
         "//conditions:default": "",
     }),
+    resource_size = "enormous",
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
