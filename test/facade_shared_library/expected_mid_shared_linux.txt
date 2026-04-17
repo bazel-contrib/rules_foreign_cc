@@ -1,0 +1,7 @@
+default_files=libmid_shared.so
+main_shared_library_output=libmid_shared.so
+interface_library=libmid_shared.so
+exports=//test/facade_shared_library:mid
+dynamic_deps=//test/facade_shared_library:leaf_shared
+link_once_static_libs=//test/facade_shared_library:mid
+linker_input=dynamic=libmid_shared.so|interface=|static=|pic_static=

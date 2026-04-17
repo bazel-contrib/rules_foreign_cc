@@ -1,0 +1,1 @@
+//test/native_static_library:prebuilt_dep

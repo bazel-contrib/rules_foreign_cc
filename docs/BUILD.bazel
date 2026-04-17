@@ -78,12 +78,23 @@ stardoc(
     ],
 )
 
+stardoc(
+    name = "facade_docs",
+    out = "src/facade.md",
+    input = "@rules_foreign_cc//foreign_cc:facade.bzl",
+    deps = [
+        ":rules_cc_deps",
+        "@rules_foreign_cc//foreign_cc:facade",
+    ],
+)
+
 DOCS_TARGETS = [
     ":cmake_docs",
     ":ninja_docs",
     ":make_docs",
     ":configure_make_docs",
     ":meson_docs",
+    ":facade_docs",
     ":providers_docs",
 ]
 

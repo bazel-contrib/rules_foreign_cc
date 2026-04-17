@@ -58,10 +58,20 @@ bzl_library(
         ":boost_build",
         ":cmake",
         ":configure",
+        ":facade",
         ":make",
         ":meson",
         ":ninja",
         ":utils",
+    ],
+)
+
+bzl_library(
+    name = "facade",
+    srcs = ["facade.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//foreign_cc/private:facade_rules",
     ],
 )
 

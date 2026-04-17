@@ -1,0 +1,866 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//foreign_cc:defs.bzl", "cmake", "foreign_cc_library")
+load("//test:facade_test_utils.bzl", "select_foreign_output")
+load(":tests.bzl", "foreign_chain_matches_native_test")
+
+package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+filegroup(
+    name = "leaf_srcs",
+    srcs = ["leaf_proj/CMakeLists.txt"] + [
+        "include/leaf.h",
+        "src/leaf.c",
+    ],
+)
+
+filegroup(
+    name = "mid_srcs",
+    srcs = ["mid_proj/CMakeLists.txt"] + [
+        "include/leaf.h",
+        "include/mid.h",
+        "src/mid.c",
+    ],
+)
+
+filegroup(
+    name = "top_srcs",
+    srcs = ["top_proj/CMakeLists.txt"] + [
+        "include/mid.h",
+        "include/top.h",
+        "src/top.c",
+    ],
+)
+
+cmake(
+    name = "leaf_raw",
+    generate_crosstool_file = False,
+    lib_source = ":leaf_srcs",
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": ["leaf.lib"],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": ["libleaf.dylib"],
+        ":windows": ["leaf.dll"],
+        "//conditions:default": ["libleaf.so"],
+    }),
+    out_static_libs = select({
+        ":windows": ["leaf_static.lib"],
+        "//conditions:default": ["libleaf.a"],
+    }),
+)
+
+select_foreign_output(
+    name = "leaf_shared",
+    src = ":leaf_raw",
+    basename = select({
+        ":macos": "libleaf.dylib",
+        ":windows": "leaf.dll",
+        "//conditions:default": "libleaf.so",
+    }),
+)
+
+select_foreign_output(
+    name = "leaf_static",
+    src = ":leaf_raw",
+    basename = select({
+        ":windows": "leaf_static.lib",
+        "//conditions:default": "libleaf.a",
+    }),
+)
+
+select_foreign_output(
+    name = "leaf_interface",
+    src = ":leaf_raw",
+    basename = "leaf.lib",
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_import(
+    name = "leaf_import",
+    hdrs = ["include/leaf.h"],
+    interface_library = select({
+        ":windows": ":leaf_interface",
+        "//conditions:default": None,
+    }),
+    shared_library = ":leaf_shared",
+    static_library = ":leaf_static",
+    alwayslink = True,
+)
+
+cc_library(
+    name = "leaf_native",
+    defines = ["LEAF_CHAIN_DEFINE=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:kernel32.lib"],
+        "//conditions:default": ["-lm"],
+    }),
+    linkstatic = False,
+    deps = [":leaf_import"],
+)
+
+foreign_cc_library(
+    name = "leaf_foreign",
+    src = ":leaf_raw",
+    defines = ["LEAF_CHAIN_DEFINE=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:kernel32.lib"],
+        "//conditions:default": ["-lm"],
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+    alwayslink = True,
+)
+
+cmake(
+    name = "mid_raw_n",
+    generate_crosstool_file = False,
+    lib_source = ":mid_srcs",
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": ["mid.lib"],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": ["libmid.dylib"],
+        ":windows": ["mid.dll"],
+        "//conditions:default": ["libmid.so"],
+    }),
+    out_static_libs = select({
+        ":windows": ["mid_static.lib"],
+        "//conditions:default": ["libmid.a"],
+    }),
+    deps = [":leaf_native"],
+)
+
+cmake(
+    name = "mid_raw_f",
+    generate_crosstool_file = False,
+    lib_source = ":mid_srcs",
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": ["mid.lib"],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": ["libmid.dylib"],
+        ":windows": ["mid.dll"],
+        "//conditions:default": ["libmid.so"],
+    }),
+    out_static_libs = select({
+        ":windows": ["mid_static.lib"],
+        "//conditions:default": ["libmid.a"],
+    }),
+    deps = [":leaf_foreign"],
+)
+
+select_foreign_output(
+    name = "mid_shared_n",
+    src = ":mid_raw_n",
+    basename = select({
+        ":macos": "libmid.dylib",
+        ":windows": "mid.dll",
+        "//conditions:default": "libmid.so",
+    }),
+)
+
+select_foreign_output(
+    name = "mid_static_n",
+    src = ":mid_raw_n",
+    basename = select({
+        ":windows": "mid_static.lib",
+        "//conditions:default": "libmid.a",
+    }),
+)
+
+select_foreign_output(
+    name = "mid_interface_n",
+    src = ":mid_raw_n",
+    basename = "mid.lib",
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+select_foreign_output(
+    name = "mid_shared_f",
+    src = ":mid_raw_f",
+    basename = select({
+        ":macos": "libmid.dylib",
+        ":windows": "mid.dll",
+        "//conditions:default": "libmid.so",
+    }),
+)
+
+select_foreign_output(
+    name = "mid_static_f",
+    src = ":mid_raw_f",
+    basename = select({
+        ":windows": "mid_static.lib",
+        "//conditions:default": "libmid.a",
+    }),
+)
+
+select_foreign_output(
+    name = "mid_interface_f",
+    src = ":mid_raw_f",
+    basename = "mid.lib",
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_import(
+    name = "mid_import_n",
+    hdrs = ["include/mid.h"],
+    interface_library = select({
+        ":windows": ":mid_interface_n",
+        "//conditions:default": None,
+    }),
+    shared_library = ":mid_shared_n",
+    static_library = ":mid_static_n",
+)
+
+cc_import(
+    name = "mid_import_f",
+    hdrs = ["include/mid.h"],
+    interface_library = select({
+        ":windows": ":mid_interface_f",
+        "//conditions:default": None,
+    }),
+    shared_library = ":mid_shared_f",
+    static_library = ":mid_static_f",
+)
+
+cc_library(
+    name = "mid_native_n",
+    defines = ["MID_CHAIN_DEFINE_N=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:user32.lib"],
+        "//conditions:default": ["-pthread"],
+    }),
+    linkstatic = False,
+    deps = [
+        ":leaf_native",
+        ":mid_import_n",
+    ],
+)
+
+cc_library(
+    name = "mid_native_f",
+    defines = ["MID_CHAIN_DEFINE_F=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:user32.lib"],
+        "//conditions:default": ["-pthread"],
+    }),
+    linkstatic = False,
+    deps = [
+        ":leaf_foreign",
+        ":mid_import_f",
+    ],
+)
+
+foreign_cc_library(
+    name = "mid_foreign_n",
+    src = ":mid_raw_n",
+    defines = ["MID_CHAIN_DEFINE_N=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:user32.lib"],
+        "//conditions:default": ["-pthread"],
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_library(
+    name = "mid_foreign_f",
+    src = ":mid_raw_f",
+    defines = ["MID_CHAIN_DEFINE_F=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:user32.lib"],
+        "//conditions:default": ["-pthread"],
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+cmake(
+    name = "top_raw_nn",
+    generate_crosstool_file = False,
+    lib_source = ":top_srcs",
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": ["top.lib"],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": ["libtop.dylib"],
+        ":windows": ["top.dll"],
+        "//conditions:default": ["libtop.so"],
+    }),
+    out_static_libs = select({
+        ":windows": ["top_static.lib"],
+        "//conditions:default": ["libtop.a"],
+    }),
+    deps = [":mid_native_n"],
+)
+
+cmake(
+    name = "top_raw_nf",
+    generate_crosstool_file = False,
+    lib_source = ":top_srcs",
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": ["top.lib"],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": ["libtop.dylib"],
+        ":windows": ["top.dll"],
+        "//conditions:default": ["libtop.so"],
+    }),
+    out_static_libs = select({
+        ":windows": ["top_static.lib"],
+        "//conditions:default": ["libtop.a"],
+    }),
+    deps = [":mid_foreign_n"],
+)
+
+cmake(
+    name = "top_raw_fn",
+    generate_crosstool_file = False,
+    lib_source = ":top_srcs",
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": ["top.lib"],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": ["libtop.dylib"],
+        ":windows": ["top.dll"],
+        "//conditions:default": ["libtop.so"],
+    }),
+    out_static_libs = select({
+        ":windows": ["top_static.lib"],
+        "//conditions:default": ["libtop.a"],
+    }),
+    deps = [":mid_native_f"],
+)
+
+cmake(
+    name = "top_raw_ff",
+    generate_crosstool_file = False,
+    lib_source = ":top_srcs",
+    out_include_dir = "include",
+    out_interface_libs = select({
+        ":windows": ["top.lib"],
+        "//conditions:default": [],
+    }),
+    out_shared_libs = select({
+        ":macos": ["libtop.dylib"],
+        ":windows": ["top.dll"],
+        "//conditions:default": ["libtop.so"],
+    }),
+    out_static_libs = select({
+        ":windows": ["top_static.lib"],
+        "//conditions:default": ["libtop.a"],
+    }),
+    deps = [":mid_foreign_f"],
+)
+
+select_foreign_output(
+    name = "top_shared_nn",
+    src = ":top_raw_nn",
+    basename = select({
+        ":macos": "libtop.dylib",
+        ":windows": "top.dll",
+        "//conditions:default": "libtop.so",
+    }),
+)
+
+select_foreign_output(
+    name = "top_static_nn",
+    src = ":top_raw_nn",
+    basename = select({
+        ":windows": "top_static.lib",
+        "//conditions:default": "libtop.a",
+    }),
+)
+
+select_foreign_output(
+    name = "top_interface_nn",
+    src = ":top_raw_nn",
+    basename = "top.lib",
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+select_foreign_output(
+    name = "top_shared_nf",
+    src = ":top_raw_nf",
+    basename = select({
+        ":macos": "libtop.dylib",
+        ":windows": "top.dll",
+        "//conditions:default": "libtop.so",
+    }),
+)
+
+select_foreign_output(
+    name = "top_static_nf",
+    src = ":top_raw_nf",
+    basename = select({
+        ":windows": "top_static.lib",
+        "//conditions:default": "libtop.a",
+    }),
+)
+
+select_foreign_output(
+    name = "top_interface_nf",
+    src = ":top_raw_nf",
+    basename = "top.lib",
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+select_foreign_output(
+    name = "top_shared_fn",
+    src = ":top_raw_fn",
+    basename = select({
+        ":macos": "libtop.dylib",
+        ":windows": "top.dll",
+        "//conditions:default": "libtop.so",
+    }),
+)
+
+select_foreign_output(
+    name = "top_static_fn",
+    src = ":top_raw_fn",
+    basename = select({
+        ":windows": "top_static.lib",
+        "//conditions:default": "libtop.a",
+    }),
+)
+
+select_foreign_output(
+    name = "top_interface_fn",
+    src = ":top_raw_fn",
+    basename = "top.lib",
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+select_foreign_output(
+    name = "top_shared_ff",
+    src = ":top_raw_ff",
+    basename = select({
+        ":macos": "libtop.dylib",
+        ":windows": "top.dll",
+        "//conditions:default": "libtop.so",
+    }),
+)
+
+select_foreign_output(
+    name = "top_static_ff",
+    src = ":top_raw_ff",
+    basename = select({
+        ":windows": "top_static.lib",
+        "//conditions:default": "libtop.a",
+    }),
+)
+
+select_foreign_output(
+    name = "top_interface_ff",
+    src = ":top_raw_ff",
+    basename = "top.lib",
+    target_compatible_with = select({
+        ":windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_import(
+    name = "top_import_nn",
+    hdrs = ["include/top.h"],
+    interface_library = select({
+        ":windows": ":top_interface_nn",
+        "//conditions:default": None,
+    }),
+    shared_library = ":top_shared_nn",
+    static_library = ":top_static_nn",
+)
+
+cc_import(
+    name = "top_import_nf",
+    hdrs = ["include/top.h"],
+    interface_library = select({
+        ":windows": ":top_interface_nf",
+        "//conditions:default": None,
+    }),
+    shared_library = ":top_shared_nf",
+    static_library = ":top_static_nf",
+)
+
+cc_import(
+    name = "top_import_fn",
+    hdrs = ["include/top.h"],
+    interface_library = select({
+        ":windows": ":top_interface_fn",
+        "//conditions:default": None,
+    }),
+    shared_library = ":top_shared_fn",
+    static_library = ":top_static_fn",
+)
+
+cc_import(
+    name = "top_import_ff",
+    hdrs = ["include/top.h"],
+    interface_library = select({
+        ":windows": ":top_interface_ff",
+        "//conditions:default": None,
+    }),
+    shared_library = ":top_shared_ff",
+    static_library = ":top_static_ff",
+)
+
+cc_library(
+    name = "top_native_nn",
+    defines = ["TOP_CHAIN_DEFINE_NN=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
+    linkstatic = False,
+    deps = [
+        ":mid_native_n",
+        ":top_import_nn",
+    ],
+)
+
+cc_library(
+    name = "top_native_nf",
+    defines = ["TOP_CHAIN_DEFINE_NF=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
+    linkstatic = False,
+    deps = [
+        ":mid_foreign_n",
+        ":top_import_nf",
+    ],
+)
+
+cc_library(
+    name = "top_native_fn",
+    defines = ["TOP_CHAIN_DEFINE_FN=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
+    linkstatic = False,
+    deps = [
+        ":mid_native_f",
+        ":top_import_fn",
+    ],
+)
+
+cc_library(
+    name = "top_native_ff",
+    defines = ["TOP_CHAIN_DEFINE_FF=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
+    linkstatic = False,
+    deps = [
+        ":mid_foreign_f",
+        ":top_import_ff",
+    ],
+)
+
+foreign_cc_library(
+    name = "top_foreign_nn",
+    src = ":top_raw_nn",
+    defines = ["TOP_CHAIN_DEFINE_NN=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_library(
+    name = "top_foreign_nf",
+    src = ":top_raw_nf",
+    defines = ["TOP_CHAIN_DEFINE_NF=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_library(
+    name = "top_foreign_fn",
+    src = ":top_raw_fn",
+    defines = ["TOP_CHAIN_DEFINE_FN=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+foreign_cc_library(
+    name = "top_foreign_ff",
+    src = ":top_raw_ff",
+    defines = ["TOP_CHAIN_DEFINE_FF=1"],
+    includes = ["include"],
+    linkopts = select({
+        ":windows": ["/DEFAULTLIB:advapi32.lib"],
+        "//conditions:default": ["-Wl,-rpath,/tmp"],
+    }),
+    static_suffix = select({
+        ":windows": "_static",
+        "//conditions:default": "",
+    }),
+)
+
+cc_binary(
+    name = "consumer_nnn",
+    srcs = ["src/main.c"],
+    includes = ["include"],
+    linkstatic = False,
+    deps = [":top_native_nn"],
+)
+
+cc_binary(
+    name = "consumer_nnf",
+    srcs = ["src/main.c"],
+    includes = ["include"],
+    linkstatic = False,
+    deps = [":top_foreign_nn"],
+)
+
+cc_binary(
+    name = "consumer_nfn",
+    srcs = ["src/main.c"],
+    includes = ["include"],
+    linkstatic = False,
+    deps = [":top_native_nf"],
+)
+
+cc_binary(
+    name = "consumer_nff",
+    srcs = ["src/main.c"],
+    includes = ["include"],
+    linkstatic = False,
+    deps = [":top_foreign_nf"],
+)
+
+cc_binary(
+    name = "consumer_fnn",
+    srcs = ["src/main.c"],
+    includes = ["include"],
+    linkstatic = False,
+    deps = [":top_native_fn"],
+)
+
+cc_binary(
+    name = "consumer_fnf",
+    srcs = ["src/main.c"],
+    includes = ["include"],
+    linkstatic = False,
+    deps = [":top_foreign_fn"],
+)
+
+cc_binary(
+    name = "consumer_ffn",
+    srcs = ["src/main.c"],
+    includes = ["include"],
+    linkstatic = False,
+    deps = [":top_native_ff"],
+)
+
+cc_binary(
+    name = "consumer_fff",
+    srcs = ["src/main.c"],
+    includes = ["include"],
+    linkstatic = False,
+    deps = [":top_foreign_ff"],
+)
+
+foreign_chain_matches_native_test(
+    name = "top_foreign_nn_matches_native_test",
+    size = "small",
+    control = ":top_native_nn",
+    target_under_test = ":top_foreign_nn",
+)
+
+foreign_chain_matches_native_test(
+    name = "top_foreign_nf_matches_native_test",
+    size = "small",
+    control = ":top_native_nf",
+    target_under_test = ":top_foreign_nf",
+)
+
+foreign_chain_matches_native_test(
+    name = "top_foreign_fn_matches_native_test",
+    size = "small",
+    control = ":top_native_fn",
+    target_under_test = ":top_foreign_fn",
+)
+
+foreign_chain_matches_native_test(
+    name = "top_foreign_ff_matches_native_test",
+    size = "small",
+    control = ":top_native_ff",
+    target_under_test = ":top_foreign_ff",
+)
+
+sh_test(
+    name = "consumer_nnn_test",
+    size = "small",
+    srcs = ["run_chain_test.sh"],
+    args = ["test/facade_chain/consumer_nnn"],
+    data = [":consumer_nnn"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_test(
+    name = "consumer_nnf_test",
+    size = "small",
+    srcs = ["run_chain_test.sh"],
+    args = ["test/facade_chain/consumer_nnf"],
+    data = [":consumer_nnf"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_test(
+    name = "consumer_nfn_test",
+    size = "small",
+    srcs = ["run_chain_test.sh"],
+    args = ["test/facade_chain/consumer_nfn"],
+    data = [":consumer_nfn"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_test(
+    name = "consumer_nff_test",
+    size = "small",
+    srcs = ["run_chain_test.sh"],
+    args = ["test/facade_chain/consumer_nff"],
+    data = [":consumer_nff"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_test(
+    name = "consumer_fnn_test",
+    size = "small",
+    srcs = ["run_chain_test.sh"],
+    args = ["test/facade_chain/consumer_fnn"],
+    data = [":consumer_fnn"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_test(
+    name = "consumer_fnf_test",
+    size = "small",
+    srcs = ["run_chain_test.sh"],
+    args = ["test/facade_chain/consumer_fnf"],
+    data = [":consumer_fnf"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_test(
+    name = "consumer_ffn_test",
+    size = "small",
+    srcs = ["run_chain_test.sh"],
+    args = ["test/facade_chain/consumer_ffn"],
+    data = [":consumer_ffn"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_test(
+    name = "consumer_fff_test",
+    size = "small",
+    srcs = ["run_chain_test.sh"],
+    args = ["test/facade_chain/consumer_fff"],
+    data = [":consumer_fff"],
+    target_compatible_with = select({
+        ":windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)

@@ -1,0 +1,6 @@
+#ifndef TEST_NATIVE_STATIC_LIBRARY_INCLUDE_LEAF_H_
+#define TEST_NATIVE_STATIC_LIBRARY_INCLUDE_LEAF_H_
+
+int leaf_value(void);
+
+#endif

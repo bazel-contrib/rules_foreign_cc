@@ -1,0 +1,6 @@
+#ifndef TEST_NATIVE_STATIC_LIBRARY_INCLUDE_COMBO_H_
+#define TEST_NATIVE_STATIC_LIBRARY_INCLUDE_COMBO_H_
+
+int combo_value(void);
+
+#endif

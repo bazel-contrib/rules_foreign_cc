@@ -1,0 +1,6 @@
+linkopts_only_arg_1
+linkopts_only_arg_2
+linkopts_only_arg_1
+linkopts_only_arg_1
+linkopts_only_arg_2
+linkopts_only_arg_1

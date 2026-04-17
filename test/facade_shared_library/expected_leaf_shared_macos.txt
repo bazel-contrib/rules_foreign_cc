@@ -1,0 +1,7 @@
+default_files=libleaf_shared.dylib
+main_shared_library_output=libleaf_shared.dylib
+interface_library=libleaf_shared.dylib
+exports=//test/facade_shared_library:leaf
+dynamic_deps=
+link_once_static_libs=//test/facade_shared_library:leaf
+linker_input=dynamic=libleaf_shared.dylib|interface=|static=|pic_static=

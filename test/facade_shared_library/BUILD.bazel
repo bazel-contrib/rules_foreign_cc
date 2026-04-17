@@ -1,0 +1,201 @@
+load("@bazel_lib//lib:diff_test.bzl", "diff_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_shared_library")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load(":tests.bzl", "runfiles_presence_test", "runfiles_summary", "shared_library_output_summary", "shared_library_shape_summary", "shared_library_summary")
+
+package(default_visibility = ["//visibility:private"])
+
+cc_library(
+    name = "leaf",
+    srcs = ["src/leaf.c"],
+    hdrs = ["include/leaf.h"],
+    includes = ["include"],
+)
+
+cc_library(
+    name = "leaf_with_data",
+    srcs = ["src/leaf_data.c"],
+    hdrs = ["include/leaf_data.h"],
+    data = ["leaf_runtime.txt"],
+    includes = ["include"],
+    local_defines = select({
+        "@platforms//os:windows": ["LEAF_DATA_SHARED_EXPORTS"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_library(
+    name = "mid",
+    srcs = ["src/mid.c"],
+    hdrs = ["include/mid.h"],
+    includes = ["include"],
+    deps = [":leaf"],
+)
+
+cc_shared_library(
+    name = "leaf_shared",
+    deps = [":leaf"],
+)
+
+cc_shared_library(
+    name = "demo_foreign_shared_named",
+    shared_lib_name = select({
+        "@platforms//os:macos": "custom_named_leaf.dylib",
+        "@platforms//os:windows": "custom_named_leaf.dll",
+        "//conditions:default": "custom_named_leaf.so",
+    }),
+    deps = [":leaf"],
+)
+
+alias(
+    name = "leaf_shared_public",
+    actual = ":leaf_shared",
+    visibility = ["//visibility:public"],
+)
+
+cc_shared_library(
+    name = "leaf_data_shared",
+    deps = [":leaf_with_data"],
+)
+
+cc_shared_library(
+    name = "mid_shared",
+    dynamic_deps = [":leaf_shared"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    deps = [":mid"],
+)
+
+shared_library_summary(
+    name = "leaf_shared_summary",
+    target = ":leaf_shared",
+)
+
+shared_library_shape_summary(
+    name = "leaf_shared_shape_summary",
+    target = ":leaf_shared",
+    visibility = ["//visibility:public"],
+)
+
+shared_library_output_summary(
+    name = "demo_foreign_shared_named_output_summary",
+    target = ":demo_foreign_shared_named",
+    visibility = ["//visibility:public"],
+)
+
+shared_library_shape_summary(
+    name = "mid_shared_shape_summary",
+    target = ":mid_shared",
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+shared_library_summary(
+    name = "mid_shared_summary",
+    target = ":mid_shared",
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_binary(
+    name = "leaf_data_runner",
+    srcs = ["src/runner.c"],
+    dynamic_deps = [":leaf_data_shared"],
+    linkstatic = False,
+    deps = [":leaf_with_data"],
+)
+
+cc_binary(
+    name = "leaf_shared_runner",
+    srcs = ["src/shared_runner.c"],
+    dynamic_deps = [":leaf_shared"],
+)
+
+cc_binary(
+    name = "mid_shared_runner",
+    srcs = ["src/shared_runner.c"],
+    dynamic_deps = [":mid_shared"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+runfiles_summary(
+    name = "leaf_data_runner_runfiles_summary",
+    target = ":leaf_data_runner",
+)
+
+runfiles_summary(
+    name = "leaf_data_shared_runfiles_summary",
+    target = ":leaf_data_shared",
+)
+
+runfiles_presence_test(
+    name = "leaf_data_runner_runfiles_presence_test",
+    size = "small",
+    required_basenames = ["leaf_runtime.txt"],
+    target_under_test = ":leaf_data_runner",
+)
+
+sh_test(
+    name = "leaf_shared_runner_runtime_test",
+    size = "small",
+    srcs = ["//test/facade_binary:run_binary_test.sh"],
+    args = ["test/facade_shared_library/leaf_shared_runner"],
+    data = [":leaf_shared_runner"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_test(
+    name = "mid_shared_runner_runtime_test",
+    size = "small",
+    srcs = ["//test/facade_binary:run_binary_test.sh"],
+    args = ["test/facade_shared_library/mid_shared_runner"],
+    data = [":mid_shared_runner"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+runfiles_presence_test(
+    name = "leaf_data_shared_runfiles_presence_test",
+    size = "small",
+    forbidden_basenames = ["leaf_runtime.txt"],
+    target_under_test = ":leaf_data_shared",
+)
+
+diff_test(
+    name = "leaf_shared_summary_test",
+    file1 = ":leaf_shared_summary",
+    file2 = select({
+        "@platforms//os:macos": "expected_leaf_shared_macos.txt",
+        "@platforms//os:windows": "expected_leaf_shared_windows.txt",
+        "//conditions:default": "expected_leaf_shared_linux.txt",
+    }),
+)
+
+diff_test(
+    name = "mid_shared_summary_test",
+    file1 = ":mid_shared_summary",
+    file2 = select({
+        "@platforms//os:macos": "expected_mid_shared_macos.txt",
+        "@platforms//os:windows": "expected_mid_shared_windows.txt",
+        "//conditions:default": "expected_mid_shared_linux.txt",
+    }),
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)

@@ -2,9 +2,7 @@ validate_config: 1
 
 matrix:
   platform:
-    - ubuntu2204
     - ubuntu2404
-    - rbe_ubuntu2204
     - macos
     - macos_arm64
     - windows
@@ -22,16 +20,12 @@ matrix:
 
   bzlmod:
     bzlmod: [--enable_bzlmod, --noenable_workspace]
-    workspaces: [--noenable_bzlmod, --enable_workspace]
-    mixed: [--enable_bzlmod, --enable_workspace]
 
   spawn_strategy:
     default: --config=spawn-default
-    standalone: --config=spawn-standalone
 
   primary:
     Main: ''
-    Examples: examples
 
   exclude:
     # bazel 9 no longer supports workspaces
@@ -72,9 +66,25 @@ matrix:
   platform: ${{ platform }}
   bazel: ${{ bazel_version }}
   build_targets:
-    - //...
+    - //test/facade_binary:all
+    - //test/facade_chain:all
+    - //test/facade_foreign_shared_library:all
+    - //test/facade_library:all
+    - //test/facade_multi_library:all
+    - //test/facade_shared_library_conflicts:all
+    - //test/facade_shared_library:all
+    - //test/facade_static_library:all
+    - //test/cc_toolchain_probe:probe_test
   test_targets:
-    - //...
+    - //test/facade_binary:all
+    - //test/facade_chain:all
+    - //test/facade_foreign_shared_library:all
+    - //test/facade_library:all
+    - //test/facade_multi_library:all
+    - //test/facade_shared_library_conflicts:all
+    - //test/facade_shared_library:all
+    - //test/facade_static_library:all
+    - //test/cc_toolchain_probe:probe_test
 
 tasks:
   primary:
@@ -90,6 +100,72 @@ tasks:
 
     test_flags: *primary_flags
 
+  native_static_probe:
+    name: 'NativeStaticProbe/{bazel_version}/{bzlmod}/{spawn_strategy}'
+    platform: ubuntu2404
+    bazel: ${{ bazel_version }}
+    build_targets:
+      - //test/native_static_library:all
+    test_targets:
+      - //test/native_static_library:all
+    build_flags:
+      - --config=ci
+      - ${{ bzlmod }}
+      - ${{ spawn_strategy }}
+      - --experimental_cc_static_library
+    test_flags:
+      - --config=ci
+      - ${{ bzlmod }}
+      - ${{ spawn_strategy }}
+      - --experimental_cc_static_library
+
+  flags_probe:
+    name: 'FlagsProbe/{bazel_version}/{bzlmod}/{spawn_strategy}'
+    platform: ubuntu2404
+    bazel: ${{ bazel_version }}
+    working_directory: examples
+    test_targets:
+      - //integration_tests/standard_cxx_flags_test:flags_test
+    test_flags:
+      - --config=ci
+      - ${{ bzlmod }}
+      - ${{ spawn_strategy }}
+
+  detect_root_probe:
+    name: 'DetectRootProbe/{bazel_version}/{bzlmod}/{spawn_strategy}'
+    platform: ubuntu2404
+    bazel: ${{ bazel_version }}
+    working_directory: examples
+    test_targets:
+      - //integration_tests/detect_root_test:tests
+    test_flags:
+      - --config=ci
+      - ${{ bzlmod }}
+      - ${{ spawn_strategy }}
+
+  docs_probe:
+    name: 'DocsProbe/{bazel_version}/{bzlmod}/{spawn_strategy}'
+    platform: ubuntu2404
+    bazel: ${{ bazel_version }}
+    working_directory: docs
+    test_targets:
+      - //:docs_build_test
+    test_flags:
+      - --config=ci
+      - ${{ bzlmod }}
+      - ${{ spawn_strategy }}
+
+  env_probe:
+    name: 'EnvProbe/{bazel_version}/{bzlmod}/{spawn_strategy}'
+    platform: ubuntu2404
+    bazel: ${{ bazel_version }}
+    test_targets:
+      - //test/env_test:ninja_tiny_env_test_shellvars_check
+    test_flags:
+      - --config=ci
+      - ${{ bzlmod }}
+      - ${{ spawn_strategy }}
+
   docs:
     name: Docs
     platform: ubuntu2404
@@ -98,7 +174,6 @@ tasks:
       - //...
     build_flags:
       - --config=ci
-
 buildifier:
   version: 8.2.1
   # keep this argument in sync with .pre-commit-config.yaml

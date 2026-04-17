@@ -1,0 +1,295 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_shared_library")
+load("//foreign_cc:defs.bzl", "foreign_cc_shared_library")
+load(":tests.bzl", "analysis_smoke_test", "expect_failure_test")
+
+package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+cc_library(
+    name = "native_leaf",
+    srcs = ["native_leaf.c"],
+    hdrs = ["native_leaf.h"],
+)
+
+cc_library(
+    name = "native_repeatable",
+    srcs = ["native_leaf.c"],
+    hdrs = ["native_leaf.h"],
+    tags = ["LINKABLE_MORE_THAN_ONCE"],
+)
+
+cc_library(
+    name = "native_repeatable_root_a",
+    deps = [":native_repeatable"],
+)
+
+cc_library(
+    name = "native_repeatable_root_b",
+    deps = [":native_repeatable"],
+)
+
+cc_library(
+    name = "native_root",
+    srcs = ["native_root.c"],
+    hdrs = ["native_root.h"],
+    deps = [":native_leaf"],
+)
+
+cc_shared_library(
+    name = "native_leaf_a",
+    deps = [":native_leaf"],
+)
+
+cc_shared_library(
+    name = "native_leaf_b",
+    deps = [":native_leaf"],
+)
+
+cc_shared_library(
+    name = "native_repeatable_a",
+    deps = [":native_repeatable_root_a"],
+)
+
+cc_shared_library(
+    name = "native_repeatable_b",
+    deps = [":native_repeatable_root_b"],
+)
+
+cc_binary(
+    name = "native_duplicate_static_binary",
+    srcs = ["main.c"],
+    dynamic_deps = [
+        ":native_leaf_a",
+        ":native_leaf_b",
+    ],
+    tags = ["manual"],
+)
+
+cc_binary(
+    name = "native_repeatable_binary",
+    srcs = ["main.c"],
+    dynamic_deps = [
+        ":native_repeatable_a",
+        ":native_repeatable_b",
+    ],
+)
+
+cc_shared_library(
+    name = "native_duplicate_export_shared",
+    dynamic_deps = [
+        ":native_leaf_a",
+        ":native_leaf_b",
+    ],
+    tags = ["manual"],
+    deps = [":native_root"],
+)
+
+foreign_cc_shared_library(
+    name = "foreign_demo_a",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_library:native_demo"],
+    exports = ["//test/facade_library:native_demo"],
+)
+
+foreign_cc_shared_library(
+    name = "foreign_demo_b",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_library:native_demo"],
+    exports = ["//test/facade_library:native_demo"],
+)
+
+cc_binary(
+    name = "foreign_duplicate_export_binary",
+    srcs = ["main.c"],
+    dynamic_deps = [
+        ":foreign_demo_a",
+        ":foreign_demo_b",
+    ],
+    tags = ["manual"],
+)
+
+foreign_cc_shared_library(
+    name = "foreign_demo_c",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    link_once_static_libs = ["//test/facade_library:native_demo"],
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_shared_library_conflicts:foreign_demo_c_owner"],
+    exports = ["//test/facade_library:native_demo"],
+)
+
+foreign_cc_shared_library(
+    name = "foreign_demo_d",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    link_once_static_libs = ["//test/facade_library:native_demo"],
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_shared_library_conflicts:foreign_demo_d_owner"],
+    exports = ["//test/facade_library:foreign_import_consumer"],
+)
+
+foreign_cc_shared_library(
+    name = "foreign_repeatable_a",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_shared_library_conflicts:foreign_demo_c_owner"],
+    exports = ["//test/facade_library:native_demo"],
+)
+
+foreign_cc_shared_library(
+    name = "foreign_repeatable_b",
+    src = "//test/facade_library:demo_raw",
+    emit_cc_shared_library_info = True,
+    interface_library = select({
+        ":windows": "demo.lib",
+        "//conditions:default": "",
+    }),
+    runtime_shared_library = select({
+        ":macos": "libdemo.1.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so.1",
+    }),
+    shared_library = select({
+        ":macos": "libdemo.dylib",
+        ":windows": "demo.dll",
+        "//conditions:default": "libdemo.so",
+    }),
+    shared_library_owners = ["//test/facade_shared_library_conflicts:foreign_demo_d_owner"],
+    exports = ["//test/facade_library:foreign_import_consumer"],
+)
+
+cc_binary(
+    name = "foreign_duplicate_static_binary",
+    srcs = ["main.c"],
+    dynamic_deps = [
+        ":foreign_demo_c",
+        ":foreign_demo_d",
+    ],
+    tags = ["manual"],
+)
+
+cc_binary(
+    name = "foreign_repeatable_binary",
+    srcs = ["main.c"],
+    dynamic_deps = [
+        ":foreign_repeatable_a",
+        ":foreign_repeatable_b",
+    ],
+)
+
+cc_library(name = "foreign_demo_c_owner")
+
+cc_library(name = "foreign_demo_d_owner")
+
+expect_failure_test(
+    name = "native_duplicate_export_shared_test",
+    failure_message = "Two shared libraries in dependencies export the same symbols",
+    target = ":native_duplicate_export_shared",
+)
+
+expect_failure_test(
+    name = "native_duplicate_static_binary_test",
+    failure_message = "Two shared libraries in dependencies link the same",
+    target = ":native_duplicate_static_binary",
+)
+
+expect_failure_test(
+    name = "foreign_duplicate_export_binary_test",
+    failure_message = "Two shared libraries in dependencies export the same symbols",
+    target = ":foreign_duplicate_export_binary",
+)
+
+expect_failure_test(
+    name = "foreign_duplicate_static_binary_test",
+    failure_message = "Two shared libraries in dependencies link the same",
+    target = ":foreign_duplicate_static_binary",
+)
+
+analysis_smoke_test(
+    name = "native_repeatable_binary_test",
+    target = ":native_repeatable_binary",
+)
+
+analysis_smoke_test(
+    name = "foreign_repeatable_binary_test",
+    target = ":foreign_repeatable_binary",
+)

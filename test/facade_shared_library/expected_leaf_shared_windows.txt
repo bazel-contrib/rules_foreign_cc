@@ -1,0 +1,7 @@
+default_files=leaf_shared.dll
+main_shared_library_output=leaf_shared.dll
+interface_library=leaf_shared.if.lib
+exports=//test/facade_shared_library:leaf
+dynamic_deps=
+link_once_static_libs=//test/facade_shared_library:leaf
+linker_input=dynamic=leaf_shared.dll|interface=leaf_shared.if.lib|static=|pic_static=

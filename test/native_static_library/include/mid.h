@@ -1,0 +1,6 @@
+#ifndef TEST_NATIVE_STATIC_LIBRARY_INCLUDE_MID_H_
+#define TEST_NATIVE_STATIC_LIBRARY_INCLUDE_MID_H_
+
+int mid_value(void);
+
+#endif
