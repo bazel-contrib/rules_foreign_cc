@@ -1,6 +1,6 @@
 # buildifier: disable=module-docstring
 load(":make_env_vars.bzl", "get_ldflags_make_vars", "get_make_env_vars")
-load(":make_script.bzl", "pkgconfig_script")
+load(":make_script.bzl", "ldpath_script", "pkgconfig_script")
 
 # buildifier: disable=function-docstring
 def create_configure_script(
@@ -33,6 +33,7 @@ def create_configure_script(
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
+    script.extend(ldpath_script())
 
     root_path = "$$EXT_BUILD_ROOT$$/{}".format(root)
     configure_path = "{}/{}".format(root_path, configure_command)
