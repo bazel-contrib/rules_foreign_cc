@@ -246,7 +246,7 @@ _CMAKE_ENV_VARS_FOR_CROSSTOOL = {
 }
 
 _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
-    "ANDROID": struct(value = "ANDROID", replace = False),
+    "ANDROID": struct(value = "ANDROID", replace = True),
     "CMAKE_AR": struct(value = "CMAKE_AR", replace = True),
     "CMAKE_ASM_FLAGS": struct(value = "CMAKE_ASM_FLAGS_INIT", replace = False),
     "CMAKE_CXX_ARCHIVE_CREATE": struct(value = "CMAKE_CXX_ARCHIVE_CREATE", replace = False),
@@ -259,8 +259,8 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
     "CMAKE_RANLIB": struct(value = "CMAKE_RANLIB", replace = True),
     "CMAKE_SHARED_LINKER_FLAGS": struct(value = "CMAKE_SHARED_LINKER_FLAGS_INIT", replace = False),
     "CMAKE_STATIC_LINKER_FLAGS": struct(value = "CMAKE_STATIC_LINKER_FLAGS_INIT", replace = False),
-    "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = False),
-    "CMAKE_SYSTEM_PROCESSOR": struct(value = "CMAKE_SYSTEM_PROCESSOR", replace = False),
+    "CMAKE_SYSTEM_NAME": struct(value = "CMAKE_SYSTEM_NAME", replace = True),
+    "CMAKE_SYSTEM_PROCESSOR": struct(value = "CMAKE_SYSTEM_PROCESSOR", replace = True),
 }
 
 def _create_crosstool_file_text(toolchain_dict, user_cache, user_env, target_os):
