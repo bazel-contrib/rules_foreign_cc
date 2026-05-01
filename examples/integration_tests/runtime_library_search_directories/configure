@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+prefix=""
+family="configure_make"
+
+for arg in "$@"; do
+  case "$arg" in
+    --prefix=*)
+      prefix="${arg#--prefix=}"
+      ;;
+    --family=*)
+      family="${arg#--family=}"
+      ;;
+  esac
+done
+
+if [[ -z "$prefix" ]]; then
+  echo "missing required --prefix option" >&2
+  exit 1
+fi
+
+srcdir="$(cd "$(dirname "$0")" && pwd)"
+
+escape_sed_replacement() {
+  printf '%s' "$1" | sed 's/[&|\\]/\\&/g'
+}
+
+sed \
+  -e "s|@prefix@|$prefix|g" \
+  -e "s|@family@|$family|g" \
+  -e "s|@srcdir@|$srcdir|g" \
+  -e "s|@cc@|$(escape_sed_replacement "${CC:-cc}")|g" \
+  -e "s|@cflags@|$(escape_sed_replacement "${CFLAGS:-}")|g" \
+  -e "s|@cppflags@|$(escape_sed_replacement "${CPPFLAGS:-}")|g" \
+  -e "s|@ldflags@|$(escape_sed_replacement "${LDFLAGS:-}")|g" \
+  "$srcdir/Makefile.in" > Makefile

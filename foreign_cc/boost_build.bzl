@@ -10,6 +10,7 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load("//foreign_cc/private:runtime_library_search_directories.bzl", "RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES")
 
 def _boost_build_impl(ctx):
     attrs = create_attrs(
@@ -39,6 +40,8 @@ def _create_configure_script(configureParameters):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.pop("targets")
+    for attr_name in RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES:
+        attrs.pop(attr_name)
     attrs.update({
         "bootstrap_options": attr.string_list(
             doc = "any additional flags to pass to bootstrap.sh",

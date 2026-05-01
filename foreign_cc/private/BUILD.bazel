@@ -10,9 +10,21 @@ bzl_library(
     srcs = ["cc_toolchain_util.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
     deps = [
+        ":runtime_library_search_directories",
         "@bazel_skylib//lib:collections",
         "@bazel_tools//tools/build_defs/cc:action_names.bzl",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    ],
+)
+
+bzl_library(
+    name = "runtime_library_search_directories",
+    srcs = ["runtime_library_search_directories.bzl"],
+    visibility = ["//foreign_cc:__subpackages__"],
+    deps = [
+        "@bazel_features//:features",
+        "@bazel_skylib//lib:paths",
+        "@rules_cc//cc:bzl_srcs",
     ],
 )
 
@@ -46,6 +58,7 @@ bzl_library(
         ":detect_xcompile.bzl",
         ":resource_sets",
         ":run_shell_file_utils",
+        ":runtime_library_search_directories",
         "//foreign_cc:providers",
         "//foreign_cc/private/framework:helpers",
         "//foreign_cc/private/framework:platform",

@@ -124,11 +124,27 @@ def _create_configure_script(configureParameters):
         make_path = attrs.make_path,
         make_targets = ctx.attr.targets,
         make_args = args,
-        executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
+        executable_ldflags_vars = _executable_ldflags_vars_for_make(ctx, flags),
         shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
         is_msvc = is_msvc,
     )
     return define_install_prefix + configure
+
+def _executable_ldflags_vars_for_make(ctx, flags):
+    executable_ldflags_vars = list(ctx.attr.executable_ldflags_vars)
+    if (
+        getattr(ctx.attr, "enable_runtime_library_search_directories", False) and
+        _flags_contain_loader_token(flags.cxx_linker_executable) and
+        "LDFLAGS" not in executable_ldflags_vars
+    ):
+        executable_ldflags_vars.append("LDFLAGS")
+    return executable_ldflags_vars
+
+def _flags_contain_loader_token(flags):
+    for flag in flags:
+        if "$ORIGIN" in flag or "$EXEC_ORIGIN" in flag:
+            return True
+    return False
 
 def _get_install_prefix(ctx):
     if ctx.attr.install_prefix:

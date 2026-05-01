@@ -6,6 +6,7 @@ load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "absolutize_path_in_str",
+    "escape_loader_tokens_for_shell",
     "get_flags_info",
     "get_tools_info",
 )
@@ -317,4 +318,8 @@ def _absolutize(workspace_name, text, force = False):
     return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text, force)
 
 def _join_flags_list(workspace_name, flags):
-    return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+    return escape_loader_tokens_for_shell(" ".join([_absolutize(workspace_name, flag) for flag in flags]))
+
+export_for_test = struct(
+    join_flags_list = _join_flags_list,
+)

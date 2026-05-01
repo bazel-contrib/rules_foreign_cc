@@ -31,6 +31,7 @@ load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
 )
+load(":runtime_library_search_directories.bzl", "RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES")
 
 CcSharedLibraryInfo = bazel_features.globals.CcSharedLibraryInfo
 
@@ -264,6 +265,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
 }
 
 # this would be cleaner as x | y, but that's not supported in bazel 5.4.0
+CC_EXTERNAL_RULE_ATTRIBUTES.update(RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES)
 CC_EXTERNAL_RULE_ATTRIBUTES.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
 CC_EXTERNAL_RULE_ATTRIBUTES.update(SIZE_ATTRIBUTES)
 

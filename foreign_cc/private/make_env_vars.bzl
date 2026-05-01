@@ -1,6 +1,11 @@
 """Helper methods to assemble make env variables from Bazel information."""
 
-load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
+load(
+    ":cc_toolchain_util.bzl",
+    "absolutize_path_in_str",
+    "escape_loader_tokens_for_make",
+    "escape_loader_tokens_for_shell",
+)
 load(":framework.bzl", "get_foreign_cc_dep")
 
 # buildifier: disable=function-docstring
@@ -12,7 +17,8 @@ def get_make_env_vars(
         deps,
         inputs,
         is_msvc,
-        make_commands):
+        make_commands,
+        expansion_context = "shell"):
     vars = _get_make_variables(workspace_name, tools, flags, user_vars, make_commands)
     deps_flags = _define_deps_flags(deps, inputs, is_msvc)
 
@@ -38,8 +44,7 @@ def get_make_env_vars(
     else:
         vars["CPPFLAGS"] = deps_flags.flags
 
-    return " ".join(["{}=\"{}\""
-        .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
+    return _format_vars(workspace_name, vars, expansion_context)
 
 # buildifier: disable=function-docstring
 def get_ldflags_make_vars(
@@ -57,8 +62,7 @@ def get_ldflags_make_vars(
     for key in vars.keys():
         vars[key] = vars[key] + deps_flags.libs
 
-    return " ".join(["{}=\"{}\""
-        .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
+    return _format_vars(workspace_name, vars, "make")
 
 def _define_deps_flags(deps, inputs, is_msvc):
     # It is very important to keep the order for the linker => put them into list
@@ -195,6 +199,11 @@ def _merge_env_vars(flags, make_flags, user_env_vars):
 
 def _absolutize(workspace_name, text, force = False):
     return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
+
+def _format_vars(workspace_name, vars, expansion_context):
+    escape_loader_tokens = escape_loader_tokens_for_make if expansion_context == "make" else escape_loader_tokens_for_shell
+    return " ".join(["{}=\"{}\""
+        .format(key, escape_loader_tokens(_join_flags_list(workspace_name, vars[key]))) for key in vars])
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
