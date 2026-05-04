@@ -64,11 +64,18 @@ bzl_library(
 )
 
 bzl_library(
+    name = "flag_utils",
+    srcs = ["flag_utils.bzl"],
+    visibility = ["//foreign_cc:__subpackages__"],
+    deps = [":cc_toolchain_util"],
+)
+
+bzl_library(
     name = "make_env_vars",
     srcs = ["make_env_vars.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
     deps = [
-        ":cc_toolchain_util",
+        ":flag_utils",
         ":framework",
     ],
 )
@@ -78,6 +85,13 @@ bzl_library(
     srcs = ["make_script.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
     deps = [":make_env_vars"],
+)
+
+bzl_library(
+    name = "msbuild_script",
+    srcs = ["msbuild_script.bzl"],
+    visibility = ["//foreign_cc:__subpackages__"],
+    deps = [":flag_utils"],
 )
 
 bzl_library(

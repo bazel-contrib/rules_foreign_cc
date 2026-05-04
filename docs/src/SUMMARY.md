@@ -6,4 +6,5 @@
         - [configure_make](configure_make.md)
         - [make](make.md)
         - [meson](meson.md)
+        - [msbuild](msbuild.md)
         - [ninja](ninja.md)

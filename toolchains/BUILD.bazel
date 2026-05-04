@@ -1,5 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//toolchains:toolchains.bzl", "current_autoconf_toolchain", "current_automake_toolchain", "current_cmake_toolchain", "current_m4_toolchain", "current_make_toolchain", "current_meson_toolchain", "current_ninja_toolchain", "current_pkgconfig_toolchain")
+load("//toolchains:toolchains.bzl", "current_autoconf_toolchain", "current_automake_toolchain", "current_cmake_toolchain", "current_m4_toolchain", "current_make_toolchain", "current_meson_toolchain", "current_msbuild_toolchain", "current_ninja_toolchain", "current_pkgconfig_toolchain")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -35,6 +35,13 @@ toolchain_type(
     name = "automake_toolchain",
 )
 
+toolchain_type(
+    name = "msbuild_toolchain",
+    target_compatible_with = [
+        "@platforms//os:windows",
+    ],
+)
+
 current_cmake_toolchain(
     name = "current_cmake_toolchain",
 )
@@ -65,6 +72,13 @@ current_automake_toolchain(
 
 current_autoconf_toolchain(
     name = "current_autoconf_toolchain",
+)
+
+current_msbuild_toolchain(
+    name = "current_msbuild_toolchain",
+    target_compatible_with = [
+        "@platforms//os:windows",
+    ],
 )
 
 toolchain(
@@ -158,6 +172,13 @@ toolchain(
     name = "preinstalled_pkgconfig_toolchain",
     toolchain = "//toolchains/private:preinstalled_pkgconfig",
     toolchain_type = ":pkgconfig_toolchain",
+)
+
+toolchain(
+    name = "preinstalled_msbuild_toolchain",
+    target_compatible_with = ["@platforms//os:windows"],
+    toolchain = "//toolchains/private:preinstalled_msbuild",
+    toolchain_type = ":msbuild_toolchain",
 )
 
 bzl_library(

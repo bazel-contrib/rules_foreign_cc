@@ -41,6 +41,9 @@ def get_meson_data(ctx):
 def get_pkgconfig_data(ctx):
     return _access_and_expect_label_copied(Label("//toolchains:pkgconfig_toolchain"), ctx)
 
+def get_msbuild_data(ctx):
+    return _access_and_expect_label_copied(Label("//toolchains:msbuild_toolchain"), ctx)
+
 def _access_and_expect_label_copied(toolchain_type_, ctx):
     tool_data = access_tool(toolchain_type_, ctx)
     if tool_data.target:
