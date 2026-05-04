@@ -1,0 +1,19 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "msbuild")
+
+msbuild(
+    name = "mylib",
+    lib_source = "//msbuild_simple/code:srcs",
+    out_lib_dir = "",
+    out_static_libs = ["mylib.lib"],
+    sln_file = "mysolution.sln",
+    target_compatible_with = ["@platforms//os:windows"],
+    targets = ["Build"],
+)
+
+cc_test(
+    name = "mylib_test",
+    srcs = ["test_mylib.cpp"],
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = [":mylib"],
+)
