@@ -27,6 +27,38 @@ def _absolutize_test(ctx):
 
     return unittest.end(env)
 
+def _join_flags_list_escapes_loader_tokens_for_shell_test(ctx):
+    env = unittest.begin(ctx)
+
+    result = export_for_test.join_flags_list("ws", [
+        "-Wl,-rpath,$ORIGIN/lib",
+        "-Wl,-rpath,$EXEC_ORIGIN/bin",
+    ])
+
+    asserts.equals(
+        env,
+        "-Wl,-rpath,\\$ORIGIN/lib -Wl,-rpath,\\$EXEC_ORIGIN/bin",
+        result,
+    )
+
+    return unittest.end(env)
+
+def _join_flags_list_preserves_escaped_loader_tokens_for_shell_test(ctx):
+    env = unittest.begin(ctx)
+
+    result = export_for_test.join_flags_list("ws", [
+        "-Wl,-rpath,\\$ORIGIN/lib",
+        "-Wl,-rpath,\\$EXEC_ORIGIN/bin",
+    ])
+
+    asserts.equals(
+        env,
+        "-Wl,-rpath,\\$ORIGIN/lib -Wl,-rpath,\\$EXEC_ORIGIN/bin",
+        result,
+    )
+
+    return unittest.end(env)
+
 def _tail_extraction_test(ctx):
     env = unittest.begin(ctx)
 
@@ -914,6 +946,8 @@ cmake -DCUSTOM_CACHE="YES" -DCMAKE_TOOLCHAIN_FILE="$$BUILD_TMPDIR$$/crosstool_ba
     return unittest.end(env)
 
 absolutize_test = unittest.make(_absolutize_test)
+join_flags_list_escapes_loader_tokens_for_shell_test = unittest.make(_join_flags_list_escapes_loader_tokens_for_shell_test)
+join_flags_list_preserves_escaped_loader_tokens_for_shell_test = unittest.make(_join_flags_list_preserves_escaped_loader_tokens_for_shell_test)
 tail_extraction_test = unittest.make(_tail_extraction_test)
 find_flag_value_test = unittest.make(_find_flag_value_test)
 fill_crossfile_from_toolchain_test = unittest.make(_fill_crossfile_from_toolchain_test)
@@ -935,6 +969,8 @@ def cmake_script_test_suite():
     unittest.suite(
         "cmake_script_test_suite",
         partial.make(absolutize_test, size = "small"),
+        partial.make(join_flags_list_escapes_loader_tokens_for_shell_test, size = "small"),
+        partial.make(join_flags_list_preserves_escaped_loader_tokens_for_shell_test, size = "small"),
         partial.make(tail_extraction_test, size = "small"),
         partial.make(find_flag_value_test, size = "small"),
         partial.make(fill_crossfile_from_toolchain_test, size = "small"),

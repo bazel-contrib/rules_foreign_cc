@@ -1,0 +1,342 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake", "configure_make", "make")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+UNIX_ONLY = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
+LEAF_SHARED_LIB = select({
+    "@platforms//os:macos": ["libleaf.dylib"],
+    "//conditions:default": ["libleaf.so"],
+})
+
+MIDDLE_SHARED_LIB = select({
+    "@platforms//os:macos": ["libmiddle.dylib"],
+    "//conditions:default": ["libmiddle.so"],
+})
+
+MAKE_SHARED_LIBRARY_ARGS = select({
+    "@platforms//os:macos": [
+        "SHARED_LIBRARY_SUFFIX=dylib",
+        "SHARED_LIBRARY_LINK_FLAG=-dynamiclib",
+        "LEAF_INSTALL_NAME=-Wl,-install_name,@rpath/libleaf.dylib",
+        "MIDDLE_INSTALL_NAME=-Wl,-install_name,@rpath/libmiddle.dylib",
+    ],
+    "//conditions:default": [
+        "SHARED_LIBRARY_SUFFIX=so",
+        "SHARED_LIBRARY_LINK_FLAG=-shared",
+    ],
+})
+
+filegroup(
+    name = "srcs",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "BUILD.bazel",
+            "test/**",
+        ],
+    ),
+)
+
+cmake(
+    name = "cmake_leaf",
+    cache_entries = {
+        "RUNTIME_CHAIN_COMPONENT": "leaf",
+        "RUNTIME_TEST_FAMILY": "cmake",
+    },
+    enable_runtime_library_search_directories = True,
+    lib_source = ":srcs",
+    out_include_dir = "",
+    out_shared_libs = LEAF_SHARED_LIB,
+    target_compatible_with = UNIX_ONLY,
+)
+
+cmake(
+    name = "cmake_middle",
+    cache_entries = {
+        "RUNTIME_CHAIN_COMPONENT": "middle",
+        "RUNTIME_TEST_FAMILY": "cmake",
+    },
+    enable_runtime_library_search_directories = True,
+    lib_source = ":srcs",
+    out_include_dir = "",
+    out_shared_libs = MIDDLE_SHARED_LIB,
+    target_compatible_with = UNIX_ONLY,
+    deps = [":cmake_leaf"],
+)
+
+cmake(
+    name = "cmake_app",
+    cache_entries = {
+        "RUNTIME_CHAIN_COMPONENT": "app",
+        "RUNTIME_TEST_FAMILY": "cmake",
+    },
+    enable_runtime_library_search_directories = True,
+    lib_source = ":srcs",
+    out_binaries = ["runtime_app"],
+    out_include_dir = "",
+    target_compatible_with = UNIX_ONLY,
+    deps = [":cmake_middle"],
+)
+
+cmake(
+    name = "cmake_self_bundle",
+    cache_entries = {
+        "RUNTIME_CHAIN_COMPONENT": "bundle",
+        "RUNTIME_TEST_FAMILY": "cmake_self",
+    },
+    enable_runtime_library_search_directories = True,
+    include_self_runtime_library_search_directories = True,
+    lib_source = ":srcs",
+    out_binaries = ["runtime_app"],
+    out_include_dir = "",
+    out_shared_libs = LEAF_SHARED_LIB + MIDDLE_SHARED_LIB,
+    target_compatible_with = UNIX_ONLY,
+)
+
+sh_test(
+    name = "cmake_test",
+    size = "small",
+    srcs = ["test/runtime_search_test.sh"],
+    args = [
+        "cmake",
+        "$(rlocationpath :cmake_app)",
+    ],
+    data = [
+        ":cmake_app",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    target_compatible_with = UNIX_ONLY,
+)
+
+sh_test(
+    name = "cmake_self_test",
+    size = "small",
+    srcs = ["test/runtime_search_test.sh"],
+    args = [
+        "cmake_self",
+        "$(rlocationpaths :cmake_self_bundle)",
+    ],
+    data = [
+        ":cmake_self_bundle",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    target_compatible_with = UNIX_ONLY,
+)
+
+make(
+    name = "make_leaf",
+    args = ["RUNTIME_TEST_FAMILY=make"] + MAKE_SHARED_LIBRARY_ARGS,
+    enable_runtime_library_search_directories = True,
+    lib_source = ":srcs",
+    out_include_dir = "",
+    out_shared_libs = LEAF_SHARED_LIB,
+    shared_ldflags_vars = ["LDFLAGS"],
+    target_compatible_with = UNIX_ONLY,
+    targets = [
+        "leaf",
+        "install-leaf",
+    ],
+)
+
+make(
+    name = "make_middle",
+    args = ["RUNTIME_TEST_FAMILY=make"] + MAKE_SHARED_LIBRARY_ARGS,
+    enable_runtime_library_search_directories = True,
+    lib_source = ":srcs",
+    out_include_dir = "",
+    out_shared_libs = MIDDLE_SHARED_LIB,
+    shared_ldflags_vars = ["LDFLAGS"],
+    target_compatible_with = UNIX_ONLY,
+    targets = [
+        "middle",
+        "install-middle",
+    ],
+    deps = [":make_leaf"],
+)
+
+make(
+    name = "make_app",
+    args = ["RUNTIME_TEST_FAMILY=make"] + MAKE_SHARED_LIBRARY_ARGS,
+    enable_runtime_library_search_directories = True,
+    executable_ldflags_vars = ["LDFLAGS"],
+    lib_source = ":srcs",
+    out_binaries = ["runtime_app"],
+    out_include_dir = "",
+    target_compatible_with = UNIX_ONLY,
+    targets = [
+        "app",
+        "install-app",
+    ],
+    deps = [":make_middle"],
+)
+
+make(
+    name = "make_self_bundle",
+    args = ["RUNTIME_TEST_FAMILY=make_self"] + MAKE_SHARED_LIBRARY_ARGS,
+    enable_runtime_library_search_directories = True,
+    executable_ldflags_vars = ["EXECUTABLE_LDFLAGS"],
+    include_self_runtime_library_search_directories = True,
+    lib_source = ":srcs",
+    out_binaries = ["runtime_app"],
+    out_include_dir = "",
+    out_shared_libs = LEAF_SHARED_LIB + MIDDLE_SHARED_LIB,
+    shared_ldflags_vars = ["SHARED_LDFLAGS"],
+    target_compatible_with = UNIX_ONLY,
+    targets = [
+        "app",
+        "install-leaf",
+        "install-middle",
+        "install-app",
+    ],
+)
+
+sh_test(
+    name = "make_test",
+    size = "small",
+    srcs = ["test/runtime_search_test.sh"],
+    args = [
+        "make",
+        "$(rlocationpath :make_app)",
+    ],
+    data = [
+        ":make_app",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    target_compatible_with = UNIX_ONLY,
+)
+
+sh_test(
+    name = "make_self_test",
+    size = "small",
+    srcs = ["test/runtime_search_test.sh"],
+    args = [
+        "make_self",
+        "$(rlocationpaths :make_self_bundle)",
+    ],
+    data = [
+        ":make_self_bundle",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    target_compatible_with = UNIX_ONLY,
+)
+
+configure_make(
+    name = "configure_make_leaf",
+    args = MAKE_SHARED_LIBRARY_ARGS,
+    configure_options = ["--family=configure_make"],
+    configure_prefix = "bash",
+    enable_runtime_library_search_directories = True,
+    lib_source = ":srcs",
+    out_include_dir = "",
+    out_shared_libs = LEAF_SHARED_LIB,
+    shared_ldflags_vars = ["LDFLAGS"],
+    target_compatible_with = UNIX_ONLY,
+    targets = [
+        "leaf",
+        "install-leaf",
+    ],
+)
+
+configure_make(
+    name = "configure_make_middle",
+    args = MAKE_SHARED_LIBRARY_ARGS,
+    configure_options = ["--family=configure_make"],
+    configure_prefix = "bash",
+    enable_runtime_library_search_directories = True,
+    lib_source = ":srcs",
+    out_include_dir = "",
+    out_shared_libs = MIDDLE_SHARED_LIB,
+    shared_ldflags_vars = ["LDFLAGS"],
+    target_compatible_with = UNIX_ONLY,
+    targets = [
+        "middle",
+        "install-middle",
+    ],
+    deps = [":configure_make_leaf"],
+)
+
+configure_make(
+    name = "configure_make_app",
+    args = MAKE_SHARED_LIBRARY_ARGS,
+    configure_options = ["--family=configure_make"],
+    configure_prefix = "bash",
+    enable_runtime_library_search_directories = True,
+    executable_ldflags_vars = ["LDFLAGS"],
+    lib_source = ":srcs",
+    out_binaries = ["runtime_app"],
+    out_include_dir = "",
+    target_compatible_with = UNIX_ONLY,
+    targets = [
+        "app",
+        "install-app",
+    ],
+    deps = [":configure_make_middle"],
+)
+
+configure_make(
+    name = "configure_make_self_bundle",
+    args = MAKE_SHARED_LIBRARY_ARGS,
+    configure_options = ["--family=configure_make_self"],
+    configure_prefix = "bash",
+    enable_runtime_library_search_directories = True,
+    executable_ldflags_vars = ["EXECUTABLE_LDFLAGS"],
+    include_self_runtime_library_search_directories = True,
+    lib_source = ":srcs",
+    out_binaries = ["runtime_app"],
+    out_include_dir = "",
+    out_shared_libs = LEAF_SHARED_LIB + MIDDLE_SHARED_LIB,
+    shared_ldflags_vars = ["SHARED_LDFLAGS"],
+    target_compatible_with = UNIX_ONLY,
+    targets = [
+        "app",
+        "install-leaf",
+        "install-middle",
+        "install-app",
+    ],
+)
+
+sh_test(
+    name = "configure_make_test",
+    size = "small",
+    srcs = ["test/runtime_search_test.sh"],
+    args = [
+        "configure_make",
+        "$(rlocationpath :configure_make_app)",
+    ],
+    data = [
+        ":configure_make_app",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    target_compatible_with = UNIX_ONLY,
+)
+
+sh_test(
+    name = "configure_make_self_test",
+    size = "small",
+    srcs = ["test/runtime_search_test.sh"],
+    args = [
+        "configure_make_self",
+        "$(rlocationpaths :configure_make_self_bundle)",
+    ],
+    data = [
+        ":configure_make_self_bundle",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    target_compatible_with = UNIX_ONLY,
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":cmake_self_test",
+        ":cmake_test",
+        ":configure_make_self_test",
+        ":configure_make_test",
+        ":make_self_test",
+        ":make_test",
+    ],
+)

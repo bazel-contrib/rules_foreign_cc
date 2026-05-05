@@ -1,0 +1,17 @@
+PREFIX := @prefix@
+RUNTIME_TEST_FAMILY := @family@
+SRC_DIR := @srcdir@/src
+CC := @cc@
+CFLAGS := @cflags@
+CPPFLAGS := @cppflags@
+LDFLAGS := @ldflags@
+
+.PHONY: all clean test
+
+all: app
+
+clean:
+
+test: all
+
+include @srcdir@/runtime_chain_rules.mk

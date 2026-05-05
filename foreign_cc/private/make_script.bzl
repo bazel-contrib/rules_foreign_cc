@@ -40,7 +40,17 @@ def create_make_script(
             install_prefix = make_install_prefix,
         ))
 
-    configure_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, is_msvc, make_commands)
+    configure_vars = get_make_env_vars(
+        workspace_name,
+        tools,
+        flags,
+        env_vars,
+        deps,
+        inputs,
+        is_msvc,
+        make_commands,
+        expansion_context = "make",
+    )
 
     script.extend(["{env_vars} {command}".format(
         env_vars = configure_vars,

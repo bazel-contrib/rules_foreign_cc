@@ -1,7 +1,7 @@
 """ Contains all logic for calling CMake for building external libraries/binaries """
 
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
-load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
+load(":cc_toolchain_util.bzl", "absolutize_path_in_str", "escape_loader_tokens_for_shell")
 
 def _escape_dquote_bash(text):
     """ Escape double quotes in flag lists for use in bash strings that set environment variables """
@@ -526,12 +526,13 @@ def _absolutize(workspace_name, text, force = False):
     return absolutize_path_in_str(workspace_name, "$${EXT_BUILD_ROOT//\\\\//}$$/", text, force)
 
 def _join_flags_list(workspace_name, flags):
-    return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+    return escape_loader_tokens_for_shell(" ".join([_absolutize(workspace_name, flag) for flag in flags]))
 
 export_for_test = struct(
     absolutize = _absolutize,
     tail_if_starts_with = _tail_if_starts_with,
     find_flag_value = _find_flag_value,
+    join_flags_list = _join_flags_list,
     fill_crossfile_from_toolchain = _fill_crossfile_from_toolchain,
     move_dict_values = _move_dict_values,
     reverse_descriptor_dict = _reverse_descriptor_dict,
