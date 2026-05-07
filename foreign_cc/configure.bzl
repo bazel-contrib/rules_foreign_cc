@@ -32,6 +32,9 @@ load(
 
 def _configure_make(ctx):
     make_data = get_make_data(ctx)
+    if make_data.path:
+        make_data.env["MAKE"] = make_data.path
+
     pkg_config_data = get_pkgconfig_data(ctx)
     autoconf_data = get_autoconf_data(ctx)
     automake_data = get_automake_data(ctx)

@@ -26,6 +26,11 @@ load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_make_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
 
+def _update_var_from_path(tool, var):
+    if tool.path:
+        tool.env[var] = tool.path
+    return tool
+
 def _meson_impl(ctx):
     """The implementation of the `meson` rule
 
@@ -37,10 +42,24 @@ def _meson_impl(ctx):
     """
 
     meson_data = get_meson_data(ctx)
-    cmake_data = get_cmake_data(ctx)
-    ninja_data = get_ninja_data(ctx)
-    pkg_config_data = get_pkgconfig_data(ctx)
-    make_data = get_make_data(ctx)
+
+    # To avoid overwriting user-provided env vars (and to avoid trusting that
+    # the toolchains all set the variables correctly) we make sure that the
+    # primary env var for each of these tools is set to the path variable of
+    # the tool. (This should probably be ensured elsewhere, but it's not
+    # currently)
+
+    # Note that these variables do help meson itself, but meson has a
+    # dependency search fallback where it asks cmake, and when it tries to
+    # invoke all of the cmake generators (it tries a bunch of them) it doesn't
+    # set CMAKE_MAKE_PROGRAM, so tools like ninja must be in the PATH to be
+    # found (which is handled by the tools setup) and these variables here
+    # don't help that; it's the "add-tools-to-path" code in
+    # cc_external_rule_impl that actually fixes that.
+    cmake_data = _update_var_from_path(get_cmake_data(ctx), "CMAKE")
+    ninja_data = _update_var_from_path(get_ninja_data(ctx), "NINJA")
+    pkg_config_data = _update_var_from_path(get_pkgconfig_data(ctx), "PKG_CONFIG")
+    make_data = _update_var_from_path(get_make_data(ctx), "MAKE")
 
     tools_data = [meson_data, cmake_data, ninja_data, pkg_config_data, make_data]
 
@@ -97,17 +116,6 @@ def _create_meson_script(configureParameters):
 
     if flags.cxx_linker_executable:
         script.append("##export_var## LDFLAGS \"{} ${{LDFLAGS:-}}\"".format(_join_flags_list(ctx.workspace_name, flags.cxx_linker_executable).replace("\"", "'")))
-
-    # Note that these variables do help meson, but meson has a dependency
-    # search fallback where it asks cmake, and when it tries to invoke all of
-    # the cmake generators (it tries a bunch of them) it doesn't set
-    # CMAKE_MAKE_PROGRAM, so tools like ninja must be in the PATH to be found
-    # (which is handled by the tools setup) and setting NINJA here does not
-    # help that
-    script.append("##export_var## CMAKE {}".format(attrs.cmake_path))
-    script.append("##export_var## NINJA {}".format(attrs.ninja_path))
-    script.append("##export_var## PKG_CONFIG {}".format(attrs.pkg_config_path))
-    script.append("##export_var## MAKE {}".format(attrs.make_path))
 
     root = detect_root(ctx.attr.lib_source)
     data = ctx.attr.data + ctx.attr.build_data
