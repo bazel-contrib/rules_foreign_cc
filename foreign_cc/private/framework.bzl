@@ -2,11 +2,11 @@
  with CMake, configure/make, autotools)
 """
 
-load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@cc_compatibility_proxy//:symbols.bzl", "CcSharedLibraryInfo")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
@@ -31,8 +31,6 @@ load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
 )
-
-CcSharedLibraryInfo = bazel_features.globals.CcSharedLibraryInfo
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
 # Many of the attributes have default values.
