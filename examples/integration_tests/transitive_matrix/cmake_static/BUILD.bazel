@@ -1,4 +1,19 @@
 test_suite(
+    name = "runtime_tests",
+    tests = [
+        "//integration_tests/transitive_matrix/cmake_static/s001:runtime_tests",
+        "//integration_tests/transitive_matrix/cmake_static/s002:runtime_tests",
+        "//integration_tests/transitive_matrix/cmake_static/s003:runtime_tests",
+        "//integration_tests/transitive_matrix/cmake_static/s004:runtime_tests",
+        "//integration_tests/transitive_matrix/cmake_static/s005:runtime_tests",
+        "//integration_tests/transitive_matrix/cmake_static/s006:runtime_tests",
+        "//integration_tests/transitive_matrix/cmake_static/s007:runtime_tests",
+        "//integration_tests/transitive_matrix/cmake_static/s008:runtime_tests",
+    ],
+    visibility = ["//integration_tests/transitive_matrix:__pkg__"],
+)
+
+test_suite(
     name = "linkage_tests",
     tests = [
         "//integration_tests/transitive_matrix/cmake_static/s001:linkage_tests",
@@ -17,6 +32,7 @@ test_suite(
     name = "tests",
     tests = [
         ":linkage_tests",
+        ":runtime_tests",
     ],
     visibility = ["//integration_tests/transitive_matrix:__pkg__"],
 )

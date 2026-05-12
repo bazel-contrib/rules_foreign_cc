@@ -37,6 +37,10 @@ static void fail_message(const char* message) {
 static const char* kLibarchiveModuleNames[] = {
     "archive.dll",
     "libarchive.dll",
+    "archive_zlib_static.dll",
+    "archive_zlib_foreign_static.dll",
+    "archive_zlib_dynamic.dll",
+    "archive_zlib_foreign_shared.dll",
     NULL,
 };
 
@@ -71,7 +75,7 @@ static const void* find_loaded_symbol(const char* const* module_names,
 static void print_loaded_path(const char* name, const void* symbol) {
 #ifdef _WIN32
     HMODULE module = NULL;
-    char path[MAX_PATH];
+    char path[32768];
     DWORD length;
 
     if (symbol != NULL &&

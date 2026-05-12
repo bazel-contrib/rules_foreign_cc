@@ -44,6 +44,19 @@ rules_shell_dependencies()
 rules_shell_toolchains()
 
 http_archive(
+    name = "bazel_lib",
+    integrity = "sha256-5zOTfeL1QkNsXT1hjiLGOEibQN/SUShAUDV7q+cRA9c=",
+    strip_prefix = "bazel-lib-3.2.0",
+    url = "https://github.com/bazel-contrib/bazel-lib/releases/download/v3.2.0/bazel-lib-v3.2.0.tar.gz",
+)
+
+load("@bazel_lib//lib:repositories.bzl", "bazel_lib_dependencies", "register_coreutils_toolchains")
+
+bazel_lib_dependencies()
+
+register_coreutils_toolchains()
+
+http_archive(
     name = "rules_java",
     sha256 = "c5bc17e17bb62290b1fd8fdd847a2396d3459f337a7e07da7769b869b488ec26",
     urls = [

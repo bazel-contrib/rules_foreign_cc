@@ -124,6 +124,7 @@ cmake(
         "@platforms//os:windows": "cp -p $$INSTALLDIR/lib/zdll.lib $$INSTALLDIR/lib/zlib1.lib",
         "//conditions:default": "",
     }),
+    runtime_library_search_directories = "enabled",
 )
 
 cc_library(

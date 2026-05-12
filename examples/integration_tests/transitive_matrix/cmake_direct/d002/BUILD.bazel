@@ -3,12 +3,14 @@ load(
     "cmake_cache_entries",
     "cmake_consumer_test",
     "expected_linkage",
+    "expected_loaded_libraries",
 )
 
 # foreign_cc cmake direct deps
 # app: cmake()
 # libarchive: foreign_cc shared
 # zlib: foreign_cc static
+# runtime: libarchive must load from @examples_libarchive//:libarchive_foreign_shared_zlib_foreign_static
 cmake_consumer_test(
     name = "t",
     cache_entries = cmake_cache_entries(libarchive = "archive"),
@@ -18,7 +20,16 @@ cmake_consumer_test(
         libarchive = "@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_static",
         libarchive_static_deps = ["zlib"],
     ),
+    expected_loaded_libraries = expected_loaded_libraries(
+        libarchive = "@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_static",
+    ),
     deps = ["@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_static"],
+)
+
+test_suite(
+    name = "runtime_tests",
+    tests = [":t_test"],
+    visibility = ["//integration_tests/transitive_matrix/cmake_direct:__pkg__"],
 )
 
 test_suite(
@@ -31,6 +42,7 @@ test_suite(
     name = "tests",
     tests = [
         ":linkage_tests",
+        ":runtime_tests",
     ],
     visibility = ["//integration_tests/transitive_matrix/cmake_direct:__pkg__"],
 )

@@ -2,6 +2,7 @@ load(
     "//integration_tests/transitive_matrix:consumer_tests.bzl",
     "cc_binary_consumer_test",
     "expected_linkage",
+    "expected_loaded_libraries",
 )
 
 # cc_binary static deps
@@ -16,8 +17,15 @@ cc_binary_consumer_test(
             "zlib",
         ],
     ),
+    expected_loaded_libraries = expected_loaded_libraries(),
     linkstatic = True,
     deps = ["@examples_libarchive//:libarchive_foreign_static_zlib_static"],
+)
+
+test_suite(
+    name = "runtime_tests",
+    tests = [":t_test"],
+    visibility = ["//integration_tests/transitive_matrix/cc_static:__pkg__"],
 )
 
 test_suite(
@@ -30,6 +38,7 @@ test_suite(
     name = "tests",
     tests = [
         ":linkage_tests",
+        ":runtime_tests",
     ],
     visibility = ["//integration_tests/transitive_matrix/cc_static:__pkg__"],
 )

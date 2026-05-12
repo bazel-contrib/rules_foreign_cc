@@ -142,6 +142,12 @@ use_repo(
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "bazel_lib", version = "3.2.0")
 
+bazel_lib_toolchains = use_extension("@bazel_lib//lib:extensions.bzl", "toolchains")
+bazel_lib_toolchains.coreutils()
+use_repo(bazel_lib_toolchains, "coreutils_toolchains")
+
+register_toolchains("@coreutils_toolchains//:all")
+
 # Support the integration tests
 
 new_local_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:local.bzl", "new_local_repository")

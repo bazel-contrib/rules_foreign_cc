@@ -2,6 +2,7 @@ exports_files(
     [
         "app.c",
         "linkage_test.sh",
+        "runtime_test.sh",
     ],
     visibility = ["//visibility:public"],
 )
@@ -16,6 +17,14 @@ filegroup(
 )
 
 test_suite(
+    name = "runtime_tests",
+    tests = [
+        ":cc_binary_runtime_tests",
+        ":cmake_runtime_tests",
+    ],
+)
+
+test_suite(
     name = "linkage_tests",
     tests = [
         ":cc_binary_linkage_tests",
@@ -27,6 +36,7 @@ test_suite(
     name = "cc_binary_tests",
     tests = [
         ":cc_binary_linkage_tests",
+        ":cc_binary_runtime_tests",
     ],
 )
 
@@ -34,6 +44,7 @@ test_suite(
     name = "cmake_tests",
     tests = [
         ":cmake_linkage_tests",
+        ":cmake_runtime_tests",
     ],
 )
 
@@ -45,10 +56,28 @@ test_suite(
 )
 
 test_suite(
+    name = "known_gap_tests",
+    tests = [
+        "//integration_tests/transitive_matrix/known_gap:tests",
+    ],
+)
+
+test_suite(
     name = "tests",
     tests = [
         ":linkage_tests",
         ":provider_parity_tests",
+        ":runtime_tests",
+    ],
+)
+
+test_suite(
+    name = "cc_binary_runtime_tests",
+    tests = [
+        "//integration_tests/transitive_matrix/cc_direct:runtime_tests",
+        "//integration_tests/transitive_matrix/cc_dynamic:runtime_tests",
+        "//integration_tests/transitive_matrix/cc_static:runtime_tests",
+        "//integration_tests/transitive_matrix/cc_wrap:runtime_tests",
     ],
 )
 
@@ -59,6 +88,16 @@ test_suite(
         "//integration_tests/transitive_matrix/cc_dynamic:linkage_tests",
         "//integration_tests/transitive_matrix/cc_static:linkage_tests",
         "//integration_tests/transitive_matrix/cc_wrap:linkage_tests",
+    ],
+)
+
+test_suite(
+    name = "cmake_runtime_tests",
+    tests = [
+        "//integration_tests/transitive_matrix/cmake_direct:runtime_tests",
+        "//integration_tests/transitive_matrix/cmake_dynamic:runtime_tests",
+        "//integration_tests/transitive_matrix/cmake_static:runtime_tests",
+        "//integration_tests/transitive_matrix/cmake_wrap:runtime_tests",
     ],
 )
 

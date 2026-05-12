@@ -556,6 +556,7 @@ cmake(
     lib_source = ":all_srcs",
     out_interface_libs = LIBARCHIVE_INTERFACE_LIB,
     out_shared_libs = LIBARCHIVE_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
     target_compatible_with = ALL_SUPPORTED_PLATFORMS,
     deps = ["@examples_zlib//:zlib_static"],
 )
@@ -568,6 +569,7 @@ cmake(
     lib_source = ":all_srcs",
     out_interface_libs = LIBARCHIVE_INTERFACE_LIB,
     out_shared_libs = LIBARCHIVE_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
     target_compatible_with = ALL_SUPPORTED_PLATFORMS,
     deps = ["@examples_zlib//:zlib_foreign_static"],
 )
@@ -591,6 +593,7 @@ cmake(
     lib_source = ":all_srcs",
     out_interface_libs = LIBARCHIVE_INTERFACE_LIB,
     out_shared_libs = LIBARCHIVE_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
     target_compatible_with = ALL_SUPPORTED_PLATFORMS,
     deps = ["@examples_zlib//:zlib_dynamic"],
 )
@@ -603,6 +606,7 @@ cmake(
     lib_source = ":all_srcs",
     out_interface_libs = LIBARCHIVE_INTERFACE_LIB,
     out_shared_libs = LIBARCHIVE_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
     target_compatible_with = ALL_SUPPORTED_PLATFORMS,
     deps = ["@examples_zlib//:zlib_foreign_shared"],
 )

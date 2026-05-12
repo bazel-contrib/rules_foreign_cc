@@ -3,6 +3,7 @@ load(
     "cmake_cache_entries",
     "cmake_consumer_test",
     "expected_linkage",
+    "expected_loaded_libraries",
 )
 
 # foreign_cc cmake static deps
@@ -22,10 +23,17 @@ cmake_consumer_test(
             "zlib",
         ],
     ),
+    expected_loaded_libraries = expected_loaded_libraries(),
     deps = [
         "@examples_libarchive//:libarchive_static_zlib_foreign_static",
         "@examples_zlib//:zlib_foreign_static",
     ],
+)
+
+test_suite(
+    name = "runtime_tests",
+    tests = [":t_test"],
+    visibility = ["//integration_tests/transitive_matrix/cmake_static:__pkg__"],
 )
 
 test_suite(
@@ -38,6 +46,7 @@ test_suite(
     name = "tests",
     tests = [
         ":linkage_tests",
+        ":runtime_tests",
     ],
     visibility = ["//integration_tests/transitive_matrix/cmake_static:__pkg__"],
 )

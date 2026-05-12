@@ -14,23 +14,28 @@ targets in `examples/third_party/libarchive/BUILD.libarchive.bazel`.
 
 - Confirm source-built zlib and libarchive can be substituted across native
   `cc_*` and foreign_cc producers.
-- Confirm final binaries link correctly through the transitive
+- Confirm final binaries link and run correctly through the transitive
   `app -> libarchive -> zlib` path.
 - Confirm produced binaries and shared libraries record the expected
   static-versus-shared dependency shape.
+- Confirm shared-library runtime loading works without ambient
+  `LD_LIBRARY_PATH` or `DYLD_LIBRARY_PATH` on Unix, and with only the expected
+  Bazel output DLL directories on Windows.
 - Confirm foreign_cc-produced `CcInfo` has semantic parity with comparable
   native `cc_*` provider targets after normalizing implementation-specific
   filenames and symlink shapes.
 
 ## Matrix and layout
 
-The layout is divided into two sections:
+The layout is divided into three sections:
 
-1. `cc_*` and `cmake_*` directories contain the matrix linkage tests for every
-   scenario involving the transitive path from `app` to `zlib`. There are 48
-   scenarios in total.
+1. `cc_*` and `cmake_*` directories contain the matrix runtime and linkage
+   tests for every scenario involving the transitive path from `app` to `zlib`.
+   There are 48 scenarios in total.
 2. `provider_parity` contains `CcInfo` provider parity tests for zlib and
    libarchive producers.
+3. `known_gap` contains tests for known gaps in foreign_cc that have not been
+   remediated yet.
 
 For the matrix tests, the package prefix identifies the app consumer:
 
@@ -56,8 +61,8 @@ files in one package output directory.
 
 ## Scenarios
 
-The matrix suite implements 48 app build scenarios, with one linkage test per
-scenario. The scenarios are enumerated from four zlib
+The matrix suite implements 48 app build scenarios, with one runtime test and
+one linkage test per scenario. The scenarios are enumerated from four zlib
 producer shapes, four libarchive producer shapes, and the valid app link modes
 for each libarchive output shape. Each libarchive producer shape is crossed
 with the four zlib producer shapes, giving 16 libarchive producer targets.
@@ -82,7 +87,7 @@ See [BUILD.zlib.bazel](../../third_party/zlib/BUILD.zlib.bazel) and
 
 Each leaf package lists one explicit scenario-level macro call. The call site
 shows the app producer, app link mode, `deps`, `dynamic_deps` where applicable,
-`linkstatic` where applicable.
+`linkstatic` where applicable, and expected runtime-loaded libraries.
 
 Except for `cmake_static`, the app-level consumer only links libarchive as a
 direct dep; zlib enters transitively through the selected libarchive target.
@@ -148,6 +153,24 @@ name zlib explicitly to model a complete upstream static link.
 
 ## Tests
 
+### Runtime assertion
+
+Each `cc_*` and `cmake_*` consumer goes through a runtime test to make sure it
+loads the expected libraries.
+
+The consuming app uses libarchive's gzip filter to write a tar archive to
+memory, then reads it back through libarchive. That forces libarchive to use
+zlib rather than only linking it. Successful runs print exactly:
+
+```text
+expected libarchive+zlib loaded: payload=rules_foreign_cc_transitive_test
+```
+
+For shared-library cases, the app also reports the runtime loader path for
+libarchive and zlib. The test compares those paths against the exact Bazel
+runfiles for the expected shared-library targets, so a system library fallback
+fails.
+
 ### Linkage assertion
 
 Each scenario also runs a linkage test against the produced app and, when
@@ -201,6 +224,12 @@ differences, and solib path prefixes are normalized because they are
 representation details rather than provider contract differences. The
 comparison intentionally does not assert static-vs-pic provider-slot identity.
 
+## Additional scenarios
+
+`known_gap_tests` keeps stricter cases that are expected to fail today. They are
+tagged `manual`, disabled by default, and documented in `known_gap/README.md`.
+Pass `--define=transitive_cc_foreign_known_gap=true` to reproduce them.
+
 ## Run
 
 From `examples/`:
@@ -208,4 +237,7 @@ From `examples/`:
 ```bash
 bazel test //integration_tests/transitive_matrix:tests --test_output=errors
 bazel test //integration_tests/transitive_matrix/... --test_output=errors
+bazel test //integration_tests/transitive_matrix:known_gap_tests \
+  --define=transitive_cc_foreign_known_gap=true \
+  --test_output=errors
 ```

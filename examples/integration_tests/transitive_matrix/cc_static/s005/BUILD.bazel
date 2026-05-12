@@ -2,20 +2,31 @@ load(
     "//integration_tests/transitive_matrix:consumer_tests.bzl",
     "cc_binary_consumer_test",
     "expected_linkage",
+    "expected_loaded_libraries",
 )
 
 # cc_binary static deps
 # app: cc_binary(linkstatic = True)
 # libarchive: native static
 # zlib: native shared wrapper
+# runtime: zlib must load from @examples_zlib//:zlib_shared
 cc_binary_consumer_test(
     name = "t",
     expected_linkage = expected_linkage(
         app_shared_deps = ["zlib"],
         app_static_deps = ["libarchive"],
     ),
+    expected_loaded_libraries = expected_loaded_libraries(
+        zlib = "@examples_zlib//:zlib_shared",
+    ),
     linkstatic = True,
     deps = ["@examples_libarchive//:libarchive_static_zlib_dynamic"],
+)
+
+test_suite(
+    name = "runtime_tests",
+    tests = [":t_test"],
+    visibility = ["//integration_tests/transitive_matrix/cc_static:__pkg__"],
 )
 
 test_suite(
@@ -28,6 +39,7 @@ test_suite(
     name = "tests",
     tests = [
         ":linkage_tests",
+        ":runtime_tests",
     ],
     visibility = ["//integration_tests/transitive_matrix/cc_static:__pkg__"],
 )
