@@ -6,6 +6,7 @@ load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("//foreign_cc/private/framework:platform.bzl", "target_os_name")
+load(":runtime_library_search_directories.bzl", "runtime_library_search_directories")
 
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
@@ -40,6 +41,32 @@ CxxFlagsInfo = provider(
         assemble = "Assemble flags",
     ),
 )
+
+_LOADER_TOKEN_ESCAPES_FOR_SHELL = [
+    ("$EXEC_ORIGIN", "\\$EXEC_ORIGIN"),
+    ("$ORIGIN", "\\$ORIGIN"),
+]
+
+_LOADER_TOKEN_ESCAPES_FOR_MAKE = [
+    ("$EXEC_ORIGIN", "\\\\$\\$EXEC_ORIGIN"),
+    ("$ORIGIN", "\\\\$\\$ORIGIN"),
+]
+
+def escape_loader_tokens_for_shell(text):
+    return _escape_loader_tokens(_normalize_loader_tokens(text), _LOADER_TOKEN_ESCAPES_FOR_SHELL)
+
+def escape_loader_tokens_for_make(text):
+    return _escape_loader_tokens(_normalize_loader_tokens(text), _LOADER_TOKEN_ESCAPES_FOR_MAKE)
+
+def _normalize_loader_tokens(text):
+    for token, _ in _LOADER_TOKEN_ESCAPES_FOR_SHELL:
+        text = text.replace("\\" + token, token)
+    return text
+
+def _escape_loader_tokens(text, token_escapes):
+    for token, escaped_token in token_escapes:
+        text = text.replace(token, escaped_token)
+    return text
 
 # Since we're calling an external build system we can't support some
 # features that may be enabled on the toolchain - so we disable
@@ -126,6 +153,28 @@ def _dynamic_module_link_flags(shared_flags, is_darwin):
     if is_darwin:
         return [flag for flag in shared_flags if flag not in ["-shared", "-dynamiclib"]]
     return shared_flags
+
+def _create_link_variables(
+        *,
+        cc_toolchain,
+        feature_configuration,
+        is_using_linker,
+        is_linking_dynamic_library,
+        must_keep_debug,
+        output_file = None,
+        runtime_library_search_directories = None):
+    kwargs = {
+        "cc_toolchain": cc_toolchain,
+        "feature_configuration": feature_configuration,
+        "is_linking_dynamic_library": is_linking_dynamic_library,
+        "is_using_linker": is_using_linker,
+        "must_keep_debug": must_keep_debug,
+    }
+    if output_file != None:
+        kwargs["output_file"] = output_file
+    if runtime_library_search_directories != None:
+        kwargs["runtime_library_search_directories"] = runtime_library_search_directories
+    return cc_common.create_link_variables(**kwargs)
 
 def targets_windows(ctx, cc_toolchain):
     """Returns true if build is targeting Windows
@@ -236,13 +285,15 @@ def get_tools_info(ctx):
         ) else "",
     )
 
-def get_flags_info(ctx, link_output_file = None):
+def get_flags_info(ctx, link_output_file = None, outputs = None):
     """Takes information about flags from cc_toolchain, returns CxxFlagsInfo
 
     Args:
         ctx: rule context
         link_output_file: output file to be specified in the link command line
             flags
+        outputs: framework-declared outputs used to derive runtime library
+            search directories
 
     Returns:
         CxxFlagsInfo: A provider containing Cxx flags
@@ -258,6 +309,11 @@ def get_flags_info(ctx, link_output_file = None):
     linkopts = (ctx.fragments.cpp.linkopts + getattr(ctx.attr, "linkopts", [])) or []
     defines = _defines_from_deps(ctx)
     use_pic = cc_toolchain_.needs_pic_for_dynamic_libraries(feature_configuration = feature_configuration)
+
+    if targets_windows(ctx, cc_toolchain_):
+        runtime_search_directories = struct(shared = None, executable = None)
+    else:
+        runtime_search_directories = runtime_library_search_directories(ctx, outputs)
 
     flags = CxxFlagsInfo(
         cc = cc_common.get_memory_inefficient_command_line(
@@ -284,19 +340,20 @@ def get_flags_info(ctx, link_output_file = None):
         cxx_linker_shared = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.cpp_link_dynamic_library,
-            variables = cc_common.create_link_variables(
+            variables = _create_link_variables(
                 cc_toolchain = cc_toolchain_,
                 feature_configuration = feature_configuration,
                 is_using_linker = True,
                 is_linking_dynamic_library = True,
                 must_keep_debug = False,
+                runtime_library_search_directories = runtime_search_directories.shared,
             ),
         ),
         cxx_linker_dynamic_module = [],
         cxx_linker_static = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.cpp_link_static_library,
-            variables = cc_common.create_link_variables(
+            variables = _create_link_variables(
                 cc_toolchain = cc_toolchain_,
                 feature_configuration = feature_configuration,
                 is_using_linker = False,
@@ -308,12 +365,13 @@ def get_flags_info(ctx, link_output_file = None):
         cxx_linker_executable = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.cpp_link_executable,
-            variables = cc_common.create_link_variables(
+            variables = _create_link_variables(
                 cc_toolchain = cc_toolchain_,
                 feature_configuration = feature_configuration,
                 is_using_linker = True,
                 is_linking_dynamic_library = False,
                 must_keep_debug = False,
+                runtime_library_search_directories = runtime_search_directories.executable,
             ),
         ),
         assemble = cc_common.get_memory_inefficient_command_line(

@@ -2,12 +2,12 @@
  with CMake, configure/make, autotools)
 """
 
-load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
+load("@rules_cc//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load("//foreign_cc/private:resource_sets.bzl", "SIZE_ATTRIBUTES", "get_resource_env_vars")
@@ -31,8 +31,7 @@ load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
 )
-
-CcSharedLibraryInfo = bazel_features.globals.CcSharedLibraryInfo
+load(":runtime_library_search_directories.bzl", "RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES")
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
 # Many of the attributes have default values.
@@ -264,6 +263,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
 }
 
 # this would be cleaner as x | y, but that's not supported in bazel 5.4.0
+CC_EXTERNAL_RULE_ATTRIBUTES.update(RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES)
 CC_EXTERNAL_RULE_ATTRIBUTES.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
 CC_EXTERNAL_RULE_ATTRIBUTES.update(SIZE_ATTRIBUTES)
 
@@ -318,6 +318,7 @@ of the script, and allows to reuse the inputs structure, created by the framewor
         inputs = """InputFiles provider: summarized information on rule inputs, created by framework
 function, to be reused in script creator. Contains in particular merged compilation and linking
 dependencies.""",
+        outputs = "Declared outputs created by the framework.",
     ),
 )
 
@@ -547,7 +548,12 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$EXT_BUILD_DEPS$$",
     ] + _print_env() + _copy_deps_and_tools(inputs) + [
         "cd $$BUILD_TMPDIR$$",
-    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + postfix_script + validation_script + [
+    ] + attrs.create_configure_script(ConfigureParameters(
+        ctx = ctx,
+        attrs = attrs,
+        inputs = inputs,
+        outputs = outputs,
+    )) + postfix_script + validation_script + [
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
