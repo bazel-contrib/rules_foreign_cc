@@ -20,6 +20,10 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:ninja_script.bzl", "create_ninja_script")
+load(
+    "//foreign_cc/private:runtime_library_search_directories.bzl",
+    "runtime_library_search_directories_enabled",
+)
 load("//toolchains/native_tools:tool_access.bzl", "get_ninja_data")
 
 def _ninja_impl(ctx):
@@ -60,6 +64,14 @@ def _create_ninja_script(configureParameters):
     root = detect_root(ctx.attr.lib_source)
 
     tools = get_tools_info(ctx)
+
+    if runtime_library_search_directories_enabled(ctx):
+        fail((
+            "ERROR: {} enables runtime_library_search_directories, but " +
+            "runtime_library_search_directories is not supported by the ninja " +
+            "at this time."
+        ).format(ctx.label))
+
     flags = get_flags_info(ctx)
 
     data = ctx.attr.data + ctx.attr.build_data

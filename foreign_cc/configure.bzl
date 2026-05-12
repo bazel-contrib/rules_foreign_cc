@@ -21,6 +21,7 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:regen_stubs.bzl", "REGEN_STUBS")
+load("//foreign_cc/private:runtime_library_search_directories.bzl", "runtime_library_search_directories_enabled")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//toolchains/native_tools:tool_access.bzl",
@@ -108,7 +109,27 @@ def _create_configure_script(configureParameters):
     inputs = configureParameters.inputs
 
     tools = get_tools_info(ctx)
-    flags = get_flags_info(ctx)
+    flags = get_flags_info(
+        ctx,
+        outputs = configureParameters.outputs,
+    )
+
+    if (
+        runtime_library_search_directories_enabled(ctx) and
+        ctx.attr.out_shared_libs and
+        flags.cxx_linker_shared and
+        not ctx.attr.shared_ldflags_vars
+    ):
+        # buildifier: disable=print
+        print((
+            "WARNING: {} enables runtime_library_search_directories and declares " +
+            "shared-library outputs, but shared_ldflags_vars is not set. Those " +
+            "shared-library outputs may not get correct rpaths: default generated " +
+            "linker flags are for executable links and may not contain " +
+            "shared-library-specific runtime search paths. Set shared_ldflags_vars " +
+            "to the upstream Make variable used for shared-library links, for " +
+            "example [\"LDFLAGS\"] or [\"SHARED_LDFLAGS\"]."
+        ).format(ctx.label))
 
     define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
 

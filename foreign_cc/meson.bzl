@@ -6,6 +6,7 @@ load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "absolutize_path_in_str",
+    "escape_loader_tokens_for_shell",
     "get_flags_info",
     "get_tools_info",
 )
@@ -22,6 +23,7 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
+load("//foreign_cc/private:runtime_library_search_directories.bzl", "runtime_library_search_directories_enabled")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_make_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
@@ -71,7 +73,28 @@ def _create_meson_script(configureParameters):
     inputs = configureParameters.inputs
 
     tools = get_tools_info(ctx)
-    flags = get_flags_info(ctx)
+    flags = get_flags_info(
+        ctx,
+        outputs = configureParameters.outputs,
+    )
+
+    if (
+        runtime_library_search_directories_enabled(ctx) and
+        ctx.attr.out_shared_libs and
+        flags.cxx_linker_shared and
+        not ctx.attr.shared_ldflags_option
+    ):
+        # buildifier: disable=print
+        print((
+            "WARNING: {} enables runtime_library_search_directories and declares " +
+            "shared-library outputs, but shared_ldflags_option is not set. Those " +
+            "shared-library outputs may not get correct rpaths: default generated " +
+            "linker flags are for executable links and may not contain " +
+            "shared-library-specific runtime search paths. Set shared_ldflags_option " +
+            "to a Meson array option that the project passes to " +
+            "shared_library(..., link_args: ...)."
+        ).format(ctx.label))
+
     script = pkgconfig_script(inputs.ext_build_dirs)
     build_options = ctx.attr.options
 
@@ -155,16 +178,19 @@ def _create_meson_script(configureParameters):
 
         target_args[target_name] = args
 
+    # Expand options
+    build_options = expand_locations_and_make_variables(ctx, build_options, "options", data)
+
     # Append shared flags to build options
     if flags.cxx_linker_shared and ctx.attr.shared_ldflags_option:
         if ctx.attr.shared_ldflags_option in build_options:
             fail("cannot override existing build option: {}".format(ctx.attr.shared_ldflags_option))
 
-        absolutized = [_absolutize(ctx.workspace_name, f).replace("$EXT_BUILD_ROOT/", "$$EXT_BUILD_ROOT$$/") for f in flags.cxx_linker_shared]
+        absolutized = [
+            escape_loader_tokens_for_shell(_absolutize(ctx.workspace_name, f).replace("$EXT_BUILD_ROOT/", "$$EXT_BUILD_ROOT$$/"))
+            for f in flags.cxx_linker_shared
+        ]
         build_options = build_options | {ctx.attr.shared_ldflags_option: _list_to_str_repr(absolutized)}
-
-    # Expand options
-    build_options = expand_locations_and_make_variables(ctx, build_options, "options", data)
 
     script.append("{meson} setup --prefix={install_dir} {setup_args} {options} {source_dir}".format(
         meson = meson_path,
@@ -333,7 +359,7 @@ def _absolutize(workspace_name, text, force = False):
     return absolutize_path_in_str(workspace_name, "$EXT_BUILD_ROOT/", text, force)
 
 def _join_flags_list(workspace_name, flags):
-    return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+    return escape_loader_tokens_for_shell(" ".join([_absolutize(workspace_name, flag) for flag in flags]))
 
 def _list_to_str_repr(lst):
     # see https://mesonbuild.com/Build-options.html#using-build-options
@@ -346,4 +372,5 @@ def _list_to_str_repr(lst):
 
 export_for_test = struct(
     list_to_str_repr = _list_to_str_repr,
+    join_flags_list = _join_flags_list,
 )
