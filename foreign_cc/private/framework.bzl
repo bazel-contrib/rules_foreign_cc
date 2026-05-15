@@ -851,23 +851,46 @@ def _list(item):
         return [item]
     return []
 
+def _tool_source_path(path):
+    if (
+        path.startswith("/") or
+        path.startswith("$$EXT_BUILD_ROOT$$/") or
+        path.startswith("$$EXT_BUILD_DEPS$$/") or
+        path.startswith("$EXT_BUILD_ROOT/") or
+        path.startswith("$EXT_BUILD_DEPS/") or
+        (len(path) > 2 and path[1:3] == ":/")
+    ):
+        return path
+    return "$$EXT_BUILD_ROOT$$/{}".format(path)
+
+def _staged_launcher_runfiles_path(staged_path):
+    if not staged_path:
+        return None
+    if staged_path.endswith(".exe"):
+        return staged_path + ".runfiles"
+    return staged_path + ".exe.runfiles"
+
 def _copy_deps_and_tools(files):
     lines = []
     lines += _symlink_contents_to_dir("lib", files.libs)
     lines += _symlink_contents_to_dir("include", files.headers + files.include_dirs)
 
-    if files.tools_files:
+    if files.tool_entries:
         lines.append("##mkdirs## $$EXT_BUILD_DEPS$$/bin")
-    for tool in files.tools_files:
-        tool_prefix = "$EXT_BUILD_ROOT/"
-        tool = tool[len(tool_prefix):] if tool.startswith(tool_prefix) else tool
-        tool_runfiles = "{}.runfiles".format(tool)
-        tool_runfiles_manifest = "{}.runfiles_manifest".format(tool)
-        tool_exe_runfiles_manifest = "{}.exe.runfiles_manifest".format(tool)
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_runfiles))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_runfiles_manifest))
-        lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(tool_exe_runfiles_manifest))
+        for tool in files.tool_entries:
+            lines.append("##symlink_to_dir## {} $$EXT_BUILD_DEPS$$/bin/ False".format(_tool_source_path(tool.path)))
+            staged_launcher_runfiles_path = _staged_launcher_runfiles_path(tool.staged_path)
+            if tool.launcher_runfiles_dir and staged_launcher_runfiles_path:
+                lines.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/{} False".format(
+                    tool.launcher_runfiles_dir,
+                    staged_launcher_runfiles_path,
+                ))
+            for launcher_support_file in tool.launcher_support_files:
+                lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(launcher_support_file)))
+            if tool.runfiles_manifest:
+                lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(tool.runfiles_manifest)))
+            if tool.repo_mapping_manifest:
+                lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$/bin/ False".format(_file_path(tool.repo_mapping_manifest)))
 
     for ext_dir in files.ext_build_dirs:
         lines.append("##symlink_to_dir## $$EXT_BUILD_ROOT$$/{} $$EXT_BUILD_DEPS$$ True".format(_file_path(ext_dir)))
@@ -1080,9 +1103,9 @@ InputFiles = provider(
             "into $EXT_BUILD_DEPS/include."
         ),
         libs = "Library files built by Bazel. Will be copied into $EXT_BUILD_DEPS/lib.",
-        tools_files = (
-            "Files and directories with tools needed for configuration/building " +
-            "to be copied into the bin folder, which is added to the PATH"
+        tool_entries = (
+            "Executable tool entries to expose in $EXT_BUILD_DEPS/bin, along " +
+            "with any explicit manifest files needed next to them."
         ),
         ext_build_dirs = (
             "Directories with libraries, built by framework function. " +
@@ -1133,14 +1156,22 @@ def _define_inputs(attrs):
     # but filter out repeating directories
     ext_build_dirs = uniq_list_keep_order(ext_build_dirs)
 
-    tools = []
+    tool_entries = []
     tools_files = []
     input_files = []
     for tool in attrs.tools_data:
-        tools.append(tool.path)
         if tool.target:
-            for file_list in tool.target.files.to_list():
-                tools_files += _list(file_list)
+            tool_entries.append(struct(
+                path = tool.bin_entry_path or tool.path,
+                launcher_runfiles_dir = tool.launcher_runfiles_dir,
+                launcher_support_files = tool.launcher_support_files,
+                runfiles_manifest = tool.runfiles_manifest,
+                repo_mapping_manifest = tool.repo_mapping_manifest,
+                staged_path = tool.staged_path,
+            ))
+            tools_files += tool.launcher_support_files
+            tools_files += _list(tool.runfiles_manifest)
+            tools_files += _list(tool.repo_mapping_manifest)
 
     # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:
@@ -1159,7 +1190,7 @@ def _define_inputs(attrs):
         headers = bazel_headers,
         include_dirs = bazel_system_includes,
         libs = bazel_libs,
-        tools_files = tools,
+        tool_entries = tool_entries,
         deps_compilation_info = cc_info_merged.compilation_context,
         deps_linking_info = cc_info_merged.linking_context,
         ext_build_dirs = ext_build_dirs,

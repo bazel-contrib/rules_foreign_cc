@@ -1,5 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+exports_files(["meson_tool_wrapper.py"])
+
 bzl_library(
     name = "cmake_build",
     srcs = ["cmake_build.bzl"],
@@ -27,8 +29,6 @@ bzl_library(
         "@rules_python//python:defs_bzl",
     ],
 )
-
-exports_files(["meson_tool_wrapper.py"])
 
 bzl_library(
     name = "ninja_build",

@@ -179,7 +179,7 @@ local replace_in_files="${3:-}"
 if [[ -f "$source" ]]; then
   # In order to be able to use `replace_in_files`, we ensure that we create copies of specfieid
   # files so updating them is possible.
-  if [[ "$source" == *.pc || "$source" == *.la || "$source" == *-config || "$source" == *.mk || "$source" == *.cmake ]]; then
+  if [[ "$replace_in_files" != False && ( "$source" == *.pc || "$source" == *.la || "$source" == *-config || "$source" == *.mk || "$source" == *.cmake ) ]]; then
     dest="$target/$(basename \"$source\")"
     cp "$source" "$dest" && chmod +w "$dest" && touch -r "$source" "$dest"
   else

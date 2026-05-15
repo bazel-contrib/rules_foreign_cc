@@ -16,13 +16,21 @@ filegroup(
 """
 
 _MESON_BUILD_FILE_CONTENT = """\
-exports_files(["meson.py"])
+load("@rules_python//python:defs.bzl", "py_library")
 
-filegroup(
+py_library(
     name = "runtime",
     # NOTE: excluding __pycache__ is important to avoid rebuilding due to pyc
     # files, see https://github.com/bazel-contrib/rules_foreign_cc/issues/1342
-    srcs = glob(["mesonbuild/**"], exclude = ["**/__pycache__/*"]),
+    srcs = glob(["mesonbuild/**/*.py"], exclude = ["**/__pycache__/*"]),
+    data = glob(
+        ["mesonbuild/**"],
+        exclude = [
+            "**/*.py",
+            "**/__pycache__/*",
+        ],
+    ),
+    imports = ["."],
     visibility = ["//visibility:public"],
 )
 """

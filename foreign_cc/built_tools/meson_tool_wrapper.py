@@ -2,23 +2,21 @@ import os
 import runpy
 import sys
 
-from python.runfiles import runfiles
 
-
-# Meson frequently spawns Python subprocesses, either internally or via
-# project code such as `python.find_installation()` checks. When Meson is
-# launched from a Bazel `py_binary`, those child interpreters do not
-# automatically inherit the wheel-provided `site-packages` entries that were
-# attached to the wrapper target.
-#
-# This wrapper preserves those `site-packages` paths in `PYTHONPATH` before
-# handing off to the real `meson.py` entrypoint, which is passed in as a
-# runfiles rlocation via `REAL_MESON`.
-def _site_packages_from_sys_path():
+# Meson can spawn child Python interpreters while probing the build
+# environment. Those children need both wheel `site-packages` and the import
+# root that contains `mesonbuild` itself, because Meson may re-exec via
+# `python -m mesonbuild.mesonmain`.
+def _inherited_pythonpath_entries():
     paths = []
     seen = set()
     for entry in sys.path:
-        if not entry or "site-packages" not in entry:
+        if not entry:
+            continue
+        keep = "site-packages" in entry or os.path.isdir(
+            os.path.join(entry, "mesonbuild"),
+        )
+        if not keep:
             continue
         if entry in seen:
             continue
@@ -27,31 +25,15 @@ def _site_packages_from_sys_path():
     return paths
 
 
-def _find_meson_main():
-    rlocation = os.environ.get("REAL_MESON")
-    if not rlocation:
-        raise RuntimeError("REAL_MESON is not set")
-
-    path = runfiles.Create().Rlocation(rlocation)
-    if path and os.path.isfile(path):
-        return path
-
-    raise RuntimeError(
-        "Failed to locate meson main from REAL_MESON={!r}".format(rlocation)
-    )
-
-
 def main():
-    extra_paths = _site_packages_from_sys_path()
+    extra_paths = _inherited_pythonpath_entries()
     if extra_paths:
         existing = os.environ.get("PYTHONPATH")
         os.environ["PYTHONPATH"] = os.pathsep.join(
             extra_paths + ([existing] if existing else [])
         )
 
-    meson_main = _find_meson_main()
-    sys.argv[0] = meson_main
-    runpy.run_path(meson_main, run_name="__main__")
+    runpy.run_module("mesonbuild.mesonmain", run_name="__main__", alter_sys=True)
 
 
 if __name__ == "__main__":
