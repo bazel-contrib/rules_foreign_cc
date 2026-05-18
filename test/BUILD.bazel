@@ -7,6 +7,7 @@ load(":convert_shell_script_test.bzl", "shell_script_conversion_suite")
 load(":make_env_vars_test.bzl", "make_env_vars_test_suite")
 load(":meson_text_tests.bzl", "meson_script_test_suite")
 load(":msbuild_text_tests.bzl", "msbuild_script_test_suite")
+load(":runtime_executable_test.bzl", "runtime_executable_test_suite")
 load(":runtime_library_search_directories_test.bzl", "runtime_library_search_directories_test_suite")
 load(":shell_script_helper_test_rule.bzl", "shell_script_helper_test_rule")
 load(":symlink_contents_to_dir_test_rule.bzl", "symlink_contents_to_dir_test_rule")
@@ -63,6 +64,19 @@ meson_script_test_suite()
 msbuild_script_test_suite()
 
 runtime_library_search_directories_test_suite()
+
+runtime_executable_test_suite()
+
+sh_test(
+    name = "runtime_executable_shell_quoting_execution_test",
+    size = "small",
+    srcs = ["runtime_executable_shell_quoting_test.sh"],
+    args = ["$(rlocationpath :runtime_executable_shell_quoting_subject)"],
+    data = [
+        ":runtime_executable_shell_quoting_subject",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+)
 
 shell_script_conversion_suite()
 

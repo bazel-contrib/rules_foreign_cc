@@ -2,6 +2,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files([
     "runnable_binary_wrapper.sh",
+    "runtime_executable_wrapper.sh.tpl",
     "settings.sh.in",
 ])
 
@@ -36,6 +37,12 @@ bzl_library(
         "@rules_cc//cc:bzl_srcs",
         "@rules_cc//cc/common:cc_shared_library_info_bzl",
     ],
+)
+
+bzl_library(
+    name = "runtime_executable_info",
+    srcs = ["runtime_executable_info.bzl"],
+    visibility = ["//foreign_cc:__subpackages__"],
 )
 
 bzl_library(
@@ -75,6 +82,7 @@ bzl_library(
         ":detect_xcompile.bzl",
         ":resource_sets",
         ":run_shell_file_utils",
+        ":runtime_executable_info",
         ":runtime_library_search_directories",
         "//foreign_cc:providers",
         "//foreign_cc/private/framework:helpers",
@@ -131,7 +139,10 @@ bzl_library(
     name = "transitions",
     srcs = ["transitions.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
-    deps = ["//foreign_cc:providers"],
+    deps = [
+        ":runtime_executable_info",
+        "//foreign_cc:providers",
+    ],
 )
 
 bzl_library(
