@@ -8,7 +8,7 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("@rules_cc//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
-load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
+load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo", "ForeignCcRuntimeExecutableInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load("//foreign_cc/private:resource_sets.bzl", "SIZE_ATTRIBUTES", "get_resource_env_vars")
 load(
@@ -686,6 +686,22 @@ def cc_external_rule_impl(ctx, attrs):
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
         )),
+        ForeignCcRuntimeExecutableInfo(
+            binaries = {
+                attrs.out_binaries[i]: outputs.out_binary_files[i]
+                for i in range(len(attrs.out_binaries))
+            },
+            runtime_files = depset(direct = (
+                ([outputs.out_include_dir] if outputs.out_include_dir else []) +
+                outputs.libraries.shared_libraries +
+                outputs.data_dirs +
+                outputs.data_files
+            ), transitive = [
+                dep[ForeignCcRuntimeExecutableInfo].runtime_files
+                for dep in attrs.deps
+                if ForeignCcRuntimeExecutableInfo in dep
+            ]),
+        ),
         CcInfo(
             compilation_context = out_cc_info.compilation_context,
             linking_context = out_cc_info.linking_context,

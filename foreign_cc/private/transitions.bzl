@@ -1,7 +1,7 @@
 """This file contains rules for configuration transitions"""
 
 load("@rules_cc//cc:defs.bzl", "CcInfo")
-load("//foreign_cc:providers.bzl", "ForeignCcDepsInfo")
+load("//foreign_cc:providers.bzl", "ForeignCcDepsInfo", "ForeignCcRuntimeExecutableInfo")
 
 def _extra_toolchains_transition_impl(settings, attrs):
     t = getattr(attrs, "extra_toolchain", None)
@@ -18,12 +18,15 @@ _extra_toolchains_transition = transition(
 
 def _extra_toolchains_transitioned_foreign_cc_target_impl(ctx):
     # Return the providers from the transitioned foreign_cc target
-    return [
+    providers = [
         ctx.attr.target[DefaultInfo],
         ctx.attr.target[CcInfo],
         ctx.attr.target[ForeignCcDepsInfo],
         ctx.attr.target[OutputGroupInfo],
     ]
+    if ForeignCcRuntimeExecutableInfo in ctx.attr.target:
+        providers.append(ctx.attr.target[ForeignCcRuntimeExecutableInfo])
+    return providers
 
 extra_toolchains_transitioned_foreign_cc_target = rule(
     doc = "A rule for adding an extra toolchain to consider when building the given target",

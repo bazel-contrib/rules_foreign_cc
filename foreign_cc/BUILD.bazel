@@ -97,6 +97,7 @@ bzl_library(
         ":meson",
         ":msbuild",
         ":ninja",
+        ":runtime_executable",
         ":utils",
     ],
 )
@@ -211,4 +212,15 @@ bzl_library(
     name = "providers",
     srcs = ["providers.bzl"],
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "runtime_executable",
+    srcs = ["runtime_executable.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":providers",
+        "@bazel_skylib//lib:shell",
+        "@rules_shell//shell:rules_bzl",
+    ],
 )

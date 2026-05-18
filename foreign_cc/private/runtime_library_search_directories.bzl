@@ -179,6 +179,7 @@ def runtime_library_search_directories(ctx, outputs):
       contains runtime library search directories for that link action kind, or
       None when runtime library search directory derivation is disabled.
     """
+    d_attrs = _declared_runtime_attrs(ctx)
 
     d_attrs = _declared_runtime_attrs(ctx)
     if not _runtime_library_search_directories_requested(ctx):
