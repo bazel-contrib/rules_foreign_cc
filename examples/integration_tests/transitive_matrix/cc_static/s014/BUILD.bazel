@@ -1,0 +1,33 @@
+load(
+    "//integration_tests/transitive_matrix:consumer_tests.bzl",
+    "cc_binary_consumer_test",
+    "expected_linkage",
+)
+
+# cc_binary static deps
+# app: cc_binary(linkstatic = False)
+# libarchive: foreign_cc static
+# zlib: native shared wrapper
+cc_binary_consumer_test(
+    name = "t",
+    expected_linkage = expected_linkage(
+        app_shared_deps = ["zlib"],
+        app_static_deps = ["libarchive"],
+    ),
+    linkstatic = False,
+    deps = ["@examples_libarchive//:libarchive_foreign_static_zlib_dynamic"],
+)
+
+test_suite(
+    name = "linkage_tests",
+    tests = [":t_linkage_test"],
+    visibility = ["//integration_tests/transitive_matrix/cc_static:__pkg__"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":linkage_tests",
+    ],
+    visibility = ["//integration_tests/transitive_matrix/cc_static:__pkg__"],
+)

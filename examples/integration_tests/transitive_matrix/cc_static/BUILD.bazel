@@ -1,0 +1,30 @@
+test_suite(
+    name = "linkage_tests",
+    tests = [
+        "//integration_tests/transitive_matrix/cc_static/s001:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s002:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s003:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s004:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s005:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s006:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s007:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s008:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s009:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s010:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s011:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s012:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s013:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s014:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s015:linkage_tests",
+        "//integration_tests/transitive_matrix/cc_static/s016:linkage_tests",
+    ],
+    visibility = ["//integration_tests/transitive_matrix:__pkg__"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":linkage_tests",
+    ],
+    visibility = ["//integration_tests/transitive_matrix:__pkg__"],
+)

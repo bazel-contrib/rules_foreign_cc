@@ -1,0 +1,41 @@
+load(
+    "//integration_tests/transitive_matrix:consumer_tests.bzl",
+    "cmake_cache_entries",
+    "cmake_consumer_test",
+    "expected_linkage",
+)
+
+# foreign_cc cmake static deps
+# app: cmake()
+# libarchive: foreign_cc static
+# zlib: foreign_cc shared
+cmake_consumer_test(
+    name = "t",
+    cache_entries = cmake_cache_entries(
+        libarchive = "archive",
+        zlib = "z",
+        zlib_windows = "zlib1",
+    ),
+    expected_linkage = expected_linkage(
+        app_shared_deps = ["zlib"],
+        app_static_deps = ["libarchive"],
+    ),
+    deps = [
+        "@examples_libarchive//:libarchive_foreign_static_zlib_foreign_shared",
+        "@examples_zlib//:zlib_foreign_shared",
+    ],
+)
+
+test_suite(
+    name = "linkage_tests",
+    tests = [":t_linkage_test"],
+    visibility = ["//integration_tests/transitive_matrix/cmake_static:__pkg__"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":linkage_tests",
+    ],
+    visibility = ["//integration_tests/transitive_matrix/cmake_static:__pkg__"],
+)

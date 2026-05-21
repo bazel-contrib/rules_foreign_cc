@@ -1,0 +1,18 @@
+test_suite(
+    name = "linkage_tests",
+    tests = [
+        "//integration_tests/transitive_matrix/cmake_dynamic/dyn001:linkage_tests",
+        "//integration_tests/transitive_matrix/cmake_dynamic/dyn002:linkage_tests",
+        "//integration_tests/transitive_matrix/cmake_dynamic/dyn003:linkage_tests",
+        "//integration_tests/transitive_matrix/cmake_dynamic/dyn004:linkage_tests",
+    ],
+    visibility = ["//integration_tests/transitive_matrix:__pkg__"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":linkage_tests",
+    ],
+    visibility = ["//integration_tests/transitive_matrix:__pkg__"],
+)
