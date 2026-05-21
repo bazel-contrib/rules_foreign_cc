@@ -72,6 +72,7 @@ use_repo(
     "boost",
     "cares",
     "curl",
+    "examples_libarchive",
     "examples_zlib",
     "expat",
     "flex",

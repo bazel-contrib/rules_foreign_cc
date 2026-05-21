@@ -94,6 +94,7 @@ use_repo(
     "bison",
     "cares",
     "curl",
+    "examples_libarchive",
     "examples_zlib",
     "expat",
     "flex",
