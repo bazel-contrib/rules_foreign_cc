@@ -47,6 +47,9 @@ _TARGET_ARCH_PARAMS = {
     "aarch64": {
         "CMAKE_SYSTEM_PROCESSOR": "aarch64",
     },
+    "armv7": {
+        "CMAKE_SYSTEM_PROCESSOR": "armv7",
+    },
     "ppc64le": {
         "CMAKE_SYSTEM_PROCESSOR": "ppc64le",
     },
@@ -60,6 +63,9 @@ _TARGET_ARCH_PARAMS = {
     },
     "wasm64": {
         "CMAKE_SYSTEM_PROCESSOR": "x86_64",
+    },
+    "x86_32": {
+        "CMAKE_SYSTEM_PROCESSOR": "x86",
     },
     "x86_64": {
         "CMAKE_SYSTEM_PROCESSOR": "x86_64",
