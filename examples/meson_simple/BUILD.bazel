@@ -32,6 +32,38 @@ SIZES = [
 ]
 
 meson(
+    name = "meson_shared_lib",
+    lib_source = "//meson_simple/code:srcs",
+    options = {
+        "build_shared": "true",
+    },
+    out_shared_libs = select({
+        "@platforms//os:macos": ["liba_shared.dylib"],
+        "//conditions:default": ["liba_shared.so"],
+    }),
+    shared_ldflags_option = "shared_link_flags",
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_test(
+    name = "test_shared_lib",
+    size = "small",
+    srcs = [
+        "test_libb.cpp",
+    ],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":meson_shared_lib",
+    ],
+)
+
+meson(
     name = "meson_lib-introspect",
     lib_source = "//meson_simple/code:srcs",
     out_data_files = ["introspect.json"],
