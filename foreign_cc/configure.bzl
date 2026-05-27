@@ -165,6 +165,7 @@ def _create_configure_script(configureParameters):
         make_args = args,
         executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
         shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
+        dynamic_module_ldflags_vars = ctx.attr.dynamic_module_ldflags_vars,
         is_msvc = is_msvc,
     )
     return define_install_prefix + configure
@@ -249,6 +250,15 @@ def _attrs():
                 "If this is set and an xcompile scenario is detected, pass the necessary autotools flags."
             ),
             default = False,
+        ),
+        "dynamic_module_ldflags_vars": attr.string_list(
+            doc = (
+                "Make variables receiving linker flags for loadable dynamic modules. " +
+                "This is primarily useful on Darwin, where module builds cannot use " +
+                "conflicting `-dynamiclib`/`-shared` and `-bundle` linker flags together."
+            ),
+            mandatory = False,
+            default = [],
         ),
         "executable_ldflags_vars": attr.string_list(
             doc = (
