@@ -562,6 +562,7 @@ all:
 		# EXT_BUILD_ROOT and we want the replacement to be most specific first. \
 		$(SED) -i.bak \
 			-e 's|--jobserver-auth=[^ ]*|--jobserver-auth={{JOBSERVER}}|g' \
+			-e 's|$(SHELL)|{{SHELL}}|g' \
 			-e 's|$(abs_srcdir)|{{abs_srcdir}}|g' \
 			-e 's|$(abs_builddir)|{{abs_builddir}}|g' \
 			-e 's|$(BUILD_TMPDIR)|{{BUILD_TMPDIR}}|g' \
