@@ -94,7 +94,11 @@ def _make_tool_impl(ctx):
             "--prefix=\"$$INSTALLDIR$$\"",
         ]
 
-        install_cmd = ["./make install"]
+        # AM_UPDATE_INFO_DIR=no disables the install-info hook in
+        # doc/Makefile.in. Without it, share/info/dir is generated only
+        # when the host has texinfo installed, which makes the output
+        # tree non-deterministic across machines.
+        install_cmd = ["AM_UPDATE_INFO_DIR=no ./make install"]
 
         xcompile_options = detect_xcompile(ctx)
         if xcompile_options:
