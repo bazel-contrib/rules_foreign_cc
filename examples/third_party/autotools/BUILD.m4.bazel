@@ -12,6 +12,17 @@ filegroup(
 
 configure_make(
     name = "m4",
+    # Stub gperf and help2man so make doesn't try to regenerate
+    # `lib/iconv_open-*.h` and `doc/m4.1` -- their sources and the
+    # checked-in outputs share an mtime under Bazel's CAS, which trips
+    # make's "rebuild if not strictly newer" check. Both Makefiles
+    # hardcode `GPERF = gperf` / `HELP2MAN = ...` instead of using
+    # `@GPERF@` / `@HELP2MAN@`, so the rule's configure-line stubs
+    # don't reach them; override on the make command line instead.
+    args = [
+        "GPERF=true",
+        "HELP2MAN=true",
+    ],
     env = select({
         "@platforms//os:macos": {"AR": ""},
         "//conditions:default": {},
