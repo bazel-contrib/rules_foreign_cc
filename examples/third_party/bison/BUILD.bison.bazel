@@ -13,14 +13,28 @@ filegroup(
 # I tested and this builds for me on macOS and Linux, did not check Windows
 configure_make(
     name = "bison",
-    # Stub gperf and help2man so make doesn't try to regenerate
-    # `lib/iconv_open-*.h` and the man pages -- same shape as m4: the
-    # generated Makefile hardcodes `GPERF = gperf` / `HELP2MAN = ...`
-    # rather than using `@GPERF@` / `@HELP2MAN@`, so the rule's
-    # configure-line stubs don't reach them.
+    # On RBE, three regen recipes fire at make time even with the
+    # rule's configure-line stubs in place:
+    #   * `lib/iconv_open-*.h` from `*.in` via `GPERF` -- generated
+    #     Makefile hardcodes `GPERF = gperf` (not `@GPERF@`), so the
+    #     configure-line stub doesn't reach it. Override on make line.
+    #   * `doc/bison.1` via help2man -- recipe is
+    #     `if HELP2MAN --version; then HELP2MAN ... && mv $@.tmp $@; ...`
+    #     and `true --version` succeeds, taking the broken branch
+    #     (`mv` fails because `true` produces no `.tmp`). Empty
+    #     `dist_man_MANS` and `nodist_man_MANS` so `all-am` doesn't
+    #     pull the recipe in at all.
+    #   * `src/parse-gram.c` regen via the `.y.c` rule, which calls
+    #     `tests/bison` (a wrapper around the not-yet-built `src/bison`).
+    #     Pre-built `parse-gram.c` ships in the tarball but mtime
+    #     parity with `parse-gram.y` triggers the rule. Override
+    #     `am__skipyacc=:` so the recipe becomes a no-op (`: $(SHELL)
+    #     $(YLWRAP) ...`).
     args = [
         "GPERF=true",
-        "HELP2MAN=true",
+        "am__skipyacc=:",
+        "dist_man_MANS=",
+        "nodist_man_MANS=",
     ],
     build_data = [
         "@m4//:m4_exe",
