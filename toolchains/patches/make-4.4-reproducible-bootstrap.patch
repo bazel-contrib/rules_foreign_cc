@@ -1,0 +1,21 @@
+diff --git Makefile.in Makefile.in
+--- Makefile.in
++++ Makefile.in
+@@ -110,7 +110,7 @@ host_triplet = @host@
+ bin_PROGRAMS = make$(EXEEXT)
+
+ # If prefix is not a standard location, look in prefix as well
+-@KNOWN_PREFIX_FALSE@am__append_1 = -DINCLUDEDIR=\"$(includedir)\"
++@KNOWN_PREFIX_FALSE@am__append_1 = -DINCLUDEDIR=\"nonexistent\"
+ @WINDOWSENV_TRUE@am__append_2 = $(w32_SRCS)
+ @WINDOWSENV_TRUE@am__append_3 = -I $(top_srcdir)/src/w32/include
+ @WINDOWSENV_FALSE@am__append_4 = src/posixos.c
+@@ -567,7 +567,7 @@ make_LDADD = $(LIBOBJS) $(_GUILE_LIBS) lib/libgnu.a $(GETLOADAVG_LIBS) \
+ 		@LIBINTL@
+
+ AM_CPPFLAGS = -Isrc -I$(top_srcdir)/src -Ilib -I$(top_srcdir)/lib \
+-	-DLIBDIR=\"$(libdir)\" -DLOCALEDIR=\"$(localedir)\" \
++	-DLIBDIR=\"nonexistent\" -DLOCALEDIR=\"nonexistent\" \
+ 	$(am__append_1) $(am__append_3)
+ AM_CFLAGS = $(_GUILE_CFLAGS)
+
