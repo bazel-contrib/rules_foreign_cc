@@ -43,6 +43,7 @@ configure_make(
     ],
     # Bison depends on m4sugar.m4 in the "share" directory at runtime
     out_data_dirs = ["share"],
+    out_include_dir = "",
     out_static_libs = ["liby.a"],
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],

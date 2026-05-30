@@ -42,6 +42,7 @@ configure_make(
         "ifnames",
     ],
     out_data_dirs = ["share"],
+    out_include_dir = "",
     toolchains = ["@rules_perl//:current_toolchain"],
 )
 
