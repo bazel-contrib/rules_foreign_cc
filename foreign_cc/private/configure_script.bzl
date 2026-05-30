@@ -1,6 +1,7 @@
 # buildifier: disable=module-docstring
 load(":make_env_vars.bzl", "get_ldflags_make_vars", "get_make_env_vars")
 load(":make_script.bzl", "pkgconfig_script")
+load(":regen_stubs.bzl", "REGEN_STUBS")
 
 # buildifier: disable=function-docstring
 def create_configure_script(
@@ -14,6 +15,7 @@ def create_configure_script(
         deps,
         inputs,
         env_vars,
+        regen_env_vars,
         configure_in_place,
         prefix_flag,
         autoconf,
@@ -47,7 +49,7 @@ def create_configure_script(
     if autogen:
         # NOCONFIGURE is pseudo standard and tells the script to not invoke configure.
         # We explicitly invoke configure later.
-        autogen_env_vars = _get_autogen_env_vars(env_vars)
+        autogen_env_vars = _get_autogen_env_vars(regen_env_vars)
         script.append("{env_vars} \"{root_dir}/{autogen}\" {options}".format(
             env_vars = " ".join(["{}=\"{}\"".format(key, value) for (key, value) in autogen_env_vars.items()]),
             root_dir = root_path,
@@ -55,11 +57,11 @@ def create_configure_script(
             options = " ".join(autogen_options),
         ).lstrip())
 
-    env_vars_string = " ".join(["{}=\"{}\"".format(key, value) for (key, value) in env_vars.items()])
+    regen_env_vars_string = " ".join(["{}=\"{}\"".format(key, value) for (key, value) in regen_env_vars.items()])
 
     if autoconf:
         script.append("{env_vars} {autoconf} {options}".format(
-            env_vars = env_vars_string,
+            env_vars = regen_env_vars_string,
             # TODO: Pass autoconf via a toolchain
             autoconf = "autoconf",
             options = " ".join(autoconf_options),
@@ -67,7 +69,7 @@ def create_configure_script(
 
     if autoreconf:
         script.append("{env_vars} {autoreconf} {options}".format(
-            env_vars = env_vars_string,
+            env_vars = regen_env_vars_string,
             # TODO: Pass autoreconf via a toolchain
             autoreconf = "autoreconf",
             options = " ".join(autoreconf_options),
@@ -75,8 +77,24 @@ def create_configure_script(
 
     script.append("##mkdirs## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$")
 
+    # get_make_env_vars only emits keys it recognises (CFLAGS, CC, etc.), so
+    # the regen-tool stubs (ACLOCAL=true and friends) have to be passed
+    # explicitly as a prefix on the configure invocation. They go on this
+    # line only — not exported globally and not on the make line — so that
+    # any earlier autoreconf/autogen step still runs the real tools while
+    # configure substitutes the stubs into the generated Makefile via
+    # ${VAR-default} expansion.
+    regen_stub_prefix = " ".join([
+        "{}=\"{}\"".format(key, env_vars[key])
+        for key in sorted(REGEN_STUBS)
+        if key in env_vars
+    ])
+    if regen_stub_prefix:
+        regen_stub_prefix += " "
+
     make_commands = []
-    script.append("{env_vars} {prefix}\"{configure}\" {prefix_flag}$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+    script.append("{regen_stubs}{env_vars} {prefix}\"{configure}\" {prefix_flag}$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+        regen_stubs = regen_stub_prefix,
         env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, is_msvc, make_commands),
         prefix = configure_prefix,
         configure = configure_path,

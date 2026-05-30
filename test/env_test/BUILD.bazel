@@ -6,6 +6,24 @@ load(":env_test_ninja.bzl", "env_test_ninja")
 
 package(default_visibility = ["//test:__subpackages__"])
 
+# Regen-tool stubs that configure_make injects into the configure environment
+# to neutralize automake's regeneration recipes. The five vars below are the
+# subset that Makefile.in.tmpl exposes via @VAR@ substitution; AUTOM4TE and
+# HELP2MAN are also stubbed in configure.bzl but aren't surfaced in the test
+# Makefile.
+_REGEN_STUB_MAKEVARS = {
+    "ACLOCAL": "true",
+    "AUTOCONF": "true",
+    "AUTOHEADER": "true",
+    "AUTOMAKE": "true",
+    "MAKEINFO": "true",
+}
+
+# The stubs are emitted only as a prefix on the ./configure command line; they
+# must not leak into the global build environment, so the shell-side check
+# expects them empty.
+_REGEN_STUB_SHELLVARS_UNSET = {k: "" for k in _REGEN_STUB_MAKEVARS}
+
 _NOT_WINDOWS = select({
     "@platforms//os:windows": ["@platforms//:incompatible"],
     "//conditions:default": [],
@@ -135,14 +153,14 @@ env_test_cmake(
 
 env_test_configure_make(
     name = "configure_make_default",
-    check_makevars = STANDARD_VARS | {
+    check_makevars = STANDARD_VARS | _REGEN_STUB_MAKEVARS | {
         # since we replace the builddir, this overrides the STANDARD_VARS
         "BUILD_TMPDIR": "{{abs_builddir}}",
         "MAKEFLAGS": "",
         "abs_builddir": "{{abs_builddir}}",
         "abs_srcdir": "{{abs_srcdir}}",
     },
-    check_shellvars = STANDARD_VARS | {
+    check_shellvars = STANDARD_VARS | _REGEN_STUB_SHELLVARS_UNSET | {
         # since we replace the builddir, this overrides the STANDARD_VARS
         "BUILD_TMPDIR": "{{abs_builddir}}",
         "MAKEFLAGS": "",
@@ -152,6 +170,56 @@ env_test_configure_make(
     # in the path breaks it.
     configure_make_attrs = {
         "target_compatible_with": _NOT_WINDOWS,
+    },
+)
+
+# User-supplied env values override the defaults for regen tools (test that
+# the stubs don't blindly clobber a real path the user wants).
+env_test_configure_make(
+    name = "configure_make_user_override",
+    check_makevars = STANDARD_VARS | _REGEN_STUB_MAKEVARS | {
+        "ACLOCAL": "/usr/bin/aclocal-1.17",
+        "BUILD_TMPDIR": "{{abs_builddir}}",
+        "MAKEFLAGS": "",
+        "abs_builddir": "{{abs_builddir}}",
+        "abs_srcdir": "{{abs_srcdir}}",
+    },
+    check_shellvars = STANDARD_VARS | _REGEN_STUB_SHELLVARS_UNSET | {
+        # User env IS exported globally by framework.bzl's prelude, so unlike
+        # the synthetic stubs the user-supplied ACLOCAL appears in the shell.
+        "ACLOCAL": "/usr/bin/aclocal-1.17",
+        "BUILD_TMPDIR": "{{abs_builddir}}",
+        "MAKEFLAGS": "",
+    },
+    configure_make_attrs = {
+        "env": {"ACLOCAL": "/usr/bin/aclocal-1.17"},
+        "target_compatible_with": _NOT_WINDOWS,
+    },
+)
+
+# Tools listed in unstubbed_regen_tools fall back to configure's autodetected
+# default. For this fixture configure resolves ACLOCAL via automake's
+# `am_missing_run` helper.
+env_test_configure_make(
+    name = "configure_make_unstubbed",
+    check_makevars = STANDARD_VARS | _REGEN_STUB_MAKEVARS | {
+        # The shell configure auto-detects for `am_missing_run` is platform-
+        # dependent (/bin/bash on Linux, /bin/sh on macOS). Makefile.in.tmpl's
+        # sed pipeline normalizes it to `{{SHELL}}` so the assertion matches
+        # on both.
+        "ACLOCAL": "{{SHELL}} '{{abs_srcdir}}/missing' aclocal-1.16",
+        "BUILD_TMPDIR": "{{abs_builddir}}",
+        "MAKEFLAGS": "",
+        "abs_builddir": "{{abs_builddir}}",
+        "abs_srcdir": "{{abs_srcdir}}",
+    },
+    check_shellvars = STANDARD_VARS | _REGEN_STUB_SHELLVARS_UNSET | {
+        "BUILD_TMPDIR": "{{abs_builddir}}",
+        "MAKEFLAGS": "",
+    },
+    configure_make_attrs = {
+        "target_compatible_with": _NOT_WINDOWS,
+        "unstubbed_regen_tools": ["ACLOCAL"],
     },
 )
 

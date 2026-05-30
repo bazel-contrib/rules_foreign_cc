@@ -33,7 +33,14 @@ bzl_library(
     deps = [
         ":make_env_vars",
         ":make_script",
+        ":regen_stubs",
     ],
+)
+
+bzl_library(
+    name = "regen_stubs",
+    srcs = ["regen_stubs.bzl"],
+    visibility = ["//foreign_cc:__subpackages__"],
 )
 
 bzl_library(
