@@ -16,8 +16,12 @@ configure_make(
         "PYTHON": "$$EXT_BUILD_ROOT/$(PYTHON3)",
     },
     lib_source = ":all_srcs",
-    # Dependents of xcb-proto require this lib dir to be present in the bazel sandbox
+    # xcb-proto ships protocol XML, pkg-config files, and a Python codegen
+    # package -- no C headers and no libraries. Suppress the default
+    # `include/` mandatory output so the action doesn't fail looking for a
+    # directory that `make install` never creates.
     out_data_dirs = ["lib"],
     out_headers_only = True,
+    out_include_dir = "",
     toolchains = ["@rules_python//python:current_py_toolchain"],
 )
