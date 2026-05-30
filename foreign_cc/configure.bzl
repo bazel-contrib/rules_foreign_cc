@@ -20,6 +20,7 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load("//foreign_cc/private:regen_stubs.bzl", "REGEN_STUBS")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//toolchains/native_tools:tool_access.bzl",
@@ -29,6 +30,38 @@ load(
     "get_make_data",
     "get_pkgconfig_data",
 )
+
+def _compute_env_vars(label, user_env, unstubbed_regen_tools):
+    """Split user-supplied env into (regen_env, configure_env).
+
+    `regen_env` is used for the optional autogen/autoconf/autoreconf
+    pre-configure step; it never contains the regen stubs (so explicit regen
+    actually runs).
+
+    `configure_env` is used for `./configure` and the subsequent `make`. It
+    starts from the regen tool stubs (minus any keys named in
+    `unstubbed_regen_tools`, where configure's autodetected `${VAR-default}`
+    is preferred), then overlays user-supplied values.
+    """
+    for key in unstubbed_regen_tools:
+        if key not in REGEN_STUBS:
+            fail((
+                "{label}: unstubbed_regen_tools entries must be one of " +
+                "{allowed}. Got {key}."
+            ).format(
+                label = label,
+                allowed = ", ".join(sorted(REGEN_STUBS.keys())),
+                key = key,
+            ))
+
+    configure_env = {
+        k: v
+        for k, v in REGEN_STUBS.items()
+        if k not in unstubbed_regen_tools
+    }
+    configure_env.update(user_env)
+
+    return user_env, configure_env
 
 def _configure_make(ctx):
     make_data = get_make_data(ctx)
@@ -88,6 +121,11 @@ def _create_configure_script(configureParameters):
     ])
 
     user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data)
+    regen_env_vars, configure_env_vars = _compute_env_vars(
+        ctx.label,
+        user_env,
+        ctx.attr.unstubbed_regen_tools,
+    )
 
     prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
     configure_prefix = "{} ".format(expand_locations_and_make_variables(ctx, ctx.attr.configure_prefix, "configure_prefix", data)) if ctx.attr.configure_prefix else ""
@@ -110,7 +148,8 @@ def _create_configure_script(configureParameters):
         configure_command = ctx.attr.configure_command,
         deps = ctx.attr.deps,
         inputs = inputs,
-        env_vars = user_env,
+        env_vars = configure_env_vars,
+        regen_env_vars = regen_env_vars,
         configure_in_place = ctx.attr.configure_in_place,
         prefix_flag = ctx.attr.prefix_flag,
         autoconf = ctx.attr.autoconf,
@@ -251,6 +290,19 @@ def _attrs():
             mandatory = False,
             default = ["", "install"],
         ),
+        "unstubbed_regen_tools": attr.string_list(
+            doc = (
+                "Names of automake regeneration-tool variables (a subset of " +
+                "ACLOCAL, AUTOCONF, AUTOHEADER, AUTOM4TE, AUTOMAKE, HELP2MAN, " +
+                "MAKEINFO) for which the rule should NOT inject the default " +
+                "`=true` stub on the configure command line. Use this when " +
+                "the package legitimately needs a real regeneration tool to " +
+                "run from a Makefile rule. Note that on RBE this typically " +
+                "requires the version-suffixed tool (e.g. aclocal-1.16) to be " +
+                "available on the worker."
+            ),
+            default = [],
+        ),
     })
 
     return attrs
@@ -261,7 +313,21 @@ configure_make = rule(
         "Some 'configure' script is invoked with --prefix=install (by default), " +
         "and other parameters for compilation and linking, taken from Bazel C/C++ " +
         "toolchain and passed dependencies. " +
-        "After configuration, GNU Make is called."
+        "After configuration, GNU Make is called.\n\n" +
+        "To prevent automake's mtime-driven regeneration recipes (e.g. " +
+        "`aclocal.m4: configure.ac`) from invoking version-suffixed tools " +
+        "like `aclocal-1.16` at make time -- which Bazel's epoch-zero source " +
+        "mtimes routinely fire by leaving `configure` no newer than " +
+        "`configure.ac`, on RBE workers that don't have those tools " +
+        "installed -- the rule injects `=true` stubs for the regen " +
+        "tool variables (ACLOCAL, AUTOCONF, AUTOHEADER, AUTOM4TE, AUTOMAKE, " +
+        "HELP2MAN, MAKEINFO) onto the `./configure` command line so " +
+        "configure substitutes them into the generated Makefile. The stubs " +
+        "are scoped to configure only; any `autoreconf`/`autogen` step the " +
+        "rule runs earlier still calls the real tools. To override a " +
+        "specific stub set the variable in `env` (typically to a real " +
+        "tool path); to fall back to configure's autodetected default for " +
+        "a variable, list it in `unstubbed_regen_tools`."
     ),
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
