@@ -23,6 +23,12 @@ configure_make(
         "GPERF=true",
         "HELP2MAN=true",
     ],
+    # RBE workers don't have msgfmt; with NLS enabled, po/Makefile's
+    # `.po.gmo` recipe runs `$(GMSGFMT) -o t-$.gmo $.po && mv t-$.gmo
+    # $.gmo`, which fails when GMSGFMT is `:` (configure substitutes
+    # the no-op when msgfmt is missing) because `t-$.gmo` is never
+    # created. m4 doesn't ship the binary with translations anyway.
+    configure_options = ["--disable-nls"],
     env = select({
         "@platforms//os:macos": {"AR": ""},
         "//conditions:default": {},
