@@ -12,6 +12,13 @@ filegroup(
 
 configure_make(
     name = "autoconf",
+    # Empty `dist_man_MANS` so automake's `all-am` doesn't pull in the
+    # `.w.1` suffix rule, which calls `$(HELP2MAN) ... --output=$@.t`
+    # followed by `mv $@.t $@`. With HELP2MAN stubbed to `true` (it
+    # isn't on RBE workers), the `.t` file is never created and the
+    # `mv` fails. Pre-built man pages ship in the tarball and autoconf
+    # binaries don't need the regenerated copies at runtime.
+    args = ["dist_man_MANS="],
     build_data = [
         "@m4//:m4_exe",
     ],
