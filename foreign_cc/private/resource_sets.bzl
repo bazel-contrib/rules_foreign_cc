@@ -1,9 +1,7 @@
 """Resource set definitions for build actions"""
 
-load("@bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@bazel_lib//lib:resource_sets.bzl", "resource_set_for")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo", "int_flag", "string_flag")
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 _PARALLELISM_OVERCOMMIT_DEFAULT = 2
 _PARALLELISM_OVERCOMMIT_SETTING = "parallelism_overcommit"
@@ -37,9 +35,6 @@ _SIZES = {
     },
 }
 
-def _bazelrc_line(name, value):
-    return "common --@rules_foreign_cc//foreign_cc/settings:{}={}".format(name, value)
-
 def _is_fixed(cfg, resource):
     return cfg.get("fixed_{}".format(resource), False)
 
@@ -56,18 +51,16 @@ def _setting(size, resource, mode):
     else:
         fail("unknown mode", mode)
 
-def create_settings():
-    """create the settings that configure these functions."""
-    settings = {
-        _PARALLELISM_OVERCOMMIT_SETTING: {
-            "sort_key": (0, 0, 0, ""),
-            "value": _PARALLELISM_OVERCOMMIT_DEFAULT,
-        },
-        "size_default": {
-            "sort_key": (0, 0, 1, ""),
-            "value": _DEFAULT_SIZE,
-        },
-    }
+def create_resource_set_settings():
+    """Declares the resource_set build settings and returns their default values.
+
+    Returns:
+        list of (sort_key, name, value) tuples to feed into the bazelrc-printing script.
+    """
+    settings = [
+        ((0, 0, 0, ""), _PARALLELISM_OVERCOMMIT_SETTING, _PARALLELISM_OVERCOMMIT_DEFAULT),
+        ((0, 0, 1, ""), "size_default", _DEFAULT_SIZE),
+    ]
     int_flag(
         name = _PARALLELISM_OVERCOMMIT_SETTING,
         build_setting_default = _PARALLELISM_OVERCOMMIT_DEFAULT,
@@ -98,36 +91,17 @@ def create_settings():
 
             # Keep the generated bazelrc grouped by descending size, with
             # fixed-resource variants after non-fixed ones when values tie.
-            settings[name] = {
-                "sort_key": (
-                    1,
-                    -cfg["cpu"],
-                    -cfg["mem"],
-                    1 if cfg.get("fixed_cpu", False) or cfg.get("fixed_mem", False) else 0,
-                    size,
-                    0 if resource == "cpu" else 1,
-                ),
-                "value": default,
-            }
+            sort_key = (
+                1,
+                -cfg["cpu"],
+                -cfg["mem"],
+                1 if cfg.get("fixed_cpu", False) or cfg.get("fixed_mem", False) else 0,
+                size,
+                0 if resource == "cpu" else 1,
+            )
+            settings.append((sort_key, name, default))
 
-    expand_template(
-        name = "settings_script",
-        out = "settings.sh",
-        template = Label(":settings.sh.in"),
-        substitutions = {
-            "{{SETTINGS_BAZELRC_LINES}}": "\n".join([
-                _bazelrc_line(name, settings[name]["value"])
-                for name in sorted(settings.keys(), key = lambda name: settings[name]["sort_key"])
-            ]),
-        },
-    )
-
-    # Create an executable shim for the script
-    sh_binary(
-        name = "settings",
-        srcs = [":settings_script"],
-        visibility = ["//visibility:public"],
-    )
+    return settings
 
 SIZE_ATTRIBUTES = {
     "resource_size": attr.string(
