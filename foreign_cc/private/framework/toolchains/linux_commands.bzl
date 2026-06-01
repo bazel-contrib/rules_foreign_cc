@@ -86,7 +86,9 @@ fi
     )
 
 def copy_dir_contents_to_dir(source, target):
-    return """cp -L -r --no-target-directory "{source}" "{target}" && find "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+    # `-exec ... +` batches paths into a single touch invocation; `\\;` would
+    # fork once per file.
+    return """cp -L -r --no-target-directory "{source}" "{target}" && find "{target}" -type f -exec touch -r "{source}" "{{}}" +""".format(
         source = source,
         target = target,
     )
