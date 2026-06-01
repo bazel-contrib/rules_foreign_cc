@@ -71,8 +71,6 @@ matrix:
 .default_task: &default_task
   platform: ${{ platform }}
   bazel: ${{ bazel_version }}
-  build_targets:
-    - //...
   test_targets:
     - //...
 
@@ -82,11 +80,17 @@ tasks:
     name: '{primary}/{bazel_version}/{bzlmod}/{spawn_strategy}'
     working_directory: ${{ primary }}
 
-    build_flags: &primary_flags
+    # Run a single `bazel test //...` phase rather than separate build+test
+    # phases. bazelci's default `--build_tests_only` is overridden so all
+    # non-test targets still get built, and dropping the build phase means
+    # every action shows up in test_bep.json (which IS uploaded as a CI
+    # artifact, unlike build_bep.json).
+    test_flags:
       - --config=ci
       - ${{ bazel_rc_config }}
       - ${{ bzlmod }}
       - ${{ spawn_strategy }}
+      - --nobuild_tests_only
       # Segregate the remote cache by buildkite platform so that, for
       # example, an RBE worker can't pull a configure_make artifact baked by
       # a non-RBE node (where the build environment differs) just because
@@ -94,8 +98,6 @@ tasks:
       # in every spawn's action key, so each platform gets its own silo for
       # both remote-cache-only lookups and RBE executor lookups.
       - --action_env=RFCC_CACHE_SILO=${{ platform }}
-
-    test_flags: *primary_flags
 
   docs:
     name: Docs
