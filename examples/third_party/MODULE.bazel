@@ -69,6 +69,7 @@ use_repo(
     "autoconf",
     "automake",
     "bison",
+    "boost",
     "cares",
     "curl",
     "examples_zlib",
