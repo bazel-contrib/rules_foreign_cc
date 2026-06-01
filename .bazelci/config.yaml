@@ -87,6 +87,13 @@ tasks:
       - ${{ bazel_rc_config }}
       - ${{ bzlmod }}
       - ${{ spawn_strategy }}
+      # Segregate the remote cache by buildkite platform so that, for
+      # example, an RBE worker can't pull a configure_make artifact baked by
+      # a non-RBE node (where the build environment differs) just because
+      # the actions' digests happen to collide. The variable's value lands
+      # in every spawn's action key, so each platform gets its own silo for
+      # both remote-cache-only lookups and RBE executor lookups.
+      - --action_env=RFCC_CACHE_SILO=${{ platform }}
 
     test_flags: *primary_flags
 

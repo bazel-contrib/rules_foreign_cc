@@ -1,10 +1,25 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
-load("//foreign_cc/private:resource_sets.bzl", _create_settings = "create_settings")
-
-_create_settings()
+load(
+    "//foreign_cc/private:resource_sets.bzl",
+    _create_resource_set_settings = "create_resource_set_settings",
+)
+load("//foreign_cc/private:settings_script.bzl", _settings_script = "settings_script")
 
 bool_flag(
     name = "allow_building_in_tmp",
     build_setting_default = False,
     visibility = ["//visibility:public"],
+)
+
+# `bazel run //foreign_cc/settings` prints every public build setting in
+# bazelrc form so users can copy them verbatim into their own bazelrc.
+_settings_script(
+    name = "settings",
+    settings = _create_resource_set_settings() + [
+        (
+            (2, 0),
+            "allow_building_in_tmp",
+            False,
+        ),
+    ],
 )

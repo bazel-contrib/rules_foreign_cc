@@ -12,6 +12,23 @@ filegroup(
 
 configure_make(
     name = "m4",
+    # Stub gperf and help2man so make doesn't try to regenerate
+    # `lib/iconv_open-*.h` and `doc/m4.1` -- their sources and the
+    # checked-in outputs share an mtime under Bazel's CAS, which trips
+    # make's "rebuild if not strictly newer" check. Both Makefiles
+    # hardcode `GPERF = gperf` / `HELP2MAN = ...` instead of using
+    # `@GPERF@` / `@HELP2MAN@`, so the rule's configure-line stubs
+    # don't reach them; override on the make command line instead.
+    args = [
+        "GPERF=true",
+        "HELP2MAN=true",
+    ],
+    # RBE workers don't have msgfmt; with NLS enabled, po/Makefile's
+    # `.po.gmo` recipe runs `$(GMSGFMT) -o t-$.gmo $.po && mv t-$.gmo
+    # $.gmo`, which fails when GMSGFMT is `:` (configure substitutes
+    # the no-op when msgfmt is missing) because `t-$.gmo` is never
+    # created. m4 doesn't ship the binary with translations anyway.
+    configure_options = ["--disable-nls"],
     env = select({
         "@platforms//os:macos": {"AR": ""},
         "//conditions:default": {},
@@ -20,6 +37,7 @@ configure_make(
     out_binaries = [
         "m4",
     ],
+    out_include_dir = "",
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],

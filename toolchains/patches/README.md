@@ -6,7 +6,27 @@ See <https://discourse.cmake.org/t/cmake-error-at-cmakelists-txt-117-message-the
 
 ## [make-reproducible-bootstrap.patch](./make-reproducible-bootstrap.patch)
 
-This patch avoids reliance on host installed tools for bootstrapping make.
+Replaces the `LIBDIR`/`INCLUDEDIR`/`LOCALEDIR` strings baked into make 4.3
+with the placeholder `nonexistent` so the bootstrapped binary does not
+embed the absolute sandbox `--prefix` path. Without this patch, every
+machine produces a different `bin/make` and downstream
+`cc_cmake_make_rule` actions miss the remote cache. The embedded strings
+are fallback search paths only (see `default_include_directories[]` in
+`src/read.c`, the `LIBDIR` fallback in `src/remake.c`, and `LOCALEDIR`
+passed to `bindtextdomain` in `src/main.c`); a relative path that won't
+resolve to an existing directory keeps the strings inert at runtime
+regardless of cwd.
+
+## [make-4.4-reproducible-bootstrap.patch](./make-4.4-reproducible-bootstrap.patch)
+
+Same fix as above, adapted to make 4.4. In 4.4 the `INCLUDEDIR` macro is
+emitted via the `am__append_1` autoconf-conditional (set whenever
+`--prefix` is not one of `/usr/local`, `/usr/gnu`, or `/usr`), so two
+hunks are required.
+
+## [make-4.4.1-reproducible-bootstrap.patch](./make-4.4.1-reproducible-bootstrap.patch)
+
+Same fix as above, adapted to make 4.4.1.
 
 ## [pkgconfig-builtin-glib-int-conversion.patch](./pkgconfig-builtin-glib-int-conversion.patch)
 
