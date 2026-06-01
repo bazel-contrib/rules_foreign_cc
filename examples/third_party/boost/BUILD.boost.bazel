@@ -1,0 +1,36 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "boost_build")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(
+        include = ["**"],
+        exclude = ["*.bazel"],
+    ),
+)
+
+# Build only `boost.timer` to keep this example fast — it's one of the
+# smallest compiled libraries (two source files, depends only on
+# `boost.config`) and exercises the bootstrap.sh / b2 install flow.
+# `boost.system` is tempting but has been header-only since 1.69, so it
+# doesn't appear in `b2 --show-libraries` and `--with-system` fails with
+# "wrong library name".
+boost_build(
+    name = "boost_timer",
+    lib_source = ":all_srcs",
+    out_static_libs = ["libboost_timer.a"],
+    # boost compiles can use a lot of memory; mark large so CI gives the
+    # action enough resources.
+    resource_size = "large",
+    # The boost source tree has ~93k files, which exceeds RBE's 70k
+    # per-action input limit. The action is small enough to run locally,
+    # so just keep it off RBE rather than trying to slim down the input.
+    tags = ["no-remote-exec"],
+    user_options = [
+        "--with-timer",
+        "link=static",
+        "variant=release",
+        "threading=multi",
+    ],
+)
