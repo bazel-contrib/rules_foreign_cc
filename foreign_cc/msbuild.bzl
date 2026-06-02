@@ -218,9 +218,6 @@ msbuild = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _msbuild,
-
-    # Only msbuild from MSVC is supported so make it windows only.
-    exec_compatible_with = ["@platforms//os:windows"],
     toolchains = [
         "@rules_foreign_cc//toolchains:msbuild_toolchain",
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
