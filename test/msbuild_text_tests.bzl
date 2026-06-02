@@ -119,6 +119,7 @@ def _msbuild_properties_test(ctx):
             "CustomProperty": "custom-value",
         },
         "Debug",
+        "",
     )
 
     asserts.equals(env, "custom-value", properties["CustomProperty"])
@@ -126,6 +127,26 @@ def _msbuild_properties_test(ctx):
     asserts.equals(env, "$$INSTALLDIR/", properties["OutDir"])
     asserts.equals(env, "false", properties["TrackFileAccess"])
     asserts.equals(env, "Debug", properties["Configuration"])
+
+    return unittest.end(env)
+
+# An empty platform omits the Platform property entirely.
+def _msbuild_properties_no_platform_test(ctx):
+    env = unittest.begin(ctx)
+
+    properties = export_for_test.msbuild_properties({}, "Release", "")
+
+    asserts.false(env, "Platform" in properties)
+
+    return unittest.end(env)
+
+# A non-empty platform is emitted as the Platform property.
+def _msbuild_properties_platform_test(ctx):
+    env = unittest.begin(ctx)
+
+    properties = export_for_test.msbuild_properties({}, "Release", "x64")
+
+    asserts.equals(env, "x64", properties["Platform"])
 
     return unittest.end(env)
 
@@ -279,6 +300,8 @@ bazel_headers_and_include_dirs_test = unittest.make(_bazel_headers_and_include_d
 bazel_libraries_test = unittest.make(_bazel_libraries_test)
 foreign_artifacts_deduped_in_order_test = unittest.make(_foreign_artifacts_deduped_in_order_test)
 msbuild_properties_test = unittest.make(_msbuild_properties_test)
+msbuild_properties_no_platform_test = unittest.make(_msbuild_properties_no_platform_test)
+msbuild_properties_platform_test = unittest.make(_msbuild_properties_platform_test)
 sln_file_path_relative_to_root_test = unittest.make(_sln_file_path_relative_to_root_test)
 create_msbuild_script_include_dirs_test = unittest.make(_create_msbuild_script_include_dirs_test)
 create_msbuild_script_lib_dirs_test = unittest.make(_create_msbuild_script_lib_dirs_test)
@@ -292,6 +315,8 @@ def msbuild_script_test_suite():
         partial.make(bazel_libraries_test, size = "small"),
         partial.make(foreign_artifacts_deduped_in_order_test, size = "small"),
         partial.make(msbuild_properties_test, size = "small"),
+        partial.make(msbuild_properties_no_platform_test, size = "small"),
+        partial.make(msbuild_properties_platform_test, size = "small"),
         partial.make(sln_file_path_relative_to_root_test, size = "small"),
         partial.make(create_msbuild_script_include_dirs_test, size = "small"),
         partial.make(create_msbuild_script_lib_dirs_test, size = "small"),

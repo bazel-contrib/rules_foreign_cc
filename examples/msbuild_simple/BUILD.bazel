@@ -6,6 +6,10 @@ msbuild(
     lib_source = "//msbuild_simple/code:srcs",
     out_lib_dir = "",
     out_static_libs = ["mylib.lib"],
+    # Configuration defaults to Debug/Release based on compilation mode.
+    # Platform must match a pair declared in the solution; the solution
+    # declares x64 and Win32, so pin x64 here.
+    platform = "x64",
     sln_file_path = "mysolution.sln",
     target_compatible_with = ["@platforms//os:windows"],
     targets = ["Build"],
