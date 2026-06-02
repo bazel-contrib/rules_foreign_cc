@@ -88,7 +88,12 @@ fi
 def copy_dir_contents_to_dir(source, target):
     # Beause macos `cp` doesn't have `--no-target-directory`, we have to
     # do something more complext for this environment.
+    #
+    # cache-bust salt: changes the action key vs origin/main without changing
+    # observable behavior or runtime cost. Used to isolate one-time cache-pop
+    # cost from steady-state action cost when measuring PR #1549's effect.
     return """\
+: rfcc-cache-bust-1549
 if [[ -d "{source}" ]]; then
   cp -L -R "{source}"/. "{target}"
 else

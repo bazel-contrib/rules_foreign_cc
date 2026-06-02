@@ -86,7 +86,10 @@ fi
     )
 
 def copy_dir_contents_to_dir(source, target):
-    return """cp -L -r --no-target-directory "{source}" "{target}" && find "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+    # cache-bust salt: changes the action key vs origin/main without changing
+    # observable behavior or runtime cost. Used to isolate one-time cache-pop
+    # cost from steady-state action cost when measuring PR #1549's effect.
+    return """: rfcc-cache-bust-1549; cp -L -r --no-target-directory "{source}" "{target}" && find "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
         source = source,
         target = target,
     )
