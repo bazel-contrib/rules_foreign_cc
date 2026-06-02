@@ -176,6 +176,7 @@ toolchain(
 
 toolchain(
     name = "preinstalled_msbuild_toolchain",
+    exec_compatible_with = ["@platforms//os:windows"],
     target_compatible_with = ["@platforms//os:windows"],
     toolchain = "//toolchains/private:preinstalled_msbuild",
     toolchain_type = ":msbuild_toolchain",

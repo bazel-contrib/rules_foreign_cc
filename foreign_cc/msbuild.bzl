@@ -67,7 +67,14 @@ for MSBuild:
 ```
 
 The MSBuild `Configuration` property is controlled by the `configuration`
-attribute.
+attribute. When left unset it follows the Bazel compilation mode, defaulting
+to `Debug` under `-c dbg` and `Release` otherwise (matching the `cmake` rule).
+
+The MSBuild `Platform` property is controlled by the `platform` attribute. It
+is left unset by default so MSBuild picks the platform declared in the
+solution or project file. A `.sln` only builds the `Configuration|Platform`
+pairs it declares, so forcing a platform that the solution does not declare
+fails with `MSB4126`; set `platform` only when the project supports it.
 
 MSBuild projects must copy their outputs into `$(OutDir)` using the layout
 declared on the rule. For example, with the default include directory and
@@ -76,7 +83,11 @@ declared on the rule. For example, with the default include directory and
 """
 
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load("//foreign_cc/private:cc_toolchain_util.bzl", "get_flags_info")
+load(
+    "//foreign_cc/private:cc_toolchain_util.bzl",
+    "get_flags_info",
+    "is_debug_mode",
+)
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load(
     "//foreign_cc/private:framework.bzl",
@@ -114,14 +125,15 @@ def _create_msbuild_script(configureParameters):
 
     user_properties = ctx.attr.properties
     args = ctx.attr.args
-    configuration = ctx.attr.configuration
+    configuration = ctx.attr.configuration or ("Debug" if is_debug_mode(ctx) else "Release")
+    platform = ctx.attr.platform
     targets = ctx.attr.targets
     verbosity = ctx.attr.verbosity
 
     root = detect_root(attrs.lib_source)
     flags = get_flags_info(ctx)
 
-    all_properties = _msbuild_properties(user_properties, configuration)
+    all_properties = _msbuild_properties(user_properties, configuration, platform)
 
     all_args = _properties_to_args(all_properties)
     all_args.append("-v:{}".format(verbosity))
@@ -157,12 +169,27 @@ def _attrs():
             default = [],
         ),
         "configuration": attr.string(
-            doc = "Configuration of the build. Usually either `Debug` or `Release`.",
+            doc = (
+                "MSBuild `Configuration` to build. When unset, defaults to `Debug` in " +
+                "`-c dbg` compilation mode and `Release` otherwise, mirroring the `cmake` rule. " +
+                "Usually either `Debug` or `Release`."
+            ),
             mandatory = False,
-            default = "Release",
+            default = "",
+        ),
+        "platform": attr.string(
+            doc = (
+                "MSBuild `Platform` to build (e.g. `x64`, `Win32`, `ARM64`). When unset, the " +
+                "`-p:Platform` flag is omitted and MSBuild selects the platform from the solution " +
+                "or project file. This is deliberately not derived from the target CPU: a `.sln` " +
+                "only builds `Configuration|Platform` pairs it declares, so forcing a mismatched " +
+                "platform fails with MSB4126. Set this explicitly when the project supports it."
+            ),
+            mandatory = False,
+            default = "",
         ),
         "properties": attr.string_dict(
-            doc = "A map of properties (`-p:`) for MSBuild. Do not set `Configuration`; use the dedicated attribute instead.",
+            doc = "A map of properties (`-p:`) for MSBuild. Do not set `Configuration` or `Platform`; use the dedicated attributes instead.",
             mandatory = False,
             default = {},
         ),
@@ -191,9 +218,6 @@ msbuild = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _msbuild,
-
-    # Only msbuild from MSVC is supported so make it windows only.
-    exec_compatible_with = ["@platforms//os:windows"],
     toolchains = [
         "@rules_foreign_cc//toolchains:msbuild_toolchain",
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
@@ -207,8 +231,9 @@ def _properties_to_args(properties):
         args.append("-p:{}={}".format(k, v))
     return args
 
-def _msbuild_properties(user_properties, configuration):
+def _msbuild_properties(user_properties, configuration, platform):
     _fail_if_reserved_property(user_properties, "Configuration", "configuration")
+    _fail_if_reserved_property(user_properties, "Platform", "platform")
 
     properties = {
         # We generate a props file to add our compile and linker.
@@ -222,6 +247,12 @@ def _msbuild_properties(user_properties, configuration):
     properties.update({
         "Configuration": configuration,
     })
+
+    # Only force Platform when the user asked for one. A solution only builds the
+    # Configuration|Platform pairs it declares, so a mismatched -p:Platform fails
+    # with MSB4126; omitting it lets MSBuild pick the solution's own platform.
+    if platform:
+        properties["Platform"] = platform
 
     return properties
 
