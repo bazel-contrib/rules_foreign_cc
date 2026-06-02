@@ -1,4 +1,4 @@
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake", "configure_make", "make", "meson")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake", "configure_make", "make", "meson", "ninja")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load(":runtime_search_paths_tests.bzl", "runtime_search_paths_test")
 
@@ -28,6 +28,54 @@ MAKE_SHARED_LIBRARY_ARGS = select({
     "//conditions:default": [
         "SHARED_LIBRARY_SUFFIX=so",
         "SHARED_LIBRARY_LINK_FLAG=-shared",
+    ],
+})
+
+NINJA_LEAF_TARGETS = select({
+    "@platforms//os:macos": [
+        "leaf-dylib",
+        "install-leaf-dylib",
+    ],
+    "//conditions:default": [
+        "leaf-so",
+        "install-leaf-so",
+    ],
+})
+
+NINJA_MIDDLE_TARGETS = select({
+    "@platforms//os:macos": [
+        "middle-dylib",
+        "install-middle-dylib",
+    ],
+    "//conditions:default": [
+        "middle-so",
+        "install-middle-so",
+    ],
+})
+
+NINJA_APP_TARGETS = select({
+    "@platforms//os:macos": [
+        "app-dylib",
+        "install-app-dylib",
+    ],
+    "//conditions:default": [
+        "app-so",
+        "install-app-so",
+    ],
+})
+
+NINJA_APP_BUNDLE_TARGETS = select({
+    "@platforms//os:macos": [
+        "app-dylib",
+        "install-leaf-dylib",
+        "install-middle-dylib",
+        "install-app-dylib",
+    ],
+    "//conditions:default": [
+        "app-so",
+        "install-leaf-so",
+        "install-middle-so",
+        "install-app-so",
     ],
 })
 
@@ -457,6 +505,107 @@ runtime_search_paths_test(
     target = ":meson_app_bundle",
 )
 
+ninja(
+    name = "ninja_leaf",
+    env = {
+        "RUNTIME_TEST_FAMILY": "ninja",
+    },
+    lib_source = ":srcs",
+    out_include_dir = "",
+    out_shared_libs = LEAF_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
+    shared_ldflags_vars = ["SHARED_LDFLAGS"],
+    target_compatible_with = UNIX_ONLY,
+    targets = NINJA_LEAF_TARGETS,
+)
+
+ninja(
+    name = "ninja_middle",
+    env = {
+        "RUNTIME_TEST_FAMILY": "ninja",
+    },
+    lib_source = ":srcs",
+    out_include_dir = "",
+    out_shared_libs = MIDDLE_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
+    shared_ldflags_vars = ["SHARED_LDFLAGS"],
+    target_compatible_with = UNIX_ONLY,
+    targets = NINJA_MIDDLE_TARGETS,
+    deps = [":ninja_leaf"],
+)
+
+ninja(
+    name = "ninja_app",
+    env = {
+        "RUNTIME_TEST_FAMILY": "ninja",
+    },
+    executable_ldflags_vars = ["EXECUTABLE_LDFLAGS"],
+    lib_source = ":srcs",
+    out_binaries = ["runtime_app"],
+    out_include_dir = "",
+    runtime_library_search_directories = "enabled",
+    shared_ldflags_vars = ["SHARED_LDFLAGS"],
+    target_compatible_with = UNIX_ONLY,
+    targets = NINJA_APP_TARGETS,
+    deps = [":ninja_middle"],
+)
+
+ninja(
+    name = "ninja_app_bundle",
+    env = {
+        "RUNTIME_TEST_FAMILY": "ninja_app_bundle",
+    },
+    executable_ldflags_vars = ["EXECUTABLE_LDFLAGS"],
+    lib_source = ":srcs",
+    out_binaries = ["runtime_app"],
+    out_include_dir = "",
+    out_shared_libs = LEAF_SHARED_LIB + MIDDLE_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
+    shared_ldflags_vars = ["SHARED_LDFLAGS"],
+    target_compatible_with = UNIX_ONLY,
+    targets = NINJA_APP_BUNDLE_TARGETS,
+)
+
+sh_test(
+    name = "ninja_test",
+    size = "small",
+    srcs = ["runtime_search_test.sh"],
+    args = [
+        "ninja",
+        "$(rlocationpath :ninja_app)",
+    ],
+    data = [
+        ":ninja_app",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    target_compatible_with = UNIX_ONLY,
+)
+
+sh_test(
+    name = "ninja_app_bundle_test",
+    size = "small",
+    srcs = ["runtime_search_test.sh"],
+    args = [
+        "ninja_app_bundle",
+        "$(rlocationpaths :ninja_app_bundle)",
+    ],
+    data = [
+        ":ninja_app_bundle",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    target_compatible_with = UNIX_ONLY,
+)
+
+runtime_search_paths_test(
+    name = "ninja_middle_runpath_test",
+    target = ":ninja_middle",
+)
+
+runtime_search_paths_test(
+    name = "ninja_app_bundle_runpath_test",
+    target = ":ninja_app_bundle",
+)
+
 test_suite(
     name = "tests",
     tests = [
@@ -476,5 +625,9 @@ test_suite(
         ":meson_app_bundle_test",
         ":meson_middle_runpath_test",
         ":meson_test",
+        ":ninja_app_bundle_runpath_test",
+        ":ninja_app_bundle_test",
+        ":ninja_middle_runpath_test",
+        ":ninja_test",
     ],
 )

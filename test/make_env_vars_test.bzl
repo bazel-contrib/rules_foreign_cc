@@ -209,7 +209,7 @@ def _get_make_env_vars_make_context_normalizes_escaped_loader_tokens_test(ctx):
 def _get_ldflags_make_vars_escapes_loader_tokens_for_make_test(ctx):
     env = unittest.begin(ctx)
 
-    result = get_ldflags_make_vars(["LDFLAGS"], [], "workspace", _flags(), {}, [], _inputs(), False)
+    result = get_ldflags_make_vars(["LDFLAGS"], [], [], "workspace", _flags(), {}, [], _inputs(), False)
 
     asserts.equals(
         env,
@@ -222,7 +222,7 @@ def _get_ldflags_make_vars_escapes_loader_tokens_for_make_test(ctx):
 def _get_ldflags_make_vars_normalizes_escaped_loader_tokens_for_make_test(ctx):
     env = unittest.begin(ctx)
 
-    result = get_ldflags_make_vars(["LDFLAGS"], [], "workspace", _escaped_flags(), {}, [], _inputs(), False)
+    result = get_ldflags_make_vars(["LDFLAGS"], [], [], "workspace", _escaped_flags(), {}, [], _inputs(), False)
 
     asserts.equals(
         env,

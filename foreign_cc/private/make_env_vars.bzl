@@ -56,14 +56,15 @@ def get_ldflags_make_vars(
         user_vars,
         deps,
         inputs,
-        is_msvc):
+        is_msvc,
+        expansion_context = "make"):
     vars = _get_ldflags_vars(executable_ldflags_vars, shared_ldflags_vars, dynamic_module_ldflags_vars, flags, user_vars)
 
     deps_flags = _define_deps_flags(deps, inputs, is_msvc)
     for key in vars.keys():
         vars[key] = vars[key] + deps_flags.libs
 
-    return _format_vars(workspace_name, vars, "make")
+    return _format_vars(workspace_name, vars, expansion_context)
 
 def _define_deps_flags(deps, inputs, is_msvc):
     # It is very important to keep the order for the linker => put them into list

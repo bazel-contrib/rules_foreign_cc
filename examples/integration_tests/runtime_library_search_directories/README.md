@@ -7,7 +7,7 @@ same foreign_cc target.
 The tests are intentionally small. They do not try to cover every possible
 native or foreign_cc provider shape; that broader matrix lives in
 `examples/integration_tests/transitive_matrix`. This package focuses on whether
-the exported `cmake`, `make`, `configure_make`, and `meson` rules pass
+the exported `cmake`, `make`, `configure_make`, `meson`, and `ninja` rules pass
 the right linker flags to the upstream build system when
 `runtime_library_search_directories = "enabled"` is set.
 
@@ -54,6 +54,7 @@ The same shapes are repeated for:
 | `make`           | `make_test`             | `make_app_bundle_test`             |
 | `configure_make` | `configure_make_test`   | `configure_make_app_bundle_test`   |
 | `meson`          | `meson_test`            | `meson_app_bundle_test`            |
+| `ninja`          | `ninja_test`            | `ninja_app_bundle_test`            |
 
 ## Dependency-chain tests
 

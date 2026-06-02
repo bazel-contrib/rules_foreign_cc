@@ -100,6 +100,8 @@ def _create_ninja_script(configureParameters):
         ninja_targets = ctx.attr.targets or [""],
         ninja_args = args,
         ninja_directory = directory,
+        executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
+        shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
         is_msvc = is_msvc,
     )
 
@@ -120,6 +122,22 @@ def _attrs():
                 "A directory to pass as the `-C` argument. The rule will always use the root " +
                 "directory of the `lib_sources` attribute if this attribute is not set"
             ),
+        ),
+        "executable_ldflags_vars": attr.string_list(
+            doc = (
+                "A string list of variable names used as LDFLAGS for executables. " +
+                "These variables are passed as environment variables when invoking ninja."
+            ),
+            mandatory = False,
+            default = [],
+        ),
+        "shared_ldflags_vars": attr.string_list(
+            doc = (
+                "A string list of variable names used as LDFLAGS for shared libraries. " +
+                "These variables are passed as environment variables when invoking ninja."
+            ),
+            mandatory = False,
+            default = [],
         ),
     })
     return attrs

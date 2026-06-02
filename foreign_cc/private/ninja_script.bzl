@@ -1,6 +1,6 @@
 """A module for creating the build script for `ninja` builds"""
 
-load(":make_env_vars.bzl", "get_make_env_vars")
+load(":make_env_vars.bzl", "get_ldflags_make_vars", "get_make_env_vars")
 load(":make_script.bzl", "pkgconfig_script")
 
 # buildifier: disable=function-docstring
@@ -17,6 +17,8 @@ def create_ninja_script(
         ninja_targets,
         ninja_args,
         ninja_directory,
+        executable_ldflags_vars,
+        shared_ldflags_vars,
         is_msvc):
     ext_build_dirs = inputs.ext_build_dirs
 
@@ -45,6 +47,20 @@ def create_ninja_script(
         is_msvc,
         ninja_commands,
     )
+    ninja_ldflags_vars = get_ldflags_make_vars(
+        executable_ldflags_vars,
+        shared_ldflags_vars,
+        [],
+        workspace_name,
+        flags,
+        env_vars,
+        deps,
+        inputs,
+        is_msvc,
+        expansion_context = "shell",
+    )
+    if ninja_ldflags_vars:
+        ninja_env_vars = "{} {}".format(ninja_env_vars, ninja_ldflags_vars) if ninja_env_vars else ninja_ldflags_vars
 
     script.extend(["{env_vars} {command}".format(
         env_vars = ninja_env_vars,
