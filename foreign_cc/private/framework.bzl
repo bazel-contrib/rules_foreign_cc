@@ -34,6 +34,45 @@ load(
 
 CcSharedLibraryInfo = bazel_features.globals.CcSharedLibraryInfo
 
+# Attributes shared by every framework rule (regular `cc_external_rule_impl`-based
+# rules and `built_tools` rules alike).
+FOREIGN_CC_FRAMEWORK_COMMON_ATTRS = {
+    "copts": attr.string_list(
+        doc = "Optional. Add these options to the compile flags passed to the foreign build system. The flags only take affect for compiling this target, not its dependencies.",
+        mandatory = False,
+        default = [],
+    ),
+    "env": attr.string_dict(
+        doc = (
+            "Environment variables to set during the build. " +
+            "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_data`, " +
+            "but unlike with other rules, these will be replaced with absolute paths to those files, " +
+            "because the build does not run in the exec root. " +
+            "This attribute is subject to make variable substitution. " +
+            "No other macros are supported." +
+            "Variables containing `PATH` (e.g. `PATH`, `LD_LIBRARY_PATH`, `CPATH`) entries will be prepended to the existing variable."
+        ),
+        default = {},
+    ),
+    "linkopts": attr.string_list(
+        doc = "Optional link options to be passed up to the dependencies of this library",
+        mandatory = False,
+        default = [],
+    ),
+    "_allow_building_in_tmp": attr.label(
+        default = Label("@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp"),
+        providers = [BuildSettingInfo],
+    ),
+    "_cc_toolchain": attr.label(
+        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+    ),
+    "_foreign_cc_framework_platform": attr.label(
+        doc = "Information about the execution platform",
+        cfg = "exec",
+        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
+    ),
+} | PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES | SIZE_ATTRIBUTES
+
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
 # Many of the attributes have default values.
 #
@@ -73,11 +112,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
-    "copts": attr.string_list(
-        doc = "Optional. Add these options to the compile flags passed to the foreign build system. The flags only take affect for compiling this target, not its dependencies.",
-        mandatory = False,
-        default = [],
-    ),
     "data": attr.label_list(
         doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
         mandatory = False,
@@ -112,17 +146,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = [],
         # providers = [CcSharedLibraryInfo],
     ),
-    "env": attr.string_dict(
-        doc = (
-            "Environment variables to set during the build. " +
-            "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_data`, " +
-            "but unlike with other rules, these will be replaced with absolute paths to those files, " +
-            "because the build does not run in the exec root. " +
-            "This attribute is subject to make variable substitution. " +
-            "No other macros are supported." +
-            "Variables containing `PATH` (e.g. `PATH`, `LD_LIBRARY_PATH`, `CPATH`) entries will be prepended to the existing variable."
-        ),
-    ),
     "experimental_validate_outputs_in_action": attr.bool(
         doc = "Validate expected installed outputs inside the main foreign build action before it exits.",
         mandatory = False,
@@ -152,11 +175,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
         mandatory = True,
         allow_files = True,
-    ),
-    "linkopts": attr.string_list(
-        doc = "Optional link options to be passed up to the dependencies of this library",
-        mandatory = False,
-        default = [],
     ),
     "out_bin_dir": attr.string(
         doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'. ",
@@ -248,24 +266,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
-    "_allow_building_in_tmp": attr.label(
-        default = Label("@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp"),
-        providers = [BuildSettingInfo],
-    ),
-    # we need to declare this attribute to access cc_toolchain
-    "_cc_toolchain": attr.label(
-        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-    ),
-    "_foreign_cc_framework_platform": attr.label(
-        doc = "Information about the execution platform",
-        cfg = "exec",
-        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
-    ),
-}
-
-# this would be cleaner as x | y, but that's not supported in bazel 5.4.0
-CC_EXTERNAL_RULE_ATTRIBUTES.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
-CC_EXTERNAL_RULE_ATTRIBUTES.update(SIZE_ATTRIBUTES)
+} | FOREIGN_CC_FRAMEWORK_COMMON_ATTRS
 
 # A list of common fragments required by rules using this framework
 CC_EXTERNAL_RULE_FRAGMENTS = [
