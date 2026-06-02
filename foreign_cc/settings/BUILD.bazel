@@ -11,6 +11,12 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
+bool_flag(
+    name = "set_file_prefix_map_default",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
 # `bazel run //foreign_cc/settings` prints every public build setting in
 # bazelrc form so users can copy them verbatim into their own bazelrc.
 _settings_script(
@@ -19,6 +25,11 @@ _settings_script(
         (
             (2, 0),
             "allow_building_in_tmp",
+            False,
+        ),
+        (
+            (2, 1),
+            "set_file_prefix_map_default",
             False,
         ),
     ],

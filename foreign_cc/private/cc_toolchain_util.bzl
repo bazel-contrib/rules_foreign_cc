@@ -2,6 +2,7 @@
 """
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
@@ -236,6 +237,17 @@ def get_tools_info(ctx):
         ) else "",
     )
 
+def _set_file_prefix_map_enabled(ctx, cc_toolchain):
+    # `-ffile-prefix-map` is a gcc/clang flag; MSVC has no equivalent that
+    # rewrites embedded paths the same way, so skip it there.
+    if cc_toolchain.compiler == "msvc-cl":
+        return False
+    if ctx.attr.set_file_prefix_map:
+        return True
+    if ctx.attr._set_file_prefix_map_default[BuildSettingInfo].value:
+        return True
+    return False
+
 def get_flags_info(ctx, link_output_file = None):
     """Takes information about flags from cc_toolchain, returns CxxFlagsInfo
 
@@ -327,7 +339,7 @@ def get_flags_info(ctx, link_output_file = None):
         ),
     )
 
-    if "set_file_prefix_map" in dir(ctx.attr) and ctx.attr.set_file_prefix_map:
+    if _set_file_prefix_map_enabled(ctx, cc_toolchain_):
         copts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
         cxxopts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
 
