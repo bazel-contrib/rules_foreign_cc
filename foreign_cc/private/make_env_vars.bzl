@@ -1,6 +1,6 @@
 """Helper methods to assemble make env variables from Bazel information."""
 
-load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
+load(":flag_utils.bzl", "absolutize_path_for_build_root", _join_flags_list = "join_flags_list")
 load(":framework.bzl", "get_foreign_cc_dep")
 
 # buildifier: disable=function-docstring
@@ -140,7 +140,7 @@ def _get_make_variables(workspace_name, tools, flags, user_env_vars, make_comman
         tool_value = getattr(tools, _MAKE_TOOLS[tool])
         if tool_value:
             # Force absolutize of tool paths, which may relative to the exec root (e.g. hermetic toolchains built from source)
-            tool_value_absolute = _absolutize(workspace_name, tool_value, True)
+            tool_value_absolute = absolutize_path_for_build_root(workspace_name, tool_value, True)
 
             # There are 2 conditions where we need to wrap the tool path in double quotes:
             # 1. If the tool path contains whitespaces (e.g. C:\Program Files\...),
@@ -192,12 +192,6 @@ def _merge_env_vars(flags, make_flags, user_env_vars):
         if toolchain_flags or user_flags:
             vars[flag] = toolchain_flags + user_flags
     return vars
-
-def _absolutize(workspace_name, text, force = False):
-    return absolutize_path_in_str(workspace_name, "$$EXT_BUILD_ROOT$$/", text, force)
-
-def _join_flags_list(workspace_name, flags):
-    return " ".join([_absolutize(workspace_name, flag) for flag in flags])
 
 def _nmake_in_make_commands(make_commands):
     return make_commands and "nmake.exe" in make_commands[0]

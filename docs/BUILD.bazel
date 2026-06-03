@@ -69,6 +69,16 @@ stardoc(
 )
 
 stardoc(
+    name = "msbuild_docs",
+    out = "src/msbuild.md",
+    input = "@rules_foreign_cc//foreign_cc:msbuild.bzl",
+    deps = [
+        ":rules_cc_deps",
+        "@rules_foreign_cc//foreign_cc:msbuild",
+    ],
+)
+
+stardoc(
     name = "providers_docs",
     out = "src/providers.md",
     input = "@rules_foreign_cc//foreign_cc:providers.bzl",
@@ -84,6 +94,7 @@ DOCS_TARGETS = [
     ":make_docs",
     ":configure_make_docs",
     ":meson_docs",
+    ":msbuild_docs",
     ":providers_docs",
 ]
 

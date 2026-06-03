@@ -21,6 +21,7 @@ def preinstalled_toolchains():
         "@rules_foreign_cc//toolchains:preinstalled_automake_toolchain",
         "@rules_foreign_cc//toolchains:preinstalled_m4_toolchain",
         "@rules_foreign_cc//toolchains:preinstalled_pkgconfig_toolchain",
+        "@rules_foreign_cc//toolchains:preinstalled_msbuild_toolchain",
     )
 
 def _current_toolchain_impl(ctx):
@@ -124,5 +125,15 @@ current_pkgconfig_toolchain = rule(
     },
     toolchains = [
         str(Label("//toolchains:pkgconfig_toolchain")),
+    ],
+)
+
+current_msbuild_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:msbuild_toolchain"))),
+    },
+    toolchains = [
+        str(Label("//toolchains:msbuild_toolchain")),
     ],
 )

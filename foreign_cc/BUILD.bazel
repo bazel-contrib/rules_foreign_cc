@@ -61,6 +61,7 @@ bzl_library(
         ":configure",
         ":make",
         ":meson",
+        ":msbuild",
         ":ninja",
         ":utils",
     ],
@@ -110,6 +111,22 @@ bzl_library(
         "@rules_cc//cc/common",
         "@rules_cc//cc/toolchains:toolchain_rules",
         "@rules_python//python:features_bzl",
+    ],
+)
+
+bzl_library(
+    name = "msbuild",
+    srcs = ["msbuild.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//foreign_cc/private:cc_toolchain_util",
+        "//foreign_cc/private:detect_root",
+        "//foreign_cc/private:framework",
+        "//foreign_cc/private:msbuild_script",
+        "//toolchains/native_tools:tool_access",
+        "@rules_cc//cc:bzl_srcs",
+        "@rules_cc//cc/common",
+        "@rules_cc//cc/toolchains:toolchain_rules",
     ],
 )
 
