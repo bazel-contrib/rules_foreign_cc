@@ -1,0 +1,54 @@
+load(
+    "//integration_tests/transitive_matrix:consumer_tests.bzl",
+    "cmake_cache_entries",
+    "cmake_consumer_test",
+    "expected_linkage",
+    "expected_loaded_libraries",
+)
+
+# foreign_cc cmake dynamic_deps
+# app: cmake()
+# libarchive: native cc_shared_library
+# zlib: native shared wrapper
+# runtime: libarchive must load from @examples_libarchive//:libarchive_shared_zlib_dynamic
+# runtime: zlib must load from @examples_zlib//:zlib_shared
+cmake_consumer_test(
+    name = "t",
+    cache_entries = cmake_cache_entries(
+        libarchive = "archive_zlib_dynamic",
+        libarchive_windows = "libarchive_shared_zlib_dynamic.if",
+    ),
+    dynamic_deps = ["@examples_libarchive//:libarchive_shared_zlib_dynamic"],
+    expected_linkage = expected_linkage(
+        app_shared_deps = ["libarchive"],
+        app_static_deps = ["zlib"],
+        libarchive = "@examples_libarchive//:libarchive_shared_zlib_dynamic",
+        libarchive_shared_deps = ["zlib"],
+    ),
+    expected_loaded_libraries = expected_loaded_libraries(
+        libarchive = "@examples_libarchive//:libarchive_shared_zlib_dynamic",
+        zlib = "@examples_zlib//:zlib_shared",
+    ),
+    deps = ["@examples_libarchive//:libarchive_headers"],
+)
+
+test_suite(
+    name = "runtime_tests",
+    tests = [":t_test"],
+    visibility = ["//integration_tests/transitive_matrix/cmake_dynamic:__pkg__"],
+)
+
+test_suite(
+    name = "linkage_tests",
+    tests = [":t_linkage_test"],
+    visibility = ["//integration_tests/transitive_matrix/cmake_dynamic:__pkg__"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":linkage_tests",
+        ":runtime_tests",
+    ],
+    visibility = ["//integration_tests/transitive_matrix/cmake_dynamic:__pkg__"],
+)

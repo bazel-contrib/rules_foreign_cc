@@ -1,0 +1,68 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+load("//integration_tests/transitive_matrix:consumer_tests.bzl", "runtime_test")
+load("//integration_tests/transitive_matrix:provider_semantic_parity_tests.bzl", "provider_semantic_parity_test")
+
+config_setting(
+    name = "enabled_linux",
+    constraint_values = ["@platforms//os:linux"],
+    values = {"define": "transitive_cc_foreign_known_gap=true"},
+)
+
+config_setting(
+    name = "enabled_macos",
+    constraint_values = ["@platforms//os:macos"],
+    values = {"define": "transitive_cc_foreign_known_gap=true"},
+)
+
+KNOWN_GAP_COMPATIBLE = select({
+    ":enabled_linux": [],
+    ":enabled_macos": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
+cmake(
+    name = "app",
+    lib_source = "//integration_tests/transitive_matrix:foreign_app_srcs",
+    out_binaries = ["app"],
+    runtime_library_search_directories = "enabled",
+    tags = ["manual"],
+    target_compatible_with = KNOWN_GAP_COMPATIBLE,
+    deps = ["@examples_libarchive//:libarchive_foreign_static_zlib_static"],
+)
+
+runtime_test(
+    name = "t",
+    binary = ":app",
+    binary_name = "app",
+    tags = ["manual"],
+    target_compatible_with = KNOWN_GAP_COMPATIBLE,
+)
+
+provider_semantic_parity_test(
+    name = "p001",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_shared_zlib_static",
+    expected = "@examples_libarchive//:libarchive_dynamic_zlib_static",
+    tags = ["manual"],
+    target_compatible_with = KNOWN_GAP_COMPATIBLE,
+)
+
+provider_semantic_parity_test(
+    name = "p002",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_static",
+    expected = "@examples_libarchive//:libarchive_dynamic_zlib_foreign_static",
+    tags = ["manual"],
+    target_compatible_with = KNOWN_GAP_COMPATIBLE,
+)
+
+test_suite(
+    name = "tests",
+    tags = ["manual"],
+    target_compatible_with = KNOWN_GAP_COMPATIBLE,
+    tests = [
+        ":p001",
+        ":p002",
+        ":t",
+    ],
+)

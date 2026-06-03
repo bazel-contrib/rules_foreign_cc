@@ -1,0 +1,612 @@
+load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library", "cc_shared_library")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+package(default_visibility = ["//visibility:public"])
+
+ALL_SUPPORTED_PLATFORMS = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "@platforms//os:windows": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
+LIBARCHIVE_SHARED_LIB = select({
+    "@platforms//os:macos": [
+        "libarchive.dylib",
+        "libarchive.13.dylib",
+        "libarchive.13.7.7.dylib",
+    ],
+    "@platforms//os:windows": ["archive.dll"],
+    "//conditions:default": [
+        "libarchive.so",
+        "libarchive.so.13",
+        "libarchive.so.13.7.7",
+    ],
+})
+
+LIBARCHIVE_INTERFACE_LIB = select({
+    "@platforms//os:windows": ["archive.lib"],
+    "//conditions:default": [],
+})
+
+LIBARCHIVE_STATIC_LIB = select({
+    "@platforms//os:windows": ["archive.lib"],
+    "//conditions:default": ["libarchive.a"],
+})
+
+LIBARCHIVE_COMMON_SRCS = glob(
+    ["libarchive/*.c"],
+    exclude = [
+        "libarchive/archive_disk_acl_darwin.c",
+        "libarchive/archive_disk_acl_freebsd.c",
+        "libarchive/archive_disk_acl_linux.c",
+        "libarchive/archive_disk_acl_sunos.c",
+        "libarchive/archive_entry_copy_bhfi.c",
+        "libarchive/archive_read_disk_windows.c",
+        "libarchive/archive_read_disk_posix.c",
+        "libarchive/archive_windows.c",
+        "libarchive/archive_write_disk_posix.c",
+        "libarchive/archive_write_disk_windows.c",
+        "libarchive/filter_fork_windows.c",
+        "libarchive/filter_fork_posix.c",
+    ],
+)
+
+LIBARCHIVE_PUBLIC_HDRS = [
+    "libarchive/archive.h",
+    "libarchive/archive_entry.h",
+]
+
+LIBARCHIVE_PRIVATE_HDRS = glob(
+    ["libarchive/*.h"],
+    exclude = LIBARCHIVE_PUBLIC_HDRS,
+)
+
+LIBARCHIVE_CONFIG_DEPS = ["@rules_foreign_cc_examples_third_party//libarchive:config"]
+
+LIBARCHIVE_COPTS = select({
+    "@platforms//os:windows": ["/DPLATFORM_CONFIG_H=\\\"libarchive_config.h\\\""],
+    "//conditions:default": ["-DPLATFORM_CONFIG_H=\\\"libarchive_config.h\\\""],
+}) + select({
+    "@platforms//os:windows": [],
+    "//conditions:default": [
+        "-Wno-deprecated-non-prototype",
+        "-Wno-implicit-function-declaration",
+        "-Wno-unused-function",
+        "-Wno-unused-variable",
+    ],
+})
+
+LIBARCHIVE_STATIC_DEFINES = select({
+    "@platforms//os:windows": ["LIBARCHIVE_STATIC"],
+    "//conditions:default": [],
+})
+
+LIBARCHIVE_SRCS = select({
+    "@platforms//os:macos": LIBARCHIVE_COMMON_SRCS + [
+        "libarchive/archive_disk_acl_darwin.c",
+        "libarchive/archive_read_disk_posix.c",
+        "libarchive/archive_write_disk_posix.c",
+        "libarchive/filter_fork_posix.c",
+    ],
+    "@platforms//os:windows": LIBARCHIVE_COMMON_SRCS + [
+        "libarchive/archive_read_disk_windows.c",
+        "libarchive/archive_windows.c",
+        "libarchive/archive_write_disk_windows.c",
+        "libarchive/filter_fork_windows.c",
+    ],
+    "//conditions:default": LIBARCHIVE_COMMON_SRCS + [
+        "libarchive/archive_read_disk_posix.c",
+        "libarchive/archive_write_disk_posix.c",
+        "libarchive/filter_fork_posix.c",
+    ],
+})
+
+LIBARCHIVE_STATIC_COPTS = LIBARCHIVE_COPTS + [
+    "-DLIBARCHIVE_STATIC",
+]
+
+LIBARCHIVE_SHARED_FEATURES = select({
+    "@platforms//os:macos": ["set_install_name"],
+    "@platforms//os:windows": [],
+    "//conditions:default": ["set_soname"],
+})
+
+LIBARCHIVE_CMAKE_CACHE = {
+    "CMAKE_BUILD_TYPE": "RELEASE",
+    "CMAKE_POLICY_DEFAULT_CMP0074": "NEW",
+    "CMAKE_POLICY_VERSION_MINIMUM": "3.5",
+    "ENABLE_ACL": "OFF",
+    "ENABLE_BZip2": "OFF",
+    "ENABLE_CAT": "OFF",
+    "ENABLE_CPIO": "OFF",
+    "ENABLE_EXPAT": "OFF",
+    "ENABLE_ICONV": "OFF",
+    "ENABLE_INSTALL": "ON",
+    "ENABLE_LIBB2": "OFF",
+    "ENABLE_LIBXML2": "OFF",
+    "ENABLE_LZ4": "OFF",
+    "ENABLE_LZMA": "OFF",
+    "ENABLE_LZO": "OFF",
+    "ENABLE_MBEDTLS": "OFF",
+    "ENABLE_NETTLE": "OFF",
+    "ENABLE_OPENSSL": "OFF",
+    "ENABLE_PCRE2POSIX": "OFF",
+    "ENABLE_PCREPOSIX": "OFF",
+    "ENABLE_TAR": "OFF",
+    "ENABLE_TEST": "OFF",
+    "ENABLE_UNZIP": "OFF",
+    "ENABLE_XATTR": "OFF",
+    "ENABLE_ZLIB": "ON",
+    "ENABLE_ZSTD": "OFF",
+}
+
+LIBARCHIVE_STATIC_CMAKE_CACHE = dict(LIBARCHIVE_CMAKE_CACHE.items() + {
+    "BUILD_SHARED_LIBS": "OFF",
+}.items())
+
+LIBARCHIVE_SHARED_CMAKE_CACHE = dict(LIBARCHIVE_CMAKE_CACHE.items() + {
+    "BUILD_SHARED_LIBS": "ON",
+}.items())
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(
+        include = ["**"],
+        exclude = ["*.bazel"],
+    ),
+)
+
+cc_library(
+    name = "libarchive_headers",
+    hdrs = LIBARCHIVE_PUBLIC_HDRS,
+    includes = ["libarchive"],
+    linkstatic = True,
+)
+
+cc_library(
+    name = "libarchive_static_zlib_static",
+    srcs = LIBARCHIVE_SRCS + LIBARCHIVE_PRIVATE_HDRS,
+    hdrs = LIBARCHIVE_PUBLIC_HDRS,
+    copts = LIBARCHIVE_STATIC_COPTS,
+    defines = LIBARCHIVE_STATIC_DEFINES,
+    implementation_deps = LIBARCHIVE_CONFIG_DEPS,
+    includes = ["libarchive"],
+    linkstatic = True,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_static"],
+)
+
+cc_library(
+    name = "libarchive_static_zlib_foreign_static",
+    srcs = LIBARCHIVE_SRCS + LIBARCHIVE_PRIVATE_HDRS,
+    hdrs = LIBARCHIVE_PUBLIC_HDRS,
+    copts = LIBARCHIVE_STATIC_COPTS,
+    defines = LIBARCHIVE_STATIC_DEFINES,
+    implementation_deps = LIBARCHIVE_CONFIG_DEPS,
+    includes = ["libarchive"],
+    linkstatic = True,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_foreign_static"],
+)
+
+cc_library(
+    name = "libarchive_static_zlib_dynamic",
+    srcs = LIBARCHIVE_SRCS + LIBARCHIVE_PRIVATE_HDRS,
+    hdrs = LIBARCHIVE_PUBLIC_HDRS,
+    copts = LIBARCHIVE_STATIC_COPTS,
+    defines = LIBARCHIVE_STATIC_DEFINES,
+    implementation_deps = LIBARCHIVE_CONFIG_DEPS,
+    includes = ["libarchive"],
+    linkstatic = True,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_dynamic"],
+)
+
+cc_library(
+    name = "libarchive_static_zlib_foreign_shared",
+    srcs = LIBARCHIVE_SRCS + LIBARCHIVE_PRIVATE_HDRS,
+    hdrs = LIBARCHIVE_PUBLIC_HDRS,
+    copts = LIBARCHIVE_STATIC_COPTS,
+    defines = LIBARCHIVE_STATIC_DEFINES,
+    implementation_deps = LIBARCHIVE_CONFIG_DEPS,
+    includes = ["libarchive"],
+    linkstatic = True,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_foreign_shared"],
+)
+
+cc_library(
+    name = "libarchive_impl_zlib_static",
+    srcs = LIBARCHIVE_SRCS + LIBARCHIVE_PRIVATE_HDRS,
+    hdrs = LIBARCHIVE_PUBLIC_HDRS,
+    copts = LIBARCHIVE_COPTS,
+    implementation_deps = LIBARCHIVE_CONFIG_DEPS,
+    includes = ["libarchive"],
+    linkstatic = True,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_static"],
+)
+
+cc_library(
+    name = "libarchive_impl_zlib_foreign_static",
+    srcs = LIBARCHIVE_SRCS + LIBARCHIVE_PRIVATE_HDRS,
+    hdrs = LIBARCHIVE_PUBLIC_HDRS,
+    copts = LIBARCHIVE_COPTS,
+    implementation_deps = LIBARCHIVE_CONFIG_DEPS,
+    includes = ["libarchive"],
+    linkstatic = True,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_foreign_static"],
+)
+
+cc_library(
+    name = "libarchive_impl_zlib_dynamic",
+    srcs = LIBARCHIVE_SRCS + LIBARCHIVE_PRIVATE_HDRS,
+    hdrs = LIBARCHIVE_PUBLIC_HDRS,
+    copts = LIBARCHIVE_COPTS,
+    implementation_deps = LIBARCHIVE_CONFIG_DEPS,
+    includes = ["libarchive"],
+    linkstatic = True,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_dynamic_headers"],
+)
+
+cc_library(
+    name = "libarchive_impl_zlib_foreign_shared",
+    srcs = LIBARCHIVE_SRCS + LIBARCHIVE_PRIVATE_HDRS,
+    hdrs = LIBARCHIVE_PUBLIC_HDRS,
+    copts = LIBARCHIVE_COPTS,
+    implementation_deps = LIBARCHIVE_CONFIG_DEPS,
+    includes = ["libarchive"],
+    linkstatic = True,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_foreign_shared"],
+)
+
+cc_shared_library(
+    name = "libarchive_shared_zlib_static",
+    features = LIBARCHIVE_SHARED_FEATURES,
+    shared_lib_name = select({
+        "@platforms//os:macos": "libarchive_zlib_static.dylib",
+        "@platforms//os:windows": "archive_zlib_static.dll",
+        "//conditions:default": "libarchive_zlib_static.so",
+    }),
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = [":libarchive_impl_zlib_static"],
+)
+
+filegroup(
+    name = "libarchive_shared_zlib_static_interface_library",
+    srcs = [":libarchive_shared_zlib_static"],
+    output_group = "interface_library",
+    target_compatible_with = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_import(
+    name = "libarchive_shared_zlib_static_import",
+    interface_library = ":libarchive_shared_zlib_static_interface_library",
+    shared_library = ":libarchive_shared_zlib_static",
+    target_compatible_with = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_library(
+    name = "libarchive_dynamic_zlib_static",
+    srcs = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": [":libarchive_shared_zlib_static"],
+    }),
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = [
+        ":libarchive_headers",
+        "@examples_zlib//:zlib_static",
+    ] + select({
+        "@platforms//os:windows": [":libarchive_shared_zlib_static_import"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_shared_library(
+    name = "libarchive_shared_zlib_foreign_static",
+    features = LIBARCHIVE_SHARED_FEATURES,
+    shared_lib_name = select({
+        "@platforms//os:macos": "libarchive_zlib_foreign_static.dylib",
+        "@platforms//os:windows": "archive_zlib_foreign_static.dll",
+        "//conditions:default": "libarchive_zlib_foreign_static.so",
+    }),
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = [":libarchive_impl_zlib_foreign_static"],
+)
+
+filegroup(
+    name = "libarchive_shared_zlib_foreign_static_interface_library",
+    srcs = [":libarchive_shared_zlib_foreign_static"],
+    output_group = "interface_library",
+    target_compatible_with = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_import(
+    name = "libarchive_shared_zlib_foreign_static_import",
+    interface_library = ":libarchive_shared_zlib_foreign_static_interface_library",
+    shared_library = ":libarchive_shared_zlib_foreign_static",
+    target_compatible_with = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_library(
+    name = "libarchive_dynamic_zlib_foreign_static",
+    srcs = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": [":libarchive_shared_zlib_foreign_static"],
+    }),
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = [
+        ":libarchive_headers",
+        "@examples_zlib//:zlib_foreign_static",
+    ] + select({
+        "@platforms//os:windows": [":libarchive_shared_zlib_foreign_static_import"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_shared_library(
+    name = "libarchive_shared_zlib_dynamic",
+    dynamic_deps = ["@examples_zlib//:zlib_shared"],
+    features = LIBARCHIVE_SHARED_FEATURES,
+    shared_lib_name = select({
+        "@platforms//os:macos": "libarchive_zlib_dynamic.dylib",
+        "@platforms//os:windows": "archive_zlib_dynamic.dll",
+        "//conditions:default": "libarchive_zlib_dynamic.so",
+    }),
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = [":libarchive_impl_zlib_dynamic"],
+)
+
+filegroup(
+    name = "libarchive_shared_zlib_dynamic_interface_library",
+    srcs = [":libarchive_shared_zlib_dynamic"],
+    output_group = "interface_library",
+    target_compatible_with = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_import(
+    name = "libarchive_shared_zlib_dynamic_import",
+    interface_library = ":libarchive_shared_zlib_dynamic_interface_library",
+    shared_library = ":libarchive_shared_zlib_dynamic",
+    target_compatible_with = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_library(
+    name = "libarchive_dynamic_zlib_dynamic",
+    srcs = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": [":libarchive_shared_zlib_dynamic"],
+    }),
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = [
+        ":libarchive_headers",
+        "@examples_zlib//:zlib_dynamic",
+    ] + select({
+        "@platforms//os:windows": [":libarchive_shared_zlib_dynamic_import"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_shared_library(
+    name = "libarchive_shared_zlib_foreign_shared",
+    features = LIBARCHIVE_SHARED_FEATURES,
+    shared_lib_name = select({
+        "@platforms//os:macos": "libarchive_zlib_foreign_shared.dylib",
+        "@platforms//os:windows": "archive_zlib_foreign_shared.dll",
+        "//conditions:default": "libarchive_zlib_foreign_shared.so",
+    }),
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = [":libarchive_impl_zlib_foreign_shared"],
+)
+
+filegroup(
+    name = "libarchive_shared_zlib_foreign_shared_interface_library",
+    srcs = [":libarchive_shared_zlib_foreign_shared"],
+    output_group = "interface_library",
+    target_compatible_with = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_import(
+    name = "libarchive_shared_zlib_foreign_shared_import",
+    interface_library = ":libarchive_shared_zlib_foreign_shared_interface_library",
+    shared_library = ":libarchive_shared_zlib_foreign_shared",
+    target_compatible_with = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+cc_library(
+    name = "libarchive_dynamic_zlib_foreign_shared",
+    srcs = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": [":libarchive_shared_zlib_foreign_shared"],
+    }),
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = [
+        ":libarchive_headers",
+        "@examples_zlib//:zlib_foreign_shared",
+    ] + select({
+        "@platforms//os:windows": [":libarchive_shared_zlib_foreign_shared_import"],
+        "//conditions:default": [],
+    }),
+)
+
+cmake(
+    name = "libarchive_foreign_static_zlib_static",
+    cache_entries = select({
+        "@platforms//os:windows": dict(LIBARCHIVE_STATIC_CMAKE_CACHE.items() + {
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/z.lib",
+        }.items()),
+        "//conditions:default": dict(LIBARCHIVE_STATIC_CMAKE_CACHE.items() + {
+            "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/libz.a",
+        }.items()),
+    }),
+    defines = select({
+        "@platforms//os:windows": ["LIBARCHIVE_STATIC"],
+        "//conditions:default": [],
+    }),
+    lib_source = ":all_srcs",
+    out_static_libs = LIBARCHIVE_STATIC_LIB,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_static"],
+)
+
+cmake(
+    name = "libarchive_foreign_static_zlib_foreign_static",
+    cache_entries = dict(LIBARCHIVE_STATIC_CMAKE_CACHE.items() + {
+        "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
+        "ZLIB_ROOT": "$$EXT_BUILD_DEPS/zlib",
+    }.items()),
+    defines = select({
+        "@platforms//os:windows": ["LIBARCHIVE_STATIC"],
+        "//conditions:default": [],
+    }),
+    lib_source = ":all_srcs",
+    out_static_libs = LIBARCHIVE_STATIC_LIB,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_foreign_static"],
+)
+
+cmake(
+    name = "libarchive_foreign_static_zlib_dynamic",
+    cache_entries = select({
+        "@platforms//os:macos": dict(LIBARCHIVE_STATIC_CMAKE_CACHE.items() + {
+            "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/libz.dylib",
+        }.items()),
+        "@platforms//os:windows": dict(LIBARCHIVE_STATIC_CMAKE_CACHE.items() + {
+            "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/zlib_shared.if.lib",
+        }.items()),
+        "//conditions:default": dict(LIBARCHIVE_STATIC_CMAKE_CACHE.items() + {
+            "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/libz.so",
+        }.items()),
+    }),
+    defines = select({
+        "@platforms//os:windows": ["LIBARCHIVE_STATIC"],
+        "//conditions:default": [],
+    }),
+    lib_source = ":all_srcs",
+    out_static_libs = LIBARCHIVE_STATIC_LIB,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_dynamic"],
+)
+
+cmake(
+    name = "libarchive_foreign_static_zlib_foreign_shared",
+    cache_entries = dict(LIBARCHIVE_STATIC_CMAKE_CACHE.items() + {
+        "CMAKE_C_FLAGS": "$${CMAKE_C_FLAGS:-} -fPIC",
+        "ZLIB_ROOT": "$$EXT_BUILD_DEPS/zlib_foreign_shared",
+    }.items()),
+    defines = select({
+        "@platforms//os:windows": ["LIBARCHIVE_STATIC"],
+        "//conditions:default": [],
+    }),
+    lib_source = ":all_srcs",
+    out_static_libs = LIBARCHIVE_STATIC_LIB,
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_foreign_shared"],
+)
+
+cmake(
+    name = "libarchive_foreign_shared_zlib_static",
+    cache_entries = select({
+        "@platforms//os:windows": dict(LIBARCHIVE_SHARED_CMAKE_CACHE.items() + {
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/z.lib",
+        }.items()),
+        "//conditions:default": dict(LIBARCHIVE_SHARED_CMAKE_CACHE.items() + {
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/libz.a",
+        }.items()),
+    }),
+    lib_source = ":all_srcs",
+    out_interface_libs = LIBARCHIVE_INTERFACE_LIB,
+    out_shared_libs = LIBARCHIVE_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_static"],
+)
+
+cmake(
+    name = "libarchive_foreign_shared_zlib_foreign_static",
+    cache_entries = dict(LIBARCHIVE_SHARED_CMAKE_CACHE.items() + {
+        "ZLIB_ROOT": "$$EXT_BUILD_DEPS/zlib",
+    }.items()),
+    lib_source = ":all_srcs",
+    out_interface_libs = LIBARCHIVE_INTERFACE_LIB,
+    out_shared_libs = LIBARCHIVE_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_foreign_static"],
+)
+
+cmake(
+    name = "libarchive_foreign_shared_zlib_dynamic",
+    cache_entries = select({
+        "@platforms//os:macos": dict(LIBARCHIVE_SHARED_CMAKE_CACHE.items() + {
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/libz.dylib",
+        }.items()),
+        "@platforms//os:windows": dict(LIBARCHIVE_SHARED_CMAKE_CACHE.items() + {
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/zlib_shared.if.lib",
+        }.items()),
+        "//conditions:default": dict(LIBARCHIVE_SHARED_CMAKE_CACHE.items() + {
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/libz.so",
+        }.items()),
+    }),
+    lib_source = ":all_srcs",
+    out_interface_libs = LIBARCHIVE_INTERFACE_LIB,
+    out_shared_libs = LIBARCHIVE_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_dynamic"],
+)
+
+cmake(
+    name = "libarchive_foreign_shared_zlib_foreign_shared",
+    cache_entries = dict(LIBARCHIVE_SHARED_CMAKE_CACHE.items() + {
+        "ZLIB_ROOT": "$$EXT_BUILD_DEPS/zlib_foreign_shared",
+    }.items()),
+    lib_source = ":all_srcs",
+    out_interface_libs = LIBARCHIVE_INTERFACE_LIB,
+    out_shared_libs = LIBARCHIVE_SHARED_LIB,
+    runtime_library_search_directories = "enabled",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+    deps = ["@examples_zlib//:zlib_foreign_shared"],
+)

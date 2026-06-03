@@ -1,0 +1,67 @@
+ninja_required_version = 1.3
+
+builddir = build
+
+rule link_leaf_so
+  command = mkdir -p build/lib && $${CC:-cc} $${CFLAGS:-} $${CPPFLAGS:-} -DRUNTIME_TEST_FAMILY=\"$${RUNTIME_TEST_FAMILY:-ninja}\" -fPIC -shared src/leaf.c -o build/lib/libleaf.so $${SHARED_LDFLAGS:-}
+  description = Linking libleaf.so
+
+rule link_middle_so
+  command = mkdir -p build/lib && $${CC:-cc} $${CFLAGS:-} $${CPPFLAGS:-} -DRUNTIME_TEST_FAMILY=\"$${RUNTIME_TEST_FAMILY:-ninja}\" -fPIC -shared src/middle.c -o build/lib/libmiddle.so -Lbuild/lib $${SHARED_LDFLAGS:-} -lleaf
+  description = Linking libmiddle.so
+
+rule link_app_so
+  command = mkdir -p build/bin && $${CC:-cc} $${CFLAGS:-} $${CPPFLAGS:-} -DRUNTIME_TEST_FAMILY=\"$${RUNTIME_TEST_FAMILY:-ninja}\" src/app.c -o build/bin/runtime_app -Lbuild/lib $${EXECUTABLE_LDFLAGS:-} -lmiddle
+  description = Linking runtime_app
+
+rule install_leaf_so
+  command = mkdir -p "$$INSTALLDIR/lib" && cp -p build/lib/libleaf.so "$$INSTALLDIR/lib/"
+  description = Installing libleaf.so
+
+rule install_middle_so
+  command = mkdir -p "$$INSTALLDIR/lib" && cp -p build/lib/libmiddle.so "$$INSTALLDIR/lib/"
+  description = Installing libmiddle.so
+
+rule install_app_so
+  command = mkdir -p "$$INSTALLDIR/bin" && cp -p build/bin/runtime_app "$$INSTALLDIR/bin/"
+  description = Installing runtime_app
+
+rule link_leaf_dylib
+  command = mkdir -p build/lib && $${CC:-cc} $${CFLAGS:-} $${CPPFLAGS:-} -DRUNTIME_TEST_FAMILY=\"$${RUNTIME_TEST_FAMILY:-ninja}\" -fPIC -dynamiclib src/leaf.c -o build/lib/libleaf.dylib -Wl,-install_name,@rpath/libleaf.dylib $${SHARED_LDFLAGS:-}
+  description = Linking libleaf.dylib
+
+rule link_middle_dylib
+  command = mkdir -p build/lib && $${CC:-cc} $${CFLAGS:-} $${CPPFLAGS:-} -DRUNTIME_TEST_FAMILY=\"$${RUNTIME_TEST_FAMILY:-ninja}\" -fPIC -dynamiclib src/middle.c -o build/lib/libmiddle.dylib -Wl,-install_name,@rpath/libmiddle.dylib -Lbuild/lib $${SHARED_LDFLAGS:-} -lleaf
+  description = Linking libmiddle.dylib
+
+rule link_app_dylib
+  command = mkdir -p build/bin && $${CC:-cc} $${CFLAGS:-} $${CPPFLAGS:-} -DRUNTIME_TEST_FAMILY=\"$${RUNTIME_TEST_FAMILY:-ninja}\" src/app.c -o build/bin/runtime_app -Lbuild/lib $${EXECUTABLE_LDFLAGS:-} -lmiddle
+  description = Linking runtime_app
+
+rule install_leaf_dylib
+  command = mkdir -p "$$INSTALLDIR/lib" && cp -p build/lib/libleaf.dylib "$$INSTALLDIR/lib/"
+  description = Installing libleaf.dylib
+
+rule install_middle_dylib
+  command = mkdir -p "$$INSTALLDIR/lib" && cp -p build/lib/libmiddle.dylib "$$INSTALLDIR/lib/"
+  description = Installing libmiddle.dylib
+
+rule install_app_dylib
+  command = mkdir -p "$$INSTALLDIR/bin" && cp -p build/bin/runtime_app "$$INSTALLDIR/bin/"
+  description = Installing runtime_app
+
+build leaf-so: link_leaf_so
+build middle-so: link_middle_so | leaf-so
+build app-so: link_app_so | middle-so
+build install-leaf-so: install_leaf_so | leaf-so
+build install-middle-so: install_middle_so | middle-so
+build install-app-so: install_app_so | app-so
+
+build leaf-dylib: link_leaf_dylib
+build middle-dylib: link_middle_dylib | leaf-dylib
+build app-dylib: link_app_dylib | middle-dylib
+build install-leaf-dylib: install_leaf_dylib | leaf-dylib
+build install-middle-dylib: install_middle_dylib | middle-dylib
+build install-app-dylib: install_app_dylib | app-dylib
+
+default app-so

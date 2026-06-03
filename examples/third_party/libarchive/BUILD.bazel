@@ -1,0 +1,79 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+exports_files(
+    ["BUILD.libarchive.bazel"],
+    visibility = ["//visibility:public"],
+)
+
+LIBARCHIVE_CONFIG_CMAKE_CACHE = {
+    "CMAKE_BUILD_TYPE": "RELEASE",
+    "CMAKE_POLICY_DEFAULT_CMP0074": "NEW",
+    "CMAKE_POLICY_VERSION_MINIMUM": "3.5",
+    "ENABLE_ACL": "OFF",
+    "ENABLE_BZip2": "OFF",
+    "ENABLE_CAT": "OFF",
+    "ENABLE_CPIO": "OFF",
+    "ENABLE_EXPAT": "OFF",
+    "ENABLE_ICONV": "OFF",
+    "ENABLE_INSTALL": "ON",
+    "ENABLE_LIBB2": "OFF",
+    "ENABLE_LIBXML2": "OFF",
+    "ENABLE_LZ4": "OFF",
+    "ENABLE_LZMA": "OFF",
+    "ENABLE_LZO": "OFF",
+    "ENABLE_MBEDTLS": "OFF",
+    "ENABLE_NETTLE": "OFF",
+    "ENABLE_OPENSSL": "OFF",
+    "ENABLE_PCRE2POSIX": "OFF",
+    "ENABLE_PCREPOSIX": "OFF",
+    "ENABLE_TAR": "OFF",
+    "ENABLE_TEST": "OFF",
+    "ENABLE_UNZIP": "OFF",
+    "ENABLE_XATTR": "OFF",
+    "ENABLE_ZLIB": "ON",
+    "ENABLE_ZSTD": "OFF",
+}
+
+cmake(
+    name = "generate_config",
+    # Build the generated `help` target so CMake configure runs without
+    # compiling libarchive; the generated config.h is copied below.
+    cache_entries = select({
+        "@platforms//os:windows": dict(LIBARCHIVE_CONFIG_CMAKE_CACHE.items() + {
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/z.lib",
+        }.items()),
+        "//conditions:default": dict(LIBARCHIVE_CONFIG_CMAKE_CACHE.items() + {
+            "ZLIB_INCLUDE_DIR": "$$EXT_BUILD_DEPS/include",
+            "ZLIB_LIBRARY": "$$EXT_BUILD_DEPS/lib/libz.a",
+        }.items()),
+    }),
+    install = False,
+    lib_source = "@examples_libarchive//:all_srcs",
+    out_headers_only = True,
+    out_include_dir = "include",
+    postfix_script = "mkdir -p $$INSTALLDIR/include && cp $$BUILD_TMPDIR/config.h $$INSTALLDIR/include/libarchive_config.h",
+    targets = ["help"],
+    deps = ["@examples_zlib//:zlib_static"],
+)
+
+filegroup(
+    name = "generated_config_include",
+    srcs = [":generate_config"],
+    output_group = "include",
+)
+
+genrule(
+    name = "libarchive_config_h",
+    srcs = [":generated_config_include"],
+    outs = ["libarchive_config.h"],
+    cmd = "cp $(location :generated_config_include)/libarchive_config.h $@",
+)
+
+cc_library(
+    name = "config",
+    hdrs = [":libarchive_config_h"],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)

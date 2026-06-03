@@ -1,0 +1,115 @@
+load("//integration_tests/transitive_matrix:provider_semantic_parity_tests.bzl", "provider_semantic_parity_test")
+
+ALL_SUPPORTED_PLATFORMS = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "@platforms//os:windows": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
+# Provider parity: zlib static
+provider_semantic_parity_test(
+    name = "p001",
+    size = "small",
+    actual = "@examples_zlib//:zlib_foreign_static",
+    expected = "@examples_zlib//:zlib_static",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+# Provider parity: zlib shared
+provider_semantic_parity_test(
+    name = "p002",
+    size = "small",
+    actual = "@examples_zlib//:zlib_foreign_shared",
+    expected = "@examples_zlib//:zlib_dynamic",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+# Provider parity: libarchive static -> native static zlib
+provider_semantic_parity_test(
+    name = "p003",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_static_zlib_static",
+    expected = "@examples_libarchive//:libarchive_static_zlib_static",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+# Provider parity: libarchive static -> foreign_cc static zlib
+provider_semantic_parity_test(
+    name = "p004",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_static_zlib_foreign_static",
+    expected = "@examples_libarchive//:libarchive_static_zlib_foreign_static",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+# Provider parity: libarchive static -> native shared zlib wrapper
+provider_semantic_parity_test(
+    name = "p005",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_static_zlib_dynamic",
+    expected = "@examples_libarchive//:libarchive_static_zlib_dynamic",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+# Provider parity: libarchive static -> foreign_cc shared zlib
+provider_semantic_parity_test(
+    name = "p006",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_static_zlib_foreign_shared",
+    expected = "@examples_libarchive//:libarchive_static_zlib_foreign_shared",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+# Provider parity: libarchive shared -> native shared zlib wrapper
+provider_semantic_parity_test(
+    name = "p007",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_shared_zlib_dynamic",
+    expected = "@examples_libarchive//:libarchive_dynamic_zlib_dynamic",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+# Provider parity: libarchive shared -> foreign_cc shared zlib
+provider_semantic_parity_test(
+    name = "p008",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_shared",
+    expected = "@examples_libarchive//:libarchive_dynamic_zlib_foreign_shared",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+# Provider parity: libarchive shared -> native static zlib
+provider_semantic_parity_test(
+    name = "p009",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_shared_zlib_static",
+    expected = "@examples_libarchive//:libarchive_dynamic_zlib_static",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+# Provider parity: libarchive shared -> foreign_cc static zlib
+provider_semantic_parity_test(
+    name = "p010",
+    size = "small",
+    actual = "@examples_libarchive//:libarchive_foreign_shared_zlib_foreign_static",
+    expected = "@examples_libarchive//:libarchive_dynamic_zlib_foreign_static",
+    target_compatible_with = ALL_SUPPORTED_PLATFORMS,
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":p001",
+        ":p002",
+        ":p003",
+        ":p004",
+        ":p005",
+        ":p006",
+        ":p007",
+        ":p008",
+        ":p009",
+        ":p010",
+    ],
+    visibility = ["//integration_tests/transitive_matrix:__pkg__"],
+)

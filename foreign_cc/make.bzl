@@ -45,7 +45,10 @@ def _create_make_script(configureParameters):
     root = detect_root(ctx.attr.lib_source)
 
     tools = get_tools_info(ctx)
-    flags = get_flags_info(ctx)
+    flags = get_flags_info(
+        ctx,
+        outputs = configureParameters.outputs,
+    )
 
     data = ctx.attr.data + ctx.attr.build_data
 

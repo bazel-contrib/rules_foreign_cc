@@ -1,0 +1,47 @@
+load(
+    "//integration_tests/transitive_matrix:consumer_tests.bzl",
+    "cc_binary_consumer_test",
+    "expected_linkage",
+    "expected_loaded_libraries",
+)
+
+# cc_binary native dynamic wrapper
+# app: cc_binary(linkstatic = False)
+# libarchive: native dynamic wrapper
+# zlib: foreign_cc static
+# runtime: libarchive must load from @examples_libarchive//:libarchive_shared_zlib_foreign_static
+cc_binary_consumer_test(
+    name = "t",
+    expected_linkage = expected_linkage(
+        app_shared_deps = ["libarchive"],
+        app_static_deps = ["zlib"],
+        libarchive = "@examples_libarchive//:libarchive_shared_zlib_foreign_static",
+        libarchive_static_deps = ["zlib"],
+    ),
+    expected_loaded_libraries = expected_loaded_libraries(
+        libarchive = "@examples_libarchive//:libarchive_shared_zlib_foreign_static",
+    ),
+    linkstatic = False,
+    deps = ["@examples_libarchive//:libarchive_dynamic_zlib_foreign_static"],
+)
+
+test_suite(
+    name = "runtime_tests",
+    tests = [":t_test"],
+    visibility = ["//integration_tests/transitive_matrix/cc_wrap:__pkg__"],
+)
+
+test_suite(
+    name = "linkage_tests",
+    tests = [":t_linkage_test"],
+    visibility = ["//integration_tests/transitive_matrix/cc_wrap:__pkg__"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":linkage_tests",
+        ":runtime_tests",
+    ],
+    visibility = ["//integration_tests/transitive_matrix/cc_wrap:__pkg__"],
+)

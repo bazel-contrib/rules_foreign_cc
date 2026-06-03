@@ -108,7 +108,10 @@ def _create_configure_script(configureParameters):
     inputs = configureParameters.inputs
 
     tools = get_tools_info(ctx)
-    flags = get_flags_info(ctx)
+    flags = get_flags_info(
+        ctx,
+        outputs = configureParameters.outputs,
+    )
 
     define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
 
