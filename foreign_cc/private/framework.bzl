@@ -34,6 +34,58 @@ load(
 
 CcSharedLibraryInfo = bazel_features.globals.CcSharedLibraryInfo
 
+# Attributes shared by every framework rule (regular `cc_external_rule_impl`-based
+# rules and `built_tools` rules alike).
+FOREIGN_CC_FRAMEWORK_COMMON_ATTRS = {
+    "copts": attr.string_list(
+        doc = "Optional. Add these options to the compile flags passed to the foreign build system. The flags only take affect for compiling this target, not its dependencies.",
+        mandatory = False,
+        default = [],
+    ),
+    "env": attr.string_dict(
+        doc = (
+            "Environment variables to set during the build. " +
+            "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_data`, " +
+            "but unlike with other rules, these will be replaced with absolute paths to those files, " +
+            "because the build does not run in the exec root. " +
+            "This attribute is subject to make variable substitution. " +
+            "No other macros are supported." +
+            "Variables containing `PATH` (e.g. `PATH`, `LD_LIBRARY_PATH`, `CPATH`) entries will be prepended to the existing variable."
+        ),
+        default = {},
+    ),
+    "linkopts": attr.string_list(
+        doc = "Optional link options to be passed up to the dependencies of this library",
+        mandatory = False,
+        default = [],
+    ),
+    "set_file_prefix_map": attr.bool(
+        doc = (
+            "If True, pass `-ffile-prefix-map=$EXT_BUILD_ROOT=.` to strip the sandbox " +
+            "path from compiled outputs. If False (the default), inherit from " +
+            "`//foreign_cc/settings:set_file_prefix_map_default`. Has no effect on MSVC."
+        ),
+        mandatory = False,
+        default = False,
+    ),
+    "_allow_building_in_tmp": attr.label(
+        default = Label("@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp"),
+        providers = [BuildSettingInfo],
+    ),
+    "_cc_toolchain": attr.label(
+        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+    ),
+    "_foreign_cc_framework_platform": attr.label(
+        doc = "Information about the execution platform",
+        cfg = "exec",
+        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
+    ),
+    "_set_file_prefix_map_default": attr.label(
+        default = Label("@rules_foreign_cc//foreign_cc/settings:set_file_prefix_map_default"),
+        providers = [BuildSettingInfo],
+    ),
+} | PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES | SIZE_ATTRIBUTES
+
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
 # Many of the attributes have default values.
 #
@@ -73,11 +125,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
-    "copts": attr.string_list(
-        doc = "Optional. Add these options to the compile flags passed to the foreign build system. The flags only take affect for compiling this target, not its dependencies.",
-        mandatory = False,
-        default = [],
-    ),
     "data": attr.label_list(
         doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
         mandatory = False,
@@ -112,17 +159,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = [],
         # providers = [CcSharedLibraryInfo],
     ),
-    "env": attr.string_dict(
-        doc = (
-            "Environment variables to set during the build. " +
-            "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_data`, " +
-            "but unlike with other rules, these will be replaced with absolute paths to those files, " +
-            "because the build does not run in the exec root. " +
-            "This attribute is subject to make variable substitution. " +
-            "No other macros are supported." +
-            "Variables containing `PATH` (e.g. `PATH`, `LD_LIBRARY_PATH`, `CPATH`) entries will be prepended to the existing variable."
-        ),
-    ),
     "experimental_validate_outputs_in_action": attr.bool(
         doc = "Validate expected installed outputs inside the main foreign build action before it exits.",
         mandatory = False,
@@ -152,11 +188,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
         mandatory = True,
         allow_files = True,
-    ),
-    "linkopts": attr.string_list(
-        doc = "Optional link options to be passed up to the dependencies of this library",
-        mandatory = False,
-        default = [],
     ),
     "out_bin_dir": attr.string(
         doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'. ",
@@ -215,14 +246,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Optional part of the shell script to be added after the make commands",
         mandatory = False,
     ),
-    "set_file_prefix_map": attr.bool(
-        doc = (
-            "Use -ffile-prefix-map with the intention to remove the sandbox path from " +
-            "debug symbols"
-        ),
-        mandatory = False,
-        default = False,
-    ),
     "static_suffix": attr.string(
         doc = (
             "Optional suffix used by static libs." +
@@ -248,24 +271,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
-    "_allow_building_in_tmp": attr.label(
-        default = Label("@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp"),
-        providers = [BuildSettingInfo],
-    ),
-    # we need to declare this attribute to access cc_toolchain
-    "_cc_toolchain": attr.label(
-        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-    ),
-    "_foreign_cc_framework_platform": attr.label(
-        doc = "Information about the execution platform",
-        cfg = "exec",
-        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
-    ),
-}
-
-# this would be cleaner as x | y, but that's not supported in bazel 5.4.0
-CC_EXTERNAL_RULE_ATTRIBUTES.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
-CC_EXTERNAL_RULE_ATTRIBUTES.update(SIZE_ATTRIBUTES)
+} | FOREIGN_CC_FRAMEWORK_COMMON_ATTRS
 
 # A list of common fragments required by rules using this framework
 CC_EXTERNAL_RULE_FRAGMENTS = [
