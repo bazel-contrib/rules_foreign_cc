@@ -1,13 +1,11 @@
 """A module defining a common framework for "built_tools" rules"""
 
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
-load("//foreign_cc/private:framework.bzl", "get_env_prelude", "wrap_outputs")
-load("//foreign_cc/private:resource_sets.bzl", "SIZE_ATTRIBUTES", "get_resource_env_vars")
+load("//foreign_cc/private:framework.bzl", "FOREIGN_CC_FRAMEWORK_COMMON_ATTRS", "get_env_prelude", "wrap_outputs")
+load("//foreign_cc/private:resource_sets.bzl", "get_resource_env_vars")
 load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script", "shebang")
-load("//foreign_cc/private/framework:platform.bzl", "PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES")
 
 # Common attributes for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_ATTRS = {
@@ -17,31 +15,11 @@ FOREIGN_CC_BUILT_TOOLS_ATTRS = {
         ),
         default = False,
     ),
-    "env": attr.string_dict(
-        doc = "Environment variables to set during the build. This attribute is subject to make variable substitution.",
-        default = {},
-    ),
     "srcs": attr.label(
         doc = "The target containing the build tool's sources",
         mandatory = True,
     ),
-    "_allow_building_in_tmp": attr.label(
-        default = Label("@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp"),
-        providers = [BuildSettingInfo],
-    ),
-    "_cc_toolchain": attr.label(
-        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-    ),
-    "_foreign_cc_framework_platform": attr.label(
-        doc = "Information about the execution platform",
-        cfg = "exec",
-        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
-    ),
-}
-
-# this would be cleaner as x | y, but that's not supported in bazel 5.4.0
-FOREIGN_CC_BUILT_TOOLS_ATTRS.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
-FOREIGN_CC_BUILT_TOOLS_ATTRS.update(SIZE_ATTRIBUTES)
+} | FOREIGN_CC_FRAMEWORK_COMMON_ATTRS
 
 # Common fragments for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_FRAGMENTS = [

@@ -171,7 +171,7 @@ def get_env_vars(ctx):
         ctx = ctx,
         cc_toolchain = cc_toolchain,
     )
-    copts = getattr(ctx.attr, "copts", [])
+    copts = ctx.attr.copts
 
     action_names = [
         ACTION_NAMES.c_compile,
@@ -253,9 +253,9 @@ def get_flags_info(ctx, link_output_file = None):
         cc_toolchain = cc_toolchain_,
     )
 
-    copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + getattr(ctx.attr, "copts", [])) or []
-    cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + getattr(ctx.attr, "copts", [])) or []
-    linkopts = (ctx.fragments.cpp.linkopts + getattr(ctx.attr, "linkopts", [])) or []
+    copts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts + ctx.attr.copts) or []
+    cxxopts = (ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts + ctx.attr.copts) or []
+    linkopts = (ctx.fragments.cpp.linkopts + ctx.attr.linkopts) or []
     defines = _defines_from_deps(ctx)
     use_pic = cc_toolchain_.needs_pic_for_dynamic_libraries(feature_configuration = feature_configuration)
 

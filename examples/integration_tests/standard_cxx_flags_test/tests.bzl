@@ -3,7 +3,7 @@
 load("@rules_foreign_cc//foreign_cc/private:cc_toolchain_util.bzl", "get_flags_info")
 
 # buildifier: disable=bzl-visibility
-load("@rules_foreign_cc//foreign_cc/private/framework:platform.bzl", "PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES")
+load("@rules_foreign_cc//foreign_cc/private:framework.bzl", "FOREIGN_CC_FRAMEWORK_COMMON_ATTRS")
 load("@with_cfg.bzl", "with_cfg")
 
 def _impl(ctx):
@@ -59,19 +59,12 @@ def assert_contains_once(arr, value):
     if cnt > 1:
         fail("Value is included multiple times: " + value)
 
-_FLAGS_TEST_ATTRS = {
-    "copts": attr.string_list(),
-    "deps": attr.label_list(),
-    "linkopts": attr.string_list(),
-    "out": attr.output(),
-    "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
-}
-
-_FLAGS_TEST_ATTRS.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
-
 _flags_test_test = rule(
     implementation = _impl,
-    attrs = _FLAGS_TEST_ATTRS,
+    attrs = {
+        "deps": attr.label_list(),
+        "out": attr.output(),
+    } | FOREIGN_CC_FRAMEWORK_COMMON_ATTRS,
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     fragments = ["cpp", "j2objc"],
     test = True,
