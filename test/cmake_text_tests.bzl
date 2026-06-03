@@ -88,17 +88,18 @@ def _fill_crossfile_from_toolchain_test(ctx):
         "unknown": (["shared1", "shared2"], ["shared1", "shared2"]),
     }
 
-    for target_os, inputs in cases.items():
+    for inputs in cases.values():
         flags = CxxFlagsInfo(
             cc = ["-cc-flag", "-gcc_toolchain", "cc-toolchain"],
             cxx = ["--quoted=\"abc def\"", "--sysroot=/abc/sysroot", "--gcc_toolchain", "cxx-toolchain"],
             cxx_linker_shared = inputs[0],
+            cxx_linker_dynamic_module = inputs[1],
             cxx_linker_static = ["static"],
             cxx_linker_executable = ["executable"],
             assemble = ["assemble"],
         )
 
-        res = export_for_test.fill_crossfile_from_toolchain("ws", tools, flags, target_os)
+        res = export_for_test.fill_crossfile_from_toolchain("ws", tools, flags)
 
         expected = {
             "CMAKE_AR": "/cxx_linker_static",
@@ -242,6 +243,7 @@ def _merge_flag_values_no_toolchain_file_test(ctx):
         cc = [],
         cxx = ['foo="bar"'],
         cxx_linker_shared = [],
+        cxx_linker_dynamic_module = [],
         cxx_linker_static = [],
         cxx_linker_executable = [],
         assemble = [],
@@ -298,6 +300,7 @@ def _create_min_cmake_script_no_toolchain_file_test(ctx):
         cc = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
         cxx = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
         cxx_linker_shared = ["-shared", "-fuse-ld=gold"],
+        cxx_linker_dynamic_module = ["-shared", "-fuse-ld=gold"],
         cxx_linker_static = ["static"],
         cxx_linker_executable = ["-fuse-ld=gold", "-Wl", "-no-as-needed"],
         assemble = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
@@ -355,6 +358,7 @@ def _create_min_cmake_script_wipe_toolchain_test(ctx):
         cc = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
         cxx = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
         cxx_linker_shared = ["-shared", "-fuse-ld=gold"],
+        cxx_linker_dynamic_module = ["-shared", "-fuse-ld=gold"],
         cxx_linker_static = ["static"],
         cxx_linker_executable = ["-fuse-ld=gold", "-Wl", "-no-as-needed"],
         assemble = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
@@ -418,6 +422,7 @@ def _create_min_cmake_script_toolchain_file_test(ctx):
         cc = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
         cxx = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
         cxx_linker_shared = ["-shared", "-fuse-ld=gold"],
+        cxx_linker_dynamic_module = ["-shared", "-fuse-ld=gold"],
         cxx_linker_static = ["static"],
         cxx_linker_executable = ["-fuse-ld=gold", "-Wl", "-no-as-needed"],
         assemble = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
@@ -495,6 +500,7 @@ def _create_cmake_script_no_toolchain_file_test(ctx):
             "cxx-toolchain",
         ],
         cxx_linker_shared = ["shared1", "shared2"],
+        cxx_linker_dynamic_module = ["shared1", "shared2"],
         cxx_linker_static = ["static"],
         cxx_linker_executable = ["executable"],
         assemble = ["assemble"],
@@ -566,6 +572,7 @@ def _create_cmake_script_android_test(ctx):
             "cxx-toolchain",
         ],
         cxx_linker_shared = ["shared1", "shared2"],
+        cxx_linker_dynamic_module = ["shared1", "shared2"],
         cxx_linker_static = ["static"],
         cxx_linker_executable = ["executable"],
         assemble = ["assemble"],
@@ -637,6 +644,7 @@ def _create_cmake_script_linux_test(ctx):
             "cxx-toolchain",
         ],
         cxx_linker_shared = ["shared1", "shared2"],
+        cxx_linker_dynamic_module = ["shared1", "shared2"],
         cxx_linker_static = ["static"],
         cxx_linker_executable = ["executable"],
         assemble = ["assemble"],
@@ -703,6 +711,7 @@ def _create_cmake_script_windows_no_toolchain_file_test(ctx):
         cc = ["/Z7"],
         cxx = ["/Z7"],
         cxx_linker_shared = [],
+        cxx_linker_dynamic_module = [],
         cxx_linker_static = [],
         cxx_linker_executable = [],
         assemble = [],
@@ -754,6 +763,7 @@ def _create_cmake_script_windows_toolchain_file_test(ctx):
         cc = ["/Z7"],
         cxx = ["/Z7"],
         cxx_linker_shared = [],
+        cxx_linker_dynamic_module = [],
         cxx_linker_static = [],
         cxx_linker_executable = [],
         assemble = [],
@@ -835,6 +845,7 @@ def _create_cmake_script_toolchain_file_test(ctx):
             "cxx-toolchain",
         ],
         cxx_linker_shared = ["shared1", "shared2"],
+        cxx_linker_dynamic_module = ["shared1", "shared2"],
         cxx_linker_static = ["static"],
         cxx_linker_executable = ["executable"],
         assemble = ["assemble"],

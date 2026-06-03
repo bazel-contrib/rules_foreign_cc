@@ -45,13 +45,14 @@ def get_make_env_vars(
 def get_ldflags_make_vars(
         executable_ldflags_vars,
         shared_ldflags_vars,
+        dynamic_module_ldflags_vars,
         workspace_name,
         flags,
         user_vars,
         deps,
         inputs,
         is_msvc):
-    vars = _get_ldflags_vars(executable_ldflags_vars, shared_ldflags_vars, flags, user_vars)
+    vars = _get_ldflags_vars(executable_ldflags_vars, shared_ldflags_vars, dynamic_module_ldflags_vars, flags, user_vars)
 
     deps_flags = _define_deps_flags(deps, inputs, is_msvc)
     for key in vars.keys():
@@ -168,13 +169,15 @@ def _get_make_variables(workspace_name, tools, flags, user_env_vars, make_comman
 def _get_ldflags_vars(
         executable_ldflags_vars,
         shared_ldflags_vars,
+        dynamic_module_ldflags_vars,
         flags,
         user_env_vars):
     executable_ldflags = {var: "cxx_linker_executable" for var in executable_ldflags_vars}
     shared_ldflags = {var: "cxx_linker_shared" for var in shared_ldflags_vars}
+    dynamic_module_ldflags = {var: "cxx_linker_dynamic_module" for var in dynamic_module_ldflags_vars}
 
     linker_make_flags = {}
-    for ldflags in [executable_ldflags, shared_ldflags]:
+    for ldflags in [executable_ldflags, shared_ldflags, dynamic_module_ldflags]:
         linker_make_flags.update(ldflags)
 
     return _merge_env_vars(flags, linker_make_flags, user_env_vars)

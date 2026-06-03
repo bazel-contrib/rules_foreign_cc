@@ -5,6 +5,7 @@ load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
+load("//foreign_cc/private/framework:platform.bzl", "target_os_name")
 
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",
@@ -33,6 +34,7 @@ CxxFlagsInfo = provider(
         cc = "C compiler flags",
         cxx = "C++ compiler flags",
         cxx_linker_shared = "C++ linker flags when linking shared library",
+        cxx_linker_dynamic_module = "C++ linker flags when linking dynamic modules",
         cxx_linker_static = "C++ linker flags when linking static library",
         cxx_linker_executable = "C++ linker flags when linking executable",
         assemble = "Assemble flags",
@@ -119,6 +121,11 @@ def _files_map(files_list, suffix = ""):
 
 def _defines_from_deps(ctx):
     return depset(transitive = [dep[CcInfo].compilation_context.defines for dep in getattr(ctx.attr, "deps", [])])
+
+def _dynamic_module_link_flags(shared_flags, is_darwin):
+    if is_darwin:
+        return [flag for flag in shared_flags if flag not in ["-shared", "-dynamiclib"]]
+    return shared_flags
 
 def targets_windows(ctx, cc_toolchain):
     """Returns true if build is targeting Windows
@@ -285,6 +292,7 @@ def get_flags_info(ctx, link_output_file = None):
                 must_keep_debug = False,
             ),
         ),
+        cxx_linker_dynamic_module = [],
         cxx_linker_static = cc_common.get_memory_inefficient_command_line(
             feature_configuration = feature_configuration,
             action_name = ACTION_NAMES.cpp_link_static_library,
@@ -323,10 +331,12 @@ def get_flags_info(ctx, link_output_file = None):
         copts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
         cxxopts.append("-ffile-prefix-map=$EXT_BUILD_ROOT=.")
 
+    shared_link_flags = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cxx_linker_shared, linkopts))
     return CxxFlagsInfo(
         cc = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cc, copts)),
         cxx = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cxx, cxxopts)),
-        cxx_linker_shared = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cxx_linker_shared, linkopts)),
+        cxx_linker_shared = shared_link_flags,
+        cxx_linker_dynamic_module = _dynamic_module_link_flags(shared_link_flags, target_os_name(ctx) == "macos"),
         cxx_linker_static = _convert_flags(cc_toolchain_.compiler, flags.cxx_linker_static),
         cxx_linker_executable = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.cxx_linker_executable, linkopts)),
         assemble = _convert_flags(cc_toolchain_.compiler, _add_if_needed(flags.assemble, copts)),
@@ -404,3 +414,7 @@ def _prefix(text, from_str, prefix):
 def _file_name_no_ext(basename):
     (before, _separator, _after) = basename.rpartition(".")
     return before
+
+export_for_test = struct(
+    dynamic_module_link_flags = _dynamic_module_link_flags,
+)

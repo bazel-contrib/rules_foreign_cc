@@ -31,6 +31,7 @@ def create_configure_script(
         make_args,
         executable_ldflags_vars,
         shared_ldflags_vars,
+        dynamic_module_ldflags_vars,
         is_msvc):
     ext_build_dirs = inputs.ext_build_dirs
 
@@ -102,7 +103,7 @@ def create_configure_script(
         user_options = " ".join(user_options),
     ))
 
-    ldflags_make_vars = get_ldflags_make_vars(executable_ldflags_vars, shared_ldflags_vars, workspace_name, flags, env_vars, deps, inputs, is_msvc)
+    ldflags_make_vars = get_ldflags_make_vars(executable_ldflags_vars, shared_ldflags_vars, dynamic_module_ldflags_vars, workspace_name, flags, env_vars, deps, inputs, is_msvc)
 
     make_commands = []
     for target in make_targets:
