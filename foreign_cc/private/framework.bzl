@@ -59,6 +59,15 @@ FOREIGN_CC_FRAMEWORK_COMMON_ATTRS = {
         mandatory = False,
         default = [],
     ),
+    "set_file_prefix_map": attr.bool(
+        doc = (
+            "If True, pass `-ffile-prefix-map=$EXT_BUILD_ROOT=.` to strip the sandbox " +
+            "path from compiled outputs. If False (the default), inherit from " +
+            "`//foreign_cc/settings:set_file_prefix_map_default`. Has no effect on MSVC."
+        ),
+        mandatory = False,
+        default = False,
+    ),
     "_allow_building_in_tmp": attr.label(
         default = Label("@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp"),
         providers = [BuildSettingInfo],
@@ -70,6 +79,10 @@ FOREIGN_CC_FRAMEWORK_COMMON_ATTRS = {
         doc = "Information about the execution platform",
         cfg = "exec",
         default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
+    ),
+    "_set_file_prefix_map_default": attr.label(
+        default = Label("@rules_foreign_cc//foreign_cc/settings:set_file_prefix_map_default"),
+        providers = [BuildSettingInfo],
     ),
 } | PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES | SIZE_ATTRIBUTES
 
@@ -232,14 +245,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
     "postfix_script": attr.string(
         doc = "Optional part of the shell script to be added after the make commands",
         mandatory = False,
-    ),
-    "set_file_prefix_map": attr.bool(
-        doc = (
-            "Use -ffile-prefix-map with the intention to remove the sandbox path from " +
-            "debug symbols"
-        ),
-        mandatory = False,
-        default = False,
     ),
     "static_suffix": attr.string(
         doc = (
