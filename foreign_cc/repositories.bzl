@@ -104,9 +104,9 @@ def rules_foreign_cc_dependencies(
     maybe(
         http_archive,
         name = "bazel_features",
-        sha256 = "9390b391a68d3b24aef7966bce8556d28003fe3f022a5008efc7807e8acaaf1a",
-        strip_prefix = "bazel_features-1.36.0",
-        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.36.0/bazel_features-v1.36.0.tar.gz",
+        sha256 = "c26b4e69cf02fea24511a108d158188b9d8174426311aac59ce803a78d107648",
+        strip_prefix = "bazel_features-1.43.0",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.43.0/bazel_features-v1.43.0.tar.gz",
     )
 
     maybe(
@@ -130,9 +130,9 @@ def rules_foreign_cc_dependencies(
     maybe(
         http_archive,
         name = "rules_cc",
-        sha256 = "283fa1cdaaf172337898749cf4b9b1ef5ea269da59540954e51fba0e7b8f277a",
-        strip_prefix = "rules_cc-0.2.17",
-        url = "https://github.com/bazelbuild/rules_cc/releases/download/0.2.17/rules_cc-0.2.17.tar.gz",
+        sha256 = "1de5b47721fce0af0dd453b3071228fdfc44bd18199826b3f0b03b423aae9f65",
+        strip_prefix = "rules_cc-0.2.18",
+        url = "https://github.com/bazelbuild/rules_cc/releases/download/0.2.18/rules_cc-0.2.18.tar.gz",
     )
 
     maybe(
