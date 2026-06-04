@@ -26,7 +26,12 @@ def glib_repositories():
         build_file = Label("//glib:BUILD.gettext.bazel"),
         strip_prefix = "gettext-0.21.1",
         sha256 = "e8c3650e1d8cee875c4f355642382c1df83058bd5a11ee8555c0cf276d646d45",
-        url = "https://ftpmirror.gnu.org/gnu/gettext/gettext-0.21.1.tar.gz",
+        urls = [
+            "https://mirrors.kernel.org/gnu/gettext/gettext-0.21.1.tar.gz",
+            "https://mirror.csclub.uwaterloo.ca/gnu/gettext/gettext-0.21.1.tar.gz",
+            "https://ftp.gnu.org/gnu/gettext/gettext-0.21.1.tar.gz",
+            "https://ftpmirror.gnu.org/gnu/gettext/gettext-0.21.1.tar.gz",
+        ],
     )
     maybe(
         http_archive,
