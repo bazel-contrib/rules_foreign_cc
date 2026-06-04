@@ -16,6 +16,8 @@ def zlib_repositories():
             Label("//zlib:zlib.patch"),
         ],
         urls = [
+            "https://mirror.bazel.build/github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz",
             "https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz",
+            "https://zlib.net/fossils/zlib-1.3.1.tar.gz",
         ],
     )

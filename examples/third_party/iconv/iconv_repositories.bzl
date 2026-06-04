@@ -8,6 +8,8 @@ def iconv_repositories():
         http_archive,
         name = "iconv",
         urls = [
+            "https://mirrors.kernel.org/gnu/libiconv/libiconv-1.16.tar.gz",
+            "https://mirror.csclub.uwaterloo.ca/gnu/libiconv/libiconv-1.16.tar.gz",
             "https://ftp.gnu.org/gnu/libiconv/libiconv-1.16.tar.gz",
             "https://ftpmirror.gnu.org/gnu/libiconv/libiconv-1.16.tar.gz",
         ],

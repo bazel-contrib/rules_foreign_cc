@@ -26,7 +26,10 @@ def mesa_repositories():
         ],
         sha256 = "670d8cbe8b72902a45ea2da68a9da4dc4a5d99c5953a926177adbce1b1640b76",
         strip_prefix = "mesa-22.1.4",
-        urls = ["https://archive.mesa3d.org/older-versions/22.x/mesa-22.1.4.tar.xz"],
+        urls = [
+            "https://archive.mesa3d.org/older-versions/22.x/mesa-22.1.4.tar.xz",
+            "https://mesa.freedesktop.org/archive/older-versions/22.x/mesa-22.1.4.tar.xz",
+        ],
     )
 
     maybe(
@@ -35,7 +38,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.libpciaccess.bazel"),
         sha256 = "84413553994aef0070cf420050aa5c0a51b1956b404920e21b81e96db6a61a27",
         strip_prefix = "libpciaccess-0.16",
-        url = "https://www.x.org/archive//individual/lib/libpciaccess-0.16.tar.gz",
+        urls = [
+            "https://www.x.org/archive/individual/lib/libpciaccess-0.16.tar.gz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/libpciaccess-0.16.tar.gz",
+        ],
     )
 
     maybe(
@@ -80,7 +86,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.xcb-proto.bazel"),
         sha256 = "d34c3b264e8365d16fa9db49179cfa3e9952baaf9275badda0f413966b65955f",
         strip_prefix = "xcb-proto-1.15",
-        url = "https://xcb.freedesktop.org/dist/xcb-proto-1.15.tar.xz",
+        urls = [
+            "https://xcb.freedesktop.org/dist/xcb-proto-1.15.tar.xz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/proto/xcb-proto-1.15.tar.xz",
+        ],
     )
 
     maybe(
@@ -89,7 +98,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.libxshmfence.bazel"),
         sha256 = "7eb3d46ad91bab444f121d475b11b39273142d090f7e9ac43e6a87f4ff5f902c",
         strip_prefix = "libxshmfence-1.3",
-        url = "https://www.x.org/releases/individual/lib/libxshmfence-1.3.tar.gz",
+        urls = [
+            "https://www.x.org/releases/individual/lib/libxshmfence-1.3.tar.gz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/libxshmfence-1.3.tar.gz",
+        ],
     )
 
     maybe(
@@ -98,7 +110,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.libxau.bazel"),
         sha256 = "8be6f292334d2f87e5b919c001e149a9fdc27005d6b3e053862ac6ebbf1a0c0a",
         strip_prefix = "libXau-1.0.10",
-        url = "https://www.x.org/pub/individual/lib/libXau-1.0.10.tar.xz",
+        urls = [
+            "https://www.x.org/pub/individual/lib/libXau-1.0.10.tar.xz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/libXau-1.0.10.tar.xz",
+        ],
     )
 
     maybe(
@@ -107,7 +122,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.xorgproto.bazel"),
         sha256 = "5d13dbf2be08f95323985de53352c4f352713860457b95ccaf894a647ac06b9e",
         strip_prefix = "xorgproto-2022.2",
-        url = "https://xorg.freedesktop.org/archive/individual/proto/xorgproto-2022.2.tar.xz",
+        urls = [
+            "https://xorg.freedesktop.org/archive/individual/proto/xorgproto-2022.2.tar.xz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/proto/xorgproto-2022.2.tar.xz",
+        ],
     )
 
     maybe(
@@ -116,7 +134,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.libxdmcp.bazel"),
         sha256 = "2dce5cc317f8f0b484ec347d87d81d552cdbebb178bd13c5d8193b6b7cd6ad00",
         strip_prefix = "libXdmcp-1.1.4",
-        url = "https://www.x.org/pub/individual/lib/libXdmcp-1.1.4.tar.xz",
+        urls = [
+            "https://www.x.org/pub/individual/lib/libXdmcp-1.1.4.tar.xz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/libXdmcp-1.1.4.tar.xz",
+        ],
     )
 
     maybe(
@@ -125,7 +146,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.libx11.bazel"),
         sha256 = "081bf42ebab023aa92cfdb20c7af8c5ae13d13e88a5e22f90f4453ef80bbdde4",
         strip_prefix = "libX11-1.8",
-        url = "https://www.x.org/archive/individual/lib/libX11-1.8.tar.xz",
+        urls = [
+            "https://www.x.org/archive/individual/lib/libX11-1.8.tar.xz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/libX11-1.8.tar.xz",
+        ],
     )
 
     maybe(
@@ -134,7 +158,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.libxrandr.bazel"),
         sha256 = "897639014a78e1497704d669c5dd5682d721931a4452c89a7ba62676064eb428",
         strip_prefix = "libXrandr-1.5.3",
-        url = "https://www.x.org/archive/individual/lib/libXrandr-1.5.3.tar.xz",
+        urls = [
+            "https://www.x.org/archive/individual/lib/libXrandr-1.5.3.tar.xz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/libXrandr-1.5.3.tar.xz",
+        ],
     )
 
     maybe(
@@ -143,7 +170,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.libxext.bazel"),
         sha256 = "db14c0c895c57ea33a8559de8cb2b93dc76c42ea4a39e294d175938a133d7bca",
         strip_prefix = "libXext-1.3.5",
-        url = "https://www.x.org/archive/individual/lib/libXext-1.3.5.tar.xz",
+        urls = [
+            "https://www.x.org/archive/individual/lib/libXext-1.3.5.tar.xz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/libXext-1.3.5.tar.xz",
+        ],
     )
 
     maybe(
@@ -152,7 +182,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.libxrender.bazel"),
         sha256 = "bc53759a3a83d1ff702fb59641b3d2f7c56e05051fa0cfa93501166fa782dc24",
         strip_prefix = "libXrender-0.9.11",
-        url = "https://www.x.org/archive//individual/lib/libXrender-0.9.11.tar.xz",
+        urls = [
+            "https://www.x.org/archive/individual/lib/libXrender-0.9.11.tar.xz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/libXrender-0.9.11.tar.xz",
+        ],
     )
 
     maybe(
@@ -161,7 +194,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.renderproto.bazel"),
         sha256 = "a0a4be3cad9381ae28279ba5582e679491fc2bec9aab8a65993108bf8dbce5fe",
         strip_prefix = "renderproto-0.11.1",
-        url = "https://www.x.org/releases/individual/proto/renderproto-0.11.1.tar.gz",
+        urls = [
+            "https://www.x.org/releases/individual/proto/renderproto-0.11.1.tar.gz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/proto/renderproto-0.11.1.tar.gz",
+        ],
     )
 
     maybe(
@@ -170,7 +206,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.xtrans.bazel"),
         sha256 = "48ed850ce772fef1b44ca23639b0a57e38884045ed2cbb18ab137ef33ec713f9",
         strip_prefix = "xtrans-1.4.0",
-        url = "https://www.x.org/archive/individual/lib/xtrans-1.4.0.tar.gz",
+        urls = [
+            "https://www.x.org/archive/individual/lib/xtrans-1.4.0.tar.gz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/xtrans-1.4.0.tar.gz",
+        ],
     )
 
     maybe(
@@ -179,7 +218,10 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.libpthread-stubs.bazel"),
         sha256 = "f8f7ca635fa54bcaef372fd5fd9028f394992a743d73453088fcadc1dbf3a704",
         strip_prefix = "libpthread-stubs-0.1",
-        url = "https://www.x.org/archive//individual/lib/libpthread-stubs-0.1.tar.gz",
+        urls = [
+            "https://www.x.org/archive/individual/lib/libpthread-stubs-0.1.tar.gz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/libpthread-stubs-0.1.tar.gz",
+        ],
     )
 
     maybe(
@@ -188,5 +230,8 @@ def mesa_repositories():
         build_file = Label("//mesa:BUILD.libxfixes.bazel"),
         sha256 = "82045da5625350838390c9440598b90d69c882c324ca92f73af9f0e992cb57c7",
         strip_prefix = "libXfixes-6.0.0",
-        url = "https://www.x.org/archive//individual/lib/libXfixes-6.0.0.tar.gz",
+        urls = [
+            "https://www.x.org/archive/individual/lib/libXfixes-6.0.0.tar.gz",
+            "https://mirror.csclub.uwaterloo.ca/x.org/individual/lib/libXfixes-6.0.0.tar.gz",
+        ],
     )
