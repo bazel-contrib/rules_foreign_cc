@@ -698,6 +698,25 @@ cmake -DCMAKE_AR="/cxx_linker_static" -DCMAKE_CXX_LINK_EXECUTABLE="became" -DCMA
 
     return unittest.end(env)
 
+def _cmake_target_params_test(ctx):
+    env = unittest.begin(ctx)
+
+    # format: (target_os, target_arch): expected CMAKE_SYSTEM_PROCESSOR
+    cases = {
+        ("android", "armv7"): "armv7-a",
+        ("android", "x86_32"): "i686",
+        ("linux", "aarch64"): "aarch64",
+        ("linux", "armv7"): "armv7l",
+        ("linux", "x86_32"): "i686",
+        ("linux", "x86_64"): "x86_64",
+    }
+
+    for (target_os, target_arch), expected_processor in cases.items():
+        params = export_for_test.cmake_target_params(ctx.label, target_os, target_arch)
+        asserts.equals(env, expected_processor, params["CMAKE_SYSTEM_PROCESSOR"])
+
+    return unittest.end(env)
+
 def _create_cmake_script_windows_no_toolchain_file_test(ctx):
     env = unittest.begin(ctx)
 
@@ -937,6 +956,7 @@ create_cmake_script_no_toolchain_file_test = unittest.make(_create_cmake_script_
 create_cmake_script_toolchain_file_test = unittest.make(_create_cmake_script_toolchain_file_test)
 create_cmake_script_android_test = unittest.make(_create_cmake_script_android_test)
 create_cmake_script_linux_test = unittest.make(_create_cmake_script_linux_test)
+cmake_target_params_test = unittest.make(_cmake_target_params_test)
 create_cmake_script_windows_no_toolchain_file_test = unittest.make(_create_cmake_script_windows_no_toolchain_file_test)
 create_cmake_script_windows_toolchain_file_test = unittest.make(_create_cmake_script_windows_toolchain_file_test)
 merge_flag_values_no_toolchain_file_test = unittest.make(_merge_flag_values_no_toolchain_file_test)
@@ -958,6 +978,7 @@ def cmake_script_test_suite():
         partial.make(create_cmake_script_toolchain_file_test, size = "small"),
         partial.make(create_cmake_script_android_test, size = "small"),
         partial.make(create_cmake_script_linux_test, size = "small"),
+        partial.make(cmake_target_params_test, size = "small"),
         partial.make(create_cmake_script_windows_no_toolchain_file_test, size = "small"),
         partial.make(create_cmake_script_windows_toolchain_file_test, size = "small"),
         partial.make(merge_flag_values_no_toolchain_file_test, size = "small"),
