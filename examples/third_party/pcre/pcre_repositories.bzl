@@ -12,5 +12,6 @@ def pcre_repositories():
         sha256 = "04e214c0c40a97b8a5c2b4ae88a3aa8a93e6f2e45c6b3534ddac351f26548577",
         urls = [
             "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.37/pcre2-10.37.tar.gz",
+            "https://downloads.sourceforge.net/project/pcre/pcre2/10.37/pcre2-10.37.tar.gz",
         ],
     )
