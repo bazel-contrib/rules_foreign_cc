@@ -1,0 +1,19 @@
+module(
+    name = "basic_test",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../../..",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.18")
+
+# Mirror exactly what docs/src/index.md tells bzlmod users to do: depend on
+# rules_foreign_cc and nothing else. rules_foreign_cc registers its own
+# cmake/ninja toolchains from its MODULE.bazel, which bzlmod honors for
+# downstream modules. This must keep working identically before and after
+# the hub-and-spoke change -- that is the whole point of the test.

@@ -1,5 +1,11 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+filegroup(
+    name = "distribution",
+    srcs = glob(["**"]),
+    visibility = ["//:__subpackages__"],
+)
+
 bzl_library(
     name = "built_tools_framework",
     srcs = ["built_tools_framework.bzl"],

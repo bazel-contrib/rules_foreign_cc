@@ -5,6 +5,16 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "distribution",
+    srcs = glob(["**"]) + [
+        "//foreign_cc/built_tools:distribution",
+        "//foreign_cc/private:distribution",
+        "//foreign_cc/settings:distribution",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
 bzl_library(
     name = "boost_build",
     srcs = ["boost_build.bzl"],

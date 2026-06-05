@@ -1,5 +1,13 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+filegroup(
+    name = "distribution",
+    srcs = glob(["**"]) + [
+        "//foreign_cc/built_tools/private:distribution",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
 bzl_library(
     name = "cmake_build",
     srcs = ["cmake_build.bzl"],

@@ -1,0 +1,8 @@
+# Generated -- do not hand-edit. Each scenario directory under
+# test/integration/ is its own child workspace (MODULE.bazel + WORKSPACE +
+# BUILD.bazel); mark it deleted so the outer Bazel does not load it as a
+# sub-package. Regenerate with:
+#   bazel run @rules_bazel_integration_test//tools:update_deleted_packages \
+#     -- --workspace "$PWD" --bazelrc "$PWD/.bazelrc.deleted_packages"
+# (docs/ and examples/ are skipped via .bazelignore.)
+common --deleted_packages=test/integration/basic

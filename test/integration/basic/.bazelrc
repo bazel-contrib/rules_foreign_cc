@@ -1,0 +1,18 @@
+# Config for the INNER Bazel build (the one runner.sh spawns inside this
+# scenario workspace). It mirrors the Windows-specific settings the parent repo
+# and examples/ get from //.bazelrc.common: building pkg-config from source
+# under MSVC needs runfiles + native symlinks, and the resulting paths exceed
+# 256 chars unless symlinks are enabled. Without these the inner build dies
+# building pkgconfig_tool_msvc_build_ ("NMAKE: fatal error U1052"). A real
+# rules_foreign_cc consumer on Windows has the same flags; this scenario is
+# stripped down, so it must carry them itself. See
+# @rules_foreign_cc//foreign_cc:repositories.bzl (register_built_pkgconfig_toolchain).
+build --enable_platform_specific_config
+
+# Required by Meson and built pkg-config on Windows.
+build:windows --enable_runfiles
+
+# Otherwise the source-built tool paths are too long for Windows.
+startup --windows_enable_symlinks
+build:windows --action_env=MSYS=winsymlinks:nativestrict
+build:windows --@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp=True

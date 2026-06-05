@@ -23,3 +23,21 @@ bzl_library(
     srcs = ["version.bzl"],
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "distribution",
+    srcs = [
+        ".bazelrc",
+        ".bazelrc.common",
+        ".bazelversion",
+        "BUILD.bazel",
+        "MODULE.bazel",
+        "MODULE.bazel.lock",
+        "WORKSPACE.bazel",
+        "WORKSPACE.bzlmod",
+        "version.bzl",
+        "//foreign_cc:distribution",
+        "//toolchains:distribution",
+    ],
+    visibility = ["//visibility:public"],
+)
