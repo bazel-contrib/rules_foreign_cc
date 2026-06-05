@@ -173,3 +173,29 @@ multitool(
         "@aspect_rules_lint//lint:multitool.lock.json",
     ],
 )
+
+# rules_bazel_integration_test drives the bazel-in-bazel tests under
+# test/integration and test/bzlmod. Under bzlmod it comes from MODULE.bazel
+# (the bazel_binaries extension); the legacy WORKSPACE setup below is what
+# makes those packages load with bzlmod disabled, so the workspaces CI lane
+# and local workspace-only users get the same coverage. Keep the version in
+# sync with the bazel_dep in MODULE.bazel.
+http_archive(
+    name = "rules_bazel_integration_test",
+    integrity = "sha256-6ew1u3CjQM4TqFtYPo3RNm+N3p/KcLix+R4BFDEtVwE=",
+    urls = [
+        "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.37.1/rules_bazel_integration_test.v0.37.1.tar.gz",
+    ],
+)
+
+load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
+
+bazel_integration_test_rules_dependencies()
+
+load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
+
+bazel_starlib_dependencies()
+
+load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_binaries")
+
+bazel_binaries(versions = ["//:.bazelversion"])

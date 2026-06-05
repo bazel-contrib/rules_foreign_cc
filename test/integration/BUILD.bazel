@@ -1,0 +1,69 @@
+# test/integration/BUILD.bazel
+#
+# A sanity scenario that exercises rules_foreign_cc end-to-end in BOTH
+# WORKSPACE and bzlmod mode from a single test. The scenario dir ships both
+# a MODULE.bazel and a WORKSPACE.bazel; the inner Bazel reads whichever the
+# mode flags select (see runner.sh). The outer mode is detected here and
+# passed in, so a `bazel test` under --enable_workspace tests the WORKSPACE
+# path and one under --enable_bzlmod tests the MODULE.bazel path -- the same
+# coverage a local user gets in their own mode. It is intentionally minimal:
+# it builds a static library via cmake doing exactly what docs/src/index.md
+# tells users to do. The point is regression coverage on the basic entry
+# point that should not change as the bzlmod surface evolves.
+load("@bazel_binaries//:defs.bzl", "bazel_binaries")
+load(
+    "@rules_bazel_integration_test//bazel_integration_test:defs.bzl",
+    "bazel_integration_test",
+    "integration_test_utils",
+)
+load(":bzlmod_enabled.bzl", "BZLMOD_ENABLED")
+
+package(default_visibility = ["//visibility:private"])
+
+exports_files(["runner.sh"])
+
+# True in the bzlmod and mixed lanes, false in the workspaces lane. We pass it
+# to runner.sh so the inner build runs in the matching pure mode.
+_OUTER_BZLMOD = "1" if BZLMOD_ENABLED else "0"
+
+# These are bazel-in-bazel tests: runner.sh spawns a nested Bazel that
+# builds the scenario. That inner Bazel breaks the outer test's normal
+# isolation in three specific ways:
+#   exclusive      - the inner Bazel starts its own server and is heavy on
+#                    CPU/RAM; only a couple can run at once before
+#                    reliability and runtime suffer. Bazel has no knob to
+#                    cap concurrency, so we serialize entirely.
+#   no-sandbox     - runner.sh runs the inner `bazel build` with no
+#                    --output_user_root, so it defaults its output base to
+#                    $HOME/.cache/bazel. The sandbox confines writes to the
+#                    action's outputs, so those home-dir writes would fail.
+#   no-remote-exec - a nested Bazel server needs a persistent local
+#                    workspace; the CI RBE setup can't run it remotely.
+# rules_python's integration tests use the same three tags for the same
+# reasons (tests/integration/integration_test.bzl).
+_COMMON_TAGS = [
+    "exclusive",
+    "no-sandbox",
+    "no-remote-exec",
+]
+
+# A cold inner build downloads Bazel, then bootstraps GNU Make and pkg-config
+# from source before it can build the cmake target. On slower CI agents (macOS)
+# that overruns the 300s "moderate" budget, so give it the 900s "long" budget.
+bazel_integration_test(
+    name = "basic_test",
+    timeout = "long",
+    bazel_binaries = bazel_binaries,
+    bazel_version = bazel_binaries.versions.current,
+    env = {
+        "EXPECT_BUILD": "//:hello_cmake",
+        "OUTER_BZLMOD": _OUTER_BZLMOD,
+        "SCENARIO": "basic",
+    },
+    tags = _COMMON_TAGS,
+    test_runner = ":runner.sh",
+    workspace_files = integration_test_utils.glob_workspace_files("basic") + [
+        "//:distribution",
+    ],
+    workspace_path = "basic",
+)

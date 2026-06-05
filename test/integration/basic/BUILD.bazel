@@ -1,0 +1,16 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+cmake(
+    name = "hello_cmake",
+    lib_source = ":all_srcs",
+    # MSVC names the static lib hello.lib; everyone else libhello.a.
+    out_static_libs = select({
+        "@platforms//os:windows": ["hello.lib"],
+        "//conditions:default": ["libhello.a"],
+    }),
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)

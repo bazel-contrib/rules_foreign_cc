@@ -85,4 +85,10 @@ bazelci.py
 /bazel-*
 /docs/bazel-*
 /examples/bazel-*
+
+# Each scenario dir under test/integration/ is its own inner workspace;
+# running it locally leaves bazel-* convenience symlinks behind. (The
+# scenarios' MODULE.bazel.lock files ARE tracked -- they're pregenerated
+# and committed, like the root lock.)
+/test/integration/*/bazel-*
 .ijwb/

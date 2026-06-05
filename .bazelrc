@@ -1,3 +1,4 @@
 import %workspace%/.bazelrc.common
+import %workspace%/.bazelrc.deleted_packages
 
 common:ci --@aspect_rules_lint//lint:fail_on_violation

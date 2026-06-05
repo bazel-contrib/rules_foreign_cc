@@ -3,6 +3,16 @@ load("//toolchains:toolchains.bzl", "current_autoconf_toolchain", "current_autom
 
 package(default_visibility = ["//visibility:public"])
 
+filegroup(
+    name = "distribution",
+    srcs = glob(["**"]) + [
+        "//toolchains/native_tools:distribution",
+        "//toolchains/patches:distribution",
+        "//toolchains/private:distribution",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
 toolchain_type(
     name = "cmake_toolchain",
 )

@@ -8,6 +8,12 @@ load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolch
 
 package(default_visibility = ["//visibility:public"])
 
+filegroup(
+    name = "distribution",
+    srcs = glob(["**"]),
+    visibility = ["//:__subpackages__"],
+)
+
 native_tool_toolchain(
     name = "preinstalled_make",
     path = select({

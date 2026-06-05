@@ -5,6 +5,14 @@ exports_files([
     "settings.sh.in",
 ])
 
+filegroup(
+    name = "distribution",
+    srcs = glob(["**"]) + [
+        "//foreign_cc/private/framework:distribution",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
 bzl_library(
     name = "cc_toolchain_util",
     srcs = ["cc_toolchain_util.bzl"],
