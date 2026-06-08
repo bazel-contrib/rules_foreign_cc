@@ -74,7 +74,10 @@ def _cmake_toolchain(version, register_toolchains):
         )
         return
 
-    fail("Unsupported cmake version: " + str(version))
+    fail("Unsupported cmake version: {}. Supported versions: {}. ".format(
+        version,
+        ", ".join(sorted(_CMAKE_SRCS.keys())),
+    ) + "Use the latest patch of a series (e.g. \"3.19.8\") or its wildcard (e.g. \"3.19.x\").")
 
 def _make_toolchain(version, register_toolchains):
     if register_toolchains:
@@ -82,7 +85,7 @@ def _make_toolchain(version, register_toolchains):
             "@rules_foreign_cc//toolchains:built_make_toolchain",
         )
 
-    if version == "4.4.1":
+    if "4.4.x" == version or "4.4.1" == version:
         maybe(
             http_archive,
             name = "gnumake_src",
@@ -111,7 +114,7 @@ def _make_toolchain(version, register_toolchains):
             ],
         )
         return
-    if version == "4.3":
+    if "4.3.x" == version or "4.3" == version:
         maybe(
             http_archive,
             name = "gnumake_src",
@@ -126,26 +129,27 @@ def _make_toolchain(version, register_toolchains):
         )
         return
 
-    fail("Unsupported make version: " + str(version))
+    fail("Unsupported make version: {}. ".format(version) +
+         "Supported: \"4.4.1\"/\"4.4.x\", \"4.4\", \"4.3\"/\"4.3.x\".")
 
 def _ninja_toolchain(version, register_toolchains):
     if register_toolchains:
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_ninja_toolchain",
         )
-    if version == "1.13.0":
+    if "1.13.x" == version or "1.13.2" == version:
         maybe(
             http_archive,
             name = "ninja_build_src",
             build_file_content = _ALL_CONTENT,
-            integrity = "sha256-8IZB0ACZqeQNROwBRvhBxHKuWLfm3VF77jlFz9kjzt8=",
-            strip_prefix = "ninja-1.13.0",
+            integrity = "sha256-l01rL07u+iViXTTaPLNr3Ovn+85A9MFqwINf0cDLrhc=",
+            strip_prefix = "ninja-1.13.2",
             urls = [
-                "https://github.com/ninja-build/ninja/archive/v1.13.0.tar.gz",
+                "https://github.com/ninja-build/ninja/archive/v1.13.2.tar.gz",
             ],
         )
         return
-    if version == "1.12.1":
+    if "1.12.x" == version or "1.12.1" == version:
         maybe(
             http_archive,
             name = "ninja_build_src",
@@ -158,20 +162,7 @@ def _ninja_toolchain(version, register_toolchains):
             ],
         )
         return
-    if version == "1.12.0":
-        maybe(
-            http_archive,
-            name = "ninja_build_src",
-            build_file_content = _ALL_CONTENT,
-            integrity = "sha256-iyyGzUg9x/y3l1xexzKRNdIQCZqJvH2wWQoHsLv+SaU=",
-            strip_prefix = "ninja-1.12.0",
-            urls = [
-                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.12.0.tar.gz",
-                "https://github.com/ninja-build/ninja/archive/v1.12.0.tar.gz",
-            ],
-        )
-        return
-    if version == "1.11.1":
+    if "1.11.x" == version or "1.11.1" == version:
         maybe(
             http_archive,
             name = "ninja_build_src",
@@ -184,20 +175,7 @@ def _ninja_toolchain(version, register_toolchains):
             ],
         )
         return
-    if version == "1.11.0":
-        maybe(
-            http_archive,
-            name = "ninja_build_src",
-            build_file_content = _ALL_CONTENT,
-            sha256 = "3c6ba2e66400fe3f1ae83deb4b235faf3137ec20bd5b08c29bfc368db143e4c6",
-            strip_prefix = "ninja-1.11.0",
-            urls = [
-                "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.11.0.tar.gz",
-                "https://github.com/ninja-build/ninja/archive/v1.11.0.tar.gz",
-            ],
-        )
-        return
-    if version == "1.10.2":
+    if "1.10.x" == version or "1.10.2" == version:
         maybe(
             http_archive,
             name = "ninja_build_src",
@@ -211,14 +189,15 @@ def _ninja_toolchain(version, register_toolchains):
         )
         return
 
-    fail("Unsupported ninja version: " + str(version))
+    fail("Unsupported ninja version: {}. ".format(version) +
+         "Supported: \"1.13.2\"/\"1.13.x\", \"1.12.1\"/\"1.12.x\", \"1.11.1\"/\"1.11.x\", \"1.10.2\"/\"1.10.x\".")
 
 def _meson_toolchain(version, register_toolchains):
     if register_toolchains:
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_meson_toolchain",
         )
-    if version == "1.10.1":
+    if "1.10.x" == version or "1.10.1" == version:
         maybe(
             http_archive,
             name = "meson_src",
@@ -231,7 +210,7 @@ def _meson_toolchain(version, register_toolchains):
             ],
         )
         return
-    if version == "1.5.1":
+    if "1.5.x" == version or "1.5.1" == version:
         maybe(
             http_archive,
             name = "meson_src",
@@ -244,7 +223,7 @@ def _meson_toolchain(version, register_toolchains):
             ],
         )
         return
-    if version == "1.1.1":
+    if "1.1.x" == version or "1.1.1" == version:
         maybe(
             http_archive,
             name = "meson_src",
@@ -257,7 +236,7 @@ def _meson_toolchain(version, register_toolchains):
             ],
         )
         return
-    if version == "0.63.0":
+    if "0.63.x" == version or "0.63.0" == version:
         maybe(
             http_archive,
             name = "meson_src",
@@ -271,7 +250,8 @@ def _meson_toolchain(version, register_toolchains):
         )
         return
 
-    fail("Unsupported meson version: " + str(version))
+    fail("Unsupported meson version: {}. ".format(version) +
+         "Supported: \"1.10.1\"/\"1.10.x\", \"1.5.1\"/\"1.5.x\", \"1.1.1\"/\"1.1.x\", \"0.63.0\"/\"0.63.x\".")
 
 def _pkgconfig_toolchain(version, register_toolchains):
     if register_toolchains:
@@ -353,7 +333,7 @@ cc_import(
             "https://download.gnome.org/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip",
         ],
     )
-    if version == "0.29.2":
+    if "0.29.x" == version or "0.29.2" == version:
         maybe(
             http_archive,
             name = "pkgconfig_src",
@@ -378,4 +358,5 @@ cc_import(
         )
         return
 
-    fail("Unsupported pkgconfig version: " + str(version))
+    fail("Unsupported pkgconfig version: {}. ".format(version) +
+         "Supported: \"0.29.2\"/\"0.29.x\".")

@@ -1,5 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("//toolchains:toolchains.bzl", "current_autoconf_toolchain", "current_automake_toolchain", "current_cmake_toolchain", "current_m4_toolchain", "current_make_toolchain", "current_meson_toolchain", "current_msbuild_toolchain", "current_ninja_toolchain", "current_pkgconfig_toolchain")
+load(":version_resolution_test.bzl", "version_resolution_test_suite")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -230,3 +232,19 @@ bzl_library(
     name = "prebuilt_toolchains_repository",
     srcs = ["prebuilt_toolchains_repository.bzl"],
 )
+
+py_library(
+    name = "prebuilt_toolchains_gen_lib",
+    srcs = ["prebuilt_toolchains.py"],
+    imports = ["."],
+)
+
+py_test(
+    name = "prebuilt_toolchains_gen_test",
+    size = "small",
+    srcs = ["tests/prebuilt_toolchains_gen_test.py"],
+    main = "tests/prebuilt_toolchains_gen_test.py",
+    deps = [":prebuilt_toolchains_gen_lib"],
+)
+
+version_resolution_test_suite(name = "version_resolution_test")
