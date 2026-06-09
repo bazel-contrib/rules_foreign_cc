@@ -11,8 +11,8 @@ local_path_override(
 )
 
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
-tools.cmake(version = "3.23.1")
-tools.ninja(version = "1.11.1")
+tools.cmake(version = "3.23.x")
+tools.ninja(version = "1.11.x")
 use_repo(
     tools,
     "meson_src",

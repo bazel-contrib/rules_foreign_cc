@@ -2,28 +2,110 @@
 
 import hashlib
 import json
+import re
+import sys
 import urllib.request
 from pathlib import Path
 from textwrap import indent
 
+
+def _log(msg):
+    """Print a progress line to stderr immediately (unbuffered)."""
+    print(msg, file=sys.stderr, flush=True)
+
+
+def _fetch(url):
+    return urllib.request.urlopen(url).read().decode("utf-8", "replace")
+
+
+def _trailing_commas(s):
+    """Add trailing commas before closing brackets, as buildifier does.
+
+    json.dumps never emits trailing commas on multi-line collections; this
+    keeps the raw generator output closer to the buildifier-formatted result.
+    Runs to a fixed point so adjacent nested closers (e.g. `]` then `}`) all
+    get commas, since re.sub's matches don't overlap in a single pass.
+    """
+    pattern = r"([^\s,\[{])(\n\s*[\]}])"
+    while True:
+        new = re.sub(pattern, r"\1,\2", s)
+        if new == s:
+            return s
+        s = new
+
+
+def latest_cmake_patch(minor):
+    """Return the highest "<minor>.<patch>" cmake release.
+
+    Reads the per-minor directory index once and takes the max patch, rather
+    than probing each patch in turn.
+    """
+    listing = _fetch(CMAKE_DIR_URL_TEMPLATE.format(minor=minor))
+    patches = {
+        int(m)
+        for m in re.findall(rf"cmake-{re.escape(minor)}\.(\d+)\.tar\.gz", listing)
+    }
+    if not patches:
+        raise RuntimeError(f"no cmake patch found for series {minor}")
+    latest = f"{minor}.{max(patches)}"
+    _log(f"  cmake {minor}: patches {sorted(patches)} -> {latest}")
+    return latest
+
+
+def latest_ninja_patches(minors):
+    """Return {minor: "<minor>.<patch>"} for each requested ninja minor.
+
+    The GitHub releases API lists every tag in one response, so all minors
+    are resolved from a single request.
+    """
+    releases = json.loads(_fetch(NINJA_RELEASES_URL))
+    tags = [r["tag_name"].lstrip("v") for r in releases]
+
+    result = {}
+    for minor in minors:
+        patches = set()
+        for tag in tags:
+            m = re.fullmatch(rf"{re.escape(minor)}\.(\d+)", tag)
+            if m:
+                patches.add(int(m.group(1)))
+        if not patches:
+            raise RuntimeError(f"no ninja patch found for series {minor}")
+        result[minor] = f"{minor}.{max(patches)}"
+        _log(f"  ninja {minor}: patches {sorted(patches)} -> {result[minor]}")
+    return result
+
+
+def version_condition(minor, latest):
+    """The `if`-line guarding a generated toolchain block.
+
+    Accepts both the wildcard `<minor>.x` and the exact latest patch.
+    """
+    return f'    if "{minor}.x" == version or "{latest}" == version:'
+
+
+CMAKE_DIR_URL_TEMPLATE = "https://cmake.org/files/v{minor}/"
 CMAKE_SHA256_URL_TEMPLATE = "https://cmake.org/files/v{minor}/cmake-{full}-SHA-256.txt"
 CMAKE_URL_TEMPLATE = "https://github.com/Kitware/CMake/releases/download/v{full}/{file}"
+NINJA_RELEASES_URL = (
+    "https://api.github.com/repos/ninja-build/ninja/releases?per_page=100"
+)
 
-CMAKE_VERSIONS = (
-    [f"4.0.{x}" for x in range(4)]
-    + [f"3.31.{x}" for x in range(9)]
-    + [f"3.30.{x}" for x in range(10)]
-    + [f"3.29.{x}" for x in range(10)]
-    + [f"3.28.{x}" for x in range(7)]
-    + [f"3.27.{x}" for x in range(10)]
-    + [f"3.26.{x}" for x in range(7)]
-    + [f"3.25.{x}" for x in range(4)]
-    + [f"3.24.{x}" for x in range(5)]
-    + [f"3.23.{x}" for x in range(6)]
-    + [f"3.22.{x}" for x in range(7)]
-    + [f"3.21.{x}" for x in range(8)]
-    + [f"3.20.{x}" for x in range(7)]
-    + [f"3.19.{x}" for x in range(9)]
+# Minor series to support. The latest patch within each is auto-discovered.
+CMAKE_MINORS = (
+    "4.0",
+    "3.31",
+    "3.30",
+    "3.29",
+    "3.28",
+    "3.27",
+    "3.26",
+    "3.25",
+    "3.24",
+    "3.23",
+    "3.22",
+    "3.21",
+    "3.20",
+    "3.19",
 )
 
 CMAKE_TARGETS = {
@@ -95,24 +177,23 @@ NINJA_TARGETS = {
     ],
 }
 
-NINJA_VERSIONS = (
-    "1.13.0",
-    "1.12.1",
-    "1.12.0",
-    "1.11.1",
-    "1.11.0",
-    "1.10.2",
-    "1.10.1",
-    "1.10.0",
-    "1.9.0",
-    "1.8.2",
+# Minor series to support. The latest patch within each is auto-discovered.
+NINJA_MINORS = (
+    "1.13",
+    "1.12",
+    "1.11",
+    "1.10",
+    "1.9",
+    "1.8",
 )
 
 
 def repo_definition(name, url, sha256, prefix, template, **template_substitutions):
+    # json.dumps emits double quotes (and Starlark-compatible dict syntax),
+    # matching what buildifier would rewrite repr() output into.
     sub_str = "\n".join(
         [
-            indent(f"{k}={v!r},", " " * 8)
+            indent(f"{k} = {json.dumps(v)},", " " * 8)
             for k, v in sorted(template_substitutions.items())
         ]
     )
@@ -277,7 +358,8 @@ def get_cmake_definitions() -> str:
     archives = []
     cmake_src_versions = dict()
 
-    for version in CMAKE_VERSIONS:
+    for minor_series in CMAKE_MINORS:
+        version = latest_cmake_patch(minor_series)
         major, minor, patch = version.split(".")
 
         version_archives = []
@@ -305,11 +387,13 @@ def get_cmake_definitions() -> str:
 
             if not plat_target:
                 if line.endswith(f"cmake-{major}.{minor}.{patch}.tar.gz"):
-                    cmake_src_versions[f"{major}.{minor}.{patch}"] = [
+                    entry = [
                         [CMAKE_URL_TEMPLATE.format(full=version, file=file)],
                         f"cmake-{major}.{minor}.{patch}",
                         sha256,
                     ]
+                    cmake_src_versions[f"{major}.{minor}.{patch}"] = entry
+                    cmake_src_versions[f"{major}.{minor}.x"] = entry
                 continue
 
             name = file.replace(".tar.gz", "").replace(".zip", "")
@@ -338,7 +422,7 @@ def get_cmake_definitions() -> str:
         archives.append(
             "\n".join(
                 [
-                    '    if "{}" == version:'.format(version),
+                    version_condition(minor_series, version),
                 ]
                 + [indent(archive, " " * 8) for archive in version_archives]
             )
@@ -353,7 +437,8 @@ def get_cmake_definitions() -> str:
                 TOOLCHAIN_REPO_DEFINITION.format(
                     name="cmake_{}_toolchains".format(version),
                     repos=indent(
-                        json.dumps(toolchains_repos, indent=4), " " * 4
+                        _trailing_commas(json.dumps(toolchains_repos, indent=4)),
+                        " " * 4,
                     ).lstrip(),
                     tool="cmake",
                 ),
@@ -389,8 +474,8 @@ def get_cmake_definitions() -> str:
 
     archives.append(indent('fail("Unsupported version: " + str(version))', " " * 4))
 
-    return "\n".join([archive.rstrip(" ") for archive in archives]), json.dumps(
-        cmake_src_versions, indent=4, sort_keys=True, default=str
+    return "\n".join([archive.rstrip(" ") for archive in archives]), _trailing_commas(
+        json.dumps(cmake_src_versions, indent=4, sort_keys=True, default=str)
     )
 
 
@@ -403,7 +488,9 @@ def get_ninja_definitions() -> str:
 
     archives = []
 
-    for version in NINJA_VERSIONS:
+    latest_by_minor = latest_ninja_patches(NINJA_MINORS)
+    for minor_series in NINJA_MINORS:
+        version = latest_by_minor[minor_series]
         supports_linux_aarch64 = not version in [
             "1.8.2",
             "1.9.0",
@@ -468,7 +555,7 @@ def get_ninja_definitions() -> str:
         archives.append(
             "\n".join(
                 [
-                    '    if "{}" == version:'.format(version),
+                    version_condition(minor_series, version),
                 ]
                 + [indent(archive, " " * 8) for archive in version_archives]
             )
@@ -483,7 +570,8 @@ def get_ninja_definitions() -> str:
                 TOOLCHAIN_REPO_DEFINITION.format(
                     name="ninja_{}_toolchains".format(version),
                     repos=indent(
-                        json.dumps(toolchains_repos, indent=4), " " * 4
+                        _trailing_commas(json.dumps(toolchains_repos, indent=4)),
+                        " " * 4,
                     ).lstrip(),
                     tool="ninja",
                 ),
