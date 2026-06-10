@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("//foreign_cc/built_tools:cmake_build.bzl", "cmake_tool")
 load("//foreign_cc/built_tools:make_build.bzl", "make_tool")
@@ -223,4 +224,48 @@ native_tool_toolchain(
         "//conditions:default": "$(execpath :pkgconfig_tool)/bin/pkg-config",
     }),
     target = ":pkgconfig_tool",
+)
+
+bzl_library(
+    name = "binary_spokes",
+    srcs = ["binary_spokes.bzl"],
+    visibility = [
+        "//foreign_cc:__pkg__",
+        "//foreign_cc/private:__pkg__",
+        "//toolchains:__pkg__",
+    ],
+    deps = [
+        ":cmake_versions",
+        ":ninja_versions",
+        ":prebuilt_toolchains_repository",
+        "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
+    ],
+)
+
+bzl_library(
+    name = "cmake_versions",
+    srcs = ["cmake_versions.bzl"],
+    visibility = [
+        "//foreign_cc/private:__pkg__",
+        "//toolchains:__pkg__",
+    ],
+)
+
+bzl_library(
+    name = "ninja_versions",
+    srcs = ["ninja_versions.bzl"],
+    visibility = [
+        "//foreign_cc/private:__pkg__",
+        "//toolchains:__pkg__",
+    ],
+)
+
+bzl_library(
+    name = "prebuilt_toolchains_repository",
+    srcs = ["prebuilt_toolchains_repository.bzl"],
+    visibility = [
+        "//foreign_cc/private:__pkg__",
+        "//toolchains:__pkg__",
+    ],
 )

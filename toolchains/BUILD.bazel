@@ -208,9 +208,7 @@ bzl_library(
     name = "prebuilt_toolchains",
     srcs = ["prebuilt_toolchains.bzl"],
     deps = [
-        "@bazel_tools//tools/build_defs/repo:http.bzl",
-        "@bazel_tools//tools/build_defs/repo:utils.bzl",
-        "@rules_foreign_cc//toolchains:prebuilt_toolchains_repository",
+        "//toolchains/private:binary_spokes",
     ],
 )
 
@@ -226,11 +224,6 @@ bzl_library(
 bzl_library(
     name = "cmake_versions",
     srcs = ["cmake_versions.bzl"],
-)
-
-bzl_library(
-    name = "prebuilt_toolchains_repository",
-    srcs = ["prebuilt_toolchains_repository.bzl"],
 )
 
 py_library(
