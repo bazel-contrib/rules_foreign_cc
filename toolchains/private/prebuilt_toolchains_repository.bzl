@@ -1,5 +1,10 @@
 """A module defining a repository rule for housing toolchain definitions"""
 
+visibility([
+    "//toolchains",
+    "//foreign_cc/private",
+])
+
 _BUILD_FILE = """\
 load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 

@@ -3,10 +3,9 @@ from unittest import mock
 
 import prebuilt_toolchains
 from prebuilt_toolchains import (
-    _trailing_commas,
     latest_cmake_patch,
     latest_ninja_patches,
-    version_condition,
+    render_wildcard_map,
 )
 
 _CMAKE_DIR_LISTING = """\
@@ -59,22 +58,13 @@ class LatestNinjaPatchesTest(unittest.TestCase):
                 latest_ninja_patches(("1.99",))
 
 
-class TrailingCommasTest(unittest.TestCase):
-    def test_adds_commas_to_nested_closers(self):
-        src = '{\n    "a": [\n        "x"\n    ]\n}'
-        expected = '{\n    "a": [\n        "x",\n    ],\n}'
-        self.assertEqual(_trailing_commas(src), expected)
-
-    def test_leaves_inline_collections_untouched(self):
-        self.assertEqual(_trailing_commas('{"a": "b"}'), '{"a": "b"}')
-
-
-class VersionConditionTest(unittest.TestCase):
-    def test_compound_condition_includes_wildcard_and_exact(self):
-        self.assertEqual(
-            version_condition("3.19", "3.19.8"),
-            '    if "3.19.x" == version or "3.19.8" == version:',
-        )
+class RenderWildcardMapTest(unittest.TestCase):
+    def test_maps_minor_wildcard_to_exact_patch(self):
+        # render_binary_dict-style input: {version: {plat: ...}}.
+        versions = {"3.31.12": {}, "3.30.9": {}}
+        out = render_wildcard_map("CMAKE_BIN_WILDCARDS", versions)
+        self.assertIn('"3.31.x": "3.31.12"', out)
+        self.assertIn('"3.30.x": "3.30.9"', out)
 
 
 if __name__ == "__main__":
