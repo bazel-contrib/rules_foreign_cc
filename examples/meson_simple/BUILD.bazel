@@ -1,4 +1,5 @@
-load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
@@ -37,15 +38,18 @@ meson(
     options = {
         "build_shared": "true",
     },
+    # On Windows the import library (lib/) is what consumers link against; the
+    # runtime DLL goes to bin/ (out_dll_dir).
+    out_interface_libs = select({
+        "@platforms//os:windows": ["a_shared.lib"],
+        "//conditions:default": [],
+    }),
     out_shared_libs = select({
         "@platforms//os:macos": ["liba_shared.dylib"],
+        "@platforms//os:windows": ["a_shared.dll"],
         "//conditions:default": ["liba_shared.so"],
     }),
     shared_ldflags_option = "shared_link_flags",
-    target_compatible_with = select({
-        "@platforms//os:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
 )
 
 cc_test(
@@ -54,12 +58,31 @@ cc_test(
     srcs = [
         "test_libb.cpp",
     ],
+    # On windows, dlls need to be copied to the binary directory to run, and
+    # --features=copy_dynamic_libraries_to_binary is broken:
+    # https://github.com/bazelbuild/rules_cc/pull/623
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     deps = [
         ":meson_shared_lib",
+    ],
+)
+
+# TODO: This primarily serves to exercise meson_shared_lib's build + link on
+# windows, where test_shared_lib above cannot run. Once rules_cc #623 is fixed,
+# feel free to delete and un-gate test_shared_lib.
+cc_binary(
+    name = "binary_shared_lib",
+    srcs = ["test_libb.cpp"],
+    deps = [":meson_shared_lib"],
+)
+
+build_test(
+    name = "shared_lib_just_build",
+    targets = [
+        ":binary_shared_lib",
     ],
 )
 
