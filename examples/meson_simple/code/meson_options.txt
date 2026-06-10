@@ -1,0 +1,2 @@
+option('shared_link_flags', type : 'array', value : [])
+option('build_shared', type : 'boolean', value : false)
