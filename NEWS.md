@@ -34,6 +34,12 @@ were not tracked here.
   previously limped along on an unrecognized platform will need a platform-data
   update ([#1490](https://github.com/bazel-contrib/rules_foreign_cc/pull/1490),
   building on [#1438](https://github.com/bazel-contrib/rules_foreign_cc/pull/1438)).
+- **Prebuilt `ninja` `1.8`/`1.9` binaries were dropped.** The supported prebuilt
+  ninja range is now `1.10` to `1.13`, matching the build-from-source range. The
+  exact `1.8.2`/`1.9.0` versions and the `1.8.x`/`1.9.x` wildcards no longer
+  resolve. If you were requesting a prebuilt `1.8`/`1.9` (via `ninja_version` or
+  `tools.ninja(version = ...)`), move up to `1.10` or newer
+  ([#1565](https://github.com/bazel-contrib/rules_foreign_cc/pull/1565)).
 
 ### New features
 

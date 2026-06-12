@@ -4,7 +4,7 @@
 
 See <https://discourse.cmake.org/t/cmake-error-at-cmakelists-txt-117-message-the-c-compiler-does-not-support-c-11-e-g-std-unique-ptr/3774/8>
 
-## [make-reproducible-bootstrap.patch](./make-reproducible-bootstrap.patch)
+## [make-4.3-reproducible-bootstrap.patch](./make-4.3-reproducible-bootstrap.patch)
 
 Replaces the `LIBDIR`/`INCLUDEDIR`/`LOCALEDIR` strings baked into make 4.3
 with the placeholder `nonexistent` so the bootstrapped binary does not
