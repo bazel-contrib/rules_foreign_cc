@@ -15,12 +15,17 @@ load(":wildcard_resolution_test.bzl", "wildcard_resolution_test_suite")
 
 # gazelle:exclude
 
+# Reach the source-mode build targets through hub-published aliases so
+# this file does not encode any pinned tool versions. Each alias forwards
+# to ``@<tool>_src_<picked>//:<tool>_built`` -- aliases forward providers,
+# so the ``script_file`` / ``wrapper_script_file`` output groups read
+# through cleanly.
 TOOL_TARGETS = [
-    "//toolchains/private:cmake_tool",
-    "//toolchains/private:make_tool",
-    "//toolchains/private:meson_tool",
-    "//toolchains/private:ninja_tool",
-    "//toolchains/private:pkgconfig_tool",
+    "@rules_foreign_cc_toolchains//:cmake_built",
+    "@rules_foreign_cc_toolchains//:make_built",
+    "@rules_foreign_cc_toolchains//:meson_built",
+    "@rules_foreign_cc_toolchains//:ninja_built",
+    "@rules_foreign_cc_toolchains//:pkgconfig_built",
 ]
 
 filegroup(

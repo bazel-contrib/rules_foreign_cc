@@ -22,6 +22,12 @@ Add the following content to your MODULE.bazel:
 bazel_dep(name = "rules_foreign_cc", version = "{version}")
 ```
 
+That's all you need for the default toolchains - `rules_foreign_cc` registers
+them for you. See [bzlmod hub-and-spoke](bzlmod_hub.md) for the full extension API
+(`tools.<tool>(...)`), `tools.explicit()`, and built-in noop toolchains;
+[Examples](bzlmod_examples.md) for copy-pasteable recipes; and
+[Migrating from WORKSPACE](bzlmod_migration.md) to convert an existing project.
+
 ### Using WORKSPACE
 
 To use the ForeignCc build rules, add the following content to your WORKSPACE file:

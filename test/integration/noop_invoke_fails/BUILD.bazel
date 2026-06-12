@@ -1,0 +1,19 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+# Built (not manual): the cmake rule invokes the cmake tool, which is noop
+# (points at /bin/false), so the build must fail at execution time. This is
+# the execution-fails half of the noop contract that noop_modes (cquery-only)
+# can't cover.
+cmake(
+    name = "hello_cmake",
+    lib_source = ":sources",
+    out_static_libs = ["libhello.a"],
+)
+
+filegroup(
+    name = "sources",
+    srcs = [
+        "CMakeLists.txt",
+        "example.cc",
+    ],
+)

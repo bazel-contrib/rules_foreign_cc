@@ -9,20 +9,36 @@ built_toolchains = _built_toolchains
 # Re-expose the prebuilt toolchains macro
 prebuilt_toolchains = _prebuilt_toolchains
 
+# The set of tools rfcc registers a default toolchain for. This is the
+# WORKSPACE-path source of truth for "which tools does rfcc enable by default";
+# the bzlmod path mirrors it with default tags in rfcc's MODULE.bazel, and the
+# `tools` extension fails if the two sets diverge (see
+# _assert_defaults_match_workspace in foreign_cc/extensions.bzl, which sorts
+# both sides before comparing -- this list's order is not part of that
+# contract). Order here is just registration order, and registration order is
+# irrelevant: each tool registers its own distinct toolchain type, so they
+# never compete during resolution. Kept alphabetical for readability. nmake is
+# deliberately absent: it shares the make_toolchain type and is selected only
+# by explicit `toolchain =` label, never registered for constraint resolution.
+PREINSTALLED_TOOLS = [
+    "autoconf",
+    "automake",
+    "cmake",
+    "m4",
+    "make",
+    "meson",
+    "msbuild",
+    "ninja",
+    "pkgconfig",
+]
+
 # buildifier: disable=unnamed-macro
 def preinstalled_toolchains():
     """Register toolchains for various build tools expected to be installed on the exec host"""
-    native.register_toolchains(
-        "@rules_foreign_cc//toolchains:preinstalled_cmake_toolchain",
-        "@rules_foreign_cc//toolchains:preinstalled_make_toolchain",
-        "@rules_foreign_cc//toolchains:preinstalled_ninja_toolchain",
-        "@rules_foreign_cc//toolchains:preinstalled_meson_toolchain",
-        "@rules_foreign_cc//toolchains:preinstalled_autoconf_toolchain",
-        "@rules_foreign_cc//toolchains:preinstalled_automake_toolchain",
-        "@rules_foreign_cc//toolchains:preinstalled_m4_toolchain",
-        "@rules_foreign_cc//toolchains:preinstalled_pkgconfig_toolchain",
-        "@rules_foreign_cc//toolchains:preinstalled_msbuild_toolchain",
-    )
+    native.register_toolchains(*[
+        "@rules_foreign_cc//toolchains:preinstalled_{}_toolchain".format(tool)
+        for tool in PREINSTALLED_TOOLS
+    ])
 
 def _current_toolchain_impl(ctx):
     toolchain = ctx.toolchains[ctx.attr._toolchain]

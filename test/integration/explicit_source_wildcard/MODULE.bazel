@@ -1,0 +1,52 @@
+module(
+    name = "explicit_source_wildcard_test",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../../..",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+
+# Opt out of rfcc's defaults and only register a binary-mode cmake for
+# the hub.
+tools.explicit()
+tools.cmake(
+    mode = "binary",
+    version = "3.31.12",
+)
+tools.ninja(
+    mode = "binary",
+    version = "1.13.2",
+)
+tools.make(mode = "noop")
+tools.meson(mode = "noop")
+tools.pkgconfig(mode = "noop")
+tools.m4(mode = "noop")
+
+# Root source-mode `.x` wildcard under tools.explicit(): resolves to that
+# minor series' latest patch (3.30.x -> 3.30.9) and must materialize
+# @cmake_src_3.30.9, NOT a literal @cmake_src_3.30.x. register_toolchain=False
+# only fetches the spoke; the binary cmake above stays the registered
+# toolchain. Because tools.explicit() suppresses rfcc's defaults for
+# cmake, the register_toolchain=False source tag is allowed to pin a
+# non-default version (no default registration to diverge from). The
+# probe in BUILD.bazel depends on @cmake_src_3.30.9//:all_srcs to prove it.
+tools.cmake(
+    mode = "source",
+    register_toolchain = False,
+    version = "3.30.x",
+)
+use_repo(
+    tools,
+    "cmake_src_3.30.9",
+    "rules_foreign_cc_toolchains",
+)
+
+register_toolchains("@rules_foreign_cc_toolchains//:all")

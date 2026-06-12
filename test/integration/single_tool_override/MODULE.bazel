@@ -1,0 +1,24 @@
+module(
+    name = "single_tool_override_test",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../../..",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+
+# A `major.minor.x` wildcard resolves to that minor series' latest patch
+# (here 3.30.x -> 3.30.9), distinct from rfcc's default cmake. This is the
+# binary path that previously hard-failed: CMAKE_BIN_SRCS has no "3.30.x"
+# key, so without tag-layer resolution the hub plan could not name a spoke.
+tools.cmake(
+    mode = "binary",
+    version = "3.30.x",
+)

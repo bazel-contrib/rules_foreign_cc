@@ -1,10 +1,7 @@
 """Per-version source-mode spoke helpers.
 
-Internal groundwork. The planner (``extension_impl.bzl``) already imports
-``source_spoke_repo`` to compute spoke names, but the spoke-materializing
-macros below (``cmake_source_spokes`` and friends) are not yet called by the
-live extension -- the module extension that drives them lands in a follow-up.
-Until then the live source-build path is unchanged.
+Internal: load via the WORKSPACE shim in ``toolchains/built_toolchains.bzl``
+or via the bzlmod planner.
 
 Each helper materializes one repo per ``(tool, version)`` named
 ``@<tool>_src_<version>``. The repo's BUILD file embeds:

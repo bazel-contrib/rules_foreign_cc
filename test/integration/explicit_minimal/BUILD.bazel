@@ -1,0 +1,31 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+cmake(
+    name = "hello_cmake",
+    lib_source = ":all_srcs",
+    # MSVC names the static lib hello.lib; everyone else libhello.a.
+    out_static_libs = select({
+        "@platforms//os:windows": ["hello.lib"],
+        "//conditions:default": ["libhello.a"],
+    }),
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+# One target the runner can build that covers both halves of this scenario:
+# //:hello_cmake exercises the explicit cmake+ninja binary path end to end, and
+# @make_src_4.4.1//:all_srcs forces the source-make spoke to materialize. The
+# source-make tag in MODULE.bazel never registers a toolchain //:hello_cmake
+# uses, so without this its (non-default 4.4.1) spoke would go unexercised;
+# depending on :all_srcs fails analysis with "no such repository" if the tag
+# did not declare it. No make is invoked -- the filegroup just pins the archive.
+filegroup(
+    name = "explicit_probe",
+    srcs = [
+        ":hello_cmake",
+        "@make_src_4.4.1//:all_srcs",
+    ],
+)

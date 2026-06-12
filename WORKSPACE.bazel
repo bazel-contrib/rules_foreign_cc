@@ -175,9 +175,9 @@ multitool(
 )
 
 # rules_bazel_integration_test drives the bazel-in-bazel tests under
-# test/integration and test/bzlmod. Under bzlmod it comes from MODULE.bazel
+# test/integration. Under bzlmod it comes from MODULE.bazel
 # (the bazel_binaries extension); the legacy WORKSPACE setup below is what
-# makes those packages load with bzlmod disabled, so the workspaces CI lane
+# makes those packages load with bzlmod disabled, so the workspaces CI job
 # and local workspace-only users get the same coverage. Keep the version in
 # sync with the bazel_dep in MODULE.bazel.
 http_archive(

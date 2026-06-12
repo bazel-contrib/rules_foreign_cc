@@ -267,7 +267,7 @@ Rule for defining the toolchain data of the native tools (cmake, ninja), to be u
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="native_tool_toolchain-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-| <a id="native_tool_toolchain-path"></a>path |  Absolute path to the tool in case the tool is preinstalled on the machine. Relative path to the tool in case the tool is built as part of a build; the path should be relative to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree artifact. (Please see the example <code>//examples:built_cmake_toolchain</code>)   | String | optional | "" |
+| <a id="native_tool_toolchain-path"></a>path |  Absolute path to the tool in case the tool is preinstalled on the machine. Relative path to the tool in case the tool is built as part of a build; the path should be relative to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree artifact.   | String | optional | "" |
 | <a id="native_tool_toolchain-target"></a>target |  If the tool is preinstalled, must be None. If the tool is built as part of the build, the corresponding build target, which should produce the tree artifact with the binary to call.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
@@ -395,7 +395,7 @@ Information about the native tool
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="ToolInfo-path"></a>path |  Absolute path to the tool in case the tool is preinstalled on the machine. Relative path to the tool in case the tool is built as part of a build; the path should be relative to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree artifact. (Please see the example <code>//examples:built_cmake_toolchain</code>)    |
+| <a id="ToolInfo-path"></a>path |  Absolute path to the tool in case the tool is preinstalled on the machine. Relative path to the tool in case the tool is built as part of a build; the path should be relative to the bazel-genfiles, i.e. it should start with the name of the top directory of the built tree artifact.    |
 | <a id="ToolInfo-target"></a>target |  If the tool is preinstalled, must be None. If the tool is built as part of the build, the corresponding build target, which should produce the tree artifact with the binary to call.    |
 
 

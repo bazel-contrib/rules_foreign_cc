@@ -299,8 +299,8 @@ def meson_with_requirements(name, requirements, **kwargs):
 
     meson_tool(
         name = "meson_tool_for_{}".format(name),
-        main = "@meson_src//:meson.py",
-        data = ["@meson_src//:runtime"],
+        main = "@rules_foreign_cc//foreign_cc:meson_src_meson_py",
+        data = ["@rules_foreign_cc//foreign_cc:meson_src_runtime"],
         requirements = requirements,
         tags = tags + ["manual"],
     )
@@ -309,11 +309,11 @@ def meson_with_requirements(name, requirements, **kwargs):
         name = "built_meson_for_{}".format(name),
         env = {
             "MESON": "$(execpath :meson_tool_for_{})".format(name),
-            "REAL_MESON": "$(rlocationpath @meson_src//:meson.py)",
+            "REAL_MESON": "$(rlocationpath @rules_foreign_cc//foreign_cc:meson_src_meson_py)",
         },
         path = "$(execpath :meson_tool_for_{})".format(name),
         target = ":meson_tool_for_{}".format(name),
-        tools = ["@meson_src//:meson.py"],
+        tools = ["@rules_foreign_cc//foreign_cc:meson_src_meson_py"],
     )
 
     native.toolchain(

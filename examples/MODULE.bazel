@@ -11,12 +11,20 @@ local_path_override(
 )
 
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
-tools.cmake(version = "3.23.x")
-tools.ninja(version = "1.11.x")
+tools.cmake(
+    mode = "binary",
+    version = "3.23.x",
+)
+tools.ninja(
+    mode = "binary",
+    version = "1.11.x",
+)
 use_repo(
     tools,
-    "meson_src",
+    "rules_foreign_cc_toolchains",
 )
+
+register_toolchains("@rules_foreign_cc_toolchains//:all")
 
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_rust", version = "0.70.0")

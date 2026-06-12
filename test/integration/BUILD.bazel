@@ -1,5 +1,3 @@
-# test/integration/BUILD.bazel
-#
 # Bazel-in-bazel sanity + API scenarios for rules_foreign_cc. Each scenario is
 # a self-contained workspace under test/integration/<name>/ that an inner Bazel
 # builds; see scenarios.bzl for the shared harness and runner.sh for how the
@@ -9,7 +7,7 @@
 # WORKSPACE.bazel and runs in whichever mode the outer Bazel uses, building a
 # static library via cmake exactly as docs/src/index.md tells users to. The
 # remaining scenarios are bzlmod-only and exercise the hub-and-spoke `tools`
-# extension surface (modes, register_toolchain, non-root spoke fetching).
+# extension surface (modes, register_toolchain, source wildcards).
 load("//test/integration:scenarios.bzl", "scenario")
 
 package(default_visibility = ["//visibility:private"])
@@ -23,4 +21,146 @@ scenario(
     dual_mode = True,
     enforce_lock = True,
     env = {"EXPECT_BUILD": "//:hello_cmake"},
+)
+
+# Default case: no `tools` tags at all -> rfcc registers its default toolchains.
+scenario(
+    name = "default_mode",
+    env = {"EXPECT_BUILD": "//:hello_cmake"},
+)
+
+# A bare `tools.cmake()` with no mode is rejected by the extension.
+scenario(
+    name = "bare_tag_fails",
+    env = {
+        "EXPECT_BUILD_FAIL": "//:hello_cmake",
+        # Must fail for the *right* reason: the no-op-tag guard in
+        # extension_impl.validate_tag, not some unrelated build error.
+        "EXPECT_BUILD_FAIL_PATTERN": "no-op tag",
+    },
+)
+
+# A single binary cmake override pinned via a `major.minor.x` wildcard, which
+# resolves to that minor series' latest patch (3.30.x -> 3.30.9). The cquery
+# gives the build teeth: filtering //:hello_cmake's configured deps for the
+# resolved cmake spoke proves the wildcard landed on 3.30.9 specifically, not
+# rfcc's default cmake (3.31.12) -- a plain build can't tell the override apart
+# from the default.
+scenario(
+    name = "single_tool_override",
+    env = {
+        "EXPECT_BUILD": "//:hello_cmake",
+        "EXPECT_CQUERY": "filter(\"cmake-3.30.9\", deps(//:hello_cmake))",
+        "EXPECT_STDOUT_PATTERN": "cmake-3\\.30\\.9",
+    },
+)
+
+# `tools.explicit()` with a mix of binary/source/noop modes across tools.
+# Building //:hello_cmake only needs cmake+ninja, so on its own it never
+# exercises the declared source-make or noop tags. Two extra assertions give
+# them teeth: EXPECT_BUILD on a probe that also pulls @make_src_4.4.1//:all_srcs
+# proves the source-make tag materialized its (non-default) spoke, and the
+# cquery lists the hub's targets and asserts the noop m4/pkgconfig root tags
+# produced hub entries under explicit() (they would be absent if explicit() had
+# dropped them). cquery deps() can't reach the noop impl through a toolchain()
+# rule's `toolchain` attr -- that's resolved in a separate phase -- so we match
+# the entry names the planner emits instead.
+scenario(
+    name = "explicit_minimal",
+    env = {
+        "EXPECT_BUILD": "//:explicit_probe",
+        "EXPECT_CQUERY": "@rules_foreign_cc_toolchains//:all",
+        "EXPECT_STDOUT_PATTERN": "10_(m4|pkgconfig)_000_000",
+    },
+)
+
+# Every tool set to mode="noop": analysis must succeed (toolchains resolve to
+# the noop variants) but the hub entry must land under the zero-padded naming
+# scheme. Verified via cquery, not a build.
+scenario(
+    name = "noop_modes",
+    env = {
+        "EXPECT_CQUERY": "@rules_foreign_cc_toolchains//:all",
+        "EXPECT_STDOUT_PATTERN": "@rules_foreign_cc_toolchains//:10_cmake_000_000",
+    },
+)
+
+# All tools noop, but this scenario *builds* a cmake() target so the noop cmake
+# tool is actually invoked. Proves the execution-fails half of the noop
+# contract (noop tool -> `false` -> loud failure when run), which the
+# cquery-only noop_modes can't. The `false` sentinel is portable (a shell
+# builtin everywhere rfcc's build script runs), so the contract holds on
+# Windows too; this scenario stays non-Windows only because the bazel-in-bazel
+# inner build hasn't been validated on the Windows CI jobs, not because of the
+# sentinel.
+scenario(
+    name = "noop_invoke_fails",
+    env = {
+        "EXPECT_BUILD_FAIL": "//:hello_cmake",
+        # Must fail because the cmake build action actually *invoked* the noop
+        # cmake (CMAKE=false) -- not at analysis, toolchain resolution, or for
+        # some unrelated reason. On failure the rfcc harness dumps the build
+        # log, which carries the `set -x` trace of the configure step: the noop
+        # sentinel `false` run with cmake's own arguments. Matching that line
+        # ties the failure to the noop cmake being executed; it can't appear
+        # unless the cmake action ran, so a missing-dep or unresolved-toolchain
+        # error (which fails before any action runs) won't match. `false` exits
+        # silently with no output of its own, so this traced invocation is the
+        # most specific signal available -- the deliberate floor, not an
+        # oversight.
+        "EXPECT_BUILD_FAIL_PATTERN": "false -DCMAKE_TOOLCHAIN_FILE",
+    },
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+# register_toolchain=False suppresses the hub's toolchain() for cmake; the
+# scenario wraps the spoke by hand and registers it, so the build still works.
+scenario(
+    name = "register_false",
+    env = {"EXPECT_BUILD": "//:hello_cmake"},
+)
+
+# Same as register_false but WITHOUT the manual toolchain registration, so
+# cmake has no registered toolchain and the build must fail.
+scenario(
+    name = "register_false_fails",
+    env = {
+        "EXPECT_BUILD_FAIL": "//:hello_cmake",
+        # Must fail because cmake's toolchain is unregistered, not for some
+        # other reason. Bazel reports an unresolved toolchain type.
+        "EXPECT_BUILD_FAIL_PATTERN": "cmake_toolchain",
+    },
+)
+
+# Under tools.explicit(), a root register_toolchain=False source tag fetches
+# its spoke without registering a toolchain (the binary cmake stays
+# registered), and a source-mode `major.minor.x` wildcard materializes the
+# resolved exact-patch repo (@cmake_src_3.30.9), never a literal `.x` repo.
+# The suppressed defaults also let the tag pin a non-default version.
+scenario(
+    name = "explicit_source_wildcard",
+    env = {"EXPECT_BUILD": "//:cmake_src_probe"},
+)
+
+# meson_with_requirements from a module that does NOT use_repo the hub (the
+# documented "defaults only" setup). The macro expands hub label strings into
+# the caller's package; the cquery forces those generated targets to analyze,
+# which fails with "no repository visible" if the macro reaches the hub by its
+# apparent name. It must instead reach the rfcc-owned //foreign_cc:meson_src_*
+# aliases. cquery (not build) because we only need the labels to resolve, not a
+# from-source meson build.
+scenario(
+    name = "meson_no_hub_import",
+    env = {
+        # Querying the macro-generated tool target forces its hub label strings
+        # to resolve. Filtering its deps for the backing source spoke
+        # (@meson_src_1.10.1, reached via the //foreign_cc:meson_src_* aliases)
+        # proves the alias chain terminated at the real rfcc-owned archive --
+        # the old query echoed the label it was given and asserted nothing.
+        "EXPECT_CQUERY": "filter(\"meson_src_1.10.1\", deps(//:meson_tool_for_hello_meson))",
+        "EXPECT_STDOUT_PATTERN": "meson_src_1\\.10\\.1",
+    },
 )
