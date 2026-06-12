@@ -52,6 +52,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "extension_impl",
+    srcs = ["extension_impl.bzl"],
+    visibility = ["//foreign_cc:__subpackages__"],
+    deps = [
+        ":tool_specs",
+        "//toolchains/private:hub",
+        "//toolchains/private:source_spokes",
+    ],
+)
+
+bzl_library(
     name = "framework",
     srcs = ["framework.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
@@ -147,5 +158,18 @@ bzl_library(
         "@bazel_lib//lib:resource_sets",
         "@bazel_skylib//rules:common_settings",
         "@rules_shell//shell:rules_bzl",
+    ],
+)
+
+bzl_library(
+    name = "tool_specs",
+    srcs = ["tool_specs.bzl"],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//toolchains/private:cmake_versions",
+        "//toolchains/private:make_versions",
+        "//toolchains/private:meson_versions",
+        "//toolchains/private:ninja_versions",
+        "//toolchains/private:pkgconfig_versions",
     ],
 )

@@ -114,6 +114,17 @@ were not tracked here.
 - **`cmake` sets `CMAKE_OSX_SYSROOT` automatically** on macOS from the hermetic
   sysroot, so cmake honors it instead of searching for Xcode
   ([#1361](https://github.com/bazel-contrib/rules_foreign_cc/pull/1361)).
+- **New `noop_<tool>_toolchain` targets** under `//toolchains` (one per build
+  tool: cmake, ninja, make, meson, pkgconfig, autoconf, automake, m4, nmake,
+  msbuild). Each is a tool-implementation target pointing the tool at a failing
+  path. This is for builds that resolve a tool but treat it as optional and
+  never invoke it (e.g. pkgconfig set to noop to disable package searches):
+  resolution succeeds and that step is skipped. If a build does invoke a noop
+  tool it fails loudly rather than silently falling back to a host binary.
+  These are implementation targets (they go in the `toolchain = ...` field of a
+  `toolchain()` rule), not directly registerable toolchains; wrap one in your
+  own `toolchain()` to use it
+  ([#XXXX](https://github.com/bazel-contrib/rules_foreign_cc/pull/XXXX)).
 
 ### Bug fixes
 
