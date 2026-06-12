@@ -22,6 +22,7 @@ bzl_library(
     deps = [
         "//foreign_cc/private:detect_root",
         "//foreign_cc/private:framework",
+        "//foreign_cc/private:runtime_library_search_directories",
     ],
 )
 
@@ -53,6 +54,7 @@ bzl_library(
         "//foreign_cc/private:detect_root",
         "//foreign_cc/private:framework",
         "//foreign_cc/private:regen_stubs",
+        "//foreign_cc/private:runtime_library_search_directories",
         "//foreign_cc/private:transitions",
         "//toolchains/native_tools:tool_access",
         "@rules_cc//cc:bzl_srcs",
@@ -73,6 +75,7 @@ bzl_library(
         ":meson",
         ":msbuild",
         ":ninja",
+        ":runtime_executable",
         ":utils",
     ],
 )
@@ -96,6 +99,7 @@ bzl_library(
         "//foreign_cc/private:detect_root",
         "//foreign_cc/private:framework",
         "//foreign_cc/private:make_script",
+        "//foreign_cc/private:runtime_library_search_directories",
         "//foreign_cc/private:transitions",
         "//toolchains/native_tools:tool_access",
         "@rules_cc//cc:bzl_srcs",
@@ -114,6 +118,7 @@ bzl_library(
         "//foreign_cc/private:detect_root",
         "//foreign_cc/private:framework",
         "//foreign_cc/private:make_script",
+        "//foreign_cc/private:runtime_library_search_directories",
         "//foreign_cc/private:transitions",
         "//toolchains/native_tools:native_tools_toolchain",
         "//toolchains/native_tools:tool_access",
@@ -149,6 +154,7 @@ bzl_library(
         "//foreign_cc/private:detect_root",
         "//foreign_cc/private:framework",
         "//foreign_cc/private:ninja_script",
+        "//foreign_cc/private:runtime_library_search_directories",
         "//toolchains/native_tools:tool_access",
         "@rules_cc//cc:bzl_srcs",
         "@rules_cc//cc/common",
@@ -179,4 +185,15 @@ bzl_library(
     name = "providers",
     srcs = ["providers.bzl"],
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "runtime_executable",
+    srcs = ["runtime_executable.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//foreign_cc/private:runtime_executable_info",
+        "@bazel_skylib//lib:shell",
+        "@rules_shell//shell:rules_bzl",
+    ],
 )

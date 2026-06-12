@@ -1,0 +1,3 @@
+option('runtime_chain_component', type: 'string', value: '')
+option('runtime_test_family', type: 'string', value: 'meson')
+option('shared_ldflags', type: 'array', value: [])

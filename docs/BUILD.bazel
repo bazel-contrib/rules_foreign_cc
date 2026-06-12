@@ -88,6 +88,16 @@ stardoc(
     ],
 )
 
+stardoc(
+    name = "runtime_executable_docs",
+    out = "src/runtime_executable.md",
+    input = "@rules_foreign_cc//foreign_cc:runtime_executable.bzl",
+    deps = [
+        ":rules_cc_deps",
+        "@rules_foreign_cc//foreign_cc:runtime_executable",
+    ],
+)
+
 DOCS_TARGETS = [
     ":cmake_docs",
     ":ninja_docs",
@@ -96,6 +106,7 @@ DOCS_TARGETS = [
     ":meson_docs",
     ":msbuild_docs",
     ":providers_docs",
+    ":runtime_executable_docs",
 ]
 
 build_test(
