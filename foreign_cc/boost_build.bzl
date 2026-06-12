@@ -12,6 +12,10 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load(
+    "//foreign_cc/private:runtime_library_search_directories.bzl",
+    "runtime_library_search_directories_enabled",
+)
 load("//foreign_cc/private/framework:helpers.bzl", "escape_dquote_bash")
 
 def _boost_build_impl(ctx):
@@ -68,6 +72,13 @@ def _create_configure_script(configureParameters):
     root = detect_root(ctx.attr.lib_source)
     data = ctx.attr.data + ctx.attr.build_data
     user_options = expand_locations_and_make_variables(ctx, ctx.attr.user_options, "user_options", data)
+
+    if runtime_library_search_directories_enabled(ctx):
+        fail((
+            "ERROR: {} enables runtime_library_search_directories, but " +
+            "runtime_library_search_directories is not supported by the " +
+            "boost_build rule."
+        ).format(ctx.label))
 
     flags = get_flags_info(ctx)
     cc_toolchain = find_cpp_toolchain(ctx)

@@ -20,6 +20,7 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:make_script.bzl", "create_make_script")
+load("//foreign_cc/private:runtime_library_search_directories.bzl", "runtime_library_search_directories_enabled")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
@@ -45,7 +46,27 @@ def _create_make_script(configureParameters):
     root = detect_root(ctx.attr.lib_source)
 
     tools = get_tools_info(ctx)
-    flags = get_flags_info(ctx)
+    flags = get_flags_info(
+        ctx,
+        outputs = configureParameters.outputs,
+    )
+
+    if (
+        runtime_library_search_directories_enabled(ctx) and
+        ctx.attr.out_shared_libs and
+        flags.cxx_linker_shared and
+        not ctx.attr.shared_ldflags_vars
+    ):
+        # buildifier: disable=print
+        print((
+            "WARNING: {} enables runtime_library_search_directories and declares " +
+            "shared-library outputs, but shared_ldflags_vars is not set. Those " +
+            "shared-library outputs may not get correct rpaths: default generated " +
+            "linker flags are for executable links and may not contain " +
+            "shared-library-specific runtime search paths. Set shared_ldflags_vars " +
+            "to the upstream Make variable used for shared-library links, for " +
+            "example [\"LDFLAGS\"] or [\"SHARED_LDFLAGS\"]."
+        ).format(ctx.label))
 
     data = ctx.attr.data + ctx.attr.build_data
 
