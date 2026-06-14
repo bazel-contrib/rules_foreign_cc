@@ -8,3 +8,4 @@
         - [meson](meson.md)
         - [msbuild](msbuild.md)
         - [ninja](ninja.md)
+    - [Output Groups](output_groups.md)
