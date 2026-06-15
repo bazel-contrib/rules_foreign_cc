@@ -56,6 +56,10 @@ def _pkgconfig_tool_impl(ctx):
     absolute_ar = absolutize(ctx.workspace_name, ar_path, True)
 
     if os_name(ctx) == "macos":
+        # When using libtool nested build systems that expect 'ar' will pass
+        # invalid arguments
+        if "libtool" in absolute_ar:
+            absolute_ar = ""
         non_system_include_ldflags += ["-undefined", "error"]
 
     arflags = [e for e in frozen_arflags]
