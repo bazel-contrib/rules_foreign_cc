@@ -20,7 +20,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "ninja",
-            plat_target = "linux",
         ),
         ("macos", "aarch64"): struct(
             urls = [
@@ -34,7 +33,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "ninja",
-            plat_target = "mac_aarch64",
         ),
         ("macos", "x86_64"): struct(
             urls = [
@@ -48,7 +46,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "ninja",
-            plat_target = "mac",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -62,7 +59,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "ninja.exe",
-            plat_target = "win",
         ),
     },
     "1.11.1": {
@@ -78,7 +74,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "ninja",
-            plat_target = "linux",
         ),
         ("macos", "aarch64"): struct(
             urls = [
@@ -92,7 +87,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "ninja",
-            plat_target = "mac_aarch64",
         ),
         ("macos", "x86_64"): struct(
             urls = [
@@ -106,7 +100,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "ninja",
-            plat_target = "mac",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -120,7 +113,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "ninja.exe",
-            plat_target = "win",
         ),
     },
     "1.12.1": {
@@ -136,7 +128,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "ninja",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -150,7 +141,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "ninja",
-            plat_target = "linux",
         ),
         ("macos", "aarch64"): struct(
             urls = [
@@ -164,7 +154,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "ninja",
-            plat_target = "mac_aarch64",
         ),
         ("macos", "x86_64"): struct(
             urls = [
@@ -178,7 +167,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "ninja",
-            plat_target = "mac",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -192,7 +180,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "ninja.exe",
-            plat_target = "win",
         ),
     },
     "1.13.2": {
@@ -208,7 +195,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "ninja",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -222,7 +208,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "ninja",
-            plat_target = "linux",
         ),
         ("macos", "aarch64"): struct(
             urls = [
@@ -236,7 +221,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "ninja",
-            plat_target = "mac_aarch64",
         ),
         ("macos", "x86_64"): struct(
             urls = [
@@ -250,7 +234,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "ninja",
-            plat_target = "mac",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -264,7 +247,6 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "ninja.exe",
-            plat_target = "win",
         ),
     },
 }
@@ -275,8 +257,6 @@ NINJA_BIN_WILDCARDS = {
     "1.12.x": "1.12.1",
     "1.13.x": "1.13.2",
 }
-
-NINJA_BIN_REPO_FORMAT = "ninja_{version}_{plat_target}"
 
 NINJA_SRC_SRCS = {
     "1.10.2": struct(

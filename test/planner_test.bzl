@@ -609,9 +609,10 @@ def _binary_platform_expansion_test(ctx):
         "binary expansion missing the macos-universal spoke",
     )
 
-    # ninja uses the `_`-separator repo-name format (cmake uses `-`); assert
-    # ninja's spoke names too so a regression flipping ninja's format to `-`
-    # is caught here rather than as a downstream fetch failure.
+    # ninja spoke names follow the same normalized `<tool>-<version>-<os>-<arch>`
+    # scheme as cmake; assert ninja's names too so a regression in the shared
+    # binary_spoke_repo format is caught here rather than as a downstream fetch
+    # failure.
     ninja_default = get_spec("ninja").default_version
     ninja_plan = build_hub_plan(_tagset(root = {"ninja": [_tag("ninja", mode = "binary", version = ninja_default)]}))
     ninja_toolchains = [
@@ -621,13 +622,13 @@ def _binary_platform_expansion_test(ctx):
     ]
     asserts.true(
         env,
-        "@ninja_{}_linux//:ninja_tool".format(ninja_default) in ninja_toolchains,
-        "binary expansion missing the ninja_<v>_linux spoke (wrong separator?)",
+        "@ninja-{}-linux-x86_64//:ninja_tool".format(ninja_default) in ninja_toolchains,
+        "binary expansion missing the ninja-<v>-linux-x86_64 spoke",
     )
     asserts.true(
         env,
-        "@ninja_{}_win//:ninja_tool".format(ninja_default) in ninja_toolchains,
-        "binary expansion missing the ninja_<v>_win spoke (wrong separator?)",
+        "@ninja-{}-windows-x86_64//:ninja_tool".format(ninja_default) in ninja_toolchains,
+        "binary expansion missing the ninja-<v>-windows-x86_64 spoke",
     )
 
     return unittest.end(env)

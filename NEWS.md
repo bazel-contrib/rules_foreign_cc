@@ -48,6 +48,15 @@ were not tracked here.
   [Migrating to the bzlmod hub](docs/src/bzlmod_migration.md) for the rename
   table and the two supported migration patterns
   ([#1567](https://github.com/bazel-contrib/rules_foreign_cc/pull/1567)).
+- **The per-platform binary spoke repos were renamed** to one scheme,
+  `@<tool>-<version>-<os>-<arch>` (e.g. `@ninja_1.13.2_linux` became
+  `@ninja-1.13.2-linux-x86_64`, and cmake's upstream platform tokens were
+  normalized to Bazel spellings such as `windows-x86_64`). These are
+  implementation repo names; the hub and the `@<tool>_<version>_toolchains`
+  aggregators are unchanged, so this only affects code that referenced a
+  binary spoke by its literal name. See
+  [Migrating to the bzlmod hub](docs/src/bzlmod_migration.md)
+  ([#1567](https://github.com/bazel-contrib/rules_foreign_cc/pull/1567)).
 - **The public `@rules_foreign_cc//toolchains:built_*_toolchain` labels were
   removed** (`built_cmake_toolchain`, `built_ninja_toolchain`,
   `built_make_toolchain`, `built_meson_toolchain`, `built_pkgconfig_toolchain`).

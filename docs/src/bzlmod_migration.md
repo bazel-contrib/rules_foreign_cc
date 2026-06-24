@@ -154,6 +154,29 @@ Renamed source repos (singleton → version-suffixed at default versions):
 | `@ninja_build_src` | `@ninja_src_1.13.2` |
 | `@pkgconfig_src` | `@pkgconfig_src_0.29.2` |
 
+The per-platform binary spoke repos were also renamed to one scheme,
+`@<tool>-<version>-<os>-<arch>`, where `<os>` and `<arch>` are the Bazel
+platform names. This affects only code that referenced a binary spoke by its
+literal repo name (a `use_repo` entry or a hand-written `toolchain(...)`
+pointing at one); the hub and the aggregator *repo* names above are unchanged,
+so most consumers see nothing. The ninja spokes changed both separator and
+token (`@ninja_1.13.2_linux` -> `@ninja-1.13.2-linux-x86_64`), and cmake's
+upstream-derived platform tokens were normalized to Bazel spellings
+(`@cmake-3.31.12-Linux-x86_64` -> `@cmake-3.31.12-linux-x86_64`,
+`win64-x64` -> `windows-x86_64`). cmake's universal2 macOS build uses the arch
+token `universal` (`@cmake-3.31.12-macos-universal`). See
+[bzlmod hub-and-spoke](bzlmod_hub.md) for the full scheme. These per-platform
+names are an implementation detail and not a stable API; pin the aggregator or
+the hub rather than a spoke if you need a name that won't move.
+
+The aggregator repos themselves keep their names, but their per-platform
+`toolchain(...)` target names embed the spoke name, so those moved too
+(`@ninja_1.13.2_toolchains//:ninja_1.13.2_linux_toolchain` ->
+`@ninja_1.13.2_toolchains//:ninja-1.13.2-linux-x86_64_toolchain`).
+Registering `@<tool>_<version>_toolchains//:all` is unaffected; only a
+`register_toolchains(...)` pinned at one platform target by name needs the
+update.
+
 The public build-from-source toolchain labels were also removed; they are now
 per-version spokes registered through the hub:
 

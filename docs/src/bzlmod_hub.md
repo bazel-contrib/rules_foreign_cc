@@ -11,13 +11,18 @@ repository, `@rules_foreign_cc_toolchains`. The hub holds two kinds of target:
   BUILD files that need to reach an archive directly.
 
 The underlying per-version "spoke" repos hold the actual tools; the hub just
-points into them. Spoke names depend on the mode:
+points into them. Spoke names follow a fixed scheme per mode, so you can
+predict a spoke's name rather than look it up:
 
-- **Binary spokes** are named after the downloaded archive and platform, e.g.
-  `@cmake-3.31.12-linux-x86_64` (target `:cmake_tool`) and
-  `@ninja_1.13.2_linux` (target `:ninja_tool`). The platform suffix follows
-  each tool's upstream archive naming, so cmake's is `linux-x86_64` while
-  ninja's is just `linux`.
+- **Binary spokes** are named `@<tool>-<version>-<os>-<arch>`, e.g.
+  `@cmake-3.31.12-linux-x86_64` and `@ninja-1.13.2-linux-x86_64` (target
+  `:<tool>_tool`). `<os>` and `<arch>` are the Bazel platform names
+  (`linux`/`macos`/`windows`, `x86_64`/`aarch64`/`x86_32`), so the suffix
+  matches the toolchain's `exec_compatible_with` constraints. The one
+  exception is cmake's macOS build: it ships a single universal2 binary that
+  resolves for both `x86_64` and `aarch64` (so the toolchain carries no cpu
+  constraint), and its arch token is `universal` -
+  `@cmake-3.31.12-macos-universal`.
 - **Source spokes** are named `@<tool>_src_<version>`, e.g.
   `@cmake_src_3.31.12`, `@make_src_4.4.1` (target `:<tool>_tool`).
 

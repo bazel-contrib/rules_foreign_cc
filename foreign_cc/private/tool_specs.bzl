@@ -17,7 +17,7 @@ mode based on the tool's ladder and what's actually available).
 # them; buildifier's bzl-visibility heuristic only inspects path layout
 # and doesn't honor the directive. Suppress the lint here.
 # buildifier: disable=bzl-visibility
-load("//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_REPO_FORMAT", "CMAKE_BIN_SRCS", "CMAKE_SRC_SRCS")
+load("//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_SRCS", "CMAKE_SRC_SRCS")
 
 # buildifier: disable=bzl-visibility
 load("//toolchains/private:make_versions.bzl", "GNUMAKE_SRCS")
@@ -26,7 +26,7 @@ load("//toolchains/private:make_versions.bzl", "GNUMAKE_SRCS")
 load("//toolchains/private:meson_versions.bzl", "MESON_SRCS")
 
 # buildifier: disable=bzl-visibility
-load("//toolchains/private:ninja_versions.bzl", "NINJA_BIN_REPO_FORMAT", "NINJA_BIN_SRCS", "NINJA_SRC_SRCS")
+load("//toolchains/private:ninja_versions.bzl", "NINJA_BIN_SRCS", "NINJA_SRC_SRCS")
 
 # buildifier: disable=bzl-visibility
 load("//toolchains/private:pkgconfig_versions.bzl", "PKGCONFIG_SRCS")
@@ -126,7 +126,6 @@ TOOL_SPECS = {
         wildcards = {},
         binary_versions = None,
         source_versions = None,
-        binary_repo_format = None,
         binary_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:autoconf_toolchain",
         noop_env = {
@@ -143,7 +142,6 @@ TOOL_SPECS = {
         wildcards = {},
         binary_versions = None,
         source_versions = None,
-        binary_repo_format = None,
         binary_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:automake_toolchain",
         noop_env = {
@@ -159,7 +157,6 @@ TOOL_SPECS = {
         wildcards = _wildcards_for(_exact_versions(CMAKE_BIN_SRCS, CMAKE_SRC_SRCS)),
         binary_versions = CMAKE_BIN_SRCS,
         source_versions = CMAKE_SRC_SRCS,
-        binary_repo_format = CMAKE_BIN_REPO_FORMAT,
         binary_target = "cmake_tool",
         toolchain_type = "@rules_foreign_cc//toolchains:cmake_toolchain",
         noop_env = {"CMAKE": "{NOOP_BIN}"},
@@ -172,7 +169,6 @@ TOOL_SPECS = {
         wildcards = {},
         binary_versions = None,
         source_versions = None,
-        binary_repo_format = None,
         binary_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:m4_toolchain",
         noop_env = {"M4": "{NOOP_BIN}"},
@@ -185,7 +181,6 @@ TOOL_SPECS = {
         wildcards = _wildcards_for(_exact_versions(GNUMAKE_SRCS)),
         binary_versions = None,
         source_versions = GNUMAKE_SRCS,
-        binary_repo_format = None,
         binary_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:make_toolchain",
         noop_env = {"MAKE": "{NOOP_BIN}"},
@@ -201,7 +196,6 @@ TOOL_SPECS = {
         wildcards = _wildcards_for(_exact_versions(MESON_SRCS)),
         binary_versions = None,
         source_versions = MESON_SRCS,
-        binary_repo_format = None,
         binary_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:meson_toolchain",
         noop_env = {"MESON": "{NOOP_BIN}"},
@@ -214,7 +208,6 @@ TOOL_SPECS = {
         wildcards = {},
         binary_versions = None,
         source_versions = None,
-        binary_repo_format = None,
         binary_target = None,
         # msbuild only exists on Windows; gate the system toolchain on both
         # exec and target (matches the legacy preinstalled_msbuild_toolchain).
@@ -231,7 +224,6 @@ TOOL_SPECS = {
         wildcards = _wildcards_for(_exact_versions(NINJA_BIN_SRCS, NINJA_SRC_SRCS)),
         binary_versions = NINJA_BIN_SRCS,
         source_versions = NINJA_SRC_SRCS,
-        binary_repo_format = NINJA_BIN_REPO_FORMAT,
         binary_target = "ninja_tool",
         toolchain_type = "@rules_foreign_cc//toolchains:ninja_toolchain",
         noop_env = {"NINJA": "{NOOP_BIN}"},
@@ -244,7 +236,6 @@ TOOL_SPECS = {
         wildcards = {},
         binary_versions = None,
         source_versions = None,
-        binary_repo_format = None,
         binary_target = None,
         # nmake only exists on Windows; gate the system toolchain so it never
         # resolves on other hosts (matches the legacy
@@ -266,7 +257,6 @@ TOOL_SPECS = {
         wildcards = _wildcards_for(_exact_versions(PKGCONFIG_SRCS)),
         binary_versions = None,
         source_versions = PKGCONFIG_SRCS,
-        binary_repo_format = None,
         binary_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
         # Only the binary var, like every other tool: noop sets PKG_CONFIG to

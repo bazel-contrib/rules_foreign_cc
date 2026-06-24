@@ -30,15 +30,16 @@ _TOOLS_TOKEN = re.compile(r"tools\.[a-z0-9_]+\(")
 _VERSION_ARG = re.compile(r'version\s*=\s*"([^"]+)"')
 
 # Spoke-repo references that encode a version in the repo name:
-#   @cmake-3.31.12-linux-x86_64   (binary cmake: @cmake-<v>-<plat>)
-#   @ninja_1.13.2_linux           (binary ninja: @ninja_<v>_<plat>)
+#   @cmake-3.31.12-linux-x86_64   (binary spoke: @<tool>-<v>-<os>-<arch>)
+#   @ninja-1.13.2-linux-x86_64    (binary spoke, same scheme)
+#   @ninja_1.13.2_toolchains      (per-version binary aggregator: @<tool>_<v>_toolchains)
 #   @cmake_src_3.31.12            (source: @<tool>_src_<v>)
 #   @make_src_4.4                 (source: two-component make release)
-# The `cmake-` / `ninja_` binary prefixes mirror CMAKE_BIN_REPO_FORMAT and
-# NINJA_BIN_REPO_FORMAT in toolchains/private/*_versions.bzl; keep them in step
-# if a repo-name format ever changes.
+# Binary spokes use `<tool>-` (see binary_spokes.bzl's BINARY_SPOKE_REPO_FORMAT);
+# the aggregator repos still use `<tool>_`, so accept either separator after the
+# tool name.
 _SPOKE_REPO = re.compile(
-    r"@(?:cmake-|ninja_|[a-z0-9]+_src_)(\d+\.\d+(?:\.(?:\d+|x))?)",
+    r"@(?:cmake[-_]|ninja[-_]|[a-z0-9]+_src_)(\d+\.\d+(?:\.(?:\d+|x))?)",
 )
 
 # A version-like token: exact `a.b` / `a.b.c` patch or `a.b.x` wildcard. make

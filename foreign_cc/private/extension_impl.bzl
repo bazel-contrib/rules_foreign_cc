@@ -17,6 +17,9 @@ load(
 load("//foreign_cc/private/framework/toolchains:mappings.bzl", "TOOLCHAIN_MAPPINGS")
 
 # buildifier: disable=bzl-visibility
+load("//toolchains/private:binary_spokes.bzl", "binary_spoke_repo")
+
+# buildifier: disable=bzl-visibility
 load("//toolchains/private:hub.bzl", "source_spoke_aliases")
 
 # buildifier: disable=bzl-visibility
@@ -329,12 +332,11 @@ def _binary_platform_entries(tool, version):
     per_plat = srcs.get(version)
     if per_plat == None:
         fail("_binary_platform_entries: no version \"{}\" for tool \"{}\"".format(version, tool))
-    fmt = spec.binary_repo_format
     target = spec.binary_target
     entries = []
     for os_arch in sorted(per_plat.keys()):
         plat = per_plat[os_arch]
-        repo = fmt.format(version = version, plat_target = plat.plat_target)
+        repo = binary_spoke_repo(tool, version, os_arch)
         entries.append(("@{}//:{}".format(repo, target), list(plat.constraints), []))
     return entries
 
