@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Rules ForeignCc - Rules ForeignCc</title>
+        <title>Examples - Rules ForeignCc</title>
 
 
         <!-- Custom HTML head -->
@@ -155,53 +155,122 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="rules-foreigncc"><a class="header" href="#rules-foreigncc">Rules ForeignCc</a></h1>
-<p>Rules for building C/C++ projects using foreign build systems (non Bazel) inside Bazel projects.</p>
-<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
-<p>Rules ForeignCc is designed to help users build projects that are not built by Bazel and also
-not fully under their control (ie: large and mature open source software). These rules provide
-a mechanism to build these external projects within Bazel's sandbox environment using a variety
-of C/C++ build systems to be later consumed by other rules as though they were normal <a href="https://docs.bazel.build/versions/master/be/c-cpp.html">cc</a>
-rules.</p>
-<h2 id="setup"><a class="header" href="#setup">Setup</a></h2>
-<h3 id="using-bzlmod"><a class="header" href="#using-bzlmod">Using bzlmod</a></h3>
-<p>Add the following content to your MODULE.bazel:</p>
+                        <h1 id="bzlmod-examples"><a class="header" href="#bzlmod-examples">bzlmod examples</a></h1>
+<p>Copy-pasteable <code>MODULE.bazel</code> recipes for the <code>tools</code> extension. For the full
+API reference see <a href="bzlmod_hub.html">bzlmod hub-and-spoke</a>; to convert an existing
+WORKSPACE project see <a href="bzlmod_migration.html">Migrating from WORKSPACE</a>.</p>
+<blockquote>
+<p><strong>You usually don't call <code>register_toolchains</code> yourself.</strong>
+<code>rules_foreign_cc</code>'s own <code>MODULE.bazel</code> already registers
+<code>@rules_foreign_cc_toolchains//:all</code>, and bzlmod honors a dependency's
+registration for the whole build. Your <code>tools.&lt;tool&gt;(...)</code> tags shape what
+the hub contains; you don't need to re-register it or <code>use_repo</code> it. The
+only time you call <code>register_toolchains</code> / <code>use_repo</code> yourself is the
+<a href="#bring-your-own-toolchain">Bring your own toolchain</a> case below, or when
+you reference a hub alias / spoke repo by name in your own BUILD files.</p>
+</blockquote>
+<h2 id="defaults-only"><a class="header" href="#defaults-only">Defaults only</a></h2>
+<p>Accept every tool's default mode and pinned version - just depend on
+<code>rules_foreign_cc</code>:</p>
 <pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
 </code></pre>
-<p>That's all you need for the default toolchains - <code>rules_foreign_cc</code> registers
-them for you. See <a href="bzlmod_hub.html">bzlmod hub-and-spoke</a> for the full extension API
-(<code>tools.&lt;tool&gt;(...)</code>), <code>tools.explicit()</code>, and built-in noop toolchains;
-<a href="bzlmod_examples.html">Examples</a> for copy-pasteable recipes; and
-<a href="bzlmod_migration.html">Migrating from WORKSPACE</a> to convert an existing project.</p>
-<h3 id="using-workspace"><a class="header" href="#using-workspace">Using WORKSPACE</a></h3>
-<p>To use the ForeignCc build rules, add the following content to your WORKSPACE file:</p>
-<pre><code class="language-python">load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+<h2 id="pin-a-single-version"><a class="header" href="#pin-a-single-version">Pin a single version</a></h2>
+<p>Override just cmake; every <em>other</em> tool keeps its default:</p>
+<pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
 
-http_archive(
-    name = "rules_foreign_cc",
-    # TODO: Get the latest sha256 value from a bazel debug message or the latest
-    #       release on the releases page: https://github.com/bazel-contrib/rules_foreign_cc/releases
-    #
-    # integrity = "...",
-    strip_prefix = "rules_foreign_cc-{release_archive}",
-    url = "https://github.com/bazel-contrib/rules_foreign_cc/archive/{release_archive}.tar.gz",
-)
-
-load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
-
-rules_foreign_cc_dependencies()
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.31.12", mode = "binary")
 </code></pre>
-<p>Please note that there are many different configuration options for
-<a href="./flatten.html#rules_foreign_cc_dependencies">rules_foreign_cc_dependencies</a>
-which offer more control over the toolchains used during the build phase. Please see
-that macro's documentation for more details.</p>
+<p>Note: overriding a tool replaces <em>all</em> of rfcc's default tags for that tool,
+not just the one you restate. cmake and ninja ship two defaults each - the
+prebuilt binary plus an unconstrained <code>system</code> host-PATH fallback (see
+<a href="bzlmod_hub.html#minimal-setup">Minimal setup</a>) - so a lone
+<code>tools.cmake(mode = "binary")</code> drops the cmake system fallback, and resolution
+will fail on platforms rfcc has no prebuilt for. To keep the fallback, restate
+both tags:</p>
+<pre><code class="language-python">tools.cmake(version = "3.31.12", mode = "binary")
+tools.cmake(mode = "system")
+</code></pre>
+<h2 id="track-the-latest-patch-of-a-minor-series"><a class="header" href="#track-the-latest-patch-of-a-minor-series">Track the latest patch of a minor series</a></h2>
+<p>Use a <code>major.minor.x</code> wildcard to take whatever patch <code>rules_foreign_cc</code>
+ships for that minor series (here <code>3.31.x</code> resolves to <code>3.31.12</code>):</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.31.x", mode = "binary")
+</code></pre>
+<h2 id="build-a-tool-from-source"><a class="header" href="#build-a-tool-from-source">Build a tool from source</a></h2>
+<p>Force cmake to build from source instead of downloading a prebuilt binary:</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.31.12", mode = "source")
+</code></pre>
+<h2 id="use-a-host-installed-tool"><a class="header" href="#use-a-host-installed-tool">Use a host-installed tool</a></h2>
+<p>Skip downloading/building and use the tool already on the exec host. This is
+not hermetic - the build depends on what's installed - but it's useful for
+tools you don't want rules_foreign_cc to manage:</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.make(mode = "system")
+tools.ninja(mode = "system")
+</code></pre>
+<h2 id="full-control-with-toolsexplicit"><a class="header" href="#full-control-with-toolsexplicit">Full control with <code>tools.explicit()</code></a></h2>
+<p>Suppress rfcc's default registrations entirely and register only what you
+declare. Any
+tool you don't tag has no registered toolchain, so resolution fails for it:</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.explicit()
+
+tools.cmake(version = "3.31.12", mode = "binary")
+tools.ninja(version = "1.13.2", mode = "binary")
+tools.make(version = "4.4.1", mode = "source")
+</code></pre>
+<h2 id="bring-your-own-toolchain"><a class="header" href="#bring-your-own-toolchain">Bring your own toolchain</a></h2>
+<p>Declare the spoke but register it yourself (e.g. with custom constraints or
+conditional logic). <code>register_toolchain = False</code> suppresses the hub entry:</p>
+<pre><code class="language-python"># MODULE.bazel
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.31.12", mode = "binary", register_toolchain = False)
+use_repo(tools, "cmake-3.31.12-linux-x86_64")
+
+register_toolchains("//:cmake_tool_manual")
+</code></pre>
+<pre><code class="language-python"># BUILD.bazel
+toolchain(
+    name = "cmake_tool_manual",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = "@cmake-3.31.12-linux-x86_64//:cmake_tool",
+    toolchain_type = "@rules_foreign_cc//toolchains:cmake_toolchain",
+)
+</code></pre>
+<h2 id="no-op-a-tool-you-dont-need-to-run"><a class="header" href="#no-op-a-tool-you-dont-need-to-run">No-op a tool you don't need to run</a></h2>
+<p>Some build systems require a toolchain to <em>resolve</em> even if the tool is never
+run, or treat a tool as optional and simply skip the work when it's absent.
+<code>mode = "noop"</code> registers a placeholder that satisfies resolution
+(host-independent, unlike <code>mode = "system"</code>) and points the tool at a path
+that fails when executed.</p>
+<p>Whether that matters depends on the build: if nothing ever invokes the tool -
+e.g. a cmake build that declares an m4 dependency it doesn't use, or
+<code>pkgconfig</code> set to noop to skip optional package searches - the build succeeds
+and just skips that step. If the build <em>does</em> invoke the tool, it fails loudly
+at execution time rather than silently using a host binary.</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.explicit()
+
+tools.cmake(version = "3.31.12", mode = "binary")
+tools.ninja(version = "1.13.2", mode = "binary")
+tools.m4(mode = "noop")
+tools.pkgconfig(mode = "noop")
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="bzlmod_hub.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
 
-                            <a rel="next prefetch" href="bzlmod_hub.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="bzlmod_migration.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -211,8 +280,11 @@ that macro's documentation for more details.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="bzlmod_hub.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
 
-                    <a rel="next prefetch" href="bzlmod_hub.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="bzlmod_migration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

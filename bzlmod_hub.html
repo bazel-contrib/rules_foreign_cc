@@ -1,0 +1,471 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>bzlmod hub-and-spoke - Rules ForeignCc</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Rules ForeignCc</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/bazel-contrib/rules_foreign_cc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="bzlmod-hub-and-spoke"><a class="header" href="#bzlmod-hub-and-spoke">bzlmod hub-and-spoke</a></h1>
+<p>Under bzlmod, <code>rules_foreign_cc</code> exposes its toolchains through a single hub
+repository, <code>@rules_foreign_cc_toolchains</code>. The hub holds two kinds of target:</p>
+<ul>
+<li><code>toolchain(...)</code> entries, collected into a single <code>:all</code> target.
+<code>rules_foreign_cc</code> registers <code>@rules_foreign_cc_toolchains//:all</code> from its
+own <code>MODULE.bazel</code>, so every entry in it is a registered toolchain for the
+whole build. You do not register it yourself.</li>
+<li>version-neutral aliases (e.g. <code>cmake_src_all</code>) into the spoke repos, for
+BUILD files that need to reach an archive directly.</li>
+</ul>
+<p>The underlying per-version "spoke" repos hold the actual tools; the hub just
+points into them. Spoke names follow a fixed scheme per mode, so you can
+predict a spoke's name rather than look it up:</p>
+<ul>
+<li><strong>Binary spokes</strong> are named <code>@&lt;tool&gt;-&lt;version&gt;-&lt;os&gt;-&lt;arch&gt;</code>, e.g.
+<code>@cmake-3.31.12-linux-x86_64</code> and <code>@ninja-1.13.2-linux-x86_64</code> (target
+<code>:&lt;tool&gt;_tool</code>). <code>&lt;os&gt;</code> and <code>&lt;arch&gt;</code> are the Bazel platform names
+(<code>linux</code>/<code>macos</code>/<code>windows</code>, <code>x86_64</code>/<code>aarch64</code>/<code>x86_32</code>), so the suffix
+matches the toolchain's <code>exec_compatible_with</code> constraints. The one
+exception is cmake's macOS build: it ships a single universal2 binary that
+resolves for both <code>x86_64</code> and <code>aarch64</code> (so the toolchain carries no cpu
+constraint), and its arch token is <code>universal</code> -
+<code>@cmake-3.31.12-macos-universal</code>.</li>
+<li><strong>Source spokes</strong> are named <code>@&lt;tool&gt;_src_&lt;version&gt;</code>, e.g.
+<code>@cmake_src_3.31.12</code>, <code>@make_src_4.4.1</code> (target <code>:&lt;tool&gt;_tool</code>).</li>
+</ul>
+<p>For most users these names are an implementation detail: <code>rules_foreign_cc</code>
+registers the hub and you never touch the spokes directly.</p>
+<p>For copy-pasteable recipes see <a href="bzlmod_examples.html">Examples</a>; to move an
+existing WORKSPACE project over, see
+<a href="bzlmod_migration.html">Migrating from WORKSPACE</a>.</p>
+<h2 id="how-the-hub-is-assembled"><a class="header" href="#how-the-hub-is-assembled">How the hub is assembled</a></h2>
+<p>It helps to follow the chain from a tag to a registered toolchain, in order.</p>
+<p><strong>Step 1 - each <code>tools.&lt;tool&gt;(...)</code> tag has up to two effects.</strong> Every tag,
+from any module (root or transitive) and regardless of <code>register_toolchain</code>,
+<strong>declares a spoke repo</strong> for its tool/mode/version. Declaring is not
+downloading: Bazel materializes a spoke lazily, only when something references
+one of its targets (see <a href="#non-root-modules">Non-root modules</a> and
+<a href="#register_toolchain--false"><code>register_toolchain = False</code></a>). On top of that, a
+tag that both comes from the <strong>root</strong> module and keeps the default
+<code>register_toolchain = True</code> <strong>adds a <code>toolchain(...)</code> entry to the hub</strong>.
+Non-root tags and <code>register_toolchain = False</code> tags only declare a spoke; they
+never add a hub entry.</p>
+<p><strong>Step 2 - <code>rules_foreign_cc</code> adds its own default entries.</strong> For tools the
+root didn't tag with a registering tag, rfcc contributes default
+<code>toolchain(...)</code> entries (the pinned cmake/ninja/etc.). Root entries sort
+ahead of rfcc's defaults in <code>:all</code>, so a registering root tag wins on conflict
+for that tool. <a href="#toolsexplicit"><code>tools.explicit()</code></a> (root-only) drops rfcc's
+default entries entirely, leaving only the root's own; spoke declaration from
+Step 1 is unaffected.</p>
+<p><strong>Step 3 - <code>rules_foreign_cc</code> registers the hub.</strong> rfcc calls
+<code>register_toolchains("@rules_foreign_cc_toolchains//:all")</code> from its own
+<a href="https://github.com/bazel-contrib/rules_foreign_cc/blob/main/MODULE.bazel"><code>MODULE.bazel</code></a>,
+so every <code>toolchain(...)</code> entry collected in Steps 1-2 becomes a registered
+toolchain for the whole build. You never call <code>register_toolchains</code> for the
+hub yourself. This is also why <code>register_toolchain = False</code> suppresses
+registration without suppressing the spoke: it withholds the Step 1 hub entry,
+so there is nothing for Step 3 to register, but the spoke is still declared.</p>
+<h2 id="minimal-setup"><a class="header" href="#minimal-setup">Minimal setup</a></h2>
+<p>If you want sensible defaults and don't care about specific versions, just
+depend on <code>rules_foreign_cc</code>:</p>
+<pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
+</code></pre>
+<p>That's it. <code>rules_foreign_cc</code> contributes its default tool set - cmake and
+ninja as prebuilt binaries, make, meson, and pkgconfig built from source, plus
+autoconf, automake, m4, and msbuild as system tools - and <strong>registers the hub
+for you</strong> from its own MODULE.bazel. (For the exact default mode and pinned
+version of each tool, see the
+<a href="#per-tool-support">per-tool support table</a> below.) cmake and ninja
+additionally register an unconstrained <code>system</code> toolchain as a host-PATH
+fallback: the prebuilt binary wins on the platforms rfcc ships prebuilts for,
+and any other host falls back to a <code>cmake</code>/<code>ninja</code> on <code>PATH</code> rather than
+failing resolution.
+(nmake is <em>not</em> a default: it shares make's toolchain type, so it's selected
+only by an explicit <code>toolchain =</code> label, never registered for resolution.)
+bzlmod honors a dependency's <code>register_toolchains(...)</code> for the whole build, so
+you don't call it yourself.</p>
+<h2 id="the-tools-extension"><a class="header" href="#the-tools-extension">The <code>tools</code> extension</a></h2>
+<p>Customisation goes through the <code>tools</code> module extension. You add only the tags
+for the tools you care about; every other tool keeps its default, and you still
+don't register anything yourself. (Tagging a tool replaces <em>all</em> of rfcc's
+default tags for that one tool - relevant for cmake and ninja, which default to
+a binary plus a <code>system</code> fallback; see the note in
+<a href="#minimal-setup">Minimal setup</a>.)</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+
+tools.cmake(version = "3.31.12", mode = "binary")
+tools.ninja(mode = "system")
+tools.make(mode = "system")  # opt out of source-build, use system make
+</code></pre>
+<p><code>use_repo(tools, "rules_foreign_cc_toolchains")</code> and
+<code>register_toolchains("@rules_foreign_cc_toolchains//:all")</code> are only needed if
+you reference the hub repo by name in your own BUILD files, or if you opt out
+of rfcc's registration (see
+<a href="#register_toolchain--false"><code>register_toolchain = False</code></a>).</p>
+<p>Omitting a <code>tools.&lt;tool&gt;(...)</code> tag entirely is how you accept rfcc's default
+mode and pinned default version for that tool. A bare <code>tools.&lt;tool&gt;()</code> tag
+with no attributes is rejected - it neither selects a tool variant nor
+constrains one, so it's a no-op (<code>register_toolchain = False</code> doesn't change
+that: with no mode/version/constraints there's nothing to declare or
+suppress). A tag must carry at least one of <code>mode</code>, <code>version</code>,
+<code>exec_compatible_with</code>, or <code>target_compatible_with</code>. Beyond that minimum the
+attributes still interact: a <code>binary</code>/<code>source</code> mode requires a <code>version</code>,
+while <code>system</code>/<code>noop</code> forbid one (see <a href="#tag-attributes">Tag attributes</a>).</p>
+<p>Each tool has its own tag class: <code>tools.autoconf</code>, <code>tools.automake</code>,
+<code>tools.cmake</code>, <code>tools.m4</code>, <code>tools.make</code>, <code>tools.meson</code>, <code>tools.msbuild</code>,
+<code>tools.ninja</code>, <code>tools.nmake</code>, <code>tools.pkgconfig</code>.</p>
+<h3 id="tag-attributes"><a class="header" href="#tag-attributes">Tag attributes</a></h3>
+<p>All <code>tools.&lt;tool&gt;(...)</code> tags share the same shape:</p>
+<div class="table-wrapper"><table><thead><tr><th>Attribute</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+<tr><td><code>mode</code></td><td>string</td><td>One of the modes supported by the tool. See the table below. If unset, the planner picks the highest-priority mode the tool supports (binary &gt; source &gt; system).</td></tr>
+<tr><td><code>version</code></td><td>string</td><td>Required when the resolved mode is <code>binary</code> or <code>source</code>; forbidden for <code>system</code>/<code>noop</code> and for versionless tools. Accepts an exact patch (<code>3.31.12</code>) or a <code>major.minor.x</code> wildcard (<code>3.31.x</code>) that resolves to that minor series' latest patch - see <a href="#version-wildcards">Version wildcards</a>.</td></tr>
+<tr><td><code>register_toolchain</code></td><td>bool</td><td>Default <code>True</code>. If <code>False</code>, declare the spoke but skip registration - see below.</td></tr>
+<tr><td><code>exec_compatible_with</code></td><td>label list</td><td>Forwarded to the registered <code>toolchain(...)</code> target's <code>exec_compatible_with</code>.</td></tr>
+<tr><td><code>target_compatible_with</code></td><td>label list</td><td>Forwarded to the registered <code>toolchain(...)</code> target's <code>target_compatible_with</code>.</td></tr>
+</tbody></table>
+</div>
+<h3 id="per-tool-support"><a class="header" href="#per-tool-support">Per-tool support</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Tool</th><th>Supported modes</th><th>Default mode</th><th>Versioned</th></tr></thead><tbody>
+<tr><td><code>autoconf</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
+<tr><td><code>automake</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
+<tr><td><code>cmake</code></td><td>binary, source, system, noop</td><td>binary</td><td>yes</td></tr>
+<tr><td><code>m4</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
+<tr><td><code>make</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
+<tr><td><code>meson</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
+<tr><td><code>msbuild</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
+<tr><td><code>ninja</code></td><td>binary, source, system, noop</td><td>binary</td><td>yes</td></tr>
+<tr><td><code>nmake</code></td><td>system</td><td>system</td><td>no</td></tr>
+<tr><td><code>pkgconfig</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
+</tbody></table>
+</div>
+<p>The pinned default version for each versioned tool lives in
+<a href="https://github.com/bazel-contrib/rules_foreign_cc/blob/main/foreign_cc/private/tool_specs.bzl"><code>foreign_cc/private/tool_specs.bzl</code></a>
+(the <code>default_version</code> of each entry), the authoritative source for this whole
+table. The version numbers are omitted here on purpose: they move on every
+generator bump, and duplicating them in prose only invites drift.</p>
+<h3 id="version-wildcards"><a class="header" href="#version-wildcards">Version wildcards</a></h3>
+<p>A <code>version</code> may be an exact patch (<code>3.31.12</code>) or a <code>major.minor.x</code> wildcard
+(<code>3.31.x</code>). A wildcard resolves to the latest patch <code>rules_foreign_cc</code> ships
+for that minor series:</p>
+<pre><code class="language-python">tools.cmake(mode = "binary", version = "3.31.x")  # -&gt; 3.31.12
+</code></pre>
+<p>Resolution happens before any repo is created, so the wildcard and the exact
+patch are interchangeable: <code>version = "3.31.x"</code> materializes the same
+<code>@cmake-3.31.12-&lt;platform&gt;</code> / <code>@cmake_src_3.31.12</code> spoke as
+<code>version = "3.31.12"</code> would. This matches the WORKSPACE helpers
+(<code>cmake_binary_spokes("3.31.x")</code>), so the two dependency models behave
+identically.</p>
+<p>An unknown wildcard (a minor series rfcc doesn't ship) is rejected with a
+message listing the accepted exact versions and wildcards.</p>
+<h2 id="toolsexplicit"><a class="header" href="#toolsexplicit"><code>tools.explicit()</code></a></h2>
+<p>By default, <code>rules_foreign_cc</code> contributes a baseline set of registrations
+into the hub so that downstream consumers Just Work. If you want full
+control:</p>
+<blockquote>
+<p><strong>Caution:</strong> <code>tools.explicit()</code> suppresses rfcc's default registrations entirely.
+Any tool you don't tag has <strong>no registered toolchain</strong>, so toolchain
+resolution fails for it (<code>no matching toolchains found for ...</code>). When you
+opt in, you must declare every tool your build actually uses.</p>
+</blockquote>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.explicit()
+
+tools.cmake(version = "3.31.12", mode = "binary")
+tools.ninja(version = "1.13.2", mode = "binary")
+# ...declare every tool you want, or accept that resolution will fail for
+# the ones you skipped.
+</code></pre>
+<p><code>tools.explicit()</code> is a root-only opt-out. After it fires, the rfcc-default
+contributions are dropped entirely and the only registrations in the hub are
+those your root MODULE.bazel asks for.</p>
+<p><code>tools.explicit()</code> gates <strong>registration and singleton hub aliases</strong> only -
+it does not suppress spoke declaration. Spokes that any module (root or
+transitive) requests via <code>tools.&lt;tool&gt;(...)</code> are still declared (and
+materialized on reference), so a transitive dependency that says
+<code>tools.cmake(version="3.21.7", register_toolchain=False)</code> to reach a
+specific archive in its own scope keeps working under <code>tools.explicit()</code>.
+You just won't see those versions in the hub's <code>:all</code> list unless your
+root asks for them.</p>
+<h2 id="non-root-modules"><a class="header" href="#non-root-modules">Non-root modules</a></h2>
+<p>Non-root <code>tools.&lt;tool&gt;(...)</code> tags declare their spoke (so the per-version
+repo is reachable inside that module's scope, materialized when referenced)
+but never contribute hub registrations or singleton aliases. The result: a
+transitive module pinned to a specific tool version keeps working
+without leaking that pin into the root's toolchain registration list.</p>
+<p>If a transitive module wants <code>cmake 3.21.7</code> and root wants <code>cmake 3.31.12</code>,
+both <code>@cmake_src_3.21.7</code> and the root's binary spoke
+(<code>@cmake-3.31.12-&lt;platform&gt;</code>) are declared; the root's version is the
+registered toolchain of record.</p>
+<h2 id="register_toolchain--false"><a class="header" href="#register_toolchain--false"><code>register_toolchain = False</code></a></h2>
+<p>If you want the spoke declared (so the underlying repo and its targets are
+reachable, and materialized when you reference them) but you don't want it
+added to the hub's <code>:all</code> registration list - for example, because you're
+doing your own conditional registration - pass <code>register_toolchain = False</code>:</p>
+<pre><code class="language-python">tools.cmake(version = "3.31.12", mode = "binary", register_toolchain = False)
+use_repo(tools, "cmake-3.31.12-linux-x86_64")
+</code></pre>
+<p>Binary and source spokes differ in what they expose, so manual registration
+differs too:</p>
+<p><strong>Binary per-platform spokes</strong> ship only a <code>native_tool_toolchain</code>
+implementation target (<code>:cmake_tool</code>), not a <code>toolchain(...)</code> rule, so a bare
+<code>register_toolchains(...)</code> against it isn't enough. Wrap it in your own
+<code>toolchain(...)</code> with the appropriate <code>toolchain_type</code> and constraints, then
+register that:</p>
+<pre><code class="language-python"># BUILD.bazel
+toolchain(
+    name = "cmake_tool_manual",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = "@cmake-3.31.12-linux-x86_64//:cmake_tool",
+    toolchain_type = "@rules_foreign_cc//toolchains:cmake_toolchain",
+)
+</code></pre>
+<pre><code class="language-python"># MODULE.bazel
+register_toolchains("//:cmake_tool_manual")
+</code></pre>
+<p><strong>Source spokes</strong> ship a registerable <code>toolchain(...)</code> rule directly, at
+<code>@&lt;tool&gt;_src_&lt;version&gt;//:&lt;tool&gt;_toolchain</code>, so you register it by label
+without wrapping anything:</p>
+<pre><code class="language-python"># MODULE.bazel
+register_toolchains("@cmake_src_3.31.12//:cmake_toolchain")
+</code></pre>
+<p>(The source spoke also exposes the underlying <code>:&lt;tool&gt;_tool</code> implementation
+target if you want to wrap it yourself, but you rarely need to.)</p>
+<h2 id="built-in-noop-toolchains"><a class="header" href="#built-in-noop-toolchains">Built-in noop toolchains</a></h2>
+<p><code>rules_foreign_cc</code> ships <code>noop_&lt;tool&gt;_toolchain</code> targets for every
+noop-capable tool (<code>nmake</code> has no noop mode -- it shares the <code>make</code> toolchain
+type, so use <code>tools.make(mode = "noop")</code> to no-op the make family):</p>
+<ul>
+<li><code>@rules_foreign_cc//toolchains:noop_autoconf_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_automake_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_cmake_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_m4_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_make_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_meson_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_msbuild_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_ninja_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_pkgconfig_toolchain</code></li>
+</ul>
+<p>Each one points its tool at <code>false</code> and exports the canonical env vars
+(<code>CMAKE</code>, <code>NINJA</code>, <code>M4</code>, etc.) pointing at the same. They make analysis
+succeed - toolchain resolution finds something - and execution fail loudly.
+This is intended for tests and other targets that need to build but never
+actually invoke the underlying tool. <code>tools.&lt;tool&gt;(mode = "noop")</code> is the
+extension-driven way to register one of these.</p>
+<h2 id="limitations"><a class="header" href="#limitations">Limitations</a></h2>
+<p>The current surface does not handle these cases:</p>
+<ul>
+<li><strong>Major-only wildcards.</strong> A <code>version</code> is an exact patch or a <code>major.minor.x</code>
+wildcard (see <a href="#version-wildcards">Version wildcards</a>); a bare major series
+like <code>3.x</code> is not accepted.</li>
+<li><strong>Versions rfcc doesn't ship.</strong> A <code>version</code> must resolve to a version
+<code>rules_foreign_cc</code> has download URLs for; there is no way to point a tag at
+an arbitrary unsupported version.</li>
+<li><strong>Only the root shapes the default registration set.</strong> Non-root modules can
+declare spokes for their own scope but cannot append to the hub's <code>:all</code>
+registration list; that list is driven by the root module and rfcc's
+defaults.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="bzlmod_examples.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="bzlmod_examples.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

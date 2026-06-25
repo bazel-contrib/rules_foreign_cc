@@ -169,6 +169,11 @@ rules.</p>
 <p>Add the following content to your MODULE.bazel:</p>
 <pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
 </code></pre>
+<p>That's all you need for the default toolchains - <code>rules_foreign_cc</code> registers
+them for you. See <a href="bzlmod_hub.html">bzlmod hub-and-spoke</a> for the full extension API
+(<code>tools.&lt;tool&gt;(...)</code>), <code>tools.explicit()</code>, and built-in noop toolchains;
+<a href="bzlmod_examples.html">Examples</a> for copy-pasteable recipes; and
+<a href="bzlmod_migration.html">Migrating from WORKSPACE</a> to convert an existing project.</p>
 <h3 id="using-workspace"><a class="header" href="#using-workspace">Using WORKSPACE</a></h3>
 <p>To use the ForeignCc build rules, add the following content to your WORKSPACE file:</p>
 <pre><code class="language-python">load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -191,6 +196,639 @@ rules_foreign_cc_dependencies()
 <a href="./flatten.html#rules_foreign_cc_dependencies">rules_foreign_cc_dependencies</a>
 which offer more control over the toolchains used during the build phase. Please see
 that macro's documentation for more details.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="bzlmod-hub-and-spoke"><a class="header" href="#bzlmod-hub-and-spoke">bzlmod hub-and-spoke</a></h1>
+<p>Under bzlmod, <code>rules_foreign_cc</code> exposes its toolchains through a single hub
+repository, <code>@rules_foreign_cc_toolchains</code>. The hub holds two kinds of target:</p>
+<ul>
+<li><code>toolchain(...)</code> entries, collected into a single <code>:all</code> target.
+<code>rules_foreign_cc</code> registers <code>@rules_foreign_cc_toolchains//:all</code> from its
+own <code>MODULE.bazel</code>, so every entry in it is a registered toolchain for the
+whole build. You do not register it yourself.</li>
+<li>version-neutral aliases (e.g. <code>cmake_src_all</code>) into the spoke repos, for
+BUILD files that need to reach an archive directly.</li>
+</ul>
+<p>The underlying per-version "spoke" repos hold the actual tools; the hub just
+points into them. Spoke names follow a fixed scheme per mode, so you can
+predict a spoke's name rather than look it up:</p>
+<ul>
+<li><strong>Binary spokes</strong> are named <code>@&lt;tool&gt;-&lt;version&gt;-&lt;os&gt;-&lt;arch&gt;</code>, e.g.
+<code>@cmake-3.31.12-linux-x86_64</code> and <code>@ninja-1.13.2-linux-x86_64</code> (target
+<code>:&lt;tool&gt;_tool</code>). <code>&lt;os&gt;</code> and <code>&lt;arch&gt;</code> are the Bazel platform names
+(<code>linux</code>/<code>macos</code>/<code>windows</code>, <code>x86_64</code>/<code>aarch64</code>/<code>x86_32</code>), so the suffix
+matches the toolchain's <code>exec_compatible_with</code> constraints. The one
+exception is cmake's macOS build: it ships a single universal2 binary that
+resolves for both <code>x86_64</code> and <code>aarch64</code> (so the toolchain carries no cpu
+constraint), and its arch token is <code>universal</code> -
+<code>@cmake-3.31.12-macos-universal</code>.</li>
+<li><strong>Source spokes</strong> are named <code>@&lt;tool&gt;_src_&lt;version&gt;</code>, e.g.
+<code>@cmake_src_3.31.12</code>, <code>@make_src_4.4.1</code> (target <code>:&lt;tool&gt;_tool</code>).</li>
+</ul>
+<p>For most users these names are an implementation detail: <code>rules_foreign_cc</code>
+registers the hub and you never touch the spokes directly.</p>
+<p>For copy-pasteable recipes see <a href="bzlmod_examples.html">Examples</a>; to move an
+existing WORKSPACE project over, see
+<a href="bzlmod_migration.html">Migrating from WORKSPACE</a>.</p>
+<h2 id="how-the-hub-is-assembled"><a class="header" href="#how-the-hub-is-assembled">How the hub is assembled</a></h2>
+<p>It helps to follow the chain from a tag to a registered toolchain, in order.</p>
+<p><strong>Step 1 - each <code>tools.&lt;tool&gt;(...)</code> tag has up to two effects.</strong> Every tag,
+from any module (root or transitive) and regardless of <code>register_toolchain</code>,
+<strong>declares a spoke repo</strong> for its tool/mode/version. Declaring is not
+downloading: Bazel materializes a spoke lazily, only when something references
+one of its targets (see <a href="bzlmod_hub.html#non-root-modules">Non-root modules</a> and
+<a href="bzlmod_hub.html#register_toolchain--false"><code>register_toolchain = False</code></a>). On top of that, a
+tag that both comes from the <strong>root</strong> module and keeps the default
+<code>register_toolchain = True</code> <strong>adds a <code>toolchain(...)</code> entry to the hub</strong>.
+Non-root tags and <code>register_toolchain = False</code> tags only declare a spoke; they
+never add a hub entry.</p>
+<p><strong>Step 2 - <code>rules_foreign_cc</code> adds its own default entries.</strong> For tools the
+root didn't tag with a registering tag, rfcc contributes default
+<code>toolchain(...)</code> entries (the pinned cmake/ninja/etc.). Root entries sort
+ahead of rfcc's defaults in <code>:all</code>, so a registering root tag wins on conflict
+for that tool. <a href="bzlmod_hub.html#toolsexplicit"><code>tools.explicit()</code></a> (root-only) drops rfcc's
+default entries entirely, leaving only the root's own; spoke declaration from
+Step 1 is unaffected.</p>
+<p><strong>Step 3 - <code>rules_foreign_cc</code> registers the hub.</strong> rfcc calls
+<code>register_toolchains("@rules_foreign_cc_toolchains//:all")</code> from its own
+<a href="https://github.com/bazel-contrib/rules_foreign_cc/blob/main/MODULE.bazel"><code>MODULE.bazel</code></a>,
+so every <code>toolchain(...)</code> entry collected in Steps 1-2 becomes a registered
+toolchain for the whole build. You never call <code>register_toolchains</code> for the
+hub yourself. This is also why <code>register_toolchain = False</code> suppresses
+registration without suppressing the spoke: it withholds the Step 1 hub entry,
+so there is nothing for Step 3 to register, but the spoke is still declared.</p>
+<h2 id="minimal-setup"><a class="header" href="#minimal-setup">Minimal setup</a></h2>
+<p>If you want sensible defaults and don't care about specific versions, just
+depend on <code>rules_foreign_cc</code>:</p>
+<pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
+</code></pre>
+<p>That's it. <code>rules_foreign_cc</code> contributes its default tool set - cmake and
+ninja as prebuilt binaries, make, meson, and pkgconfig built from source, plus
+autoconf, automake, m4, and msbuild as system tools - and <strong>registers the hub
+for you</strong> from its own MODULE.bazel. (For the exact default mode and pinned
+version of each tool, see the
+<a href="bzlmod_hub.html#per-tool-support">per-tool support table</a> below.) cmake and ninja
+additionally register an unconstrained <code>system</code> toolchain as a host-PATH
+fallback: the prebuilt binary wins on the platforms rfcc ships prebuilts for,
+and any other host falls back to a <code>cmake</code>/<code>ninja</code> on <code>PATH</code> rather than
+failing resolution.
+(nmake is <em>not</em> a default: it shares make's toolchain type, so it's selected
+only by an explicit <code>toolchain =</code> label, never registered for resolution.)
+bzlmod honors a dependency's <code>register_toolchains(...)</code> for the whole build, so
+you don't call it yourself.</p>
+<h2 id="the-tools-extension"><a class="header" href="#the-tools-extension">The <code>tools</code> extension</a></h2>
+<p>Customisation goes through the <code>tools</code> module extension. You add only the tags
+for the tools you care about; every other tool keeps its default, and you still
+don't register anything yourself. (Tagging a tool replaces <em>all</em> of rfcc's
+default tags for that one tool - relevant for cmake and ninja, which default to
+a binary plus a <code>system</code> fallback; see the note in
+<a href="bzlmod_hub.html#minimal-setup">Minimal setup</a>.)</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+
+tools.cmake(version = "3.31.12", mode = "binary")
+tools.ninja(mode = "system")
+tools.make(mode = "system")  # opt out of source-build, use system make
+</code></pre>
+<p><code>use_repo(tools, "rules_foreign_cc_toolchains")</code> and
+<code>register_toolchains("@rules_foreign_cc_toolchains//:all")</code> are only needed if
+you reference the hub repo by name in your own BUILD files, or if you opt out
+of rfcc's registration (see
+<a href="bzlmod_hub.html#register_toolchain--false"><code>register_toolchain = False</code></a>).</p>
+<p>Omitting a <code>tools.&lt;tool&gt;(...)</code> tag entirely is how you accept rfcc's default
+mode and pinned default version for that tool. A bare <code>tools.&lt;tool&gt;()</code> tag
+with no attributes is rejected - it neither selects a tool variant nor
+constrains one, so it's a no-op (<code>register_toolchain = False</code> doesn't change
+that: with no mode/version/constraints there's nothing to declare or
+suppress). A tag must carry at least one of <code>mode</code>, <code>version</code>,
+<code>exec_compatible_with</code>, or <code>target_compatible_with</code>. Beyond that minimum the
+attributes still interact: a <code>binary</code>/<code>source</code> mode requires a <code>version</code>,
+while <code>system</code>/<code>noop</code> forbid one (see <a href="bzlmod_hub.html#tag-attributes">Tag attributes</a>).</p>
+<p>Each tool has its own tag class: <code>tools.autoconf</code>, <code>tools.automake</code>,
+<code>tools.cmake</code>, <code>tools.m4</code>, <code>tools.make</code>, <code>tools.meson</code>, <code>tools.msbuild</code>,
+<code>tools.ninja</code>, <code>tools.nmake</code>, <code>tools.pkgconfig</code>.</p>
+<h3 id="tag-attributes"><a class="header" href="#tag-attributes">Tag attributes</a></h3>
+<p>All <code>tools.&lt;tool&gt;(...)</code> tags share the same shape:</p>
+<div class="table-wrapper"><table><thead><tr><th>Attribute</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+<tr><td><code>mode</code></td><td>string</td><td>One of the modes supported by the tool. See the table below. If unset, the planner picks the highest-priority mode the tool supports (binary &gt; source &gt; system).</td></tr>
+<tr><td><code>version</code></td><td>string</td><td>Required when the resolved mode is <code>binary</code> or <code>source</code>; forbidden for <code>system</code>/<code>noop</code> and for versionless tools. Accepts an exact patch (<code>3.31.12</code>) or a <code>major.minor.x</code> wildcard (<code>3.31.x</code>) that resolves to that minor series' latest patch - see <a href="bzlmod_hub.html#version-wildcards">Version wildcards</a>.</td></tr>
+<tr><td><code>register_toolchain</code></td><td>bool</td><td>Default <code>True</code>. If <code>False</code>, declare the spoke but skip registration - see below.</td></tr>
+<tr><td><code>exec_compatible_with</code></td><td>label list</td><td>Forwarded to the registered <code>toolchain(...)</code> target's <code>exec_compatible_with</code>.</td></tr>
+<tr><td><code>target_compatible_with</code></td><td>label list</td><td>Forwarded to the registered <code>toolchain(...)</code> target's <code>target_compatible_with</code>.</td></tr>
+</tbody></table>
+</div>
+<h3 id="per-tool-support"><a class="header" href="#per-tool-support">Per-tool support</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Tool</th><th>Supported modes</th><th>Default mode</th><th>Versioned</th></tr></thead><tbody>
+<tr><td><code>autoconf</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
+<tr><td><code>automake</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
+<tr><td><code>cmake</code></td><td>binary, source, system, noop</td><td>binary</td><td>yes</td></tr>
+<tr><td><code>m4</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
+<tr><td><code>make</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
+<tr><td><code>meson</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
+<tr><td><code>msbuild</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
+<tr><td><code>ninja</code></td><td>binary, source, system, noop</td><td>binary</td><td>yes</td></tr>
+<tr><td><code>nmake</code></td><td>system</td><td>system</td><td>no</td></tr>
+<tr><td><code>pkgconfig</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
+</tbody></table>
+</div>
+<p>The pinned default version for each versioned tool lives in
+<a href="https://github.com/bazel-contrib/rules_foreign_cc/blob/main/foreign_cc/private/tool_specs.bzl"><code>foreign_cc/private/tool_specs.bzl</code></a>
+(the <code>default_version</code> of each entry), the authoritative source for this whole
+table. The version numbers are omitted here on purpose: they move on every
+generator bump, and duplicating them in prose only invites drift.</p>
+<h3 id="version-wildcards"><a class="header" href="#version-wildcards">Version wildcards</a></h3>
+<p>A <code>version</code> may be an exact patch (<code>3.31.12</code>) or a <code>major.minor.x</code> wildcard
+(<code>3.31.x</code>). A wildcard resolves to the latest patch <code>rules_foreign_cc</code> ships
+for that minor series:</p>
+<pre><code class="language-python">tools.cmake(mode = "binary", version = "3.31.x")  # -&gt; 3.31.12
+</code></pre>
+<p>Resolution happens before any repo is created, so the wildcard and the exact
+patch are interchangeable: <code>version = "3.31.x"</code> materializes the same
+<code>@cmake-3.31.12-&lt;platform&gt;</code> / <code>@cmake_src_3.31.12</code> spoke as
+<code>version = "3.31.12"</code> would. This matches the WORKSPACE helpers
+(<code>cmake_binary_spokes("3.31.x")</code>), so the two dependency models behave
+identically.</p>
+<p>An unknown wildcard (a minor series rfcc doesn't ship) is rejected with a
+message listing the accepted exact versions and wildcards.</p>
+<h2 id="toolsexplicit"><a class="header" href="#toolsexplicit"><code>tools.explicit()</code></a></h2>
+<p>By default, <code>rules_foreign_cc</code> contributes a baseline set of registrations
+into the hub so that downstream consumers Just Work. If you want full
+control:</p>
+<blockquote>
+<p><strong>Caution:</strong> <code>tools.explicit()</code> suppresses rfcc's default registrations entirely.
+Any tool you don't tag has <strong>no registered toolchain</strong>, so toolchain
+resolution fails for it (<code>no matching toolchains found for ...</code>). When you
+opt in, you must declare every tool your build actually uses.</p>
+</blockquote>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.explicit()
+
+tools.cmake(version = "3.31.12", mode = "binary")
+tools.ninja(version = "1.13.2", mode = "binary")
+# ...declare every tool you want, or accept that resolution will fail for
+# the ones you skipped.
+</code></pre>
+<p><code>tools.explicit()</code> is a root-only opt-out. After it fires, the rfcc-default
+contributions are dropped entirely and the only registrations in the hub are
+those your root MODULE.bazel asks for.</p>
+<p><code>tools.explicit()</code> gates <strong>registration and singleton hub aliases</strong> only -
+it does not suppress spoke declaration. Spokes that any module (root or
+transitive) requests via <code>tools.&lt;tool&gt;(...)</code> are still declared (and
+materialized on reference), so a transitive dependency that says
+<code>tools.cmake(version="3.21.7", register_toolchain=False)</code> to reach a
+specific archive in its own scope keeps working under <code>tools.explicit()</code>.
+You just won't see those versions in the hub's <code>:all</code> list unless your
+root asks for them.</p>
+<h2 id="non-root-modules"><a class="header" href="#non-root-modules">Non-root modules</a></h2>
+<p>Non-root <code>tools.&lt;tool&gt;(...)</code> tags declare their spoke (so the per-version
+repo is reachable inside that module's scope, materialized when referenced)
+but never contribute hub registrations or singleton aliases. The result: a
+transitive module pinned to a specific tool version keeps working
+without leaking that pin into the root's toolchain registration list.</p>
+<p>If a transitive module wants <code>cmake 3.21.7</code> and root wants <code>cmake 3.31.12</code>,
+both <code>@cmake_src_3.21.7</code> and the root's binary spoke
+(<code>@cmake-3.31.12-&lt;platform&gt;</code>) are declared; the root's version is the
+registered toolchain of record.</p>
+<h2 id="register_toolchain--false"><a class="header" href="#register_toolchain--false"><code>register_toolchain = False</code></a></h2>
+<p>If you want the spoke declared (so the underlying repo and its targets are
+reachable, and materialized when you reference them) but you don't want it
+added to the hub's <code>:all</code> registration list - for example, because you're
+doing your own conditional registration - pass <code>register_toolchain = False</code>:</p>
+<pre><code class="language-python">tools.cmake(version = "3.31.12", mode = "binary", register_toolchain = False)
+use_repo(tools, "cmake-3.31.12-linux-x86_64")
+</code></pre>
+<p>Binary and source spokes differ in what they expose, so manual registration
+differs too:</p>
+<p><strong>Binary per-platform spokes</strong> ship only a <code>native_tool_toolchain</code>
+implementation target (<code>:cmake_tool</code>), not a <code>toolchain(...)</code> rule, so a bare
+<code>register_toolchains(...)</code> against it isn't enough. Wrap it in your own
+<code>toolchain(...)</code> with the appropriate <code>toolchain_type</code> and constraints, then
+register that:</p>
+<pre><code class="language-python"># BUILD.bazel
+toolchain(
+    name = "cmake_tool_manual",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = "@cmake-3.31.12-linux-x86_64//:cmake_tool",
+    toolchain_type = "@rules_foreign_cc//toolchains:cmake_toolchain",
+)
+</code></pre>
+<pre><code class="language-python"># MODULE.bazel
+register_toolchains("//:cmake_tool_manual")
+</code></pre>
+<p><strong>Source spokes</strong> ship a registerable <code>toolchain(...)</code> rule directly, at
+<code>@&lt;tool&gt;_src_&lt;version&gt;//:&lt;tool&gt;_toolchain</code>, so you register it by label
+without wrapping anything:</p>
+<pre><code class="language-python"># MODULE.bazel
+register_toolchains("@cmake_src_3.31.12//:cmake_toolchain")
+</code></pre>
+<p>(The source spoke also exposes the underlying <code>:&lt;tool&gt;_tool</code> implementation
+target if you want to wrap it yourself, but you rarely need to.)</p>
+<h2 id="built-in-noop-toolchains"><a class="header" href="#built-in-noop-toolchains">Built-in noop toolchains</a></h2>
+<p><code>rules_foreign_cc</code> ships <code>noop_&lt;tool&gt;_toolchain</code> targets for every
+noop-capable tool (<code>nmake</code> has no noop mode -- it shares the <code>make</code> toolchain
+type, so use <code>tools.make(mode = "noop")</code> to no-op the make family):</p>
+<ul>
+<li><code>@rules_foreign_cc//toolchains:noop_autoconf_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_automake_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_cmake_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_m4_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_make_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_meson_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_msbuild_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_ninja_toolchain</code></li>
+<li><code>@rules_foreign_cc//toolchains:noop_pkgconfig_toolchain</code></li>
+</ul>
+<p>Each one points its tool at <code>false</code> and exports the canonical env vars
+(<code>CMAKE</code>, <code>NINJA</code>, <code>M4</code>, etc.) pointing at the same. They make analysis
+succeed - toolchain resolution finds something - and execution fail loudly.
+This is intended for tests and other targets that need to build but never
+actually invoke the underlying tool. <code>tools.&lt;tool&gt;(mode = "noop")</code> is the
+extension-driven way to register one of these.</p>
+<h2 id="limitations"><a class="header" href="#limitations">Limitations</a></h2>
+<p>The current surface does not handle these cases:</p>
+<ul>
+<li><strong>Major-only wildcards.</strong> A <code>version</code> is an exact patch or a <code>major.minor.x</code>
+wildcard (see <a href="bzlmod_hub.html#version-wildcards">Version wildcards</a>); a bare major series
+like <code>3.x</code> is not accepted.</li>
+<li><strong>Versions rfcc doesn't ship.</strong> A <code>version</code> must resolve to a version
+<code>rules_foreign_cc</code> has download URLs for; there is no way to point a tag at
+an arbitrary unsupported version.</li>
+<li><strong>Only the root shapes the default registration set.</strong> Non-root modules can
+declare spokes for their own scope but cannot append to the hub's <code>:all</code>
+registration list; that list is driven by the root module and rfcc's
+defaults.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="bzlmod-examples"><a class="header" href="#bzlmod-examples">bzlmod examples</a></h1>
+<p>Copy-pasteable <code>MODULE.bazel</code> recipes for the <code>tools</code> extension. For the full
+API reference see <a href="bzlmod_hub.html">bzlmod hub-and-spoke</a>; to convert an existing
+WORKSPACE project see <a href="bzlmod_migration.html">Migrating from WORKSPACE</a>.</p>
+<blockquote>
+<p><strong>You usually don't call <code>register_toolchains</code> yourself.</strong>
+<code>rules_foreign_cc</code>'s own <code>MODULE.bazel</code> already registers
+<code>@rules_foreign_cc_toolchains//:all</code>, and bzlmod honors a dependency's
+registration for the whole build. Your <code>tools.&lt;tool&gt;(...)</code> tags shape what
+the hub contains; you don't need to re-register it or <code>use_repo</code> it. The
+only time you call <code>register_toolchains</code> / <code>use_repo</code> yourself is the
+<a href="bzlmod_examples.html#bring-your-own-toolchain">Bring your own toolchain</a> case below, or when
+you reference a hub alias / spoke repo by name in your own BUILD files.</p>
+</blockquote>
+<h2 id="defaults-only"><a class="header" href="#defaults-only">Defaults only</a></h2>
+<p>Accept every tool's default mode and pinned version - just depend on
+<code>rules_foreign_cc</code>:</p>
+<pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
+</code></pre>
+<h2 id="pin-a-single-version"><a class="header" href="#pin-a-single-version">Pin a single version</a></h2>
+<p>Override just cmake; every <em>other</em> tool keeps its default:</p>
+<pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
+
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.31.12", mode = "binary")
+</code></pre>
+<p>Note: overriding a tool replaces <em>all</em> of rfcc's default tags for that tool,
+not just the one you restate. cmake and ninja ship two defaults each - the
+prebuilt binary plus an unconstrained <code>system</code> host-PATH fallback (see
+<a href="bzlmod_hub.html#minimal-setup">Minimal setup</a>) - so a lone
+<code>tools.cmake(mode = "binary")</code> drops the cmake system fallback, and resolution
+will fail on platforms rfcc has no prebuilt for. To keep the fallback, restate
+both tags:</p>
+<pre><code class="language-python">tools.cmake(version = "3.31.12", mode = "binary")
+tools.cmake(mode = "system")
+</code></pre>
+<h2 id="track-the-latest-patch-of-a-minor-series"><a class="header" href="#track-the-latest-patch-of-a-minor-series">Track the latest patch of a minor series</a></h2>
+<p>Use a <code>major.minor.x</code> wildcard to take whatever patch <code>rules_foreign_cc</code>
+ships for that minor series (here <code>3.31.x</code> resolves to <code>3.31.12</code>):</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.31.x", mode = "binary")
+</code></pre>
+<h2 id="build-a-tool-from-source"><a class="header" href="#build-a-tool-from-source">Build a tool from source</a></h2>
+<p>Force cmake to build from source instead of downloading a prebuilt binary:</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.31.12", mode = "source")
+</code></pre>
+<h2 id="use-a-host-installed-tool"><a class="header" href="#use-a-host-installed-tool">Use a host-installed tool</a></h2>
+<p>Skip downloading/building and use the tool already on the exec host. This is
+not hermetic - the build depends on what's installed - but it's useful for
+tools you don't want rules_foreign_cc to manage:</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.make(mode = "system")
+tools.ninja(mode = "system")
+</code></pre>
+<h2 id="full-control-with-toolsexplicit"><a class="header" href="#full-control-with-toolsexplicit">Full control with <code>tools.explicit()</code></a></h2>
+<p>Suppress rfcc's default registrations entirely and register only what you
+declare. Any
+tool you don't tag has no registered toolchain, so resolution fails for it:</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.explicit()
+
+tools.cmake(version = "3.31.12", mode = "binary")
+tools.ninja(version = "1.13.2", mode = "binary")
+tools.make(version = "4.4.1", mode = "source")
+</code></pre>
+<h2 id="bring-your-own-toolchain"><a class="header" href="#bring-your-own-toolchain">Bring your own toolchain</a></h2>
+<p>Declare the spoke but register it yourself (e.g. with custom constraints or
+conditional logic). <code>register_toolchain = False</code> suppresses the hub entry:</p>
+<pre><code class="language-python"># MODULE.bazel
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.cmake(version = "3.31.12", mode = "binary", register_toolchain = False)
+use_repo(tools, "cmake-3.31.12-linux-x86_64")
+
+register_toolchains("//:cmake_tool_manual")
+</code></pre>
+<pre><code class="language-python"># BUILD.bazel
+toolchain(
+    name = "cmake_tool_manual",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = "@cmake-3.31.12-linux-x86_64//:cmake_tool",
+    toolchain_type = "@rules_foreign_cc//toolchains:cmake_toolchain",
+)
+</code></pre>
+<h2 id="no-op-a-tool-you-dont-need-to-run"><a class="header" href="#no-op-a-tool-you-dont-need-to-run">No-op a tool you don't need to run</a></h2>
+<p>Some build systems require a toolchain to <em>resolve</em> even if the tool is never
+run, or treat a tool as optional and simply skip the work when it's absent.
+<code>mode = "noop"</code> registers a placeholder that satisfies resolution
+(host-independent, unlike <code>mode = "system"</code>) and points the tool at a path
+that fails when executed.</p>
+<p>Whether that matters depends on the build: if nothing ever invokes the tool -
+e.g. a cmake build that declares an m4 dependency it doesn't use, or
+<code>pkgconfig</code> set to noop to skip optional package searches - the build succeeds
+and just skips that step. If the build <em>does</em> invoke the tool, it fails loudly
+at execution time rather than silently using a host binary.</p>
+<pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.explicit()
+
+tools.cmake(version = "3.31.12", mode = "binary")
+tools.ninja(version = "1.13.2", mode = "binary")
+tools.m4(mode = "noop")
+tools.pkgconfig(mode = "noop")
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="migrating-to-the-bzlmod-hub"><a class="header" href="#migrating-to-the-bzlmod-hub">Migrating to the bzlmod hub</a></h1>
+<p>This page covers two migrations:</p>
+<ol>
+<li><strong>From WORKSPACE</strong> to bzlmod (<code>rules_foreign_cc_dependencies()</code> → the
+<code>tools</code> extension).</li>
+<li><strong>From the previous bzlmod surface</strong> (singleton spoke repos →
+version-suffixed spokes + hub aliases).</li>
+</ol>
+<p>For the full API see <a href="bzlmod_hub.html">bzlmod hub-and-spoke</a>; for recipes see
+<a href="bzlmod_examples.html">Examples</a>.</p>
+<h2 id="from-workspace"><a class="header" href="#from-workspace">From WORKSPACE</a></h2>
+<h3 id="before-workspace"><a class="header" href="#before-workspace">Before (WORKSPACE)</a></h3>
+<pre><code class="language-python">load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies()
+</code></pre>
+<h3 id="after-modulebazel"><a class="header" href="#after-modulebazel">After (MODULE.bazel)</a></h3>
+<pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
+</code></pre>
+<p>The <code>bazel_dep</code> alone reproduces the default tool set the WORKSPACE macro
+registered - <code>rules_foreign_cc</code> registers the hub from its own MODULE.bazel,
+and bzlmod honors that for the whole build. You only need the <code>tools</code>
+extension if you want to customize versions or modes, and even then you don't
+call <code>register_toolchains</code> yourself.</p>
+<h3 id="mapping-the-old-kwargs"><a class="header" href="#mapping-the-old-kwargs">Mapping the old kwargs</a></h3>
+<p><code>rules_foreign_cc_dependencies(...)</code> took several flags. Here's where each one
+goes under bzlmod:</p>
+<div class="table-wrapper"><table><thead><tr><th>WORKSPACE kwarg</th><th>bzlmod equivalent</th></tr></thead><tbody>
+<tr><td><code>register_default_tools = True</code> (cmake/ninja)</td><td>automatic; rfcc registers the hub for you</td></tr>
+<tr><td><code>register_built_tools = True</code> (build from source)</td><td><code>tools.&lt;tool&gt;(mode = "source", version = "...")</code> (an explicit version is required), or the source defaults in the hub</td></tr>
+<tr><td><code>register_preinstalled_tools = True</code> (host tools)</td><td><code>tools.&lt;tool&gt;(mode = "system")</code></td></tr>
+<tr><td><code>cmake_version = "3.31.12"</code></td><td><code>tools.cmake(version = "3.31.12")</code></td></tr>
+<tr><td><code>ninja_version = "1.13.2"</code></td><td><code>tools.ninja(version = "1.13.2")</code></td></tr>
+<tr><td><code>make_version = "4.4.1"</code></td><td><code>tools.make(version = "4.4.1")</code></td></tr>
+<tr><td><code>meson_version = "1.10.1"</code></td><td><code>tools.meson(version = "1.10.1")</code></td></tr>
+<tr><td><code>pkgconfig_version = "0.29.2"</code></td><td><code>tools.pkgconfig(version = "0.29.2")</code></td></tr>
+<tr><td><code>register_toolchains = False</code></td><td>omit <code>register_toolchains(...)</code>; register manually</td></tr>
+<tr><td><code>native_tools_toolchains = [...]</code></td><td><code>tools.&lt;tool&gt;(..., register_toolchain = False)</code> + your own <code>toolchain(...)</code></td></tr>
+</tbody></table>
+</div>
+<h3 id="selecting-nmake-by-label-windows"><a class="header" href="#selecting-nmake-by-label-windows">Selecting nmake by label (Windows)</a></h3>
+<p>If you build an MSVC target by pointing a rule's <code>toolchain</code> attribute at
+<code>@rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</code> (e.g.
+<code>cmake(name = "hello_nmake", toolchain = "@rules_foreign_cc//toolchains:preinstalled_nmake_toolchain")</code>),
+that label still resolves under bzlmod - it's a static target in
+<code>rules_foreign_cc</code>, not something the hub generates. No change is needed;
+you do <strong>not</strong> need a <code>tools.nmake(...)</code> tag for this.</p>
+<p>nmake has no <code>noop</code> mode: it shares the <code>make</code> toolchain type, so a noop
+nmake entry would carry no constraints and shadow the real make toolchain on
+every platform. <code>tools.nmake(mode = "noop")</code> is rejected at evaluation time.
+To no-op the make family, use <code>tools.make(mode = "noop")</code>.</p>
+<h3 id="running-both-during-migration"><a class="header" href="#running-both-during-migration">Running both during migration</a></h3>
+<p>You can keep your WORKSPACE working while you test the bzlmod path. Bazel
+selects the dependency model with <code>--enable_bzlmod</code> / <code>--noenable_bzlmod</code>
+(or the <code>common --enable_bzlmod</code> line in <code>.bazelrc</code>). Verify the bzlmod build
+before deleting <code>WORKSPACE</code>.</p>
+<p>Note: this release makes <code>rules_foreign_cc_dependencies()</code> create a repo named
+<code>@rules_foreign_cc_toolchains</code> in WORKSPACE mode too (the hub that publishes
+the source-spoke aliases macros like <code>meson_with_requirements</code> rely on). If
+your own WORKSPACE already defines a repo by that name, rename yours to avoid
+the collision.</p>
+<h2 id="from-the-previous-bzlmod-surface"><a class="header" href="#from-the-previous-bzlmod-surface">From the previous bzlmod surface</a></h2>
+<p>The version-suffixed source-archive repos replace the singleton names from the
+previous release. There is <strong>no zero-edit migration path</strong>; pick whichever of
+the patterns below matches what you reference in your BUILD files.</p>
+<h3 id="a-root-modules-version-tags-now-take-effect"><a class="header" href="#a-root-modules-version-tags-now-take-effect">A root module's version tags now take effect</a></h3>
+<p>The previous <code>tools</code> extension read its <code>cmake</code> / <code>ninja</code> version tags only
+from non-root modules; a version set on the <strong>root</strong> module's own tag was not
+applied, so the build kept rfcc's default version. The registered toolchains
+are now driven by the root module's tags instead. (Transitive modules' tags
+still fetch spokes for their own scope but, as before, don't shape the hub's
+registration list - only the root and rfcc's own defaults do.) If your root
+MODULE.bazel already carried a <code>tools.cmake(version = "...")</code> or
+<code>tools.ninja(version = "...")</code> tag that previously had no effect, that version
+now applies - confirm it's the version you want. (This only matters if the
+pinned version differs from the default; if you weren't tagging cmake/ninja on
+the root, nothing changes.)</p>
+<h3 id="drop-the-manual-hub-use_repo--register_toolchains"><a class="header" href="#drop-the-manual-hub-use_repo--register_toolchains">Drop the manual hub <code>use_repo</code> / <code>register_toolchains</code></a></h3>
+<p>The previous bzlmod surface made you <code>use_repo</code> the extension's per-tool
+toolchain repos and register them yourself:</p>
+<pre><code class="language-python"># Before -- previous bzlmod surface
+use_repo(
+    tools,
+    "rules_foreign_cc_framework_toolchains",
+    "cmake_3.31.12_toolchains",
+    "ninja_1.13.2_toolchains",
+    # ...source repos...
+)
+register_toolchains(
+    "@rules_foreign_cc_framework_toolchains//:all",
+    "@cmake_3.31.12_toolchains//:all",
+    "@ninja_1.13.2_toolchains//:all",
+)
+</code></pre>
+<p><code>@rules_foreign_cc_framework_toolchains</code> is no longer the registration
+surface. The framework toolchains are still registered - the hub now carries
+them (the <code>00_framework</code> entries in <code>@rules_foreign_cc_toolchains</code>), and
+<code>rules_foreign_cc</code> registers the hub from its own MODULE.bazel, so they
+resolve with no <code>register_toolchains</code> line at all. The aggregator repo is
+still minted, but nothing registers it and you no longer <code>use_repo</code> it.
+Delete the <code>use_repo</code> entries and the <code>register_toolchains(...)</code> calls above;
+leaving the <code>@rules_foreign_cc_framework_toolchains//:all</code> line in place would
+redundantly re-register the same framework toolchains. You only add a
+<code>register_toolchains("@rules_foreign_cc_toolchains//:all")</code> line back if you
+opted out of rfcc's own registration.</p>
+<p>The per-version binary aggregators (<code>@cmake_3.31.12_toolchains</code>,
+<code>@ninja_1.13.2_toolchains</code>) aren't gone: a binary spoke still declares its
+aggregator repo. What changed is that nothing registers their toolchains for
+you and they're no longer in your <code>use_repo</code> list, so the hub's registrations
+win by default. If you want manual binary registration you can still <code>use_repo</code>
+one and register it yourself (see
+<a href="bzlmod_hub.html#register_toolchain--false"><code>register_toolchain = False</code></a>). Most
+consumers just delete the lines above and let the hub register the defaults.</p>
+<p><code>bazel mod tidy</code> will <strong>not</strong> clean these up for you: the <code>tools</code> extension
+reports <code>reproducible = True</code> and declares no <code>use_repo</code>-able repos of its own
+(the same as <code>go_sdk</code> and rules_python's <code>pip</code>), so <code>mod tidy</code> leaves the stale
+entries in place. Remove them by hand.</p>
+<p>Renamed source repos (singleton → version-suffixed at default versions):</p>
+<div class="table-wrapper"><table><thead><tr><th>Before</th><th>After</th></tr></thead><tbody>
+<tr><td><code>@cmake_src</code></td><td><code>@cmake_src_3.31.12</code></td></tr>
+<tr><td><code>@meson_src</code></td><td><code>@meson_src_1.10.1</code></td></tr>
+<tr><td><code>@gnumake_src</code></td><td><code>@make_src_4.4.1</code></td></tr>
+<tr><td><code>@ninja_build_src</code></td><td><code>@ninja_src_1.13.2</code></td></tr>
+<tr><td><code>@pkgconfig_src</code></td><td><code>@pkgconfig_src_0.29.2</code></td></tr>
+</tbody></table>
+</div>
+<p>The per-platform binary spoke repos were also renamed to one scheme,
+<code>@&lt;tool&gt;-&lt;version&gt;-&lt;os&gt;-&lt;arch&gt;</code>, where <code>&lt;os&gt;</code> and <code>&lt;arch&gt;</code> are the Bazel
+platform names. This affects only code that referenced a binary spoke by its
+literal repo name (a <code>use_repo</code> entry or a hand-written <code>toolchain(...)</code>
+pointing at one); the hub and the aggregator <em>repo</em> names above are unchanged,
+so most consumers see nothing. The ninja spokes changed both separator and
+token (<code>@ninja_1.13.2_linux</code> -&gt; <code>@ninja-1.13.2-linux-x86_64</code>), and cmake's
+upstream-derived platform tokens were normalized to Bazel spellings
+(<code>@cmake-3.31.12-Linux-x86_64</code> -&gt; <code>@cmake-3.31.12-linux-x86_64</code>,
+<code>win64-x64</code> -&gt; <code>windows-x86_64</code>). cmake's universal2 macOS build uses the arch
+token <code>universal</code> (<code>@cmake-3.31.12-macos-universal</code>). See
+<a href="bzlmod_hub.html">bzlmod hub-and-spoke</a> for the full scheme. These per-platform
+names are an implementation detail and not a stable API; pin the aggregator or
+the hub rather than a spoke if you need a name that won't move.</p>
+<p>The aggregator repos themselves keep their names, but their per-platform
+<code>toolchain(...)</code> target names embed the spoke name, so those moved too
+(<code>@ninja_1.13.2_toolchains//:ninja_1.13.2_linux_toolchain</code> -&gt;
+<code>@ninja_1.13.2_toolchains//:ninja-1.13.2-linux-x86_64_toolchain</code>).
+Registering <code>@&lt;tool&gt;_&lt;version&gt;_toolchains//:all</code> is unaffected; only a
+<code>register_toolchains(...)</code> pinned at one platform target by name needs the
+update.</p>
+<p>The public build-from-source toolchain labels were also removed; they are now
+per-version spokes registered through the hub:</p>
+<div class="table-wrapper"><table><thead><tr><th>Removed label</th><th>Replacement</th></tr></thead><tbody>
+<tr><td><code>@rules_foreign_cc//toolchains:built_cmake_toolchain</code></td><td><code>tools.cmake(mode = "source", version = "3.31.12")</code> → hub registration</td></tr>
+<tr><td><code>@rules_foreign_cc//toolchains:built_ninja_toolchain</code></td><td><code>tools.ninja(mode = "source", version = "1.13.2")</code> → hub registration</td></tr>
+<tr><td><code>@rules_foreign_cc//toolchains:built_make_toolchain</code></td><td><code>tools.make(mode = "source", version = "4.4.1")</code> → hub registration</td></tr>
+<tr><td><code>@rules_foreign_cc//toolchains:built_meson_toolchain</code></td><td><code>tools.meson(mode = "source", version = "1.10.1")</code> → hub registration</td></tr>
+<tr><td><code>@rules_foreign_cc//toolchains:built_pkgconfig_toolchain</code></td><td><code>tools.pkgconfig(mode = "source", version = "0.29.2")</code> → hub registration</td></tr>
+</tbody></table>
+</div>
+<p>If you registered these labels explicitly (e.g.
+<code>register_toolchains("@rules_foreign_cc//toolchains:built_make_toolchain")</code>),
+you have two replacements. Either drop the <code>register_toolchains(...)</code> line and
+let the hub register a source-built default through
+<code>@rules_foreign_cc_toolchains//:all</code> (declare the
+<code>tools.&lt;tool&gt;(mode = "source", version = "...")</code> tag if you need a non-default
+version), or keep registering by label and point at the source spoke's own
+<code>toolchain(...)</code> target:
+<code>register_toolchains("@make_src_4.4.1//:make_toolchain")</code>,
+<code>register_toolchains("@meson_src_1.10.1//:meson_toolchain")</code>, and so on
+(<code>@&lt;tool&gt;_src_&lt;version&gt;//:&lt;tool&gt;_toolchain</code>). The source spoke ships that
+registerable <code>toolchain(...)</code> rule directly, unlike the binary per-platform
+spokes, which expose only a <code>native_tool_toolchain</code> you have to wrap yourself
+(see <a href="bzlmod_hub.html#register_toolchain--false"><code>register_toolchain = False</code></a>).</p>
+<p>The autogenerated <code>@rules_foreign_cc//toolchains:cmake_versions.bzl</code> data file
+(<code>CMAKE_SRCS</code>) was also removed. It was a "DO NOT MODIFY" generated table, not a
+supported API; its data now lives at
+<a href="https://github.com/bazel-contrib/rules_foreign_cc/blob/main/toolchains/private/cmake_versions.bzl"><code>toolchains/private/cmake_versions.bzl</code></a>
+as <code>CMAKE_SRC_SRCS</code>. If you loaded the old path directly, drop the dependency.</p>
+<h3 id="pattern-a---version-neutral-follow-rfccs-defaults"><a class="header" href="#pattern-a---version-neutral-follow-rfccs-defaults">Pattern A - version-neutral, follow rfcc's defaults</a></h3>
+<p>If you don't care which version you get and want to track rfcc's defaults,
+reach the source archive through the hub's version-neutral aliases:</p>
+<pre><code class="language-python">filegroup(
+    name = "cmake_sources",
+    srcs = ["@rules_foreign_cc_toolchains//:cmake_src_all"],
+)
+</code></pre>
+<p>Hub aliases published per source-mode tool: <code>cmake_src_all</code>, <code>cmake_built</code>,
+<code>make_src_all</code>, <code>make_built</code>, <code>meson_src_all</code>, <code>meson_built</code>,
+<code>meson_src_meson_py</code>, <code>meson_src_runtime</code>, <code>ninja_src_all</code>, <code>ninja_built</code>,
+<code>pkgconfig_src_all</code>, <code>pkgconfig_built</code>.</p>
+<h3 id="pattern-b---pin-the-version-yourself"><a class="header" href="#pattern-b---pin-the-version-yourself">Pattern B - pin the version yourself</a></h3>
+<p>If you want the version stable across rfcc upgrades, declare the spoke in your
+MODULE.bazel and reference its version-suffixed name:</p>
+<pre><code class="language-python"># MODULE.bazel
+tools.cmake(mode = "source", version = "3.21.7", register_toolchain = False)
+use_repo(tools, "cmake_src_3.21.7")
+
+# BUILD.bazel
+filegroup(
+    name = "cmake_sources",
+    srcs = ["@cmake_src_3.21.7//:all_srcs"],
+)
+</code></pre>
+<p><strong>Don't blindly rename.</strong> Search-and-replacing <code>@cmake_src</code> →
+<code>@cmake_src_3.31.12</code> without declaring an explicit
+<code>tools.cmake(mode = "source", version = "3.31.12")</code> tag works <em>today</em> but
+breaks silently the day rfcc bumps its default cmake version - the suffixed
+repo will simply not exist. Either use Pattern A (hub alias) or Pattern B
+(declare the tag).</p>
+<h2 id="common-pitfalls"><a class="header" href="#common-pitfalls">Common pitfalls</a></h2>
+<p><strong>Error:</strong> <code>no such package '@cmake_src//...': The repository '@cmake_src' could not be resolved</code>
+<strong>Solution:</strong> The singleton source repos were renamed. Use the hub alias
+<code>@rules_foreign_cc_toolchains//:cmake_src_all</code> (Pattern A) or the
+version-suffixed <code>@cmake_src_&lt;version&gt;</code> after declaring the tag (Pattern B).</p>
+<p><strong>Error:</strong> <code>no such target '@rules_foreign_cc_toolchains//:cmake_src_all'</code>
+under <code>tools.explicit()</code>
+<strong>Solution:</strong> <code>tools.explicit()</code> drops the default source alias. Add an
+explicit <code>tools.cmake(mode = "source", version = "...")</code> so the hub knows
+which version to alias.</p>
+<p><strong>Error:</strong> <code>no such target '@rules_foreign_cc_toolchains//:meson_src_meson_py'</code> when calling the
+<code>meson_with_requirements</code> macro.
+<strong>Solution:</strong> That public macro reaches the hub's meson source aliases (through
+rfcc-owned <code>@rules_foreign_cc//foreign_cc:meson_src_*</code> aliases, so you do <em>not</em>
+need to <code>use_repo</code> the hub yourself). It does need a meson source spoke to
+exist. The defaults provide one automatically, but under
+<code>tools.explicit()</code> you must declare <code>tools.meson(mode = "source", version = "...")</code> yourself, otherwise the alias is never emitted.</p>
+<p><strong>Error:</strong> <code>While resolving toolchains for target ...: no matching toolchains found for types @rules_foreign_cc//toolchains:cmake_toolchain</code>
+<strong>Solution:</strong> Usually this means you used <code>tools.explicit()</code> and never tagged
+that tool - under <code>tools.explicit()</code> you must declare every tool you want
+registered. (You don't normally need a <code>register_toolchains(...)</code> line:
+<code>rules_foreign_cc</code> registers the hub for you. You'd only add one if you
+explicitly opted out of rfcc's registration.)</p>
+<p><strong>Error:</strong> a <code>tools.&lt;tool&gt;()</code> tag is rejected at evaluation time.
+<strong>Solution:</strong> A bare tag with no attributes is invalid - it neither selects a
+tool variant nor constrains one, so it's a no-op (<code>register_toolchain = False</code>
+doesn't change that). Pass at least one of <code>mode</code>, <code>version</code>,
+<code>exec_compatible_with</code>, or <code>target_compatible_with</code>.</p>
+<p><strong>Error:</strong> <code>no such target '@rules_foreign_cc//toolchains:built_cmake_toolchain'</code>
+(or <code>built_ninja_toolchain</code> / <code>built_make_toolchain</code> / <code>built_meson_toolchain</code>
+/ <code>built_pkgconfig_toolchain</code>)
+<strong>Solution:</strong> The public <code>built_*_toolchain</code> labels were removed. The
+build-from-source toolchains are now per-version spokes registered through the
+hub. Declare a <code>tools.&lt;tool&gt;(mode = "source", version = "...")</code> tag (bzlmod) -- an
+explicit version is required in <code>source</code>/<code>binary</code> mode -- so the hub registers
+the source toolchain, or register the spoke's <code>:&lt;tool&gt;_toolchain</code> target by
+label yourself: <code>register_toolchains("@make_src_4.4.1//:make_toolchain")</code>
+(<code>@&lt;tool&gt;_src_&lt;version&gt;//:&lt;tool&gt;_toolchain</code> -- the source spoke ships a
+registerable <code>toolchain(...)</code>; see
+<a href="bzlmod_hub.html#register_toolchain--false"><code>register_toolchain = False</code></a>).</p>
+<p><strong>Error:</strong> build picks up the wrong tool version after an rfcc upgrade.
+<strong>Solution:</strong> You were relying on a default version. Pin it with an explicit
+<code>tools.&lt;tool&gt;(version = "...")</code> tag.</p>
+<h2 id="checklist"><a class="header" href="#checklist">Checklist</a></h2>
+<ol>
+<li>Add <code>bazel_dep(name = "rules_foreign_cc", version = "...")</code> to MODULE.bazel.
+(This alone registers the default toolchains - you do <strong>not</strong> add a
+<code>register_toolchains(...)</code> line for the hub.)</li>
+<li>For any version or mode you pinned via <code>rules_foreign_cc_dependencies(...)</code>,
+add the matching <code>tools.&lt;tool&gt;(...)</code> tag (see the kwarg table above).</li>
+<li>Replace any <code>@cmake_src</code> / <code>@meson_src</code> / etc. references with a hub alias
+(Pattern A) or a version-suffixed spoke (Pattern B).</li>
+<li>Build with <code>--enable_bzlmod</code> and confirm parity:
+<code>bazel build //...</code>.</li>
+<li>Inspect what got registered if anything looks off:
+<code>bazel query --output=build @rules_foreign_cc_toolchains//:all</code>.</li>
+<li>Remove the WORKSPACE <code>rules_foreign_cc_dependencies()</code> call once green.</li>
+</ol>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="rules"><a class="header" href="#rules">Rules</a></h1>
 <ul>
 <li><a href="./cmake.html">cmake</a></li>
