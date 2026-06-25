@@ -107,6 +107,12 @@ tasks:
       - //...
     build_flags:
       - --config=ci
+    # version_sync_lint (+ its self-test) is a py_test; without test_targets it
+    # would only be built, never run, leaving the doc/version drift guard inert.
+    test_targets:
+      - //...
+    test_flags:
+      - --config=ci
 
 buildifier:
   version: 8.2.1

@@ -577,7 +577,6 @@ def render_binary_dict(varname, versions):
                 "            integrity = {integ},\n"
                 "            constraints = {constraints},\n"
                 "            bin = {bin},\n"
-                "            plat_target = {plat_target},\n"
                 "        ),\n".format(
                     key=key_literal,
                     urls=urls_lines,
@@ -586,24 +585,11 @@ def render_binary_dict(varname, versions):
                     integ=_q(entry.get("integrity", "")),
                     constraints=constraints_lines,
                     bin=_q(entry.get("bin", "")),
-                    plat_target=_q(entry.get("plat_target", "")),
                 )
             )
         out.append("    },\n")
     out.append("}\n")
     return "".join(out)
-
-
-def render_repo_format(varname, fmt):
-    """Render a ``<varname> = "<fmt>"`` string constant.
-
-    The binary-spoke repo-name format lives in the generated data file so the
-    hub planner (tool_specs.bzl) and the repo-creating macros (binary_spokes.bzl)
-    consume one shared literal instead of each hand-encoding it -- the cmake
-    ``-`` vs ninja ``_`` separator asymmetry otherwise invites a silent drift
-    where the hub points at a never-created repo name.
-    """
-    return "{} = {}\n".format(varname, _q(fmt))
 
 
 def render_wildcard_map(varname, versions):
@@ -702,11 +688,6 @@ def get_cmake_definitions():
                 "integrity": "",
                 "constraints": list(target_meta["constraints"]),
                 "bin": bin_name,
-                # The upstream "plat_target" string. Used by binary_spokes.bzl
-                # to derive the per-platform repo name (kept byte-identical
-                # with the previous if-cascade) and by the planner in
-                # foreign_cc/private/extension_impl.bzl when emitting the hub.
-                "plat_target": plat_target,
             }
         bin_versions[version] = per_plat
 
@@ -761,7 +742,6 @@ def get_ninja_definitions(latest_by_minor):
                 "integrity": "",
                 "constraints": list(target_meta["constraints"]),
                 "bin": "ninja.exe" if "win" in target else "ninja",
-                "plat_target": target,
             }
 
         bin_versions[version] = per_plat
@@ -806,8 +786,6 @@ def main():
         + "\n"
         + render_wildcard_map("CMAKE_BIN_WILDCARDS", cmake_bin)
         + "\n"
-        + render_repo_format("CMAKE_BIN_REPO_FORMAT", "cmake-{version}-{plat_target}")
-        + "\n"
         + render_source_dict(
             varname="CMAKE_SRC_SRCS",
             url_template="",  # cmake source uses an explicit `urls` override per entry
@@ -823,8 +801,6 @@ def main():
         + render_binary_dict("NINJA_BIN_SRCS", ninja_bin)
         + "\n"
         + render_wildcard_map("NINJA_BIN_WILDCARDS", ninja_bin)
-        + "\n"
-        + render_repo_format("NINJA_BIN_REPO_FORMAT", "ninja_{version}_{plat_target}")
         + "\n"
         + render_source_dict(
             varname="NINJA_SRC_SRCS",

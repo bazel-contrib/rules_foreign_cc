@@ -1,4 +1,3 @@
-# test/integration/scenarios.bzl
 """Macro for declaring a bazel-in-bazel integration-test scenario.
 
 Each scenario is a self-contained workspace directory under test/integration/.
@@ -16,7 +15,7 @@ Two scenario shapes share this one harness:
                          WORKSPACE.bazel; the inner build runs in whichever
                          pure mode the outer Bazel uses (detected via
                          bzlmod_enabled.bzl). Used by the `basic` smoke test
-                         so the workspaces and bzlmod CI lanes each exercise
+                         so the workspaces and bzlmod CI jobs each exercise
                          their own path.
   * dual_mode = False  - bzlmod-only scenario (ships MODULE.bazel + an empty
                          WORKSPACE). Used by the hub-and-spoke API scenarios,
@@ -71,8 +70,9 @@ def scenario(
            (WORKSPACE or bzlmod); if False it always runs under pure bzlmod.
       enforce_lock: if True, the bzlmod inner build passes
            --lockfile_mode=error so a committed MODULE.bazel.lock is enforced.
-      timeout: test timeout; defaults to "long" because a cold inner build
-           downloads Bazel and bootstraps make/pkg-config from source.
+      timeout: test timeout; defaults to "long" (900s) because a cold inner
+           build downloads Bazel and bootstraps make/pkg-config from source,
+           which overran the 300s "moderate" budget on slow macOS CI agents.
       **kwargs: forwarded to bazel_integration_test.
     """
     env = dict(env or {})
@@ -80,7 +80,7 @@ def scenario(
     if dual_mode:
         env["DUAL_MODE"] = "1"
 
-        # True in the bzlmod and mixed lanes, false in the workspaces lane.
+        # True in the bzlmod and mixed jobs, false in the workspaces job.
         env["OUTER_BZLMOD"] = "1" if BZLMOD_ENABLED else "0"
     if enforce_lock:
         env["ENFORCE_LOCK"] = "1"

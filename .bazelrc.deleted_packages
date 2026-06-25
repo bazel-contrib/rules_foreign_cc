@@ -5,4 +5,4 @@
 #   bazel run @rules_bazel_integration_test//tools:update_deleted_packages \
 #     -- --workspace "$PWD" --bazelrc "$PWD/.bazelrc.deleted_packages"
 # (docs/ and examples/ are skipped via .bazelignore.)
-common --deleted_packages=test/integration/basic
+common --deleted_packages=test/integration/bare_tag_fails,test/integration/basic,test/integration/default_mode,test/integration/explicit_minimal,test/integration/explicit_source_wildcard,test/integration/meson_no_hub_import,test/integration/noop_invoke_fails,test/integration/noop_modes,test/integration/register_false,test/integration/register_false_fails,test/integration/single_tool_override

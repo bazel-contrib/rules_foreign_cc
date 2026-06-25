@@ -8,8 +8,8 @@ version-neutral, so they live in source rather than being emitted.
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("@rules_foreign_cc//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_REPO_FORMAT", "CMAKE_BIN_SRCS", "CMAKE_BIN_WILDCARDS")
-load("@rules_foreign_cc//toolchains/private:ninja_versions.bzl", "NINJA_BIN_REPO_FORMAT", "NINJA_BIN_SRCS", "NINJA_BIN_WILDCARDS")
+load("@rules_foreign_cc//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_SRCS", "CMAKE_BIN_WILDCARDS")
+load("@rules_foreign_cc//toolchains/private:ninja_versions.bzl", "NINJA_BIN_SRCS", "NINJA_BIN_WILDCARDS")
 load("@rules_foreign_cc//toolchains/private:prebuilt_toolchains_repository.bzl", "prebuilt_toolchains_repository")
 
 visibility([
@@ -17,6 +17,32 @@ visibility([
     "//foreign_cc/private",
     "//toolchains",
 ])
+
+# Single source of truth for the binary-mode spoke repo name. Every binary
+# spoke follows one scheme regardless of tool: `<tool>-<version>-<os>-<arch>`.
+# The repo creators (below) and the bzlmod planner's hub target
+# (extension_impl.bzl) both route through binary_spoke_repo so the name can't
+# drift between the repo that gets minted and the label that points at it.
+# Mirrors source_spokes.bzl's SOURCE_SPOKE_REPO_FORMAT for the source spokes.
+BINARY_SPOKE_REPO_FORMAT = "{tool}-{version}-{plat}"
+
+def binary_spoke_repo(tool, version, os_arch):
+    """Return the repo name for a binary-mode ``(tool, version, platform)`` spoke.
+
+    Args:
+        tool: tool name, e.g. "cmake" or "ninja".
+        version: exact version string, e.g. "3.31.12".
+        os_arch: the ``(os, arch)`` tuple keying the per-platform binary table,
+            e.g. ``("linux", "x86_64")`` or ``("macos", "universal")``. The
+            platform token is ``<os>-<arch>``; cmake's universal2 macOS binary
+            resolves for one OS and both CPUs, so its arch token is
+            ``universal`` rather than a single cpu name.
+    """
+    return BINARY_SPOKE_REPO_FORMAT.format(
+        tool = tool,
+        version = version,
+        plat = "-".join(os_arch),
+    )
 
 _CMAKE_BUILD_FILE = """\
 load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
@@ -120,9 +146,8 @@ def cmake_binary_spokes(version, register_toolchains = False):
 
     repo_names = []
     repos = {}
-    for _os_arch, spec in plats.items():
-        plat_target = spec.plat_target
-        name = CMAKE_BIN_REPO_FORMAT.format(version = version, plat_target = plat_target)
+    for os_arch, spec in plats.items():
+        name = binary_spoke_repo("cmake", version, os_arch)
         kwargs = _http_archive_kwargs(spec)
         maybe(
             http_archive,
@@ -168,9 +193,8 @@ def ninja_binary_spokes(version, register_toolchains = False):
 
     repo_names = []
     repos = {}
-    for _os_arch, spec in plats.items():
-        plat_target = spec.plat_target
-        name = NINJA_BIN_REPO_FORMAT.format(version = version, plat_target = plat_target)
+    for os_arch, spec in plats.items():
+        name = binary_spoke_repo("ninja", version, os_arch)
         kwargs = _http_archive_kwargs(spec)
         maybe(
             http_archive,

@@ -39,25 +39,70 @@ python.toolchain(python_version = "3.12")
 use_repo(python, "python_3_12")
 
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+
+# rfcc's own default toolchain registrations. These are the bzlmod-path
+# mirror of the WORKSPACE default registrations (prebuilt + built + system in
+# foreign_cc/repositories.bzl): one tag per tool rfcc enables by default, in
+# the same default mode each path builds. A consuming root that declares its
+# own tools.<tool>(...) tag, or tools.explicit(), suppresses the matching
+# default below (root wins). The `tools` extension fails if this set diverges
+# from toolchains.bzl's PREINSTALLED_TOOLS (see
+# _assert_defaults_match_workspace in foreign_cc/extensions.bzl).
+#
+# nmake is deliberately absent: it shares the make_toolchain type and is
+# selected only by an explicit `toolchain =` label, never registered for
+# constraint resolution. Registering a default nmake toolchain would shadow
+# make on Windows.
+#
+# Source-mode tools' per-version archives are still materialized whenever rfcc
+# is in the graph (so macros like `meson_with_requirements` and rfcc's own
+# //test:build_scripts can reach the hub-published `<tool>_built` /
+# `<tool>_src_all` / `meson_src_*` aliases): the planner's all_required_spokes
+# fetches each SOURCE_TOOLS archive at pick_source_version (the default version
+# here), independent of these registration tags.
+# cmake and ninja default to prebuilt binaries, which only exist for the five
+# platforms in the binary spoke tables. The WORKSPACE defaults also
+# registered a system (host-PATH) toolchain for each, giving any other host a
+# fallback. The extra system tag below restores that: it emits an
+# unconstrained hub entry (20_cmake_001_000 / 20_ninja_001_000) that lex-sorts
+# AFTER the per-platform binary rows (20_cmake_000_*), so the binary toolchain
+# still wins wherever a prebuilt exists and the system tool only resolves on
+# hosts the binaries don't cover.
+tools.cmake(
+    mode = "binary",
+    version = "3.31.12",
+)
+tools.cmake(mode = "system")
+tools.ninja(
+    mode = "binary",
+    version = "1.13.2",
+)
+tools.ninja(mode = "system")
+tools.make(
+    mode = "source",
+    version = "4.4.1",
+)
+tools.meson(
+    mode = "source",
+    version = "1.10.1",
+)
+tools.pkgconfig(
+    mode = "source",
+    version = "0.29.2",
+)
+tools.autoconf(mode = "system")
+tools.automake(mode = "system")
+tools.m4(mode = "system")
+tools.msbuild(mode = "system")
 use_repo(
     tools,
-    "cmake_3.31.12_toolchains",
-    "cmake_src",
     "gettext_runtime",
     "glib_dev",
     "glib_src",
-    "gnumake_src",
-    "meson_src",
-    "ninja_1.13.2_toolchains",
-    "ninja_build_src",
-    "pkgconfig_src",
-    "rules_foreign_cc_framework_toolchains",
+    "rules_foreign_cc_toolchains",
 )
 
 register_toolchains(
-    "@rules_foreign_cc_framework_toolchains//:all",
-    "@cmake_3.31.12_toolchains//:all",
-    "@ninja_1.13.2_toolchains//:all",
+    "@rules_foreign_cc_toolchains//:all",
     "@python_3_12//:all",
-    "@rules_foreign_cc//toolchains:all",
 )

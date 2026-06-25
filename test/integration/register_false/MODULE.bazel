@@ -1,0 +1,42 @@
+module(
+    name = "register_false_test",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../../..",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.explicit()
+tools.cmake(
+    mode = "binary",
+    register_toolchain = False,
+    version = "3.31.12",
+)
+tools.ninja(
+    mode = "binary",
+    version = "1.13.2",
+)
+tools.make(
+    mode = "source",
+    version = "4.4.1",
+)
+tools.m4(mode = "noop")
+tools.pkgconfig(mode = "noop")
+
+# The spoke is fetched (register_toolchain only suppresses the hub entry, not
+# the spoke), but the hub does NOT register a toolchain for it. To make cmake
+# resolvable we register it ourselves. The binary spoke mints a per-platform
+# aggregator repo (`cmake_<version>_toolchains`) holding a correctly
+# constrained toolchain() for every supported platform, so registering it is
+# host-agnostic -- the scenario builds on every CI job, not just
+# linux/x86_64.
+use_repo(tools, "cmake_3.31.12_toolchains")
+
+register_toolchains("@cmake_3.31.12_toolchains//:all")

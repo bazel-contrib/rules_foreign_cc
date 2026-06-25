@@ -1,0 +1,20 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson_with_requirements")
+
+# Exercises the meson_with_requirements macro from a module that does NOT
+# use_repo @rules_foreign_cc_toolchains. The macro expands hub label strings
+# into this package; analyzing the targets it generates (via the cquery in
+# BUILD.bazel's scenario env) forces those labels to resolve. If the macro
+# referenced the hub by its apparent name, that would fail here with "no
+# repository visible"; it must reach the rfcc-owned //foreign_cc:meson_src_*
+# aliases instead. requirements is empty so no pip setup is needed.
+meson_with_requirements(
+    name = "hello_meson",
+    lib_source = ":all_srcs",
+    out_static_libs = ["libhello.a"],
+    requirements = [],
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)

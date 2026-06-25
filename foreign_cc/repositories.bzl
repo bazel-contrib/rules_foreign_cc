@@ -5,15 +5,27 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//foreign_cc/private/framework:toolchain.bzl", "register_framework_toolchains")
 load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "preinstalled_toolchains")
 
+# Default built-tool versions for the WORKSPACE path. The bzlmod path reads the
+# same defaults from tool_specs.bzl (TOOL_SPECS[t].default_version); a unit test
+# (default_versions_in_sync_test) asserts the two agree so the two never build
+# different tool versions.
+DEFAULT_TOOL_VERSIONS = {
+    "cmake": "3.31.12",
+    "make": "4.4.1",
+    "meson": "1.10.1",
+    "ninja": "1.13.2",
+    "pkgconfig": "0.29.2",
+}
+
 # buildifier: disable=unnamed-macro
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        cmake_version = "3.31.12",
-        make_version = "4.4.1",
-        ninja_version = "1.13.2",
-        meson_version = "1.10.1",
-        pkgconfig_version = "0.29.2",
+        cmake_version = DEFAULT_TOOL_VERSIONS["cmake"],
+        make_version = DEFAULT_TOOL_VERSIONS["make"],
+        ninja_version = DEFAULT_TOOL_VERSIONS["ninja"],
+        meson_version = DEFAULT_TOOL_VERSIONS["meson"],
+        pkgconfig_version = DEFAULT_TOOL_VERSIONS["pkgconfig"],
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True,

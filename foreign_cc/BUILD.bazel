@@ -5,6 +5,28 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 
+# rfcc-owned re-exports of the hub's meson source aliases. The
+# meson_with_requirements macro expands these into the *caller's* BUILD
+# package, where the apparent repo name @rules_foreign_cc_toolchains is only in
+# the repo mapping if that module use_repo'd the hub. rfcc's own MODULE imports
+# the hub, so an alias declared here resolves the apparent name; the macro then
+# references @rules_foreign_cc//foreign_cc:..., visible to every consumer
+# without importing the hub. (Under WORKSPACE the hub is a global repo name, so
+# these resolve there too.) The alias targets are analyzed only when something
+# references them -- i.e. only when meson_with_requirements is used, which
+# needs the hub anyway -- so they don't force the hub to exist otherwise.
+alias(
+    name = "meson_src_meson_py",
+    actual = "@rules_foreign_cc_toolchains//:meson_src_meson_py",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "meson_src_runtime",
+    actual = "@rules_foreign_cc_toolchains//:meson_src_runtime",
+    visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "distribution",
     srcs = glob(["**"]) + [
@@ -83,7 +105,12 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         ":repositories",
-        "//toolchains:prebuilt_toolchains",
+        "//foreign_cc/private:extension_impl",
+        "//foreign_cc/private:tool_specs",
+        "//toolchains/private:binary_spokes",
+        "//toolchains/private:hub",
+        "//toolchains/private:source_spokes",
+        "@bazel_features//:features",
     ],
 )
 

@@ -20,7 +20,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "Linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -34,7 +33,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "Linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -47,7 +45,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -61,7 +58,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "win32-x86",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -75,7 +71,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "win64-x64",
         ),
     },
     "3.20.6": {
@@ -91,7 +86,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -105,7 +99,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -118,7 +111,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -132,7 +124,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -146,7 +137,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.21.7": {
@@ -162,7 +152,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -176,7 +165,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -189,7 +177,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -203,7 +190,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -217,7 +203,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.22.6": {
@@ -233,7 +218,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -247,7 +231,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -260,7 +243,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -274,7 +256,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -288,7 +269,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.23.5": {
@@ -304,7 +284,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -318,7 +297,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -331,7 +309,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -345,7 +322,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -359,7 +335,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.24.4": {
@@ -375,7 +350,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -389,7 +363,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -402,7 +375,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -416,7 +388,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -430,7 +401,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.25.3": {
@@ -446,7 +416,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -460,7 +429,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -473,7 +441,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -487,7 +454,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -501,7 +467,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.26.6": {
@@ -517,7 +482,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -531,7 +495,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -544,7 +507,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -558,7 +520,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -572,7 +533,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.27.9": {
@@ -588,7 +548,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -602,7 +561,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -615,7 +573,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -629,7 +586,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -643,7 +599,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.28.6": {
@@ -659,7 +614,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -673,7 +627,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -686,7 +639,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -700,7 +652,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -714,7 +665,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.29.9": {
@@ -730,7 +680,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -744,7 +693,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -757,7 +705,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -771,7 +718,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -785,7 +731,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.30.9": {
@@ -801,7 +746,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -815,7 +759,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -828,7 +771,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -842,7 +784,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -856,7 +797,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "3.31.12": {
@@ -872,7 +812,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -886,7 +825,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -899,7 +837,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -913,7 +850,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -927,7 +863,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
     "4.0.7": {
@@ -943,7 +878,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-aarch64",
         ),
         ("linux", "x86_64"): struct(
             urls = [
@@ -957,7 +891,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:linux",
             ],
             bin = "cmake",
-            plat_target = "linux-x86_64",
         ),
         ("macos", "universal"): struct(
             urls = [
@@ -970,7 +903,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
-            plat_target = "macos-universal",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -984,7 +916,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-i386",
         ),
         ("windows", "x86_64"): struct(
             urls = [
@@ -998,7 +929,6 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:windows",
             ],
             bin = "cmake.exe",
-            plat_target = "windows-x86_64",
         ),
     },
 }
@@ -1019,8 +949,6 @@ CMAKE_BIN_WILDCARDS = {
     "3.31.x": "3.31.12",
     "4.0.x": "4.0.7",
 }
-
-CMAKE_BIN_REPO_FORMAT = "cmake-{version}-{plat_target}"
 
 CMAKE_SRC_SRCS = {
     "3.19.8": struct(

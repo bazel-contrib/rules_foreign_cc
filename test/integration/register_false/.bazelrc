@@ -1,0 +1,10 @@
+# Config for the INNER Bazel build (the one runner.sh spawns inside this
+# scenario workspace). Building //:hello_cmake resolves a pkg-config toolchain
+# (cmake's rule always needs one), and rfcc's default builds pkg-config from
+# source; under MSVC that nmake build needs runfiles + native symlinks or it
+# dies with "NMAKE: fatal error U1052". A real rules_foreign_cc consumer gets
+# those (and the macOS crosstool pin, etc.) from //.bazelrc.common; import it by
+# reference so this stripped-down scenario stays in sync instead of duplicating
+# the flags. rfcc is staged 3 levels up (matching the MODULE.bazel
+# local_path_override) and ships .bazelrc.common via //:distribution.
+import %workspace%/../../../.bazelrc.common

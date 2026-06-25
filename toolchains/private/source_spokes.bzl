@@ -1,9 +1,7 @@
 """Per-version source-mode spoke helpers.
 
-Internal groundwork: these helpers are not yet called by any consumer. The
-WORKSPACE shim (``toolchains/built_toolchains.bzl``) and the bzlmod planner that
-load them land in a follow-up; until then the live source-build path is
-unchanged.
+Internal: load via the WORKSPACE shim in ``toolchains/built_toolchains.bzl``
+or via the bzlmod planner.
 
 Each helper materializes one repo per ``(tool, version)`` named
 ``@<tool>_src_<version>``. The repo's BUILD file embeds:
