@@ -10,7 +10,10 @@ expected_python_version = get_option('expected_python_version')
 
 py_path = py.full_path().replace('\\', '/')
 
-if not py_path.contains('.runfiles/')
+# bazel 8 reports this interpreter under "<exe>.runfiles/"; bazel 9 on Windows
+# materializes it under "Bazel.runfiles_<rand>/runfiles/". Match the bare
+# "runfiles/" segment so the toolchain-python check holds on both.
+if not py_path.contains('runfiles/')
   error('Expected Meson to use the Bazel toolchain Python from runfiles, but got "' + py.full_path() + '"')
 endif
 
