@@ -138,14 +138,14 @@ http_archive(
 
 http_archive(
     name = "build_bazel_rules_apple",
-    sha256 = "b28822cb81916fb544119f5533de010cc67ec6a789f2e7d0fc19d53bfcbb8285",
-    url = "https://github.com/bazelbuild/rules_apple/releases/download/4.0.1/rules_apple.4.0.1.tar.gz",
+    sha256 = "20152b14d9a420afc15ace905c02fd6425ddceb084630f3f043b287adf0fcdbd",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/4.1.0/rules_apple.4.1.0.tar.gz",
 )
 
 http_archive(
     name = "build_bazel_rules_swift",
-    sha256 = "f7a67197cd8a79debfe70b8cef4dc19d03039af02cc561e31e0718e98cad83ac",
-    url = "https://github.com/bazelbuild/rules_swift/releases/download/2.9.0/rules_swift.2.9.0.tar.gz",
+    sha256 = "5eff717c18bb513285b499add68f2331509cd4e411ff085e96a86b3342c1e5aa",
+    url = "https://github.com/bazelbuild/rules_swift/releases/download/3.1.2/rules_swift.3.1.2.tar.gz",
 )
 
 load(

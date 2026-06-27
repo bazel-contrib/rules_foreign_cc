@@ -17,8 +17,9 @@ bazel_dep(name = "bazel_lib", version = "3.2.0")
 bazel_dep(name = "gazelle", version = "0.44.0", dev_dependency = True, repo_name = "bazel_gazelle")
 bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.9.0", dev_dependency = True)
 
-# Note: 1.13 requires nodeps bzlmod deps, which requires bazel 7.6.0
-bazel_dep(name = "aspect_rules_lint", version = "1.12.0", dev_dependency = True)
+# Note: 2.x forces rules_nodejs 6.7.3, which is required for bazel 9
+# compatibility (older rules_nodejs uses a rule() kwarg bazel 9 removed).
+bazel_dep(name = "aspect_rules_lint", version = "2.7.2", dev_dependency = True)
 bazel_dep(name = "rules_bazel_integration_test", version = "0.37.1", dev_dependency = True)
 
 bazel_binaries = use_extension(
