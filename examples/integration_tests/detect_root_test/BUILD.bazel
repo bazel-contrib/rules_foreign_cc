@@ -1,5 +1,5 @@
 load("@bazel_lib//lib:diff_test.bzl", "diff_test")
-load(":detect_root_test_rule.bzl", "BZLMOD_ENABLED", "detect_root_test_rule")
+load(":detect_root_test_rule.bzl", "detect_root_test_rule", "workspace_root_rule")
 
 filegroup(
     name = "fg",
@@ -33,10 +33,19 @@ detect_root_test_rule(
     out = "out_repo.txt",
 )
 
+# bazel's own canonical external root for the same repo. Used as the expected
+# value for repo_test so the assertion tracks bazel's repo-name mangling
+# (which has changed shape across 7.x/8.x/9.x) instead of a checked-in golden.
+workspace_root_rule(
+    name = "expected_repo_root",
+    srcs = "@rules_foreign_cc_detect_root_test_repo//:srcs",
+    out = "expected_out_repo.txt",
+)
+
 diff_test(
     name = "repo_test",
     file1 = ":srcs_in_repo",
-    file2 = "expected/out_repo_bzlmod.txt" if BZLMOD_ENABLED else "expected/out_repo_workspaces.txt",
+    file2 = ":expected_repo_root",
 )
 
 diff_test(
