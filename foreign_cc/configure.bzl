@@ -8,6 +8,7 @@ load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
     "get_tools_info",
+    "targets_windows",
 )
 load("//foreign_cc/private:configure_script.bzl", "create_configure_script")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
@@ -21,6 +22,11 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:regen_stubs.bzl", "REGEN_STUBS")
+load(
+    "//foreign_cc/private:runtime_library_search_directories.bzl",
+    "enforce_runtime_search_shared_ldflags_attr",
+    "runtime_library_search_directories_enabled",
+)
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//toolchains/native_tools:tool_access.bzl",
@@ -108,7 +114,22 @@ def _create_configure_script(configureParameters):
     inputs = configureParameters.inputs
 
     tools = get_tools_info(ctx)
-    flags = get_flags_info(ctx)
+    cc_toolchain = find_cpp_toolchain(ctx)
+    runtime_search_enabled = runtime_library_search_directories_enabled(
+        ctx,
+        is_windows = targets_windows(ctx, cc_toolchain),
+    )
+    flags = get_flags_info(
+        ctx,
+        outputs = configureParameters.outputs,
+    )
+
+    enforce_runtime_search_shared_ldflags_attr(
+        ctx,
+        runtime_search_enabled,
+        flags.cxx_linker_shared,
+        "shared_ldflags_vars",
+    )
 
     define_install_prefix = ["export INSTALL_PREFIX=\"" + _get_install_prefix(ctx) + "\""]
 
@@ -135,7 +156,6 @@ def _create_configure_script(configureParameters):
     if xcompile_options:
         configure_options.extend(xcompile_options)
 
-    cc_toolchain = find_cpp_toolchain(ctx)
     is_msvc = cc_toolchain.compiler == "msvc-cl"
 
     configure = create_configure_script(
@@ -285,9 +305,10 @@ def _attrs():
         ),
         "shared_ldflags_vars": attr.string_list(
             doc = (
-                "A list of variable names use as LDFLAGS for shared libraries. These variables " +
+                "A list of variable names used as LDFLAGS for shared libraries. These variables " +
                 "will be passed to the make command as make vars and overwrite what is defined in " +
-                "the Makefile."
+                "the Makefile. Required when runtime_library_search_directories is enabled and " +
+                "out_shared_libs declares shared-library outputs."
             ),
             mandatory = False,
             default = [],

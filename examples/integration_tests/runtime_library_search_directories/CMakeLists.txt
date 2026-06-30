@@ -1,0 +1,50 @@
+cmake_minimum_required(VERSION 3.15)
+
+project(runtime_search C)
+
+set(RUNTIME_CHAIN_COMPONENT "" CACHE STRING "Component to build: leaf, middle, or app")
+set(RUNTIME_TEST_FAMILY "cmake" CACHE STRING "Rule family marker for the runtime test")
+
+if(APPLE)
+    set(CMAKE_INSTALL_NAME_DIR "@rpath")
+    set(CMAKE_MACOSX_RPATH ON)
+endif()
+
+function(runtime_chain_compile_definitions target)
+    target_compile_definitions(
+        ${target}
+        PRIVATE
+            RUNTIME_TEST_FAMILY="${RUNTIME_TEST_FAMILY}"
+    )
+    target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+endfunction()
+
+if(RUNTIME_CHAIN_COMPONENT STREQUAL "leaf")
+    add_library(leaf SHARED src/leaf.c)
+    runtime_chain_compile_definitions(leaf)
+    install(TARGETS leaf LIBRARY DESTINATION lib)
+elseif(RUNTIME_CHAIN_COMPONENT STREQUAL "middle")
+    find_library(RUNTIME_CHAIN_LEAF_LIBRARY NAMES leaf REQUIRED)
+    add_library(middle SHARED src/middle.c)
+    runtime_chain_compile_definitions(middle)
+    target_link_libraries(middle PRIVATE "${RUNTIME_CHAIN_LEAF_LIBRARY}")
+    install(TARGETS middle LIBRARY DESTINATION lib)
+elseif(RUNTIME_CHAIN_COMPONENT STREQUAL "app")
+    find_library(RUNTIME_CHAIN_MIDDLE_LIBRARY NAMES middle REQUIRED)
+    add_executable(runtime_app src/app.c)
+    runtime_chain_compile_definitions(runtime_app)
+    target_link_libraries(runtime_app PRIVATE "${RUNTIME_CHAIN_MIDDLE_LIBRARY}")
+    install(TARGETS runtime_app RUNTIME DESTINATION bin)
+elseif(RUNTIME_CHAIN_COMPONENT STREQUAL "bundle")
+    add_library(leaf SHARED src/leaf.c)
+    runtime_chain_compile_definitions(leaf)
+    add_library(middle SHARED src/middle.c)
+    runtime_chain_compile_definitions(middle)
+    target_link_libraries(middle PRIVATE leaf)
+    add_executable(runtime_app src/app.c)
+    runtime_chain_compile_definitions(runtime_app)
+    target_link_libraries(runtime_app PRIVATE middle)
+    install(TARGETS leaf middle runtime_app LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
+else()
+    message(FATAL_ERROR "RUNTIME_CHAIN_COMPONENT must be one of: leaf, middle, app, bundle")
+endif()
