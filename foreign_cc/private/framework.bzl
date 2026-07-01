@@ -8,7 +8,7 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("@rules_cc//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
-load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
+load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo", "ForeignCcRuntimeExecutableInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load("//foreign_cc/private:resource_sets.bzl", "SIZE_ATTRIBUTES", "get_resource_env_vars")
 load(
@@ -31,6 +31,7 @@ load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
 )
+load(":runtime_library_search_directories.bzl", "RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES")
 
 # Attributes shared by every framework rule (regular `cc_external_rule_impl`-based
 # rules and `built_tools` rules alike).
@@ -82,7 +83,7 @@ FOREIGN_CC_FRAMEWORK_COMMON_ATTRS = {
         default = Label("@rules_foreign_cc//foreign_cc/settings:set_file_prefix_map_default"),
         providers = [BuildSettingInfo],
     ),
-} | PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES | SIZE_ATTRIBUTES
+} | PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES | SIZE_ATTRIBUTES | RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
 # Many of the attributes have default values.
@@ -322,6 +323,7 @@ of the script, and allows to reuse the inputs structure, created by the framewor
         inputs = """InputFiles provider: summarized information on rule inputs, created by framework
 function, to be reused in script creator. Contains in particular merged compilation and linking
 dependencies.""",
+        outputs = "Declared outputs created by the framework.",
     ),
 )
 
@@ -551,7 +553,12 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$EXT_BUILD_DEPS$$",
     ] + _print_env() + _copy_deps_and_tools(inputs) + [
         "cd $$BUILD_TMPDIR$$",
-    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + postfix_script + validation_script + [
+    ] + attrs.create_configure_script(ConfigureParameters(
+        ctx = ctx,
+        attrs = attrs,
+        inputs = inputs,
+        outputs = outputs,
+    )) + postfix_script + validation_script + [
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
@@ -679,6 +686,22 @@ def cc_external_rule_impl(ctx, attrs):
             [externally_built],
             transitive = _get_transitive_artifacts(attrs.deps),
         )),
+        ForeignCcRuntimeExecutableInfo(
+            binaries = {
+                attrs.out_binaries[i]: outputs.out_binary_files[i]
+                for i in range(len(attrs.out_binaries))
+            },
+            runtime_files = depset(direct = (
+                ([outputs.out_include_dir] if outputs.out_include_dir else []) +
+                outputs.libraries.shared_libraries +
+                outputs.data_dirs +
+                outputs.data_files
+            ), transitive = [
+                dep[ForeignCcRuntimeExecutableInfo].runtime_files
+                for dep in attrs.deps
+                if ForeignCcRuntimeExecutableInfo in dep
+            ]),
+        ),
         CcInfo(
             compilation_context = out_cc_info.compilation_context,
             linking_context = out_cc_info.linking_context,
