@@ -176,6 +176,18 @@ PLATFORM_COMMANDS = {
         ],
         doc = "Replaces absolute path 'abs_path' inside 'dir_' with a placeholder value",
     ),
+    "replace_all_symlinks": _command_info(
+        arguments = [
+            _argument_info(
+                name = "dir",
+                data_type = type(""),
+                doc = "Directory to search recursively",
+            ),
+        ],
+        doc = (
+            "Replace all target symlinks within given directory recursively."
+        ),
+    ),
     "replace_in_files": _command_info(
         arguments = [
             _argument_info(name = "dir_", data_type = type(""), doc = "Directory to search recursively"),
