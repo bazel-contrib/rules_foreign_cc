@@ -18,7 +18,7 @@ def script_extension():
     return ".sh"
 
 def pwd():
-    return "$(pwd)"
+    return "$(pwd -P)"
 
 def echo(text):
     return "echo {text}".format(text = text)
