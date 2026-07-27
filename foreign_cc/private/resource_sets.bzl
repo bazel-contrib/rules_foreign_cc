@@ -112,8 +112,10 @@ SIZE_ATTRIBUTES = {
 Set the approximate size of this build, which controls two things:
 
 1. The Bazel scheduler reservation, so large builds don't all run at once.
-2. The parallelism passed to the underlying build system via environment
-   variables (CMAKE_BUILD_PARALLEL_LEVEL, GNUMAKEFLAGS, NINJA_JOBS, etc.).
+2. The parallelism passed to the underlying build system, either via
+   environment variables (CMAKE_BUILD_PARALLEL_LEVEL, GNUMAKEFLAGS,
+   NINJA_JOBS, etc.) or, for build systems that read no such variable, on
+   the command line (b2's `-j`).
 
 Build tool parallelism is set to the scheduler reservation plus a small
 overcommit (default +2, matching ninja's ncpus+2 convention). This hides
@@ -217,12 +219,49 @@ def get_resource_set(attr):
         allow_cpu_overcommit = not _is_fixed(cfg, "cpu"),
     )
 
+def parallelism_for(resources, overcommit):
+    """Returns the job count for a resource set. Pure; see get_resource_parallelism.
+
+    Args:
+        resources: the struct returned by get_resource_set
+        overcommit: the value of the parallelism_overcommit setting
+    Returns:
+        int: the job count, or 0 for "leave the build system's default alone"
+    """
+    if resources.cpu <= 0:
+        return 0
+
+    return resources.cpu + (overcommit if resources.allow_cpu_overcommit else 0)
+
+def get_resource_parallelism(attr):
+    """ get the job count the underlying build system should run with
+
+    This is the scheduler reservation plus the overcommit, i.e. the single
+    number that every parallelism knob -- env var or command line flag --
+    must be derived from, so that what we tell the build system cannot drift
+    from what we told Bazel.
+
+    Args:
+        attr: the ctx.attr associated with the target
+    Returns:
+        int: the job count, or 0 when the size is `default` and we should
+        leave the build system's own default alone.
+    """
+
+    return parallelism_for(
+        get_resource_set(attr),
+        attr._parallelism_overcommit[BuildSettingInfo].value,
+    )
+
 def get_resource_env_vars(attr):
     """ get the values of env vars controlling parallelism
 
     Because any of these tools (cmake, meson, ninja, make, etc) can call into
     other tools, we set all of the flags in the hopes that complicated call
     structures will still see the values.
+
+    Note that b2 (see //foreign_cc:boost_build.bzl) reads none of these, so it
+    takes `get_resource_parallelism` and puts a `-j` on the command line instead.
 
     Args:
         attr: the ctx.attr associated with the target
@@ -234,11 +273,11 @@ def get_resource_env_vars(attr):
     """
 
     resources = get_resource_set(attr)
+    jobs = parallelism_for(resources, attr._parallelism_overcommit[BuildSettingInfo].value)
 
     env = None
-    if resources.cpu > 0:
-        overcommit = attr._parallelism_overcommit[BuildSettingInfo].value if resources.allow_cpu_overcommit else 0
-        parallelism = str(resources.cpu + overcommit)
+    if jobs > 0:
+        parallelism = str(jobs)
         env = {
             "CMAKE_BUILD_PARALLEL_LEVEL": parallelism,
 

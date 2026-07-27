@@ -178,6 +178,17 @@ were not tracked here.
 
 ### Bug fixes
 
+**boost_build**
+
+- `resource_size` now reaches b2. b2 reads none of the parallelism environment
+  variables the other rules use and defaults `-j` to every detected CPU thread,
+  so a sized `boost_build` target reserved N cpus from the Bazel scheduler and
+  then forked as many compilers as the machine had cores. The job count is now
+  derived from the same `resource_size` that produces the `resource_set` and
+  passed as `-jN`. An explicit `-j` in `user_options` still wins, and targets
+  without a `resource_size` are unchanged
+  ([#1577](https://github.com/bazel-contrib/rules_foreign_cc/pull/1577)).
+
 **cmake**
 
 - Default `CMAKE_MSVC_DEBUG_INFORMATION_FORMAT` to `Embedded` (`/Z7`) and
