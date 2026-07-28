@@ -75,6 +75,21 @@ were not tracked here.
 
 ### New features
 
+- **`resource_size` now reaches remote executors.** `resource_set` is read by
+  Bazel's local scheduler only, so a sized target told a remote executor
+  nothing about how big its action was. Each build action now runs in an exec
+  group named after its size (`size_tiny` ... `size_enormous`), which lets an
+  RBE platform declare the cpu/memory request once for every sized target:
+  `exec_properties = {"size_large.EstimatedCPU": "8", ...}`. Property names are
+  executor-specific, so `foreign_cc_size_exec_properties` generates the dict
+  from the same size table the rules use. Targets without a `resource_size` keep
+  running in the default exec group. Setting both `exec_compatible_with` and a
+  `resource_size` on one target now fails with an explanation, since a declared
+  exec group does not inherit that constraint; use
+  `exec_group_compatible_with`, or
+  `--@rules_foreign_cc//foreign_cc/settings:size_exec_groups=False` to opt out.
+  See the new "Remote execution" docs page
+  ([#TBD](https://github.com/bazel-contrib/rules_foreign_cc/pull/TBD)).
 - **New `msbuild` rule** for building MSBuild (`.vcxproj`/`.sln`) projects with
   `MSBuild.exe` from MSVC. Only the pre-installed toolchain is supported
   ([#1443](https://github.com/bazel-contrib/rules_foreign_cc/pull/1443)).

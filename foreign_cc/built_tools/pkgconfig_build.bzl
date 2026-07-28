@@ -17,6 +17,7 @@ load(
     "get_tools_info",
 )
 load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
+load("//foreign_cc/private:resource_sets.bzl", "size_exec_groups")
 load(
     "//foreign_cc/private/framework:helpers.bzl",
     "escape_dquote_bash",
@@ -104,6 +105,12 @@ def _pkgconfig_tool_impl(ctx):
         additional_tools,
     )
 
+_PKGCONFIG_TOOL_TOOLCHAINS = [
+    "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
+    "@rules_foreign_cc//toolchains:make_toolchain",
+    "@bazel_tools//tools/cpp:toolchain_type",
+]
+
 pkgconfig_tool_unix = rule(
     doc = "Rule for building pkgconfig on Unix operating systems",
     attrs = FOREIGN_CC_BUILT_TOOLS_ATTRS,
@@ -111,11 +118,8 @@ pkgconfig_tool_unix = rule(
     fragments = FOREIGN_CC_BUILT_TOOLS_FRAGMENTS,
     output_to_genfiles = True,
     implementation = _pkgconfig_tool_impl,
-    toolchains = [
-        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
-        "@rules_foreign_cc//toolchains:make_toolchain",
-        "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    exec_groups = size_exec_groups(_PKGCONFIG_TOOL_TOOLCHAINS),
+    toolchains = _PKGCONFIG_TOOL_TOOLCHAINS,
 )
 
 def pkgconfig_tool(name, srcs, **kwargs):
