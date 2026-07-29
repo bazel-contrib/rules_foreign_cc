@@ -89,7 +89,7 @@ were not tracked here.
   `exec_group_compatible_with`, or
   `--@rules_foreign_cc//foreign_cc/settings:size_exec_groups=False` to opt out.
   See the new "Remote execution" docs page
-  ([#TBD](https://github.com/bazel-contrib/rules_foreign_cc/pull/TBD)).
+  ([#1578](https://github.com/bazel-contrib/rules_foreign_cc/pull/1578)).
 - **New `msbuild` rule** for building MSBuild (`.vcxproj`/`.sln`) projects with
   `MSBuild.exe` from MSVC. Only the pre-installed toolchain is supported
   ([#1443](https://github.com/bazel-contrib/rules_foreign_cc/pull/1443)).
