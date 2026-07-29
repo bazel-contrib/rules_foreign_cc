@@ -145,6 +145,7 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load("//foreign_cc/private:resource_sets.bzl", "size_exec_groups")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load(
     "//foreign_cc/private/framework:platform.bzl",
@@ -422,21 +423,24 @@ def _attrs():
     })
     return attrs
 
+_CMAKE_TOOLCHAINS = [
+    "@rules_foreign_cc//toolchains:cmake_toolchain",
+    "@rules_foreign_cc//toolchains:ninja_toolchain",
+    "@rules_foreign_cc//toolchains:make_toolchain",
+    "@rules_foreign_cc//toolchains:m4_toolchain",
+    "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
+    "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
+    "@bazel_tools//tools/cpp:toolchain_type",
+]
+
 cmake = rule(
     doc = "Rule for building external library with CMake.",
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
     implementation = _cmake_impl,
-    toolchains = [
-        "@rules_foreign_cc//toolchains:cmake_toolchain",
-        "@rules_foreign_cc//toolchains:ninja_toolchain",
-        "@rules_foreign_cc//toolchains:make_toolchain",
-        "@rules_foreign_cc//toolchains:m4_toolchain",
-        "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
-        "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    exec_groups = size_exec_groups(_CMAKE_TOOLCHAINS),
+    toolchains = _CMAKE_TOOLCHAINS,
     provides = [CcInfo],
 )
 

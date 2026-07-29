@@ -17,6 +17,7 @@ load(
     "get_tools_info",
 )
 load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
+load("//foreign_cc/private:resource_sets.bzl", "size_exec_groups")
 load(
     "//foreign_cc/private/framework:helpers.bzl",
     "escape_dquote_bash",
@@ -133,6 +134,11 @@ def _make_tool_impl(ctx):
         "BootstrapGNUMake",
     )
 
+_MAKE_TOOL_TOOLCHAINS = [
+    "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
+    "@bazel_tools//tools/cpp:toolchain_type",
+]
+
 make_tool = rule(
     doc = "Rule for building Make. Invokes configure script and make install.",
     attrs = FOREIGN_CC_BUILT_TOOLS_ATTRS,
@@ -140,10 +146,8 @@ make_tool = rule(
     fragments = FOREIGN_CC_BUILT_TOOLS_FRAGMENTS,
     output_to_genfiles = True,
     implementation = _make_tool_impl,
-    toolchains = [
-        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
-        "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    exec_groups = size_exec_groups(_MAKE_TOOL_TOOLCHAINS),
+    toolchains = _MAKE_TOOL_TOOLCHAINS,
 )
 
 def _join_flags_list(workspace_name, flags):

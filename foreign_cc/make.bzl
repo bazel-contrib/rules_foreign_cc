@@ -20,6 +20,7 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:make_script.bzl", "create_make_script")
+load("//foreign_cc/private:resource_sets.bzl", "size_exec_groups")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
@@ -144,6 +145,12 @@ def _attrs():
     })
     return attrs
 
+_MAKE_TOOLCHAINS = [
+    "@rules_foreign_cc//toolchains:make_toolchain",
+    "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
+    "@bazel_tools//tools/cpp:toolchain_type",
+]
+
 make = rule(
     doc = (
         "Rule for building external libraries with GNU Make. " +
@@ -167,11 +174,8 @@ make = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _make,
-    toolchains = [
-        "@rules_foreign_cc//toolchains:make_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
-        "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    exec_groups = size_exec_groups(_MAKE_TOOLCHAINS),
+    toolchains = _MAKE_TOOLCHAINS,
 )
 
 def make_variant(name, toolchain, **kwargs):

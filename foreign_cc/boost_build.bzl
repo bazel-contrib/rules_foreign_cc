@@ -12,6 +12,7 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load("//foreign_cc/private:resource_sets.bzl", "size_exec_groups")
 load("//foreign_cc/private/framework:helpers.bzl", "escape_dquote_bash")
 
 def _boost_build_impl(ctx):
@@ -136,6 +137,11 @@ def _attrs():
     })
     return attrs
 
+_BOOST_BUILD_TOOLCHAINS = [
+    "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
+    "@bazel_tools//tools/cpp:toolchain_type",
+]
+
 boost_build = rule(
     doc = "Rule for building Boost. Invokes bootstrap.sh and then b2 install.",
     attrs = _attrs(),
@@ -143,8 +149,6 @@ boost_build = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _boost_build_impl,
-    toolchains = [
-        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
-        "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    exec_groups = size_exec_groups(_BOOST_BUILD_TOOLCHAINS),
+    toolchains = _BOOST_BUILD_TOOLCHAINS,
 )

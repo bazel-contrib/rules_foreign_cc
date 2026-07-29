@@ -1,10 +1,13 @@
 """Resource set definitions for build actions"""
 
 load("@bazel_lib//lib:resource_sets.bzl", "resource_set_for")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo", "int_flag", "string_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo", "bool_flag", "int_flag", "string_flag")
 
 _PARALLELISM_OVERCOMMIT_DEFAULT = 2
 _PARALLELISM_OVERCOMMIT_SETTING = "parallelism_overcommit"
+
+_SIZE_EXEC_GROUPS_DEFAULT = True
+_SIZE_EXEC_GROUPS_SETTING = "size_exec_groups"
 
 _DEFAULT_SIZE = "default"
 _SIZES = {
@@ -38,6 +41,46 @@ _SIZES = {
 def _is_fixed(cfg, resource):
     return cfg.get("fixed_{}".format(resource), False)
 
+# The size table, for consumers that need to describe the sizes to something
+# outside the build -- currently just //foreign_cc:exec_properties.bzl.
+SIZES = {size: struct(cpu = cfg["cpu"], mem = cfg["mem"]) for size, cfg in _SIZES.items()}
+
+def size_exec_group_name(size):
+    """Returns the exec group name a target of `size` runs its build action in.
+
+    Bazel's resource_set is read by the local scheduler only; a remote executor
+    sizes an action from its RE platform properties instead. Nothing in the
+    Starlark action API can set those (`ctx.actions.run_shell` has no
+    `exec_properties`), but exec_properties can be scoped to an exec group by
+    name -- `{"<group>.<key>": "<value>"}` -- on either a platform or a target.
+    So each size gets an exec group, and remote users write the cpu/memory
+    properties their executor understands once, on their platform, instead of
+    repeating them on every target.
+
+    Args:
+        size: one of SIZES.
+    Returns:
+        The exec group name.
+    """
+    return "size_" + size
+
+def size_exec_groups(toolchains):
+    """Returns the `exec_groups` dict for a rule using SIZE_ATTRIBUTES.
+
+    Args:
+        toolchains: the rule's own `toolchains` list. Declared exec groups do
+          not inherit the rule's toolchain types, and an exec group resolves
+          its own execution platform, so passing anything else here risks the
+          build action running on a different platform than the one whose
+          shell toolchain generated its script.
+    Returns:
+        dict[str, exec_group]
+    """
+    return {
+        size_exec_group_name(size): exec_group(toolchains = toolchains)
+        for size in _SIZES
+    }
+
 def _setting(size, resource, mode):
     if size == _DEFAULT_SIZE:
         short_name = _DEFAULT_SIZE
@@ -60,10 +103,16 @@ def create_resource_set_settings():
     settings = [
         ((0, 0, 0, ""), _PARALLELISM_OVERCOMMIT_SETTING, _PARALLELISM_OVERCOMMIT_DEFAULT),
         ((0, 0, 1, ""), "size_default", _DEFAULT_SIZE),
+        ((0, 0, 2, ""), _SIZE_EXEC_GROUPS_SETTING, _SIZE_EXEC_GROUPS_DEFAULT),
     ]
     int_flag(
         name = _PARALLELISM_OVERCOMMIT_SETTING,
         build_setting_default = _PARALLELISM_OVERCOMMIT_DEFAULT,
+        visibility = ["//visibility:public"],
+    )
+    bool_flag(
+        name = _SIZE_EXEC_GROUPS_SETTING,
+        build_setting_default = _SIZE_EXEC_GROUPS_DEFAULT,
         visibility = ["//visibility:public"],
     )
     string_flag(
@@ -109,11 +158,14 @@ SIZE_ATTRIBUTES = {
         default = _DEFAULT_SIZE,
         mandatory = False,
         doc = """\
-Set the approximate size of this build, which controls two things:
+Set the approximate size of this build, which controls three things:
 
 1. The Bazel scheduler reservation, so large builds don't all run at once.
 2. The parallelism passed to the underlying build system via environment
    variables (CMAKE_BUILD_PARALLEL_LEVEL, GNUMAKEFLAGS, NINJA_JOBS, etc.).
+3. The exec group the build action runs in, so remote executors -- which
+   ignore the resource_set and size an action from its platform properties
+   -- can be told the same thing. See the "Remote execution" docs page.
 
 Build tool parallelism is set to the scheduler reservation plus a small
 overcommit (default +2, matching ninja's ncpus+2 convention). This hides
@@ -133,6 +185,10 @@ packages that are known-broken under parallel builds.
     ),
     "_parallelism_overcommit": attr.label(
         default = "//foreign_cc/settings:" + _PARALLELISM_OVERCOMMIT_SETTING,
+        providers = [BuildSettingInfo],
+    ),
+    "_size_exec_groups": attr.label(
+        default = "//foreign_cc/settings:" + _SIZE_EXEC_GROUPS_SETTING,
         providers = [BuildSettingInfo],
     ),
 } | {
@@ -172,6 +228,7 @@ def get_resource_set(attr):
             - allow_cpu_overcommit: True if the build tool may use more
               parallelism than the scheduler reservation (False for sizes
               like "serial" that must enforce an exact -j value)
+            - size: the effective size name, or None if bazel default
     """
     size = _DEFAULT_SIZE
     if attr.resource_size != _DEFAULT_SIZE:
@@ -185,6 +242,7 @@ def get_resource_set(attr):
             cpu = 0,
             mem = 0,
             allow_cpu_overcommit = False,
+            size = None,
         )
 
     cfg = _SIZES[size]
@@ -215,7 +273,47 @@ def get_resource_set(attr):
         cpu = actual_cpu,
         mem = actual_mem,
         allow_cpu_overcommit = not _is_fixed(cfg, "cpu"),
+        size = size,
     )
+
+def get_resource_exec_group(label, attr, resources):
+    """ get the exec group the build action should run in
+
+    Args:
+        label: the ctx.label of the target, for error messages
+        attr: the ctx.attr associated with the target
+        resources: the struct returned by get_resource_set
+    Returns:
+        str | None: the exec group name, or None to use the default exec group
+    """
+    if not resources.size:
+        return None
+
+    if not attr._size_exec_groups[BuildSettingInfo].value:
+        return None
+
+    # A declared exec group does not inherit the target's exec_compatible_with
+    # (only Bazel's internal copy-from-default groups do), so routing the action
+    # into one would silently drop the constraint and could land it on a
+    # different execution platform than the one whose shell toolchain generated
+    # its script. Bazel's per-group escape hatch is exec_group_compatible_with;
+    # refuse rather than diverge.
+    if getattr(attr, "exec_compatible_with", None):
+        group = size_exec_group_name(resources.size)
+        fail(
+            ("{label}: resource_size routes the build action into the {group} exec " +
+             "group, but exec_compatible_with does not apply to declared exec " +
+             "groups, so the constraint would be silently dropped. Use " +
+             "exec_group_compatible_with = {{\"{group}\": [...]}} instead, or turn " +
+             "the routing off with " +
+             "--@rules_foreign_cc//foreign_cc/settings:{setting}=False.").format(
+                label = label,
+                group = group,
+                setting = _SIZE_EXEC_GROUPS_SETTING,
+            ),
+        )
+
+    return size_exec_group_name(resources.size)
 
 def get_resource_env_vars(attr):
     """ get the values of env vars controlling parallelism
