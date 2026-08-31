@@ -40,6 +40,7 @@ compile() {
 
     local cxx
     cxx="$(ensure_absolute "$CXX")"
+    mkdir -p "$(dirname "$2")"
 
     case "$cxx" in
         */cl.exe)
@@ -58,6 +59,7 @@ static_link() {
 
     local ar
     ar="$(ensure_absolute "$AR")"
+    mkdir -p "$(dirname "$2")"
 
     case "$ar" in
         */lib.exe)

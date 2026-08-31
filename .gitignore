@@ -40,6 +40,8 @@ cmake-build-*/
 
 # Python
 /*venv/
+__pycache__/
+*.pyc
 
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml
@@ -85,6 +87,10 @@ bazelci.py
 /bazel-*
 /docs/bazel-*
 /examples/bazel-*
-/test/detect_root_test/bazel-*
-/test/standard_cxx_flags_test/bazel-*
+
+# Each scenario dir under test/integration/ is its own inner workspace;
+# running it locally leaves bazel-* convenience symlinks behind. (The
+# scenarios' MODULE.bazel.lock files ARE tracked -- they're pregenerated
+# and committed, like the root lock.)
+/test/integration/*/bazel-*
 .ijwb/

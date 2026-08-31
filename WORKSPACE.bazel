@@ -42,6 +42,26 @@ load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 protobuf_deps()
 
 http_archive(
+    name = "rules_java",
+    sha256 = "c5bc17e17bb62290b1fd8fdd847a2396d3459f337a7e07da7769b869b488ec26",
+    urls = [
+        "https://github.com/bazelbuild/rules_java/releases/download/8.6.1/rules_java-8.6.1.tar.gz",
+    ],
+)
+
+load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
+
+rules_java_dependencies()
+
+load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
+
+proto_bazel_features(name = "proto_bazel_features")
+
+load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
+
+rules_java_toolchains()
+
+http_archive(
     name = "bazel_ci_rules",
     sha256 = "eca21884e6f66a88c358e580fd67a6b148d30ab57b1680f62a96c00f9bc6a07e",
     strip_prefix = "bazelci_rules-1.0.0",
@@ -71,10 +91,10 @@ http_archive(
 
 http_archive(
     name = "bazel_skylib_gazelle_plugin",
-    sha256 = "e0629e3cbacca15e2c659833b24b86174d22b664ca0a67f377108ff6a207cc8c",
+    sha256 = "e08ddabeabbcb93b92044df092292582d2b8cc28c2d81d74689c7d1b9d73b6b7",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-gazelle-plugin-1.7.1.tar.gz",
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-gazelle-plugin-1.7.1.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.9.0/bazel-skylib-gazelle-plugin-1.9.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.9.0/bazel-skylib-gazelle-plugin-1.9.0.tar.gz",
     ],
 )
 
@@ -153,3 +173,29 @@ multitool(
         "@aspect_rules_lint//lint:multitool.lock.json",
     ],
 )
+
+# rules_bazel_integration_test drives the bazel-in-bazel tests under
+# test/integration. Under bzlmod it comes from MODULE.bazel
+# (the bazel_binaries extension); the legacy WORKSPACE setup below is what
+# makes those packages load with bzlmod disabled, so the workspaces CI job
+# and local workspace-only users get the same coverage. Keep the version in
+# sync with the bazel_dep in MODULE.bazel.
+http_archive(
+    name = "rules_bazel_integration_test",
+    integrity = "sha256-6ew1u3CjQM4TqFtYPo3RNm+N3p/KcLix+R4BFDEtVwE=",
+    urls = [
+        "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.37.1/rules_bazel_integration_test.v0.37.1.tar.gz",
+    ],
+)
+
+load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
+
+bazel_integration_test_rules_dependencies()
+
+load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
+
+bazel_starlib_dependencies()
+
+load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_binaries")
+
+bazel_binaries(versions = ["//:.bazelversion"])

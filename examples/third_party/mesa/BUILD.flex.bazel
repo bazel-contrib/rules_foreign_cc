@@ -12,11 +12,31 @@ filegroup(
 
 configure_make(
     name = "flex",
+    # Pre-built `src/parse.c` and `src/scan.c` ship in the tarball,
+    # but mtime parity with `src/parse.y` / `src/scan.l` after Bazel
+    # materializes them triggers the `.y.c` and `.l.c` rules. Those
+    # invoke `bison` and `flex` (not present on RBE) via
+    # `build-aux/missing`. Override `am__skipyacc=:` and
+    # `am__skiplex=:` so the recipes become
+    # `: $(SHELL) $(YLWRAP) ...`, a no-op. Same shape as bison's
+    # parse-gram.c override.
+    args = [
+        "am__skiplex=:",
+        "am__skipyacc=:",
+    ],
     build_data = select({
         "@platforms//os:windows": [],
         "//conditions:default": ["@m4//:m4_exe"],
     }),
-    configure_options = select({
+    configure_options = [
+        # See m4 / bison: NLS recipes need msgfmt, which RBE workers
+        # lack. po/Makefile's `.po.gmo` recipe runs `$(GMSGFMT) -o
+        # t-X.gmo X.po && mv t-X.gmo X.gmo`, and configure substitutes
+        # `GMSGFMT = :` when msgfmt is missing -- `:` exits 0 without
+        # creating `t-X.gmo`, so the `mv` fails. flex doesn't need
+        # translations at runtime in this examples build.
+        "--disable-nls",
+    ] + select({
         # See https://github.com/westes/flex/issues/428#issuecomment-539277966
         "@platforms//os:linux": ["CFLAGS='-D_GNU_SOURCE'"],
         "//conditions:default": [],

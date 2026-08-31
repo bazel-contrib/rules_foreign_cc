@@ -5,15 +5,27 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//foreign_cc/private/framework:toolchain.bzl", "register_framework_toolchains")
 load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "preinstalled_toolchains")
 
+# Default built-tool versions for the WORKSPACE path. The bzlmod path reads the
+# same defaults from tool_specs.bzl (TOOL_SPECS[t].default_version); a unit test
+# (default_versions_in_sync_test) asserts the two agree so the two never build
+# different tool versions.
+DEFAULT_TOOL_VERSIONS = {
+    "cmake": "3.31.12",
+    "make": "4.4.1",
+    "meson": "1.10.1",
+    "ninja": "1.13.2",
+    "pkgconfig": "0.29.2",
+}
+
 # buildifier: disable=unnamed-macro
 def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
-        cmake_version = "3.31.8",
-        make_version = "4.4.1",
-        ninja_version = "1.13.0",
-        meson_version = "1.10.1",
-        pkgconfig_version = "0.29.2",
+        cmake_version = DEFAULT_TOOL_VERSIONS["cmake"],
+        make_version = DEFAULT_TOOL_VERSIONS["make"],
+        ninja_version = DEFAULT_TOOL_VERSIONS["ninja"],
+        meson_version = DEFAULT_TOOL_VERSIONS["meson"],
+        pkgconfig_version = DEFAULT_TOOL_VERSIONS["pkgconfig"],
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True,
@@ -104,9 +116,9 @@ def rules_foreign_cc_dependencies(
     maybe(
         http_archive,
         name = "bazel_features",
-        sha256 = "2f057dd02098a106095ea291b4344257398a059eadb2c74cc470de0f9664dccd",
-        strip_prefix = "bazel_features-1.28.0",
-        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.28.0/bazel_features-v1.28.0.tar.gz",
+        sha256 = "c26b4e69cf02fea24511a108d158188b9d8174426311aac59ce803a78d107648",
+        strip_prefix = "bazel_features-1.43.0",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.43.0/bazel_features-v1.43.0.tar.gz",
     )
 
     maybe(
@@ -130,9 +142,9 @@ def rules_foreign_cc_dependencies(
     maybe(
         http_archive,
         name = "rules_cc",
-        sha256 = "472ddca8cec1e64ad78e4f0cabbec55936a3baddbe7bef072764ca91504bd523",
-        strip_prefix = "rules_cc-0.2.13",
-        url = "https://github.com/bazelbuild/rules_cc/releases/download/0.2.13/rules_cc-0.2.13.tar.gz",
+        sha256 = "1de5b47721fce0af0dd453b3071228fdfc44bd18199826b3f0b03b423aae9f65",
+        strip_prefix = "rules_cc-0.2.18",
+        url = "https://github.com/bazelbuild/rules_cc/releases/download/0.2.18/rules_cc-0.2.18.tar.gz",
     )
 
     maybe(

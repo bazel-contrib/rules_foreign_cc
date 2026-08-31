@@ -1,0 +1,12 @@
+# Verifies via a filegroup probe (no cmake is ever invoked; a missing spoke
+# fails analysis with "no such repository") that under tools.explicit() a root
+# `tools.cmake(mode="source", register_toolchain=False, version="3.30.x")` tag
+# fetches its spoke and the `.x` wildcard resolves to the exact patch,
+# materializing @cmake_src_3.30.9 (never a literal @cmake_src_3.30.x). The
+# binary cmake declared in MODULE.bazel stays the registered toolchain.
+filegroup(
+    name = "cmake_src_probe",
+    srcs = [
+        "@cmake_src_3.30.9//:all_srcs",
+    ],
+)

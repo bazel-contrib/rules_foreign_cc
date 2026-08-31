@@ -2,13 +2,6 @@ load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson")
 
 package(default_visibility = ["//visibility:public"])
 
-config_setting(
-    name = "msvc_compiler",
-    flag_values = {
-        "@bazel_tools//tools/cpp:compiler": "msvc-cl",
-    },
-)
-
 filegroup(
     name = "all_srcs",
     srcs = glob(["**"]),
@@ -23,7 +16,7 @@ DEPS = [
 meson(
     name = "glib",
     copts = select({
-        ":msvc_compiler": [
+        "@rules_cc//cc/compiler:msvc-cl": [
             # This string is used as enum in gio/glib-compile-resources.c:718
             "-UCOMPILER_MSVC",
         ],
@@ -32,14 +25,14 @@ meson(
     env = {
         "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
     } | select({
-        ":msvc_compiler": {
-            "INCLUDE": "$$EXT_BUILD_DEPS/include",
-            "LIB": "$$EXT_BUILD_DEPS/lib",
-            "PATH": "$$EXT_BUILD_DEPS/lib:$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
-        },
         "@platforms//os:macos": {
             "CPATH": "$$EXT_BUILD_DEPS/gettext/include",
             "LIBRARY_PATH": "$$EXT_BUILD_DEPS/gettext/lib",
+        },
+        "@rules_cc//cc/compiler:msvc-cl": {
+            "INCLUDE": "$$EXT_BUILD_DEPS/include",
+            "LIB": "$$EXT_BUILD_DEPS/lib",
+            "PATH": "$$EXT_BUILD_DEPS/lib:$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
         },
         "//conditions:default": {},
     }),

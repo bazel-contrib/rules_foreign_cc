@@ -1,4 +1,5 @@
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson_with_requirements")
+load("@rules_foreign_cc_examples_third_party//:bzlmod_enabled.bzl", "BZLMOD_ENABLED")
 load("@third_party_pip//:requirements.bzl", "requirement")
 
 filegroup(
@@ -6,22 +7,15 @@ filegroup(
     srcs = glob(["**"]),
 )
 
-config_setting(
-    name = "msvc_compiler",
-    flag_values = {
-        "@bazel_tools//tools/cpp:compiler": "msvc-cl",
-    },
-)
-
 meson_with_requirements(
     name = "mesa",
     build_args = select({
         # Prevent parallel builds on when using winflexbison, due to issue https://github.com/lexxmark/winflexbison/issues/86
-        "@bazel_tools//src/conditions:host_windows": ["-j 1"],
+        "@platforms//os:windows": ["-j 1"],
         "//conditions:default": [],
     }),
     build_data = select({
-        "@bazel_tools//src/conditions:host_windows": ["@winflexbison//:gen_dir"],
+        "@platforms//os:windows": ["@winflexbison//:gen_dir"],
         "//conditions:default": [
             "@bison//:gen_dir",
             "@flex//:flex_exe",
@@ -29,7 +23,7 @@ meson_with_requirements(
         ],
     }),
     env = select({
-        "@bazel_tools//src/conditions:host_windows": {
+        "@platforms//os:windows": {
             "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @winflexbison//:gen_dir))/winflexbison:$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
         },
         "//conditions:default": {
@@ -40,15 +34,15 @@ meson_with_requirements(
     }),
     lib_source = ":all_srcs",
     linkopts = select({
-        "@openssl//:msvc_compiler": [
-            "ws2_32.lib",
-        ],
         "@platforms//os:linux": [
             # Newer ld.lld rejects version script entries for symbols that are
             # not present in the final link; see
             # https://gitlab.freedesktop.org/mesa/mesa/-/issues/8338 for
             # breadcrumbs
             "-Wl,--undefined-version",
+        ],
+        "@rules_cc//cc/compiler:msvc-cl": [
+            "ws2_32.lib",
         ],
         "//conditions:default": [],
     }),
@@ -64,7 +58,7 @@ meson_with_requirements(
         "//conditions:default": {},
     }),
     out_interface_libs = select({
-        ":msvc_compiler": [
+        "@rules_cc//cc/compiler:msvc-cl": [
             "libgallium_wgl.lib",
             "opengl32.lib",
         ],
@@ -75,10 +69,6 @@ meson_with_requirements(
         "//conditions:default": "lib",
     }),
     out_shared_libs = select({
-        ":msvc_compiler": [
-            "libgallium_wgl.dll",
-            "opengl32.dll",
-        ],
         "@platforms//os:linux": [
             "libEGL.so",
             "libgbm.so",
@@ -98,10 +88,21 @@ meson_with_requirements(
             "libGL.1.dylib",
             "libGLESv2.dylib",
         ],
+        "@rules_cc//cc/compiler:msvc-cl": [
+            "libgallium_wgl.dll",
+            "opengl32.dll",
+        ],
     }),
     requirements = [
         requirement("mako"),
     ],
+    # Meson's Python runtime lands in a deeply-nested runfiles tree under the
+    # exec root. On bzlmod the module-path segments make this exceed MAX_PATH,
+    # so Python can't load its own DLLs. Needs tool-staging work to resolve.
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"] if BZLMOD_ENABLED else [],
+        "//conditions:default": [],
+    }),
     toolchains = ["@rules_python//python:current_py_toolchain"],
     visibility = ["//visibility:public"],
     deps = ["@examples_zlib//:zlib"] + select({

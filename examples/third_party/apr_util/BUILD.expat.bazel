@@ -13,7 +13,7 @@ LIB_NAME = "expat"
 alias(
     name = "expat",
     actual = select({
-        "@apr//:msvc_compiler": "expat_msvc",
+        "@rules_cc//cc/compiler:msvc-cl": "expat_msvc",
         "//conditions:default": "expat_default",
     }),
     visibility = ["//visibility:public"],

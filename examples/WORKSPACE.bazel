@@ -1,6 +1,7 @@
 workspace(name = "rules_foreign_cc_examples")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:local.bzl", "new_local_repository")
 
 local_repository(
     name = "rules_foreign_cc",
@@ -15,6 +16,15 @@ load("@bazel_features//:deps.bzl", "bazel_features_deps")
 
 bazel_features_deps()
 
+http_archive(
+    name = "with_cfg.bzl",
+    integrity = "sha256-h4UuEzw3VaVkL+EFQ+4g7acA2uFNMNE9rJbiLqUQbQc=",
+    strip_prefix = "with_cfg.bzl-0.14.6",
+    urls = [
+        "https://github.com/fmeum/with_cfg.bzl/releases/download/v0.14.6/with_cfg.bzl-v0.14.6.tar.gz",
+    ],
+)
+
 load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
 
 compatibility_proxy_repo()
@@ -27,9 +37,31 @@ load("@rules_python//python:repositories.bzl", "py_repositories", "python_regist
 
 py_repositories()
 
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
 
-protobuf_deps()
+rules_shell_dependencies()
+
+rules_shell_toolchains()
+
+http_archive(
+    name = "rules_java",
+    sha256 = "c5bc17e17bb62290b1fd8fdd847a2396d3459f337a7e07da7769b869b488ec26",
+    urls = [
+        "https://github.com/bazelbuild/rules_java/releases/download/8.6.1/rules_java-8.6.1.tar.gz",
+    ],
+)
+
+load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
+
+rules_java_dependencies()
+
+load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
+
+proto_bazel_features(name = "proto_bazel_features")
+
+load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
+
+rules_java_toolchains()
 
 python_register_toolchains(
     name = "python_3_10",
@@ -106,8 +138,14 @@ http_archive(
 
 http_archive(
     name = "build_bazel_rules_apple",
-    sha256 = "ed432a2d5929452748bd53a4ff9e652f2332283eb3d7ffad6cb63aab96a06301",
-    url = "https://github.com/bazelbuild/rules_apple/releases/download/3.4.0/rules_apple.3.4.0.tar.gz",
+    sha256 = "20152b14d9a420afc15ace905c02fd6425ddceb084630f3f043b287adf0fcdbd",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/4.1.0/rules_apple.4.1.0.tar.gz",
+)
+
+http_archive(
+    name = "build_bazel_rules_swift",
+    sha256 = "5eff717c18bb513285b499add68f2331509cd4e411ff085e96a86b3342c1e5aa",
+    url = "https://github.com/bazelbuild/rules_swift/releases/download/3.1.2/rules_swift.3.1.2.tar.gz",
 )
 
 load(
@@ -138,10 +176,14 @@ load(
 
 apple_support_dependencies()
 
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
 http_archive(
     name = "rules_rust",
-    integrity = "sha256-u8dkwlLQYSgbI1knek1GSA4tz69yr8HObgCtpYzL/Uw=",
-    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.69.0/rules_rust-0.69.0.tar.gz"],
+    integrity = "sha256-X/2f8fby8U8gV7fLqpGl5qzZpMve1ayB2tm+s2hZYB4=",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.70.0/rules_rust-0.70.0.tar.gz"],
 )
 
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
@@ -190,3 +232,15 @@ load(
 )
 
 rust_example_crate_repositories()
+
+new_local_repository(
+    name = "rules_foreign_cc_detect_root_test_repo",
+    build_file_content = """\
+filegroup(
+    name = "srcs",
+    srcs = glob(["**/**"]),
+    visibility = ["//visibility:public"],
+)
+""",
+    path = "integration_tests/detect_root_test/dir1",
+)

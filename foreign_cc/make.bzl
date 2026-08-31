@@ -86,6 +86,7 @@ def _create_make_script(configureParameters):
         make_install_prefix = ctx.attr.install_prefix,
         executable_ldflags_vars = ctx.attr.executable_ldflags_vars,
         shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
+        dynamic_module_ldflags_vars = ctx.attr.dynamic_module_ldflags_vars,
         is_msvc = is_msvc,
     )
 
@@ -94,6 +95,15 @@ def _attrs():
     attrs.update({
         "args": attr.string_list(
             doc = "A list of arguments to pass to the call to `make`",
+        ),
+        "dynamic_module_ldflags_vars": attr.string_list(
+            doc = (
+                "Make variables receiving linker flags for loadable dynamic modules. " +
+                "This is primarily useful on Darwin, where module builds cannot use " +
+                "conflicting `-dynamiclib`/`-shared` and `-bundle` linker flags together."
+            ),
+            mandatory = False,
+            default = [],
         ),
         "executable_ldflags_vars": attr.string_list(
             doc = (

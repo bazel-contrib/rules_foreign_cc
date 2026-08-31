@@ -15,7 +15,7 @@ def cmake_tool(name, srcs, **kwargs):
     native.alias(
         name = "{}.build".format(name),
         actual = select({
-            ":msvc_compiler": "{}_msvc".format(name),
+            "@rules_cc//cc/compiler:msvc-cl": "{}_msvc".format(name),
             "//conditions:default": "{}_default".format(name),
         }),
     )
@@ -42,6 +42,7 @@ def cmake_tool(name, srcs, **kwargs):
             "@platforms//os:windows": ["cmake.exe"],
             "//conditions:default": ["cmake"],
         }),
+        out_include_dir = "",
         out_static_libs = [],
         out_shared_libs = [],
         tags = tags,

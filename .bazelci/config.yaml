@@ -11,8 +11,14 @@ matrix:
 
   bazel_version:
     7.x: 7.7.1
-    # 8.x: 8.6.0
+    8.x: 8.6.0
     # 9.x: 9.0.1
+
+  # hack to work around it until the fix lands:
+  # https://github.com/bazelbuild/continuous-integration/pull/2526
+  bazel_rc_config:
+    7.x: --config=bazel-7.x
+    8.x: --config=bazel-8.x
 
   bzlmod:
     bzlmod: [--enable_bzlmod, --noenable_workspace]
@@ -27,14 +33,24 @@ matrix:
     Main: ''
     Examples: examples
 
-  mini:
-    Flags: test/standard_cxx_flags_test
-    DetectRoot: test/detect_root_test
-
   exclude:
     # bazel 9 no longer supports workspaces
     - bazel_version: 9.x
       bzlmod: workspaces
+
+    # bazel 7 has an unfortunate habit of crashing on bzlmod lock files, so
+    # only support bazel 7 in workspace mode
+    - bazel_version: 7.x
+      bzlmod: bzlmod
+
+    - bazel_version: 7.x
+      bzlmod: mixed
+
+    - bazel_version: 7.x
+      bazel_rc_config: 8.x
+
+    - bazel_version: 8.x
+      bazel_rc_config: 7.x
 
     # Windows doesn't actually have a sandbox anyway, and there aren't a lot of
     # windows runners, so don't run the standalones
@@ -55,8 +71,6 @@ matrix:
 .default_task: &default_task
   platform: ${{ platform }}
   bazel: ${{ bazel_version }}
-  build_targets:
-    - //...
   test_targets:
     - //...
 
@@ -66,23 +80,24 @@ tasks:
     name: '{primary}/{bazel_version}/{bzlmod}/{spawn_strategy}'
     working_directory: ${{ primary }}
 
-    build_flags: &primary_flags
+    # Run a single `bazel test //...` phase rather than separate build+test
+    # phases. bazelci's default `--build_tests_only` is overridden so all
+    # non-test targets still get built, and dropping the build phase means
+    # every action shows up in test_bep.json (which IS uploaded as a CI
+    # artifact, unlike build_bep.json).
+    test_flags:
       - --config=ci
+      - ${{ bazel_rc_config }}
       - ${{ bzlmod }}
       - ${{ spawn_strategy }}
-
-    test_flags: *primary_flags
-
-  mini:
-    <<: *default_task
-    name: '{mini}/{bazel_version}/{bzlmod}'
-    working_directory: ${{ mini }}
-
-    build_flags: &mini_flags
-      - --config=ci
-      - ${{ bzlmod }}
-
-    test_flags: *mini_flags
+      - --nobuild_tests_only
+      # Segregate the remote cache by buildkite platform so that, for
+      # example, an RBE worker can't pull a configure_make artifact baked by
+      # a non-RBE node (where the build environment differs) just because
+      # the actions' digests happen to collide. The variable's value lands
+      # in every spawn's action key, so each platform gets its own silo for
+      # both remote-cache-only lookups and RBE executor lookups.
+      - --action_env=RFCC_CACHE_SILO=${{ platform }}
 
   docs:
     name: Docs
@@ -91,6 +106,12 @@ tasks:
     build_targets:
       - //...
     build_flags:
+      - --config=ci
+    # version_sync_lint (+ its self-test) is a py_test; without test_targets it
+    # would only be built, never run, leaving the doc/version drift guard inert.
+    test_targets:
+      - //...
+    test_flags:
       - --config=ci
 
 buildifier:

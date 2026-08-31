@@ -1,3 +1,3 @@
 #include "liba.h"
 
-std::string hello_liba(void) { return "Hello from LIBA!"; }
+LIBA_API std::string hello_liba(void) { return "Hello from LIBA!"; }

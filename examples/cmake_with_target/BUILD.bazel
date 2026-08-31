@@ -17,6 +17,7 @@ cmake(
     ],
     install_args = ["--component working"],
     lib_source = ":srcs",
+    out_include_dir = "",
     out_static_libs = select({
         "@platforms//os:windows": [
             "working_a.lib",

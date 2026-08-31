@@ -1,0 +1,39 @@
+module(
+    name = "explicit_minimal_test",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../../..",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.explicit()
+tools.cmake(
+    mode = "binary",
+    version = "3.31.12",
+)
+tools.ninja(
+    mode = "binary",
+    version = "1.13.2",
+)
+tools.make(
+    mode = "source",
+    version = "4.4.1",
+)
+tools.m4(mode = "noop")
+tools.pkgconfig(mode = "noop")
+
+# Surface the source-make spoke and the hub so the scenario's probe/cquery can
+# assert the source-make and noop tags above actually took effect (the
+# //:hello_cmake build alone only invokes cmake+ninja).
+use_repo(
+    tools,
+    "make_src_4.4.1",
+    "rules_foreign_cc_toolchains",
+)

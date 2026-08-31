@@ -91,6 +91,7 @@ def env_test_configure_make(name, *, check_makevars = None, check_shellvars = No
     configure_make_attrs.update(dict(
         name = build_name,
         lib_source = Label(src),
+        out_include_dir = "",
         out_headers_only = True,
         targets = ["all"],
         out_data_files = [

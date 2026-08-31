@@ -4,6 +4,7 @@
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("@rules_cc//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
@@ -30,6 +31,58 @@ load(
     ":run_shell_file_utils.bzl",
     "copy_directory",
 )
+
+# Attributes shared by every framework rule (regular `cc_external_rule_impl`-based
+# rules and `built_tools` rules alike).
+FOREIGN_CC_FRAMEWORK_COMMON_ATTRS = {
+    "copts": attr.string_list(
+        doc = "Optional. Add these options to the compile flags passed to the foreign build system. The flags only take affect for compiling this target, not its dependencies.",
+        mandatory = False,
+        default = [],
+    ),
+    "env": attr.string_dict(
+        doc = (
+            "Environment variables to set during the build. " +
+            "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_data`, " +
+            "but unlike with other rules, these will be replaced with absolute paths to those files, " +
+            "because the build does not run in the exec root. " +
+            "This attribute is subject to make variable substitution. " +
+            "No other macros are supported." +
+            "Variables containing `PATH` (e.g. `PATH`, `LD_LIBRARY_PATH`, `CPATH`) entries will be prepended to the existing variable."
+        ),
+        default = {},
+    ),
+    "linkopts": attr.string_list(
+        doc = "Optional link options to be passed up to the dependencies of this library",
+        mandatory = False,
+        default = [],
+    ),
+    "set_file_prefix_map": attr.bool(
+        doc = (
+            "If True, pass `-ffile-prefix-map=$EXT_BUILD_ROOT=.` to strip the sandbox " +
+            "path from compiled outputs. If False (the default), inherit from " +
+            "`//foreign_cc/settings:set_file_prefix_map_default`. Has no effect on MSVC."
+        ),
+        mandatory = False,
+        default = False,
+    ),
+    "_allow_building_in_tmp": attr.label(
+        default = Label("@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp"),
+        providers = [BuildSettingInfo],
+    ),
+    "_cc_toolchain": attr.label(
+        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+    ),
+    "_foreign_cc_framework_platform": attr.label(
+        doc = "Information about the execution platform",
+        cfg = "exec",
+        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
+    ),
+    "_set_file_prefix_map_default": attr.label(
+        default = Label("@rules_foreign_cc//foreign_cc/settings:set_file_prefix_map_default"),
+        providers = [BuildSettingInfo],
+    ),
+} | PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES | SIZE_ATTRIBUTES
 
 # Dict with definitions of the context attributes, that customize cc_external_rule_impl function.
 # Many of the attributes have default values.
@@ -70,11 +123,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
-    "copts": attr.string_list(
-        doc = "Optional. Add these options to the compile flags passed to the foreign build system. The flags only take affect for compiling this target, not its dependencies.",
-        mandatory = False,
-        default = [],
-    ),
     "data": attr.label_list(
         doc = "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.",
         mandatory = False,
@@ -109,16 +157,10 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         default = [],
         # providers = [CcSharedLibraryInfo],
     ),
-    "env": attr.string_dict(
-        doc = (
-            "Environment variables to set during the build. " +
-            "`$(execpath)` macros may be used to point at files which are listed as `data`, `deps`, or `build_data`, " +
-            "but unlike with other rules, these will be replaced with absolute paths to those files, " +
-            "because the build does not run in the exec root. " +
-            "This attribute is subject to make variable substitution. " +
-            "No other macros are supported." +
-            "Variables containing `PATH` (e.g. `PATH`, `LD_LIBRARY_PATH`, `CPATH`) entries will be prepended to the existing variable."
-        ),
+    "experimental_validate_outputs_in_action": attr.bool(
+        doc = "Validate expected installed outputs inside the main foreign build action before it exits.",
+        mandatory = False,
+        default = True,
     ),
     "includes": attr.string_list(
         doc = (
@@ -144,11 +186,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
         mandatory = True,
         allow_files = True,
-    ),
-    "linkopts": attr.string_list(
-        doc = "Optional link options to be passed up to the dependencies of this library",
-        mandatory = False,
-        default = [],
     ),
     "out_bin_dir": attr.string(
         doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'. ",
@@ -207,14 +244,6 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Optional part of the shell script to be added after the make commands",
         mandatory = False,
     ),
-    "set_file_prefix_map": attr.bool(
-        doc = (
-            "Use -ffile-prefix-map with the intention to remove the sandbox path from " +
-            "debug symbols"
-        ),
-        mandatory = False,
-        default = False,
-    ),
     "static_suffix": attr.string(
         doc = (
             "Optional suffix used by static libs." +
@@ -240,20 +269,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         cfg = "exec",
         default = [],
     ),
-    # we need to declare this attribute to access cc_toolchain
-    "_cc_toolchain": attr.label(
-        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-    ),
-    "_foreign_cc_framework_platform": attr.label(
-        doc = "Information about the execution platform",
-        cfg = "exec",
-        default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
-    ),
-}
-
-# this would be cleaner as x | y, but that's not supported in bazel 5.4.0
-CC_EXTERNAL_RULE_ATTRIBUTES.update(PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES)
-CC_EXTERNAL_RULE_ATTRIBUTES.update(SIZE_ATTRIBUTES)
+} | FOREIGN_CC_FRAMEWORK_COMMON_ATTRS
 
 # A list of common fragments required by rules using this framework
 CC_EXTERNAL_RULE_FRAGMENTS = [
@@ -385,6 +401,45 @@ def get_env_prelude(ctx, installdir, data_dependencies, tools_env):
 
     return env_snippet
 
+def _use_short_paths(ctx):
+    """Returns True if the build should use shortened paths on Windows."""
+    if not targets_windows(ctx, None):
+        return False
+    return ctx.attr._allow_building_in_tmp[BuildSettingInfo].value
+
+def _short_path_wrapper_setup(ctx):
+    """Set up short-path temp directory in the wrapper script.
+
+    Creates the temp directory and exports two variables:
+      RFCC_SHORT_PATH_ROOT      - UNIX path for shell operations (rm, mkdir, etc.)
+      RFCC_SHORT_PATH_ROOT_WIN  - mixed Windows path for tools (CMake, MSVC, etc.)
+
+    This runs in the wrapper so the cleanup trap can access RFCC_SHORT_PATH_ROOT.
+    """
+    if not _use_short_paths(ctx):
+        return []
+
+    return [
+        "export RFCC_SHORT_PATH_ROOT=\"$(mktemp -d \"${TMP:-/tmp}/rfcc.XXXXXX\")\"",
+        "export RFCC_SHORT_PATH_ROOT_WIN=\"$(to_mixed_path \"$RFCC_SHORT_PATH_ROOT\")\"",
+    ]
+
+def _short_path_env_aliases(ctx):
+    """Redirect BUILD_TMPDIR/EXT_BUILD_DEPS to short paths under RFCC_SHORT_PATH_ROOT_WIN.
+
+    Uses the mixed Windows path form so that downstream tools (CMake, pkg-config,
+    etc.) receive paths they understand. Must run after env_prelude in any script
+    that sets BUILD_TMPDIR/EXT_BUILD_DEPS, since env_prelude sets them to the
+    original long paths.
+    """
+    if not _use_short_paths(ctx):
+        return []
+
+    return [
+        "export BUILD_TMPDIR=\"$RFCC_SHORT_PATH_ROOT_WIN/b\"",
+        "export EXT_BUILD_DEPS=\"$RFCC_SHORT_PATH_ROOT_WIN/d\"",
+    ]
+
 def cc_external_rule_impl(ctx, attrs):
     """Framework function for performing external C/C++ building.
 
@@ -474,6 +529,13 @@ def cc_external_rule_impl(ctx, attrs):
     else:
         postfix_script = [expand_locations_and_make_variables(ctx, attrs.postfix_script, "postfix_script", data_dependencies)]
 
+    validation_script = []
+    if attrs.experimental_validate_outputs_in_action:
+        validation_script = _validate_expected_outputs_script(
+            ctx,
+            outputs.expected_output_paths,
+        )
+
     script_lines = [
         "##echo## \"\"",
         "##echo## \"{}\"".format(lib_header),
@@ -481,6 +543,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##script_prelude##",
     ] + env_prelude + [
         "##path## $$EXT_BUILD_ROOT$$",
+    ] + _short_path_env_aliases(ctx) + [
         "##rm_rf## $$BUILD_TMPDIR$$",
         "##rm_rf## $$EXT_BUILD_DEPS$$",
         "##mkdirs## $$INSTALLDIR$$",
@@ -488,7 +551,7 @@ def cc_external_rule_impl(ctx, attrs):
         "##mkdirs## $$EXT_BUILD_DEPS$$",
     ] + _print_env() + _copy_deps_and_tools(inputs) + [
         "cd $$BUILD_TMPDIR$$",
-    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + postfix_script + [
+    ] + attrs.create_configure_script(ConfigureParameters(ctx = ctx, attrs = attrs, inputs = inputs)) + postfix_script + validation_script + [
         # replace references to the root directory when building ($BUILD_TMPDIR)
         # and the root where the dependencies were installed ($EXT_BUILD_DEPS)
         # for the results which are in $INSTALLDIR (with placeholder)
@@ -652,6 +715,12 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         "\n".join([
             "##rm_rf## $$BUILD_TMPDIR$$",
             "##rm_rf## $$EXT_BUILD_DEPS$$",
+            # On Windows with short paths, BUILD_TMPDIR and EXT_BUILD_DEPS are
+            # inside RFCC_SHORT_PATH_ROOT (already removed above). Clean up the
+            # parent temp dir too. On non-Windows this var is unset.
+            "if [ -n \"${RFCC_SHORT_PATH_ROOT:-}\" ]; then",
+            "##rm_rf## ${RFCC_SHORT_PATH_ROOT}",
+            "fi",
         ]),
     )
     cleanup_on_failure_function = create_function(
@@ -683,7 +752,7 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         # the call trap is defined inside, in a way how the shell function should be called
         # see, for instance, linux_commands.bzl
         trap_function,
-    ] + env_prelude + [
+    ] + env_prelude + _short_path_wrapper_setup(ctx) + _short_path_env_aliases(ctx) + [
         "export BUILD_WRAPPER_SCRIPT=\"{}\"".format(wrapper_script_file.path),
         "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
         "export BUILD_LOG=\"{}\"".format(build_log_file.path),
@@ -860,6 +929,7 @@ _Outputs = provider(
         data_dirs = "Directory containing additional files generated by the build",
         data_files = "Data files, which will be created by the action",
         declared_outputs = "All output files and directories of the action",
+        expected_output_paths = "Install-root-relative paths expected to exist after the foreign build finishes",
     ),
 )
 
@@ -892,19 +962,27 @@ def _define_outputs(ctx, attrs, lib_name):
     else:
         out_include_dir = ""
 
+    expected_output_paths = [attrs.out_include_dir] if out_include_dir else []
+
     out_data_dirs = []
     for dir in attr_out_data_dirs:
         out_data_dirs.append(ctx.actions.declare_directory(lib_name + "/" + dir.lstrip("/")))
+        expected_output_paths.append(dir.lstrip("/"))
 
     out_data_files = _declare_out(ctx, lib_name, "/", attr_out_data_files)
+    expected_output_paths += [_expected_output_path("/", file) for file in attr_out_data_files]
 
     out_binary_files = _declare_out(ctx, lib_name, attrs.out_bin_dir, attr_binaries_libs)
+    expected_output_paths += [_expected_output_path(attrs.out_bin_dir, file) for file in attr_binaries_libs]
 
     libraries = LibrariesToLinkInfo(
         static_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, static_libraries),
         shared_libraries = _declare_out(ctx, lib_name, attrs.out_dll_dir if targets_windows(ctx, None) else attrs.out_lib_dir, attr_shared_libs),
         interface_libraries = _declare_out(ctx, lib_name, attrs.out_lib_dir, attr_interface_libs),
     )
+    expected_output_paths += [_expected_output_path(attrs.out_lib_dir, file) for file in static_libraries]
+    expected_output_paths += [_expected_output_path(attrs.out_dll_dir if targets_windows(ctx, None) else attrs.out_lib_dir, file) for file in attr_shared_libs]
+    expected_output_paths += [_expected_output_path(attrs.out_lib_dir, file) for file in attr_interface_libs]
 
     declared_outputs = [out_include_dir] if out_include_dir else []
     declared_outputs += out_data_dirs + out_binary_files + out_data_files
@@ -918,12 +996,90 @@ def _define_outputs(ctx, attrs, lib_name):
         data_dirs = out_data_dirs,
         data_files = out_data_files,
         declared_outputs = declared_outputs,
+        expected_output_paths = expected_output_paths,
     )
 
 def _declare_out(ctx, lib_name, dir_, files):
     if files and len(files) > 0:
         return [ctx.actions.declare_file("/".join([lib_name, dir_, file])) for file in files]
     return []
+
+def _validate_expected_outputs_script(ctx, expected_output_paths):
+    if not expected_output_paths:
+        return []
+
+    validate_output_function = create_function(
+        ctx,
+        "validate_expected_output",
+        "\n".join([
+            "local expected_output_path=\"$1\"",
+            "local expected_basename=\"$2\"",
+            "local rel_expected_output_path=\"${expected_output_path#\"$INSTALLDIR\"/}\"",
+            "local expected_dir",
+            "local find_bin=\"${REAL_FIND:-find}\"",
+            "expected_dir=$(dirname \"$expected_output_path\")",
+            "if [[ -e \"$expected_output_path\" ]]; then",
+            "  return 0",
+            "fi",
+            "echo \"rules_foreign_cc: missing expected installed output: $rel_expected_output_path\" >&2",
+            "if [[ -d \"$expected_dir\" ]]; then",
+            "  local rel_expected_dir=\"${expected_dir#\"$INSTALLDIR\"/}\"",
+            "  local sibling_candidates",
+            "  sibling_candidates=$($find_bin \"$expected_dir\" -maxdepth 1 -mindepth 1 -print 2>/dev/null | head -n 5 || true)",
+            "  if [[ -n \"$sibling_candidates\" ]]; then",
+            "    echo \"rules_foreign_cc: other files in the same directory (max 5):\" >&2",
+            "    while IFS= read -r sibling_candidate; do",
+            "      [[ -n \"$sibling_candidate\" ]] || continue",
+            "      echo \"rules_foreign_cc:   ${sibling_candidate##*/}\" >&2",
+            "    done <<< \"$sibling_candidates\"",
+            "  fi",
+            "fi",
+            "local nearby_candidates",
+            "nearby_candidates=$($find_bin \"$INSTALLDIR\" -mindepth 1 -name \"$expected_basename\" -print 2>/dev/null | head -n 5 || true)",
+            "if [[ -n \"$nearby_candidates\" ]]; then",
+            "  echo \"rules_foreign_cc: other files in the install root with the same name (max 5):\" >&2",
+            "  while IFS= read -r nearby_candidate; do",
+            "    [[ -n \"$nearby_candidate\" ]] || continue",
+            "    echo \"rules_foreign_cc:   ${nearby_candidate#\"$INSTALLDIR\"/}\" >&2",
+            "  done <<< \"$nearby_candidates\"",
+            "fi",
+            "return 1",
+        ]),
+    )
+
+    lines = [
+        validate_output_function,
+        "echo \"_____ BEGIN OUTPUT VALIDATION _____\"",
+        "missing_foreign_cc_outputs=0",
+        "echo \"rules_foreign_cc: install root: $INSTALLDIR\"",
+        "echo \"rules_foreign_cc: validating expected installed outputs\"",
+    ]
+
+    for rel in expected_output_paths:
+        basename = rel.rsplit("/", 1)[-1]
+        lines.extend([
+            "if ! validate_expected_output \"$$INSTALLDIR$$/{rel}\" \"{basename}\"; then".format(
+                rel = rel,
+                basename = basename,
+            ),
+            "  missing_foreign_cc_outputs=1",
+            "fi",
+        ])
+
+    lines.extend([
+        "if [[ \"$missing_foreign_cc_outputs\" -ne 0 ]]; then",
+        "  echo \"rules_foreign_cc: expected output validation failed\" >&2",
+        "  echo \"_____ END OUTPUT VALIDATION _____\" >&2",
+        "  exit 1",
+        "fi",
+        "echo \"_____ END OUTPUT VALIDATION _____\"",
+    ])
+    return lines
+
+def _expected_output_path(dir_, file):
+    if dir_ == "/" or not dir_:
+        return file.lstrip("/")
+    return dir_.rstrip("/") + "/" + file.lstrip("/")
 
 # buildifier: disable=name-conventions
 InputFiles = provider(

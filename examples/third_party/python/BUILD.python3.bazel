@@ -33,6 +33,7 @@ configure_make(
         "python3.10",
     ],
     out_data_dirs = ["lib"],
+    resource_size = "enormous",
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],

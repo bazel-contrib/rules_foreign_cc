@@ -1,0 +1,229 @@
+"""Per-version binary-mode spoke helpers for cmake and ninja.
+
+Hand-maintained. The per-version archive tables this reads
+(``CMAKE_BIN_SRCS`` etc.) are generated into the loaded ``*_versions.bzl``
+modules by ``toolchains/prebuilt_toolchains.py``; the macro bodies here are
+version-neutral, so they live in source rather than being emitted.
+"""
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("@rules_foreign_cc//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_SRCS", "CMAKE_BIN_WILDCARDS")
+load("@rules_foreign_cc//toolchains/private:ninja_versions.bzl", "NINJA_BIN_SRCS", "NINJA_BIN_WILDCARDS")
+load("@rules_foreign_cc//toolchains/private:prebuilt_toolchains_repository.bzl", "prebuilt_toolchains_repository")
+
+visibility([
+    "//foreign_cc",
+    "//foreign_cc/private",
+    "//toolchains",
+])
+
+# Single source of truth for the binary-mode spoke repo name. Every binary
+# spoke follows one scheme regardless of tool: `<tool>-<version>-<os>-<arch>`.
+# The repo creators (below) and the bzlmod planner's hub target
+# (extension_impl.bzl) both route through binary_spoke_repo so the name can't
+# drift between the repo that gets minted and the label that points at it.
+# Mirrors source_spokes.bzl's SOURCE_SPOKE_REPO_FORMAT for the source spokes.
+BINARY_SPOKE_REPO_FORMAT = "{tool}-{version}-{plat}"
+
+def binary_spoke_repo(tool, version, os_arch):
+    """Return the repo name for a binary-mode ``(tool, version, platform)`` spoke.
+
+    Args:
+        tool: tool name, e.g. "cmake" or "ninja".
+        version: exact version string, e.g. "3.31.12".
+        os_arch: the ``(os, arch)`` tuple keying the per-platform binary table,
+            e.g. ``("linux", "x86_64")`` or ``("macos", "universal")``. The
+            platform token is ``<os>-<arch>``; cmake's universal2 macOS binary
+            resolves for one OS and both CPUs, so its arch token is
+            ``universal`` rather than a single cpu name.
+    """
+    return BINARY_SPOKE_REPO_FORMAT.format(
+        tool = tool,
+        version = version,
+        plat = "-".join(os_arch),
+    )
+
+_CMAKE_BUILD_FILE = """\
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "cmake_bin",
+    srcs = ["bin/{bin}"],
+)
+
+filegroup(
+    name = "cmake_data",
+    srcs = glob(
+        [
+            "**",
+        ],
+        exclude = [
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+            "BUILD",
+            "BUILD.bazel",
+            "**/* *",
+        ],
+    ),
+)
+
+native_tool_toolchain(
+    name = "cmake_tool",
+    path = "bin/{bin}",
+    target = ":cmake_data",
+    env = {env},
+    tools = [":cmake_bin"],
+)
+"""
+
+_NINJA_BUILD_FILE = """\
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("@rules_foreign_cc//foreign_cc/private:select_executable.bzl", "select_executable")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "ninja_bin",
+    srcs = ["{bin}"],
+)
+
+select_executable(
+    name = "ninja_wrapper_bin",
+    src = "{wrapper}",
+)
+
+filegroup(
+    name = "ninja_data",
+    srcs = [
+        ":ninja_bin",
+        "{wrapper}",
+    ]
+)
+
+native_tool_toolchain(
+    name = "ninja_tool",
+    env = {env},
+    path = "$(execpath :ninja_wrapper_bin)",
+    target = ":ninja_data",
+    tools = [
+        ":ninja_bin",
+        ":ninja_wrapper_bin",
+    ]
+)
+"""
+
+def _http_archive_kwargs(spec):
+    kwargs = dict(
+        urls = spec.urls,
+        strip_prefix = spec.strip_prefix,
+    )
+    if spec.sha256:
+        kwargs["sha256"] = spec.sha256
+    if spec.integrity:
+        kwargs["integrity"] = spec.integrity
+    return kwargs
+
+def _resolve_version(version, wildcards):
+    """Map a `<major>.<minor>.x` wildcard to its latest patch; pass others through."""
+    return wildcards.get(version, version)
+
+# buildifier: disable=unnamed-macro
+def cmake_binary_spokes(version, register_toolchains = False):
+    """Define per-platform prebuilt cmake repos and optional toolchain registration.
+
+    Args:
+        version: The cmake version to use. Accepts an exact patch (e.g. "3.31.12")
+            or a "<major>.<minor>.x" wildcard that resolves to the latest patch.
+        register_toolchains: If true, register via native.register_toolchains.
+    """
+    version = _resolve_version(version, CMAKE_BIN_WILDCARDS)
+    plats = CMAKE_BIN_SRCS.get(version)
+    if not plats:
+        fail("Unsupported version: " + str(version))
+
+    repo_names = []
+    repos = {}
+    for os_arch, spec in plats.items():
+        name = binary_spoke_repo("cmake", version, os_arch)
+        kwargs = _http_archive_kwargs(spec)
+        maybe(
+            http_archive,
+            name = name,
+            build_file_content = _CMAKE_BUILD_FILE.format(
+                bin = spec.bin,
+                env = {"CMAKE": "$(execpath :cmake_bin)"},
+            ),
+            **kwargs
+        )
+        repo_names.append(name)
+        repos[name] = list(spec.constraints)
+
+    repo_names = sorted(repo_names)
+
+    # buildifier: leave-alone
+    maybe(
+        prebuilt_toolchains_repository,
+        name = "cmake_{}_toolchains".format(version),
+        repos = repos,
+        tool = "cmake",
+    )
+
+    if register_toolchains:
+        native.register_toolchains(*[
+            "@cmake_{}_toolchains//:{}_toolchain".format(version, name)
+            for name in repo_names
+        ])
+
+# buildifier: disable=unnamed-macro
+def ninja_binary_spokes(version, register_toolchains = False):
+    """Define per-platform prebuilt ninja repos and optional toolchain registration.
+
+    Args:
+        version: The ninja version to use. Accepts an exact patch (e.g. "1.13.2")
+            or a "<major>.<minor>.x" wildcard that resolves to the latest patch.
+        register_toolchains: If true, register via native.register_toolchains.
+    """
+    version = _resolve_version(version, NINJA_BIN_WILDCARDS)
+    plats = NINJA_BIN_SRCS.get(version)
+    if not plats:
+        fail("Unsupported version: " + str(version))
+
+    repo_names = []
+    repos = {}
+    for os_arch, spec in plats.items():
+        name = binary_spoke_repo("ninja", version, os_arch)
+        kwargs = _http_archive_kwargs(spec)
+        maybe(
+            http_archive,
+            name = name,
+            build_file_content = _NINJA_BUILD_FILE.format(
+                bin = spec.bin,
+                wrapper = "@rules_foreign_cc//toolchains/private:ninja_wrapper",
+                env = {
+                    "NINJA": "$(execpath :ninja_wrapper_bin)",
+                    "REAL_NINJA": "$(execpath :ninja_bin)",
+                },
+            ),
+            **kwargs
+        )
+        repo_names.append(name)
+        repos[name] = list(spec.constraints)
+
+    repo_names = sorted(repo_names)
+
+    # buildifier: leave-alone
+    maybe(
+        prebuilt_toolchains_repository,
+        name = "ninja_{}_toolchains".format(version),
+        repos = repos,
+        tool = "ninja",
+    )
+
+    if register_toolchains:
+        native.register_toolchains(*[
+            "@ninja_{}_toolchains//:{}_toolchain".format(version, name)
+            for name in repo_names
+        ])

@@ -5,4 +5,4 @@ if [[ ! -e "$GN" ]]; then
     exit 1
 fi
 
-exec $GN --help
+exec "$GN" --help

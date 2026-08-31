@@ -1,0 +1,19 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+# Library target referencing cmake; its analysis must succeed (toolchain
+# resolves to noop_cmake_toolchain) but a build will fail at execution time.
+# Tagged "manual" so wildcard builds skip it; the scenario only runs cquery.
+cmake(
+    name = "hello_cmake",
+    lib_source = ":sources",
+    out_static_libs = ["libhello.a"],
+    tags = ["manual"],
+)
+
+filegroup(
+    name = "sources",
+    srcs = [
+        "CMakeLists.txt",
+        "example.cc",
+    ],
+)

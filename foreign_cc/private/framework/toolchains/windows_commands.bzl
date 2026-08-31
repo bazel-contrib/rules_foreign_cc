@@ -108,7 +108,9 @@ fi
     )
 
 def copy_dir_contents_to_dir(source, target):
-    return """cp -L -r --no-target-directory "{source}" "{target}" && $REAL_FIND "{target}" -type f -exec touch -r "{source}" "{{}}" \\;""".format(
+    # `-exec ... +` batches paths into a single touch invocation; `\\;` would
+    # fork once per file.
+    return """cp -L -r --no-target-directory "{source}" "{target}" && $REAL_FIND "{target}" -type f -exec touch -r "{source}" "{{}}" +""".format(
         source = source,
         target = target,
     )
@@ -217,8 +219,7 @@ fi
     return FunctionAndCallInfo(text = text)
 
 def script_prelude():
-    return """\
-set -euo pipefail
+    return """set -euo pipefail
 if [ -f /usr/bin/find ]; then
   REAL_FIND="/usr/bin/find"
 else
@@ -226,6 +227,9 @@ else
 fi
 find() {
   "$REAL_FIND" "$@"
+}
+to_mixed_path() {
+  cygpath -am "$1"
 }
 export MSYS_NO_PATHCONV=1
 export MSYS2_ARG_CONV_EXCL="*"

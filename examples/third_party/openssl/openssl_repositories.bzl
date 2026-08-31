@@ -12,7 +12,7 @@ def openssl_repositories():
         strip_prefix = "openssl-1.1.1w",
         urls = [
             "https://www.openssl.org/source/openssl-1.1.1w.tar.gz",
-            "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1w.tar.gz",
+            "https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1w/openssl-1.1.1w.tar.gz",
         ],
     )
 

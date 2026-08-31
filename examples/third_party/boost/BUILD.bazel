@@ -1,0 +1,29 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(
+    [
+        "BUILD.boost.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Building boost in CI is expensive; gate it behind a build_test that's
+# skipped on platforms where it's known not to work yet rather than
+# referencing it from cc_binary (which would force it on every build).
+build_test(
+    name = "boost_build_test",
+    target_compatible_with = select({
+        # boost_build has only been wired for Unix-like b2 invocations; the
+        # Windows bootstrap path uses bootstrap.bat and is not exercised here.
+        "@platforms//os:windows": ["@rules_foreign_cc_examples_third_party//:broken"],
+        "//conditions:default": [],
+    }),
+    targets = ["@boost//:boost_timer"],
+)
+
+test_suite(
+    name = "all_tests",
+    tests = [":boost_build_test"],
+)

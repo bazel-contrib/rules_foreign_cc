@@ -11,22 +11,31 @@ local_path_override(
 )
 
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
-tools.cmake(version = "3.23.1")
-tools.ninja(version = "1.11.1")
+tools.cmake(
+    mode = "binary",
+    version = "3.23.x",
+)
+tools.ninja(
+    mode = "binary",
+    version = "1.11.x",
+)
 use_repo(
     tools,
-    "meson_src",
+    "rules_foreign_cc_toolchains",
 )
 
+register_toolchains("@rules_foreign_cc_toolchains//:all")
+
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_rust", version = "0.69.0")
-bazel_dep(name = "rules_swift", version = "1.17.0", repo_name = "build_bazel_rules_swift")
-bazel_dep(name = "rules_apple", version = "3.4.0", repo_name = "build_bazel_rules_apple")
+bazel_dep(name = "rules_rust", version = "0.70.0")
+bazel_dep(name = "rules_swift", version = "3.1.2", repo_name = "build_bazel_rules_swift")
+bazel_dep(name = "rules_apple", version = "4.1.0", repo_name = "build_bazel_rules_apple")
 bazel_dep(name = "apple_support", version = "1.24.5", repo_name = "build_bazel_apple_support")
 bazel_dep(name = "rules_python", version = "1.9.0")
-bazel_dep(name = "rules_cc", version = "0.2.13")
+bazel_dep(name = "rules_cc", version = "0.2.18")
 bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "rules_perl", version = "1.0.0")
+bazel_dep(name = "with_cfg.bzl", version = "0.14.6")
 
 perl = use_extension("@rules_perl//perl:extensions.bzl", "perl_repositories")
 use_repo(
@@ -139,3 +148,19 @@ use_repo(
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "bazel_lib", version = "3.2.0")
+
+# Support the integration tests
+
+new_local_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:local.bzl", "new_local_repository")
+
+new_local_repository(
+    name = "rules_foreign_cc_detect_root_test_repo",
+    build_file_content = """\
+filegroup(
+    name = "srcs",
+    srcs = glob(["**/**"]),
+    visibility = ["//visibility:public"],
+)
+""",
+    path = "integration_tests/detect_root_test/dir1",
+)

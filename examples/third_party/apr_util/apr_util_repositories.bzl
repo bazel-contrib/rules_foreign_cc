@@ -11,7 +11,8 @@ def apr_util_repositories():
         integrity = "sha256-K3TYkycDgmhiyjBbCU7vKYPCeznVyUFEQumXaprPGYM=",
         strip_prefix = "apr-util-1.6.3",
         urls = [
-            "https://dlcdn.apache.org//apr/apr-util-1.6.3.tar.gz",
+            "https://dlcdn.apache.org/apr/apr-util-1.6.3.tar.gz",
+            "https://archive.apache.org/dist/apr/apr-util-1.6.3.tar.gz",
         ],
     )
 

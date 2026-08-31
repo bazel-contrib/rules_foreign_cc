@@ -14,7 +14,7 @@ cc_test(
     size = "small",
     srcs = ["openssl_test.cc"],
     linkopts = select({
-        "@openssl//:msvc_compiler": [
+        "@rules_cc//cc/compiler:msvc-cl": [
             "advapi32.lib",
             "user32.lib",
         ],

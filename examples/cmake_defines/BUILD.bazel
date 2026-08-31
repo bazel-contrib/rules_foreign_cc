@@ -3,6 +3,7 @@ load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 cmake(
     name = "lib_a",
     lib_source = ":lib_a_sources",
+    out_include_dir = "",
     out_static_libs = select({
         "@platforms//os:windows": ["lib_a.lib"],
         "//conditions:default": ["liblib_a.a"],
@@ -14,6 +15,7 @@ cmake(
     name = "lib_b",
     defines = ["FOO"],
     lib_source = ":lib_b_sources",
+    out_include_dir = "",
     out_static_libs = select({
         "@platforms//os:windows": ["lib_b.lib"],
         "//conditions:default": ["liblib_b.a"],

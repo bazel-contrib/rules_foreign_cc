@@ -13,17 +13,17 @@ cc_test(
     size = "small",
     srcs = ["curl_test.cc"],
     defines = select({
-        "@openssl//:msvc_compiler": ["CURL_STATICLIB"],
+        "@rules_cc//cc/compiler:msvc-cl": ["CURL_STATICLIB"],
         "//conditions:default": [],
     }),
     linkopts = select({
-        "@openssl//:msvc_compiler": [
+        "@platforms//os:linux": ["-ldl"],
+        "@rules_cc//cc/compiler:msvc-cl": [
             "crypt32.lib",
             "ws2_32.lib",
             "advapi32.lib",
             "user32.lib",
         ],
-        "@platforms//os:linux": ["-ldl"],
         "//conditions:default": [],
     }),
     deps = [

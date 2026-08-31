@@ -1,9 +1,10 @@
 """Resource set definitions for build actions"""
 
-load("@bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@bazel_lib//lib:resource_sets.bzl", "resource_set_for")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo", "int_flag", "string_flag")
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+_PARALLELISM_OVERCOMMIT_DEFAULT = 2
+_PARALLELISM_OVERCOMMIT_SETTING = "parallelism_overcommit"
 
 _DEFAULT_SIZE = "default"
 _SIZES = {
@@ -19,6 +20,11 @@ _SIZES = {
         "cpu": 4,
         "mem": 500,
     },
+    "serial": {
+        "cpu": 1,
+        "fixed_cpu": True,
+        "mem": 250,
+    },
     "small": {
         "cpu": 2,
         "mem": 250,
@@ -29,8 +35,8 @@ _SIZES = {
     },
 }
 
-def _bazelrc_line(name, value):
-    return "common --@rules_foreign_cc//foreign_cc/settings:{}={}".format(name, value)
+def _is_fixed(cfg, resource):
+    return cfg.get("fixed_{}".format(resource), False)
 
 def _setting(size, resource, mode):
     if size == _DEFAULT_SIZE:
@@ -45,9 +51,21 @@ def _setting(size, resource, mode):
     else:
         fail("unknown mode", mode)
 
-def create_settings():
-    """create the settings that configure these functions."""
-    settings = {"size_default": _DEFAULT_SIZE}
+def create_resource_set_settings():
+    """Declares the resource_set build settings and returns their default values.
+
+    Returns:
+        list of (sort_key, name, value) tuples to feed into the bazelrc-printing script.
+    """
+    settings = [
+        ((0, 0, 0, ""), _PARALLELISM_OVERCOMMIT_SETTING, _PARALLELISM_OVERCOMMIT_DEFAULT),
+        ((0, 0, 1, ""), "size_default", _DEFAULT_SIZE),
+    ]
+    int_flag(
+        name = _PARALLELISM_OVERCOMMIT_SETTING,
+        build_setting_default = _PARALLELISM_OVERCOMMIT_DEFAULT,
+        visibility = ["//visibility:public"],
+    )
     string_flag(
         name = "size_default",
         build_setting_default = _DEFAULT_SIZE,
@@ -59,43 +77,31 @@ def create_settings():
         if not cfg:
             fail("invalid size cfg", size)
 
-        # keep this in sync with the docs and the above helper!
-        cpu_name = "size_{}_cpu".format(size)
-        cpu_default = _SIZES[size]["cpu"]
-        int_flag(
-            name = cpu_name,
-            build_setting_default = cpu_default,
-            visibility = ["//visibility:public"],
-        )
-        settings[cpu_name] = cpu_default
+        for resource in ["cpu", "mem"]:
+            if _is_fixed(cfg, resource):
+                continue
 
-        mem_name = "size_{}_mem".format(size)
-        mem_default = _SIZES[size]["mem"]
-        int_flag(
-            name = mem_name,
-            build_setting_default = mem_default,
-            visibility = ["//visibility:public"],
-        )
-        settings[mem_name] = mem_default
+            name = "size_{}_{}".format(size, resource)
+            default = cfg[resource]
+            int_flag(
+                name = name,
+                build_setting_default = default,
+                visibility = ["//visibility:public"],
+            )
 
-    expand_template(
-        name = "settings_script",
-        out = "settings.sh",
-        template = Label(":settings.sh.in"),
-        substitutions = {
-            "{{SETTINGS_BAZELRC_LINES}}": "\n".join([
-                _bazelrc_line(name, settings[name])
-                for name in sorted(settings.keys())
-            ]),
-        },
-    )
+            # Keep the generated bazelrc grouped by descending size, with
+            # fixed-resource variants after non-fixed ones when values tie.
+            sort_key = (
+                1,
+                -cfg["cpu"],
+                -cfg["mem"],
+                1 if cfg.get("fixed_cpu", False) or cfg.get("fixed_mem", False) else 0,
+                size,
+                0 if resource == "cpu" else 1,
+            )
+            settings.append((sort_key, name, default))
 
-    # Create an executable shim for the script
-    sh_binary(
-        name = "settings",
-        srcs = [":settings_script"],
-        visibility = ["//visibility:public"],
-    )
+    return settings
 
 SIZE_ATTRIBUTES = {
     "resource_size": attr.string(
@@ -103,26 +109,40 @@ SIZE_ATTRIBUTES = {
         default = _DEFAULT_SIZE,
         mandatory = False,
         doc = """\
-Set the approximate size of this build. This does two things:
-1. Sets the environment variables to tell the underlying build system the
-   requested parallelization; examples are CMAKE_BUILD_PARALLEL_LEVEL for cmake
-   or MAKEFLAGS for autotools.
-2. Sets the resource_set attribute on the action to tell bazel how many cores
-   are being used, so it schedules appropriately.  The sizes map to labels,
-   which can be used to override the meaning of the sizes. See
-   @rules_foreign_cc//foreign_cc/settings:size_{size}_{cpu|mem}.
+Set the approximate size of this build, which controls two things:
 
-Running `bazel run @rules_foreign_cc//foreign_cc/settings` will print out all
-the settings in bazelrc format for easy customization.
+1. The Bazel scheduler reservation, so large builds don't all run at once.
+2. The parallelism passed to the underlying build system via environment
+   variables (CMAKE_BUILD_PARALLEL_LEVEL, GNUMAKEFLAGS, NINJA_JOBS, etc.).
+
+Build tool parallelism is set to the scheduler reservation plus a small
+overcommit (default +2, matching ninja's ncpus+2 convention). This hides
+I/O latency and lets configure_make targets — whose configure phase is
+always serial — make better use of their allocation during the parallel
+make phase. The overcommit can be tuned with
+@rules_foreign_cc//foreign_cc/settings:parallelism_overcommit.
+
+Each size maps to a cpu and mem value that can be overridden per-size.
+See @rules_foreign_cc//foreign_cc/settings:size_{size}_{cpu|mem}, or run
+`bazel run @rules_foreign_cc//foreign_cc/settings` to print all settings
+in bazelrc format.
+
+The `serial` size is special: it fixes cpu=1 with no overcommit, for
+packages that are known-broken under parallel builds.
 """,
+    ),
+    "_parallelism_overcommit": attr.label(
+        default = "//foreign_cc/settings:" + _PARALLELISM_OVERCOMMIT_SETTING,
+        providers = [BuildSettingInfo],
     ),
 } | {
     _setting(size = size, resource = resource, mode = "key"): attr.label(
         default = _setting(size, resource, mode = "label"),
         providers = [BuildSettingInfo],
     )
-    for size in _SIZES.keys()
+    for size, cfg in _SIZES.items()
     for resource in ["cpu", "mem"]
+    if not _is_fixed(cfg, resource)
 } | {
     _setting(size = _DEFAULT_SIZE, resource = None, mode = "key"): attr.label(
         default = _setting(size = _DEFAULT_SIZE, resource = None, mode = "label"),
@@ -145,10 +165,13 @@ def get_resource_set(attr):
     Args:
         attr: the ctx.attr associated with the target
     Returns:
-        A tuple of:
-            - the resource_set, or None if it's the bazel default
-            - cpu_cores, or 0 if it's the bazel default
-            - mem in MB, or 0 if it's the bazel default
+        A struct with:
+            - resource_set: the resource_set callback, or None if bazel default
+            - cpu: cpu_cores, or 0 if bazel default
+            - mem: mem in MB, or 0 if bazel default
+            - allow_cpu_overcommit: True if the build tool may use more
+              parallelism than the scheduler reservation (False for sizes
+              like "serial" that must enforce an exact -j value)
     """
     size = _DEFAULT_SIZE
     if attr.resource_size != _DEFAULT_SIZE:
@@ -157,10 +180,16 @@ def get_resource_set(attr):
         size = _get_size_config(attr, _DEFAULT_SIZE, None)
 
     if size == _DEFAULT_SIZE:
-        return None, 0, 0
+        return struct(
+            resource_set = None,
+            cpu = 0,
+            mem = 0,
+            allow_cpu_overcommit = False,
+        )
 
-    cpu_value = _get_size_config(attr, size, "cpu")
-    mem_value = _get_size_config(attr, size, "mem")
+    cfg = _SIZES[size]
+    cpu_value = cfg["cpu"] if _is_fixed(cfg, "cpu") else _get_size_config(attr, size, "cpu")
+    mem_value = cfg["mem"] if _is_fixed(cfg, "mem") else _get_size_config(attr, size, "mem")
 
     if cpu_value < 0:
         fail("cpu must be >= 0")
@@ -181,7 +210,12 @@ def get_resource_set(attr):
         actual_cpu = 0
         actual_mem = 0
 
-    return resource_set, actual_cpu, actual_mem
+    return struct(
+        resource_set = resource_set,
+        cpu = actual_cpu,
+        mem = actual_mem,
+        allow_cpu_overcommit = not _is_fixed(cfg, "cpu"),
+    )
 
 def get_resource_env_vars(attr):
     """ get the values of env vars controlling parallelism
@@ -199,28 +233,29 @@ def get_resource_env_vars(attr):
         dict[str, str] to pass to run/run_shell
     """
 
-    resource_set, cpu, _mem = get_resource_set(attr)
+    resources = get_resource_set(attr)
 
     env = None
-    if cpu > 0:
-        sc = str(cpu)
+    if resources.cpu > 0:
+        overcommit = attr._parallelism_overcommit[BuildSettingInfo].value if resources.allow_cpu_overcommit else 0
+        parallelism = str(resources.cpu + overcommit)
         env = {
-            "CMAKE_BUILD_PARALLEL_LEVEL": sc,
+            "CMAKE_BUILD_PARALLEL_LEVEL": parallelism,
 
             # we set GNUMAKEFLAGS instead of MAKEFLAGS because nmake sees
             # MAKEFLAGS but doesn't accept a -j argument, and we don't have a
             # good way of being sure that nmake isn't going to be used as part
             # of a build.
-            "GNUMAKEFLAGS": "-j" + sc,
+            "GNUMAKEFLAGS": "-j" + parallelism,
 
             # Meson starts to honor this as of 1.7.0; before that, it only uses
             # ninja's parallelization controls.
-            "MESON_NUM_PROCESSES": sc,
+            "MESON_NUM_PROCESSES": parallelism,
 
             # Note that ninja does not honor this by default; it's our wrapper
             # script that handles this.
             # https://github.com/ninja-build/ninja/issues/1482
-            "NINJA_JOBS": sc,
+            "NINJA_JOBS": parallelism,
         }
 
-    return resource_set, env
+    return resources.resource_set, env

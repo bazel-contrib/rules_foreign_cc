@@ -1,0 +1,35 @@
+module(
+    name = "noop_invoke_fails_test",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../../..",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+
+# Every tool is noop. Unlike noop_modes (which only cqueries), this scenario
+# actually *builds* a cmake() target, so the cmake tool is invoked -- proving
+# the execution-fails half of the noop contract (a noop tool points at
+# /bin/false and fails loudly when run, rather than silently using a host
+# binary). See test/integration/BUILD.bazel.
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.explicit()
+tools.cmake(mode = "noop")
+tools.ninja(mode = "noop")
+tools.make(mode = "noop")
+tools.meson(mode = "noop")
+tools.pkgconfig(mode = "noop")
+tools.autoconf(mode = "noop")
+tools.automake(mode = "noop")
+tools.m4(mode = "noop")
+tools.msbuild(mode = "noop")
+
+# nmake has no noop mode (use tools.make(mode = "noop") instead).
+use_repo(tools, "rules_foreign_cc_toolchains")
+
+register_toolchains("@rules_foreign_cc_toolchains//:all")

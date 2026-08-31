@@ -1,0 +1,25 @@
+module(
+    name = "meson_no_hub_import_test",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../../..",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+bazel_dep(name = "rules_python", version = "1.9.0")
+
+# Deliberately the documented "defaults only" setup: a bare bazel_dep with no
+# use_repo of @rules_foreign_cc_toolchains. meson_with_requirements expands hub
+# label strings into this package, so if the macro reached the hub by its
+# apparent name the cquery below would fail with "no repository visible". It
+# must instead reach the rfcc-owned //foreign_cc:meson_src_* aliases.
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.meson(
+    mode = "source",
+    version = "1.10.1",
+)

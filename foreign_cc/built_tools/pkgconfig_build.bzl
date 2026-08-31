@@ -129,17 +129,10 @@ def pkgconfig_tool(name, srcs, **kwargs):
     """
     tags = ["manual"] + kwargs.pop("tags", [])
 
-    native.config_setting(
-        name = "msvc_compiler",
-        flag_values = {
-            "@bazel_tools//tools/cpp:compiler": "msvc-cl",
-        },
-    )
-
     native.alias(
         name = name,
         actual = select({
-            ":msvc_compiler": "{}_msvc".format(name),
+            "@rules_cc//cc/compiler:msvc-cl": "{}_msvc".format(name),
             "//conditions:default": "{}_default".format(name),
         }),
     )

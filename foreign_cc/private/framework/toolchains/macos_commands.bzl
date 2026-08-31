@@ -88,13 +88,16 @@ fi
 def copy_dir_contents_to_dir(source, target):
     # Beause macos `cp` doesn't have `--no-target-directory`, we have to
     # do something more complext for this environment.
+    #
+    # `-exec ... +` batches paths into a single touch invocation; `\\;` would
+    # fork once per file.
     return """\
 if [[ -d "{source}" ]]; then
   cp -L -R "{source}"/. "{target}"
 else
   cp -L -R "{source}" "{target}"
 fi
-find "{target}" -type f -exec touch -r "{source}" "{{}}" \\;
+find "{target}" -type f -exec touch -r "{source}" "{{}}" +
 """.format(
         source = source,
         target = target,

@@ -73,6 +73,7 @@ def _create_meson_script(configureParameters):
     tools = get_tools_info(ctx)
     flags = get_flags_info(ctx)
     script = pkgconfig_script(inputs.ext_build_dirs)
+    build_options = ctx.attr.options
 
     # CFLAGS and CXXFLAGS are also set in foreign_cc/private/cmake_script.bzl, so that meson
     # can use the intended tools.
@@ -154,13 +155,24 @@ def _create_meson_script(configureParameters):
 
         target_args[target_name] = args
 
+    # Append shared flags to build options
+    if flags.cxx_linker_shared and ctx.attr.shared_ldflags_option:
+        if ctx.attr.shared_ldflags_option in build_options:
+            fail("cannot override existing build option: {}".format(ctx.attr.shared_ldflags_option))
+
+        absolutized = [_absolutize(ctx.workspace_name, f).replace("$EXT_BUILD_ROOT/", "$$EXT_BUILD_ROOT$$/") for f in flags.cxx_linker_shared]
+        build_options = build_options | {ctx.attr.shared_ldflags_option: _list_to_str_repr(absolutized)}
+
+    # Expand options
+    build_options = expand_locations_and_make_variables(ctx, build_options, "options", data)
+
     script.append("{meson} setup --prefix={install_dir} {setup_args} {options} {source_dir}".format(
         meson = meson_path,
         install_dir = "$$INSTALLDIR$$",
         setup_args = " ".join(target_args.get("setup", [])),
         options = " ".join([
-            "-D{}=\"{}\"".format(key, ctx.attr.options[key])
-            for key in ctx.attr.options
+            "\"-D{}={}\"".format(key, build_options[key])
+            for key in build_options
         ]),
         source_dir = "$$EXT_BUILD_ROOT$$/" + root,
     ))
@@ -238,6 +250,10 @@ def _attrs():
             doc = "__deprecated__: please use `target_args` with `'setup'` target key.",
             mandatory = False,
         ),
+        "shared_ldflags_option": attr.string(
+            doc = "Name of additional setup option that will contain shared ldflags.",
+            mandatory = False,
+        ),
         "target_args": attr.string_list_dict(
             doc = "Dict of arguments for each of the Meson targets. The " +
                   "target name is the key and the list of args is the value.",
@@ -283,8 +299,8 @@ def meson_with_requirements(name, requirements, **kwargs):
 
     meson_tool(
         name = "meson_tool_for_{}".format(name),
-        main = "@meson_src//:meson.py",
-        data = ["@meson_src//:runtime"],
+        main = "@rules_foreign_cc//foreign_cc:meson_src_meson_py",
+        data = ["@rules_foreign_cc//foreign_cc:meson_src_runtime"],
         requirements = requirements,
         tags = tags + ["manual"],
     )
@@ -293,11 +309,11 @@ def meson_with_requirements(name, requirements, **kwargs):
         name = "built_meson_for_{}".format(name),
         env = {
             "MESON": "$(execpath :meson_tool_for_{})".format(name),
-            "REAL_MESON": "$(rlocationpath @meson_src//:meson.py)",
+            "REAL_MESON": "$(rlocationpath @rules_foreign_cc//foreign_cc:meson_src_meson_py)",
         },
         path = "$(execpath :meson_tool_for_{})".format(name),
         target = ":meson_tool_for_{}".format(name),
-        tools = ["@meson_src//:meson.py"],
+        tools = ["@rules_foreign_cc//foreign_cc:meson_src_meson_py"],
     )
 
     native.toolchain(
@@ -318,3 +334,16 @@ def _absolutize(workspace_name, text, force = False):
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([_absolutize(workspace_name, flag) for flag in flags])
+
+def _list_to_str_repr(lst):
+    # see https://mesonbuild.com/Build-options.html#using-build-options
+    # meson array build options with elements that contain commas need to be in the format
+    # "-Doption=['a,b', 'c,d']"
+    quoted = []
+    for item in lst:
+        quoted.append("'" + item + "'")
+    return "[" + ", ".join(quoted) + "]"
+
+export_for_test = struct(
+    list_to_str_repr = _list_to_str_repr,
+)

@@ -10,18 +10,10 @@ filegroup(
     ),
 )
 
-config_setting(
-    name = "msvc_compiler",
-    flag_values = {
-        "@bazel_tools//tools/cpp:compiler": "msvc-cl",
-    },
-    visibility = ["//visibility:public"],
-)
-
 alias(
     name = "apr",
     actual = select({
-        ":msvc_compiler": "apr_msvc",
+        "@rules_cc//cc/compiler:msvc-cl": "apr_msvc",
         "//conditions:default": "apr_default",
     }),
     visibility = ["//visibility:public"],

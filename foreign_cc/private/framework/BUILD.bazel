@@ -1,6 +1,14 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":platform.bzl", "framework_platform_info")
 
+filegroup(
+    name = "distribution",
+    srcs = glob(["**"]) + [
+        "//foreign_cc/private/framework/toolchains:distribution",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
 toolchain_type(
     name = "shell_toolchain",
     visibility = ["//visibility:public"],

@@ -50,6 +50,7 @@ cmake(
         "@platforms//os:windows": ["libcurl.lib"],
         "//conditions:default": ["libcurl.a"],
     }),
+    resource_size = "large",
     toolchains = ["@rules_perl//:current_toolchain"],
     visibility = ["//visibility:public"],
     deps = [
