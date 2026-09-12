@@ -35,10 +35,6 @@ use_repo(
     "build_bazel_bazel_.bazelversion",
 )
 
-python = use_extension("@rules_python//python/extensions:python.bzl", "python")
-python.toolchain(python_version = "3.12")
-use_repo(python, "python_3_12")
-
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 
 # rfcc's own default toolchain registrations. These are the bzlmod-path
@@ -103,7 +99,17 @@ use_repo(
     "rules_foreign_cc_toolchains",
 )
 
+register_toolchains("@rules_foreign_cc_toolchains//:all")
+
+python = use_extension(
+    "@rules_python//python/extensions:python.bzl",
+    "python",
+    dev_dependency = True,
+)
+python.toolchain(python_version = "3.12")
+use_repo(python, "python_3_12")
+
 register_toolchains(
-    "@rules_foreign_cc_toolchains//:all",
     "@python_3_12//:all",
+    dev_dependency = True,
 )
