@@ -37,10 +37,11 @@ load(":bzlmod_enabled.bzl", "BZLMOD_ENABLED")
 #                    CPU/RAM; only a couple can run at once before reliability
 #                    and runtime suffer. Bazel has no knob to cap concurrency,
 #                    so we serialize entirely.
-#   no-sandbox     - runner.sh runs the inner `bazel build` with no
-#                    --output_user_root, so it defaults its output base to
-#                    $HOME/.cache/bazel. The sandbox confines writes to the
-#                    action's outputs, so those home-dir writes would fail.
+#   no-sandbox     - the inner Bazel's output base lives outside the action's
+#                    declared outputs: $HOME/.cache/bazel by default, or the
+#                    short $TMP root runner.sh passes on Windows to stay under
+#                    MAX_PATH. The sandbox confines writes to the action's
+#                    outputs, so those writes would fail.
 #   no-remote-exec - a nested Bazel server needs a persistent local workspace;
 #                    the CI RBE setup can't run it remotely.
 # rules_python's integration tests use the same three tags for the same
@@ -71,7 +72,7 @@ def scenario(
       enforce_lock: if True, the bzlmod inner build passes
            --lockfile_mode=error so a committed MODULE.bazel.lock is enforced.
       timeout: test timeout; defaults to "long" (900s) because a cold inner
-           build downloads Bazel and bootstraps make/pkg-config from source,
+           build downloads Bazel and compiles make/pkg-config from source,
            which overran the 300s "moderate" budget on slow macOS CI agents.
       **kwargs: forwarded to bazel_integration_test.
     """

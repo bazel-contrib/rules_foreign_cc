@@ -24,7 +24,20 @@ predict a spoke's name rather than look it up:
   constraint), and its arch token is `universal` -
   `@cmake-3.31.12-macos-universal`.
 - **Source spokes** are named `@<tool>_src_<version>`, e.g.
-  `@cmake_src_3.31.12`, `@make_src_4.4.1` (target `:<tool>_tool`).
+  `@cmake_src_3.31.12`, `@meson_src_1.10.1` (target `:<tool>_tool`).
+  make, ninja and pkgconfig have no source spoke: in `source` mode they come
+  from their Bazel Central Registry modules, `@make//:make`, `@ninja//:ninja`
+  and `@pkgconf//:pkg-config`, which `rules_foreign_cc` depends on with a
+  `bazel_dep`. (rfcc's `pkgconfig` tool is the `pkgconf` module - the
+  pkg-config implementation distributions ship as `pkg-config`; its BUILD
+  file publishes the binary under both names.) A `bazel_dep` resolves to a
+  single version graph-wide under MVS, so under bzlmod the tag's `version =`
+  does not select one: `tools.make(mode = "source", version = ...)` accepts
+  any version rfcc offers, but the resolved module is what gets built. To
+  build a different one, declare your own `bazel_dep` (or a
+  `single_version_override`) on `make` / `ninja` / `pkgconf` -- MVS then hands
+  rfcc that version. (Under `WORKSPACE` there is no MVS, so
+  `rules_foreign_cc_dependencies(make_version = ...)` does select directly.)
 
 For most users these names are an implementation detail: `rules_foreign_cc`
 registers the hub and you never touch the spokes directly.

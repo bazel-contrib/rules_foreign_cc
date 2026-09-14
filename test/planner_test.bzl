@@ -341,9 +341,20 @@ def _build_hub_aliases_test(ctx):
     # tool's default-version spoke. This guards against the hub aliasing a
     # different version than the registered toolchain (they both flow from
     # spec.default_version, and must agree with the WORKSPACE path).
+    #
+    # make and pkgconfig are not among them: with no rfcc-owned source spoke to
+    # alias, the bzlmod hub publishes nothing for them. The WORKSPACE hub still
+    # publishes `<tool>_built`, but via built_toolchains.bzl, not this planner.
     aliases = build_hub_aliases(_tagset())
     by_name = {a["name"]: a["actual"] for a in aliases}
-    for tool in ["cmake", "make", "meson", "pkgconfig"]:
+    for tool in ["make", "pkgconfig"]:
+        asserts.equals(
+            env,
+            None,
+            by_name.get("{}_src_all".format(tool)),
+            "{} has no bzlmod source spoke, so the hub must not alias one".format(tool),
+        )
+    for tool in ["cmake", "meson"]:
         default = get_spec(tool).default_version
         asserts.equals(
             env,

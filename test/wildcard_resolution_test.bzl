@@ -36,19 +36,19 @@ def _resolve_version_test(ctx):
     # ninja wildcards resolve too.
     asserts.equals(env, "1.13.2", resolve_version("ninja", "1.13.x"))
 
-    # make ships irregular versions: two-component 4.3/4.4 plus 4.4.1. All
-    # three are exact, known, fetchable versions, and the 4.4.x wildcard
-    # resolves to the latest patch in the series (4.4.1), matching what the
-    # old WORKSPACE built_toolchains.bzl accepted.
+    # make comes from its Bazel Central Registry module, one per version it
+    # offers, so the wildcard machinery applies to it like any other tool.
     make = get_spec("make")
-    for v in ["4.3", "4.4", "4.4.1"]:
-        asserts.true(
-            env,
-            v in make.known_versions,
-            "make version {} should be reachable".format(v),
-        )
-    asserts.equals(env, "4.4.1", resolve_version("make", "4.4.x"))
+    asserts.equals(env, ["4.3", "4.4", "4.4.1"], sorted(make.known_versions))
     asserts.equals(env, "4.3", resolve_version("make", "4.3.x"))
+
+    # 4.4 and 4.4.1 share a minor series, so `4.4.x` must pick the later patch
+    # rather than whichever key happened to sort last.
+    asserts.equals(env, "4.4.1", resolve_version("make", "4.4.x"))
+
+    # A version no BCR module builds still passes through unresolved, so
+    # validate_tag rejects it instead of silently building something else.
+    asserts.equals(env, "4.2.x", resolve_version("make", "4.2.x"))
 
     return unittest.end(env)
 

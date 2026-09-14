@@ -10,9 +10,11 @@ load(
     "MODE_NOOP",
     "MODE_SOURCE",
     "MODE_SYSTEM",
-    "SOURCE_TOOLS",
+    "SPOKE_SOURCE_TOOLS",
     "VERSIONLESS_TOOLS",
+    "exact_versions",
     "get_spec",
+    "versions_for_mode",
 )
 load("//foreign_cc/private/framework/toolchains:mappings.bzl", "TOOLCHAIN_MAPPINGS")
 
@@ -237,6 +239,23 @@ def tag_error(tag):
                 sorted(spec.wildcards.keys()),
             )
 
+        # `known_versions` spans every mode, since a bare `version =` resolves
+        # through the tool's ladder. With the mode known, narrow to its own
+        # table: ninja's prebuilt and registry versions overlap without
+        # coinciding, so mode="binary" must reject the source-only 1.13.0.
+        effective_mode = resolve_mode(tag)
+        mode_versions = versions_for_mode(spec, effective_mode)
+        if mode_versions != None and tag["version"] not in mode_versions:
+            return ("tools.{}: version=\"{}\" is not available in mode=\"{}\". " +
+                    "Versions for that mode: {}.").format(
+                tag["tool"],
+                tag["version"],
+                effective_mode,
+                # The tables carry `a.b.x` wildcard aliases alongside their
+                # exact patches; only the exact ones belong in this message.
+                exact_versions(mode_versions),
+            )
+
     return None
 
 def validate_tag(tag):
@@ -352,6 +371,13 @@ def _hub_targets_for(spoke):
     if mode == MODE_BINARY:
         return _binary_platform_entries(tool, version)
     if mode == MODE_SOURCE:
+        # make, ninja and pkg-config build in registry repos rfcc can't append
+        # a toolchain to, so they use the static `source_target` under
+        # //toolchains/private -- same shape as system and noop below. The
+        # label carries no version; `tag_error` already rejected any other.
+        source_target = get_spec(tool).source_target
+        if source_target:
+            return [(source_target, [], [])]
         repo = source_spoke_repo(tool, version)
         return [("@{repo}//:{tool}_tool".format(repo = repo, tool = tool), [], [])]
     if mode == MODE_SYSTEM:
@@ -586,13 +612,12 @@ def all_required_spokes(tagset):
         # rfcc's default-tag spokes, for modes that need a fetched repo
         # (system/noop reference static //toolchains targets). Materialized
         # UNCONDITIONALLY, not gated on suppress_default: declaring a spoke is
-        # lazy (Bazel fetches it only when referenced), and rfcc's own
-        # MODULE.bazel use_repo()s sub-repos of these spokes (e.g.
-        # gettext_runtime/glib_* from the meson source spoke), so they must
+        # lazy (Bazel fetches it only when referenced), and the hub aliases
+        # these spokes unconditionally (see build_hub_aliases), so they must
         # exist whenever rfcc is in the graph -- even when a downstream root's
         # tools.explicit() suppresses their *registration*. Suppression gates
         # only the 20_ hub registration (build_hub_plan), never materialization.
-        # Duplicates against the SOURCE_TOOLS loop below dedup in
+        # Duplicates against the SPOKE_SOURCE_TOOLS loop below dedup in
         # extensions._init.
         for tag in tagset.default_tags[tool]:
             spoke = spoke_specs_for_tag(tag)[0]
@@ -607,7 +632,7 @@ def all_required_spokes(tagset):
     # drifting, the same way the default registration is tied to its
     # spoke. (Source-default tools re-request the version their default tag
     # already added; the duplicate deduplicates downstream in extensions._init.)
-    for tool in SOURCE_TOOLS:
+    for tool in SPOKE_SOURCE_TOOLS:
         version = pick_source_version(tagset, tool)
         if version != None:
             out.append({"mode": MODE_SOURCE, "tool": tool, "version": version})
@@ -619,6 +644,11 @@ def build_hub_aliases(tagset):
     The hub re-exports a stable, version-neutral name for each source-mode
     archive that any consumer's BUILD file can reach without leaking the
     pinned version into a downstream MODULE.bazel.
+
+    Only spoke tools are covered. make, ninja and pkg-config come from registry
+    modules that define the binary and nothing else, so there is no
+    `make_built` / `ninja_src_all` to alias -- name `@make//:make`,
+    `@ninja//:ninja` and `@pkgconf//:pkg-config` directly.
 
     Per source-tool aliases:
 
@@ -643,7 +673,7 @@ def build_hub_aliases(tagset):
         stable (sorted by name) for deterministic BUILD-file emission.
     """
     aliases = []
-    for tool in SOURCE_TOOLS:
+    for tool in SPOKE_SOURCE_TOOLS:
         version = pick_source_version(tagset, tool)
         if version == None:
             continue

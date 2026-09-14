@@ -1,4 +1,9 @@
-""" Rule for building Ninja from sources. """
+"""Rule for building Ninja from sources.
+
+Kept for the same reason as `make_tool` -- see the note in `make_build.bzl`.
+Source-mode ninja comes from `@ninja//:ninja`, its Bazel Central Registry
+module; this rule is unused by rfcc and retained only as public API.
+"""
 
 load(
     "//foreign_cc/built_tools/private:built_tools_framework.bzl",

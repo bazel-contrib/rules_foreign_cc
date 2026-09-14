@@ -5,6 +5,12 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//foreign_cc/private/framework:toolchain.bzl", "register_framework_toolchains")
 load("//toolchains:toolchains.bzl", "built_toolchains", "prebuilt_toolchains", "preinstalled_toolchains")
 
+# buildifier: disable=bzl-visibility
+load("//toolchains/private:bcr_repos.bzl", "bcr_repos")
+
+# buildifier: disable=bzl-visibility
+load("//toolchains/private:source_spokes.bzl", "pkgconfig_msvc_companions")
+
 # Default built-tool versions for the WORKSPACE path. The bzlmod path reads the
 # same defaults from tool_specs.bzl (TOOL_SPECS[t].default_version); a unit test
 # (default_versions_in_sync_test) asserts the two agree so the two never build
@@ -14,7 +20,7 @@ DEFAULT_TOOL_VERSIONS = {
     "make": "4.4.1",
     "meson": "1.10.1",
     "ninja": "1.13.2",
-    "pkgconfig": "0.29.2",
+    "pkgconfig": "3.0.7",
 }
 
 # buildifier: disable=unnamed-macro
@@ -48,15 +54,21 @@ def rules_foreign_cc_dependencies(
         cmake_version: The target version of the cmake toolchain if `register_default_tools`
             or `register_built_tools` is set to `True`.
 
-        make_version: The target version of the default make toolchain if `register_built_tools`
-            is set to `True`.
+        make_version: The target version of the default make toolchain. Selects
+            which Bazel Central Registry `make` module is fetched, so it applies
+            whenever `register_repos` is `True`, not only to the built toolchain.
 
         ninja_version: The target version of the ninja toolchain if `register_default_tools`
-            or `register_built_tools` is set to `True`.
+            or `register_built_tools` is set to `True`. Also selects the Bazel
+            Central Registry `ninja` module the source-built toolchain uses,
+            whose versions do not all coincide with the prebuilt ones.
 
         meson_version: The target version of the meson toolchain if `register_built_tools` is set to `True`.
 
-        pkgconfig_version: The target version of the pkg_config toolchain if `register_built_tools` is set to `True`.
+        pkgconfig_version: The target version of the default pkg-config
+            toolchain. Selects which Bazel Central Registry `pkgconf` module is
+            fetched, so it applies whenever `register_repos` is `True`, not
+            only to the built toolchain.
 
         register_preinstalled_tools: If true, toolchains will be registered for the native built tools
             installed on the exec host
@@ -65,13 +77,11 @@ def rules_foreign_cc_dependencies(
 
         register_toolchains: If true, registers the toolchains via native.register_toolchains. Used by bzlmod
 
-        register_built_pkgconfig_toolchain: If true, the built pkgconfig toolchain will be registered. On Windows it may be preferrable to set this to False, as
-            this requires the --enable_runfiles bazel option. Also note that building pkgconfig from source under bazel results in paths that are more
-            than 256 characters long, which will not work on Windows unless the following options are added to the .bazelrc and symlinks are enabled in Windows.
-
-            startup --windows_enable_symlinks -> This is required to enable symlinking to avoid long runfile paths
-            build --action_env=MSYS=winsymlinks:nativestrict -> This is required to enable symlinking to avoid long runfile paths
-            startup --output_user_root=C:/b  -> This is required to keep paths as short as possible
+        register_built_pkgconfig_toolchain: If true, the built pkgconfig toolchain will be registered.
+            Set it to False to fall back to a host-installed pkg-config. The
+            Windows caveats this flag used to carry -- --enable_runfiles, and
+            the >256-character paths of the old from-source build -- no longer
+            apply: pkg-config is now the `pkgconf` registry module's cc_binary.
 
         register_repos: If true, use repository rules to register the required
             dependencies. (If you are using bzlmod, you probably do not want to set
@@ -113,21 +123,24 @@ def rules_foreign_cc_dependencies(
         sha256 = "3384eb1c30762704fbe38e440204e114154086c8fc8a8c2e3e28441028c019a8",
     )
 
+    # 1.47.1 is rules_cc_autoconf's floor (see bcr_modules.bzl), which MVS
+    # raises rfcc to under bzlmod. Pinned here for parity.
     maybe(
         http_archive,
         name = "bazel_features",
-        sha256 = "c26b4e69cf02fea24511a108d158188b9d8174426311aac59ce803a78d107648",
-        strip_prefix = "bazel_features-1.43.0",
-        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.43.0/bazel_features-v1.43.0.tar.gz",
+        sha256 = "6a727a78c0134b1b912c97c0937e1c956f35775934ae3e1f4af4156f8d5d1ff4",
+        strip_prefix = "bazel_features-1.47.1",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.1/bazel_features-v1.47.1.tar.gz",
     )
 
+    # 1.9.2 is pkgconf's floor. Same reasoning as above.
     maybe(
         http_archive,
         name = "bazel_skylib",
-        sha256 = "3b5b49006181f5f8ff626ef8ddceaa95e9bb8ad294f7b5d7b11ea9f7ddaf8c59",
+        sha256 = "37cdfbc6faefea94f7b37760a305c98c08981116c2bc9e821e3b423221fad8c8",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.9.0/bazel-skylib-1.9.0.tar.gz",
-            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.9.0/bazel-skylib-1.9.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.9.2/bazel-skylib-1.9.2.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.9.2/bazel-skylib-1.9.2.tar.gz",
         ],
     )
 
@@ -162,3 +175,27 @@ def rules_foreign_cc_dependencies(
         strip_prefix = "rules_shell-0.6.1",
         url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.6.1/rules_shell-v0.6.1.tar.gz",
     )
+
+    # Declared, never built by rfcc: the glib archives the public
+    # `pkgconfig_tool` macro names on Windows. See pkgconfig_msvc_companions.
+    pkgconfig_msvc_companions()
+
+    # @make, @ninja and @pkgconf (plus the closure their BUILD files need),
+    # reconstructed from the Bazel Central Registry the way bzlmod would
+    # resolve them, at the versions this call asked for.
+    bcr_repos(
+        make_version = make_version,
+        ninja_version = ninja_version,
+        pkgconfig_version = pkgconfig_version,
+    )
+
+    # rules_cc_autoconf's own MODULE.bazel registers this; WORKSPACE has to.
+    # make's and pkgconf's BUILD files run their configure checks through it.
+    #
+    # Also gated on register_built_tools: unlike an http_archive declaration, a
+    # *registered* toolchain label is fetched and configured before any
+    # toolchain resolution completes, so this costs ~60 MB / >10k files on the
+    # first build. A consumer who opted out of source-built tools never builds
+    # make and should not pay for it.
+    if register_toolchains and register_built_tools:
+        native.register_toolchains("@rules_cc_autoconf//gnulib/toolchain")

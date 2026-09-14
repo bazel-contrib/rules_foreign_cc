@@ -34,7 +34,6 @@ _VERSION_ARG = re.compile(r'version\s*=\s*"([^"]+)"')
 #   @ninja-1.13.2-linux-x86_64    (binary spoke, same scheme)
 #   @ninja_1.13.2_toolchains      (per-version binary aggregator: @<tool>_<v>_toolchains)
 #   @cmake_src_3.31.12            (source: @<tool>_src_<v>)
-#   @make_src_4.4                 (source: two-component make release)
 # Binary spokes use `<tool>-` (see binary_spokes.bzl's BINARY_SPOKE_REPO_FORMAT);
 # the aggregator repos still use `<tool>_`, so accept either separator after the
 # tool name.
@@ -42,9 +41,12 @@ _SPOKE_REPO = re.compile(
     r"@(?:cmake[-_]|ninja[-_]|[a-z0-9]+_src_)(\d+\.\d+(?:\.(?:\d+|x))?)",
 )
 
-# A version-like token: exact `a.b` / `a.b.c` patch or `a.b.x` wildcard. make
-# ships two-component releases (`4.3`, `4.4`), so the trailing patch is optional.
-_VERSION_TOKEN = re.compile(r'"(\d+\.\d+(?:\.(?:\d+|x))?)"')
+# A version-like dict *key*: exact `a.b` / `a.b.c` patch or `a.b.x` wildcard.
+# make ships two-component releases (`4.3`, `4.4`), so the patch is optional.
+# The trailing `:` restricts this to keys -- every offered version is a key,
+# and version-like values are not tool versions. Without it, BCR_CLOSURE's
+# `registry_version = "0.24.0"` would be accepted as a pinnable tool version.
+_VERSION_TOKEN = re.compile(r'"(\d+\.\d+(?:\.(?:\d+|x))?)"\s*:')
 
 
 def accepted_versions(version_files):

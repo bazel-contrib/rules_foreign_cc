@@ -100,27 +100,29 @@ class RenderSourceDictStripPrefixTest(unittest.TestCase):
     def test_falls_back_to_template_without_explicit_prefix(self):
         # When no explicit strip_prefix is set, the key-derived template is used.
         versions = {
-            "4.4.1": {
-                "urls": ["https://example/make-4.4.1.tar.gz"],
+            "1.10.1": {
+                "urls": ["https://example/meson-1.10.1.tar.gz"],
                 "sha256": "abc",
                 "patches": [],
             }
         }
         out = render_source_dict(
-            varname="GNUMAKE_SRCS",
+            varname="MESON_SRCS",
             url_template="",
             fallback_template=None,
             versions=versions,
-            prefix_template="make-{version}",
+            prefix_template="meson-{version}",
         )
-        self.assertIn('strip_prefix = "make-4.4.1"', out)
+        self.assertIn('strip_prefix = "meson-1.10.1"', out)
 
 
 class AddSourceWildcardsTest(unittest.TestCase):
-    def test_make_irregular_versions_resolve_to_latest_patch(self):
-        # make ships 4.3, 4.4, and 4.4.1. The old built_toolchains.bzl accepted
+    def test_irregular_versions_resolve_to_latest_patch(self):
+        # An irregular series, where a two-component version coexists with a
+        # three-component one (make's old 4.3 / 4.4 / 4.4.1 set, kept here as
+        # the shape no currently-generated tool happens to exercise):
         # 4.3.x -> 4.3 and 4.4.x -> 4.4.1 (latest in the 4.4 series), while 4.4
-        # stayed exact-only. Reproduce that contract.
+        # stays exact-only.
         versions = {
             "4.3": {"sha256": "a", "patches": ["p43"]},
             "4.4": {"sha256": "b", "patches": ["p44"]},
@@ -141,7 +143,7 @@ class AddSourceWildcardsTest(unittest.TestCase):
         self.assertEqual(set(out), {"4.3", "4.4", "4.4.1", "4.3.x", "4.4.x"})
 
     def test_derives_urls_when_entry_has_none(self):
-        # Entries without explicit urls (make/meson/pkgconfig) must get urls
+        # Entries without explicit urls (meson) must get urls
         # synthesized from the resolved exact patch, never "make-4.4.x".
         out = add_source_wildcards(
             {"4.4.1": {"sha256": "c", "patches": []}},
@@ -152,16 +154,16 @@ class AddSourceWildcardsTest(unittest.TestCase):
         self.assertEqual(out["4.4.x"]["urls"], ["u/make-4.4.1.tar.gz"])
 
     def test_preserves_explicit_urls(self):
-        # Entries with explicit urls (ninja, incl. 1.13.2's no-mirror case)
-        # carry them onto the alias verbatim.
+        # Entries with explicit urls (cmake source) carry them onto the alias
+        # verbatim rather than re-templating from the wildcard key.
         out = add_source_wildcards(
-            {"1.13.2": {"urls": ["only/v1.13.2.tar.gz"], "integrity": "i"}},
+            {"3.31.12": {"urls": ["only/cmake-3.31.12.tar.gz"], "integrity": "i"}},
             "",
             None,
-            "ninja-{version}",
+            "cmake-{version}",
         )
-        self.assertEqual(out["1.13.x"]["urls"], ["only/v1.13.2.tar.gz"])
-        self.assertEqual(out["1.13.x"]["integrity"], "i")
+        self.assertEqual(out["3.31.x"]["urls"], ["only/cmake-3.31.12.tar.gz"])
+        self.assertEqual(out["3.31.x"]["integrity"], "i")
 
 
 class Sha256OfTest(unittest.TestCase):
@@ -222,21 +224,23 @@ class HashedSourceVersionsTest(unittest.TestCase):
         )
 
     def test_carries_patches_through(self):
+        # No version of the one source tool still generated here (meson) needs
+        # a patch today, so the pass-through is only covered by this test.
         with mock.patch.object(
             prebuilt_toolchains, "_sha256_of_first", return_value="abc"
         ):
             out = hashed_source_versions(
-                "make",
-                {"4.3": ["//toolchains/patches:make-4.3-reproducible-bootstrap.patch"]},
-                "https://mirror/make-{version}.tar.gz",
+                "meson",
+                {"1.10.1": ["//toolchains/patches:meson-example.patch"]},
+                "https://mirror/meson-{version}.tar.gz",
                 None,
             )
         self.assertEqual(
-            out["4.3"]["patches"],
-            ["//toolchains/patches:make-4.3-reproducible-bootstrap.patch"],
+            out["1.10.1"]["patches"],
+            ["//toolchains/patches:meson-example.patch"],
         )
         # No fallback template -> only the mirror url.
-        self.assertEqual(out["4.3"]["urls"], ["https://mirror/make-4.3.tar.gz"])
+        self.assertEqual(out["1.10.1"]["urls"], ["https://mirror/meson-1.10.1.tar.gz"])
 
 
 class Sha256OfFirstTest(unittest.TestCase):
