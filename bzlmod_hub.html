@@ -180,7 +180,20 @@ resolves for both <code>x86_64</code> and <code>aarch64</code> (so the toolchain
 constraint), and its arch token is <code>universal</code> -
 <code>@cmake-3.31.12-macos-universal</code>.</li>
 <li><strong>Source spokes</strong> are named <code>@&lt;tool&gt;_src_&lt;version&gt;</code>, e.g.
-<code>@cmake_src_3.31.12</code>, <code>@make_src_4.4.1</code> (target <code>:&lt;tool&gt;_tool</code>).</li>
+<code>@cmake_src_3.31.12</code>, <code>@meson_src_1.10.1</code> (target <code>:&lt;tool&gt;_tool</code>).
+make, ninja and pkgconfig have no source spoke: in <code>source</code> mode they come
+from their Bazel Central Registry modules, <code>@make//:make</code>, <code>@ninja//:ninja</code>
+and <code>@pkgconf//:pkg-config</code>, which <code>rules_foreign_cc</code> depends on with a
+<code>bazel_dep</code>. (rfcc's <code>pkgconfig</code> tool is the <code>pkgconf</code> module - the
+pkg-config implementation distributions ship as <code>pkg-config</code>; its BUILD
+file publishes the binary under both names.) A <code>bazel_dep</code> resolves to a
+single version graph-wide under MVS, so under bzlmod the tag's <code>version =</code>
+does not select one: <code>tools.make(mode = "source", version = ...)</code> accepts
+any version rfcc offers, but the resolved module is what gets built. To
+build a different one, declare your own <code>bazel_dep</code> (or a
+<code>single_version_override</code>) on <code>make</code> / <code>ninja</code> / <code>pkgconf</code> -- MVS then hands
+rfcc that version. (Under <code>WORKSPACE</code> there is no MVS, so
+<code>rules_foreign_cc_dependencies(make_version = ...)</code> does select directly.)</li>
 </ul>
 <p>For most users these names are an implementation detail: <code>rules_foreign_cc</code>
 registers the hub and you never touch the spokes directly.</p>
