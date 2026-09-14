@@ -187,6 +187,13 @@ NINJA_TARGETS = {
             "@platforms//os:windows",
         ],
     },
+    "winarm64": {
+        "os_arch": ("windows", "aarch64"),
+        "constraints": [
+            "@platforms//cpu:aarch64",
+            "@platforms//os:windows",
+        ],
+    },
 }
 
 # make is deliberately absent: it is built from its Bazel Central Registry
@@ -674,12 +681,22 @@ def get_ninja_definitions(latest_by_minor):
             "1.11.1",
         ]
         supports_mac_universal = version not in ["1.10.0", "1.10.1"]
+        # ninja-winarm64.zip is first published with 1.12.0.
+        supports_win_arm64 = version not in [
+            "1.10.0",
+            "1.10.1",
+            "1.10.2",
+            "1.11.0",
+            "1.11.1",
+        ]
         per_plat = {}
 
         for target, target_meta in NINJA_TARGETS.items():
             if not supports_linux_aarch64 and target == "linux-aarch64":
                 continue
             if not supports_mac_universal and target == "mac_aarch64":
+                continue
+            if not supports_win_arm64 and target == "winarm64":
                 continue
 
             url = NINJA_URL_TEMPLATE.format(

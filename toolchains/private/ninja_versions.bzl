@@ -168,6 +168,19 @@ NINJA_BIN_SRCS = {
             ],
             bin = "ninja",
         ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-winarm64.zip",
+            ],
+            strip_prefix = "",
+            sha256 = "79c96a50e0deafec212cfa85aa57c6b74003f52d9d1673ddcd1eab1c958c5900",
+            integrity = "",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "ninja.exe",
+        ),
         ("windows", "x86_64"): struct(
             urls = [
                 "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip",
@@ -234,6 +247,19 @@ NINJA_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "ninja",
+        ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-winarm64.zip",
+            ],
+            strip_prefix = "",
+            sha256 = "e52f0bdef9dfb1003229dbd6508a508c4073fd017247002adc66e5e806cb0391",
+            integrity = "",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "ninja.exe",
         ),
         ("windows", "x86_64"): struct(
             urls = [
