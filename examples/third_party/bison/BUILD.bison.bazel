@@ -37,12 +37,12 @@ configure_make(
         "nodist_man_MANS=",
     ],
     build_data = [
-        "@m4//:m4_exe",
+        "@gnu_m4//:m4_exe",
     ],
     # See m4 above: NLS recipes need msgfmt, which RBE workers lack.
     configure_options = ["--disable-nls"],
     env = {
-        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+        "M4": "$$EXT_BUILD_ROOT/$(location @gnu_m4//:m4_exe)",
         "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
     } | select({
         "@platforms//os:macos": {

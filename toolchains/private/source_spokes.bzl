@@ -10,9 +10,9 @@ Each helper materializes one repo per ``(tool, version)`` named
   * ``:<tool>_built``: the build-from-source macro target.
   * ``:<tool>_tool``: the ``native_tool_toolchain`` referenced from the hub.
 
-make, ninja and pkgconfig are deliberately absent: all three are published on
-the Bazel Central Registry with a maintained BUILD file, so rfcc consumes
-``@make`` / ``@ninja`` / ``@pkgconf`` instead of building them itself (see
+The registry-backed tools are deliberately absent: each is published on the
+Bazel Central Registry with a maintained BUILD file, so rfcc consumes
+``@m4`` / ``@make`` / ``@ninja`` / ``@pkgconf`` instead of building them itself (see
 ``//toolchains/private:bcr_modules.bzl``). The one leftover is
 ``pkgconfig_msvc_companions``, which declares -- but never builds -- the glib
 archives the public ``pkgconfig_tool`` macro still names.

@@ -13,10 +13,10 @@ filegroup(
 configure_make(
     name = "libtool",
     build_data = [
-        "@m4//:m4_exe",
+        "@gnu_m4//:m4_exe",
     ],
     env = {
-        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+        "M4": "$$EXT_BUILD_ROOT/$(location @gnu_m4//:m4_exe)",
     } | select({
         "@platforms//os:macos": {
             "AR": "",

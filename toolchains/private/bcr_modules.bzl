@@ -1,15 +1,15 @@
 """Bazel Central Registry modules rules_foreign_cc consumes as external repos.
 
-`make`, `ninja` and `pkgconf` are no longer bootstrapped by rules_foreign_cc.
-All three are published on the BCR with a maintained BUILD file that compiles
-them as plain `cc_binary` targets against the resolved exec-platform
-cc_toolchain, so rfcc just depends on those repos and points a
-`native_tool_toolchain` at the binary. A build problem in any of them is then
-fixed by patching the BCR module, where the fix is shared with every other
-consumer, instead of in a bootstrap script only rfcc runs.
+`m4`, `make`, `ninja` and `pkgconf` are not built by rules_foreign_cc. Each is
+published on the BCR with a maintained BUILD file that compiles them as
+plain `cc_binary` targets against the resolved exec-platform cc_toolchain, so
+rfcc just depends on those repos and points a `native_tool_toolchain` at the
+binary. A build problem in any of them is then fixed by patching the BCR
+module, where the fix is shared with every other consumer, instead of in a
+bootstrap script only rfcc runs.
 
 `BCR_TOOLS` is keyed by the module's registry name, which is also the repo name
-rfcc gives it under both dependency models. For make and ninja that is the
+rfcc gives it under both dependency models. For m4, make and ninja that is the
 tool's own name; rfcc's `pkgconfig` tool is the `pkgconf` module, the
 pkg-config implementation distributions have shipped as `pkg-config` for years
 (its BUILD file publishes the binary under both names).
@@ -79,6 +79,32 @@ def _module(
 # inner keys are what `tools.<tool>(version = ...)` and
 # `rules_foreign_cc_dependencies(<tool>_version = ...)` accept.
 BCR_TOOLS = {
+    "m4": {
+        "1.4.21": _module(
+            registry_version = "1.4.21.bcr.4",
+            urls = [
+                "https://mirror.bazel.build/ftp.gnu.org/gnu/m4/m4-1.4.21.tar.xz",
+                "https://ftp.gnu.org/gnu/m4/m4-1.4.21.tar.xz",
+                "https://ftpmirror.gnu.org/gnu/m4/m4-1.4.21.tar.xz",
+                "https://mirrors.kernel.org/gnu/m4/m4-1.4.21.tar.xz",
+            ],
+            integrity = "sha256-8lxqtRVIpzp1VYdC+wMeBiXWSF/l+RVZSdZIaiQIq2Y=",
+            strip_prefix = "m4-1.4.21",
+            overlay = {
+                "BUILD.bazel": "sha256-Cf2Lz9oLQ7A0eAUKOJnKAs0T39+21HKm42G4iHXRFBE=",
+                "MODULE.bazel": "sha256-QP70uQka6o6Xt2pXBrNJC41zG6AIsCqIN1HuKr+E2vQ=",
+                "tests/BUILD.bazel": "sha256-vtlafhv3sGdvDjBkLI6mwCXBdOimqlnYYImnnZ1i2F4=",
+                "tests/m4_test.bzl": "sha256-4OOSQh0WtnFfbxDPFJfZ7CuUZsz3YkcIlNTRKMmfOh0=",
+            },
+            patches = {
+                "error-h-shadowing.patch": "sha256-8vRGto+NDPcDOlc5KqlHKHW5COLKNYU45Aeixd0PWEA=",
+                "musl-libc-compat.patch": "sha256-W9xXObjctdnyziAqiyVfiT3M+3Buzfg2DwAhwraxcug=",
+                "stdint-comment-subst.patch": "sha256-n926sBnJqraJqNJ4h5d/Bf8NqecmbNeBbb+a3SrGBuM=",
+                "windows-binary-mode.patch": "sha256-HKjc4p8etbr4F7Rm6JnurpWiozWUnKCbWSqwDK4OdEo=",
+            },
+            patch_strip = 1,
+        ),
+    },
     "make": {
         "4.3": _module(
             registry_version = "4.3",
@@ -221,9 +247,10 @@ BCR_TOOLS = {
 }
 
 # Modules rfcc never loads from, but which the tool BUILD files above need:
-# make's and pkgconf's run their configure checks through rules_cc_autoconf,
-# which in turn needs nlohmann_json. Every version in `BCR_TOOLS` resolves to
-# the same two, so there is one entry each rather than a per-version table.
+# m4's, make's and pkgconf's run their configure checks through
+# rules_cc_autoconf, which in turn needs nlohmann_json. Every version in
+# `BCR_TOOLS` resolves to the same two, so there is one entry each rather than
+# a per-version table.
 BCR_CLOSURE = {
     "nlohmann_json": _module(
         registry_version = "3.12.0.bcr.1",
@@ -248,8 +275,8 @@ def bcr_tool_module(module, version):
     """Return the BCR module that builds `version` of the tool it ships.
 
     Args:
-        module: a key of `BCR_TOOLS`, i.e. the module's registry name (`make`,
-            `ninja` or `pkgconf`).
+        module: a key of `BCR_TOOLS`, i.e. the module's registry name (`m4`,
+            `make`, `ninja` or `pkgconf`).
         version: an exact tool version, i.e. a key of `BCR_TOOLS[module]`.
 
     Returns:

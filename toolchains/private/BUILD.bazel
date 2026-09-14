@@ -76,13 +76,20 @@ native_tool_toolchain(
     target = ":ninja_wrapper",
 )
 
-# Source-mode make, ninja and pkg-config. The other built tools carry their
+# Source-mode m4, make, ninja and pkg-config. The other built tools carry their
 # native_tool_toolchain in their spoke repo; these live here because rfcc
 # cannot append targets to a registry module it doesn't own. One definition,
 # not one per version, and both dependency models reach it.
 #
-# `target` is cfg = "exec", so `$(execpath)` resolves to make.exe /
+# `target` is cfg = "exec", so `$(execpath)` resolves to m4.exe / make.exe /
 # ninja.exe / pkg-config.exe on Windows without a select.
+native_tool_toolchain(
+    name = "built_m4",
+    env = {"M4": "$(execpath @m4//:m4)"},
+    path = "$(execpath @m4//:m4)",
+    target = "@m4",
+)
+
 native_tool_toolchain(
     name = "built_make",
     env = {"MAKE": "$(execpath @make//:make)"},
@@ -116,6 +123,12 @@ native_tool_toolchain(
 # Registered by the WORKSPACE path (toolchains/built_toolchains.bzl). bzlmod
 # uses its own hub-generated equivalents instead, so a root module's
 # registrations can be ordered ahead of rfcc's.
+toolchain(
+    name = "built_m4_toolchain",
+    toolchain = ":built_m4",
+    toolchain_type = "//toolchains:m4_toolchain",
+)
+
 toolchain(
     name = "built_make_toolchain",
     toolchain = ":built_make",

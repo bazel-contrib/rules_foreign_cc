@@ -19,7 +19,7 @@ meson_with_requirements(
         "//conditions:default": [
             "@bison//:gen_dir",
             "@flex//:flex_exe",
-            "@m4//:m4_exe",
+            "@gnu_m4//:m4_exe",
         ],
     }),
     env = select({
@@ -28,8 +28,8 @@ meson_with_requirements(
         },
         "//conditions:default": {
             "BISON_PKGDATADIR": "$$(dirname $$EXT_BUILD_ROOT/$(location @bison//:gen_dir))/bison/share/bison",
-            "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
-            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @bison//:gen_dir))/bison/bin:$$(dirname $$EXT_BUILD_ROOT/$(location @flex//:flex_exe)):$$(dirname $$EXT_BUILD_ROOT/$(location @m4//:m4_exe)):$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
+            "M4": "$$EXT_BUILD_ROOT/$(location @gnu_m4//:m4_exe)",
+            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @bison//:gen_dir))/bison/bin:$$(dirname $$EXT_BUILD_ROOT/$(location @flex//:flex_exe)):$$(dirname $$EXT_BUILD_ROOT/$(location @gnu_m4//:m4_exe)):$$(dirname $$EXT_BUILD_ROOT/$(PYTHON3)):$$PATH",
         },
     }),
     lib_source = ":all_srcs",

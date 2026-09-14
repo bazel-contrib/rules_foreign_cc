@@ -25,19 +25,20 @@ predict a spoke's name rather than look it up:
   `@cmake-3.31.12-macos-universal`.
 - **Source spokes** are named `@<tool>_src_<version>`, e.g.
   `@cmake_src_3.31.12`, `@meson_src_1.10.1` (target `:<tool>_tool`).
-  make, ninja and pkgconfig have no source spoke: in `source` mode they come
-  from their Bazel Central Registry modules, `@make//:make`, `@ninja//:ninja`
-  and `@pkgconf//:pkg-config`, which `rules_foreign_cc` depends on with a
-  `bazel_dep`. (rfcc's `pkgconfig` tool is the `pkgconf` module - the
-  pkg-config implementation distributions ship as `pkg-config`; its BUILD
-  file publishes the binary under both names.) A `bazel_dep` resolves to a
-  single version graph-wide under MVS, so under bzlmod the tag's `version =`
-  does not select one: `tools.make(mode = "source", version = ...)` accepts
-  any version rfcc offers, but the resolved module is what gets built. To
-  build a different one, declare your own `bazel_dep` (or a
-  `single_version_override`) on `make` / `ninja` / `pkgconf` -- MVS then hands
-  rfcc that version. (Under `WORKSPACE` there is no MVS, so
-  `rules_foreign_cc_dependencies(make_version = ...)` does select directly.)
+  m4, make, ninja and pkgconfig have no source spoke: in `source` mode they
+  come from their Bazel Central Registry modules, `@m4//:m4`, `@make//:make`,
+  `@ninja//:ninja` and `@pkgconf//:pkg-config`, which `rules_foreign_cc`
+  depends on with a `bazel_dep`. (rfcc's `pkgconfig` tool is the `pkgconf`
+  module - the pkg-config implementation distributions ship as `pkg-config`;
+  its BUILD file publishes the binary under both names.) A `bazel_dep`
+  resolves to a single version graph-wide under MVS, so under bzlmod the
+  tag's `version =` does not select one: `tools.make(mode = "source",
+  version = ...)` accepts any version rfcc offers, but the resolved module
+  is what gets built. To build a different one, declare your own
+  `bazel_dep` (or a `single_version_override`) on `m4` / `make` / `ninja` /
+  `pkgconf` -- MVS then hands rfcc that version. (Under `WORKSPACE` there
+  is no MVS, so `rules_foreign_cc_dependencies(make_version = ...)` does
+  select directly.)
 
 For most users these names are an implementation detail: `rules_foreign_cc`
 registers the hub and you never touch the spokes directly.
@@ -88,8 +89,8 @@ bazel_dep(name = "rules_foreign_cc", version = "{version}")
 ```
 
 That's it. `rules_foreign_cc` contributes its default tool set - cmake and
-ninja as prebuilt binaries, make, meson, and pkgconfig built from source, plus
-autoconf, automake, m4, and msbuild as system tools - and **registers the hub
+ninja as prebuilt binaries, m4, make, meson, and pkgconfig built from source,
+plus autoconf, automake, and msbuild as system tools - and **registers the hub
 for you** from its own MODULE.bazel. (For the exact default mode and pinned
 version of each tool, see the
 [per-tool support table](#per-tool-support) below.) cmake and ninja
@@ -158,7 +159,7 @@ All `tools.<tool>(...)` tags share the same shape:
 | `autoconf` | system, noop | system | no |
 | `automake` | system, noop | system | no |
 | `cmake` | binary, source, system, noop | binary | yes |
-| `m4` | system, noop | system | no |
+| `m4` | source, system, noop | source | yes |
 | `make` | source, system, noop | source | yes |
 | `meson` | source, system, noop | source | yes |
 | `msbuild` | system, noop | system | no |

@@ -24,11 +24,11 @@ version string, and the repos come out byte-identical to the bzlmod ones.
 
 Three things bzlmod does that this cannot:
 
-  * MVS. `bcr_repos` just fetches whichever `make`, `ninja` and `pkgconf` the
-    caller of `rules_foreign_cc_dependencies` asked for; a bzlmod root reaches
-    the same versions by raising rfcc's `bazel_dep`.
+  * MVS. `bcr_repos` just fetches whichever `m4`, `make`, `ninja` and `pkgconf`
+    the caller of `rules_foreign_cc_dependencies` asked for; a bzlmod root
+    reaches the same versions by raising rfcc's `bazel_dep`.
   * Resolve transitive `bazel_dep`s -- hence `BCR_CLOSURE`, holding the modules
-    make's and pkgconf's BUILD files need but rfcc never loads from.
+    the tool BUILD files need but rfcc never loads from.
   * Guarantee apparent repo names. A BCR BUILD file spells its deps
     `@rules_cc`, `@bazel_skylib`, `@rules_cc_autoconf`; under bzlmod those are
     repo-mapped, under WORKSPACE they are global names. rfcc declares them
@@ -94,13 +94,14 @@ def _bcr_repo(name, spec):
         **kwargs
     )
 
-def bcr_repos(make_version, ninja_version, pkgconfig_version):
+def bcr_repos(m4_version, make_version, ninja_version, pkgconfig_version):
     """Declare every BCR module rfcc needs under WORKSPACE.
 
     Includes the transitive closure that bzlmod would resolve from
     `bazel_dep`, since WORKSPACE has no MVS to do it.
 
     Args:
+        m4_version: the m4 version to fetch; a key of `BCR_TOOLS["m4"]`.
         make_version: the make version to fetch; a key of `BCR_TOOLS["make"]`.
         ninja_version: the ninja version to fetch; a key of
             `BCR_TOOLS["ninja"]`. Selects the source-built ninja only. The
@@ -111,6 +112,7 @@ def bcr_repos(make_version, ninja_version, pkgconfig_version):
             `BCR_TOOLS["pkgconf"]`.
     """
     for module, version in [
+        ("m4", m4_version),
         ("make", make_version),
         ("ninja", ninja_version),
         ("pkgconf", pkgconfig_version),

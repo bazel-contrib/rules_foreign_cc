@@ -44,6 +44,7 @@ goes under bzlmod:
 | `register_preinstalled_tools = True` (host tools) | `tools.<tool>(mode = "system")` |
 | `cmake_version = "3.31.12"` | `tools.cmake(version = "3.31.12")` |
 | `ninja_version = "1.13.2"` | `tools.ninja(version = "1.13.2")` |
+| `m4_version = "1.4.21"` | `tools.m4(version = "1.4.21")` |
 | `make_version = "4.4.1"` | `tools.make(version = "4.4.1")` |
 | `meson_version = "1.10.1"` | `tools.meson(version = "1.10.1")` |
 | `pkgconfig_version = "3.0.7"` | `tools.pkgconfig(version = "3.0.7")` |
@@ -223,18 +224,18 @@ filegroup(
 Hub aliases published per source-mode tool: `cmake_src_all`, `cmake_built`,
 `meson_src_all`, `meson_built`, `meson_src_meson_py`, `meson_src_runtime`.
 
-make, ninja and pkgconfig publish none under bzlmod: under both dependency
+m4, make, ninja and pkgconfig publish none under bzlmod: under both dependency
 models they are built from their Bazel Central Registry modules rather than an
 rfcc source spoke, and those modules expose the built binary and nothing else,
-as `@make//:make`, `@ninja//:ninja` and `@pkgconf//:pkg-config`. Add
+as `@m4//:m4`, `@make//:make`, `@ninja//:ninja` and `@pkgconf//:pkg-config`. Add
 `bazel_dep(name = "make", ...)` and so on to your own module to reference them
 under those names. (rfcc's `pkgconfig` tool is the `pkgconf` module -- the
 pkg-config implementation distributions ship as `pkg-config`; its BUILD file
 publishes the binary under both names.) The `WORKSPACE` hub keeps publishing
-`make_built` / `ninja_built` / `pkgconfig_built` for consumers who already name
-them; each forwards straight to the registry module's binary.
+`m4_built` / `make_built` / `ninja_built` / `pkgconfig_built` for consumers who
+already name them; each forwards straight to the registry module's binary.
 
-There is no `<tool>_src_all` for these three under either model: the registry
+There is no `<tool>_src_all` for these tools under either model: the registry
 modules unpack their own source trees and expose no target for them. If your
 BUILD files reached the pkg-config sources through `pkgconfig_src_all`, use
 `@pkgconf//:pkg-config` for the binary; the sources have no replacement.

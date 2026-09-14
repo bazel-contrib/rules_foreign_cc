@@ -20,10 +20,10 @@ configure_make(
     # binaries don't need the regenerated copies at runtime.
     args = ["dist_man_MANS="],
     build_data = [
-        "@m4//:m4_exe",
+        "@gnu_m4//:m4_exe",
     ],
     env = {
-        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+        "M4": "$$EXT_BUILD_ROOT/$(location @gnu_m4//:m4_exe)",
         "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
     } | select({
         "@platforms//os:macos": {
