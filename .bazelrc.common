@@ -52,6 +52,12 @@ common --experimental_ui_max_stdouterr_bytes=10485760
 # see https://github.com/bazelbuild/bazel/issues/12844.
 common:bazel-7.x --show_progress
 common:bazel-8.x --incompatible_disable_autoloads_in_main_repo
+# The checked-in MODULE.bazel.lock is written by the bazel version in
+# .bazelversion (8.x), and bazel 9 uses a newer lockfile format it can't read.
+# Bazel 8 and 9 can't share one committed lockfile version, so let bazel 9
+# rewrite it in-process instead of erroring. This overrides --config=ci's
+# --lockfile_mode=error (bazel-9.x is applied after :ci in test_flags).
+common:bazel-9.x --lockfile_mode=update
 # Remind people to set good test timeouts / sizes
 common --test_verbose_timeout_warnings
 
