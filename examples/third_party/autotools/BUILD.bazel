@@ -2,7 +2,7 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
 build_test(
     name = "m4_build_test",
-    targets = ["@m4//:m4"],
+    targets = ["@gnu_m4//:m4"],
     visibility = ["//:__pkg__"],
 )
 

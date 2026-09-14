@@ -17,6 +17,7 @@ load("//toolchains/private:source_spokes.bzl", "pkgconfig_msvc_companions")
 # different tool versions.
 DEFAULT_TOOL_VERSIONS = {
     "cmake": "3.31.12",
+    "m4": "1.4.21",
     "make": "4.4.1",
     "meson": "1.10.1",
     "ninja": "1.13.2",
@@ -28,6 +29,7 @@ def rules_foreign_cc_dependencies(
         native_tools_toolchains = [],
         register_default_tools = True,
         cmake_version = DEFAULT_TOOL_VERSIONS["cmake"],
+        m4_version = DEFAULT_TOOL_VERSIONS["m4"],
         make_version = DEFAULT_TOOL_VERSIONS["make"],
         ninja_version = DEFAULT_TOOL_VERSIONS["ninja"],
         meson_version = DEFAULT_TOOL_VERSIONS["meson"],
@@ -53,6 +55,11 @@ def rules_foreign_cc_dependencies(
 
         cmake_version: The target version of the cmake toolchain if `register_default_tools`
             or `register_built_tools` is set to `True`.
+
+        m4_version: The target version of the default m4 toolchain. Selects
+            which Bazel Central Registry `m4` module is fetched, so it applies
+            whenever `register_repos` is `True`, not only to the built
+            toolchain.
 
         make_version: The target version of the default make toolchain. Selects
             which Bazel Central Registry `make` module is fetched, so it applies
@@ -99,6 +106,7 @@ def rules_foreign_cc_dependencies(
     if register_built_tools:
         built_toolchains(
             cmake_version = cmake_version,
+            m4_version = m4_version,
             make_version = make_version,
             ninja_version = ninja_version,
             meson_version = meson_version,
@@ -180,17 +188,19 @@ def rules_foreign_cc_dependencies(
     # `pkgconfig_tool` macro names on Windows. See pkgconfig_msvc_companions.
     pkgconfig_msvc_companions()
 
-    # @make, @ninja and @pkgconf (plus the closure their BUILD files need),
+    # @m4, @make, @ninja and @pkgconf (plus the closure their BUILD files need),
     # reconstructed from the Bazel Central Registry the way bzlmod would
     # resolve them, at the versions this call asked for.
     bcr_repos(
+        m4_version = m4_version,
         make_version = make_version,
         ninja_version = ninja_version,
         pkgconfig_version = pkgconfig_version,
     )
 
     # rules_cc_autoconf's own MODULE.bazel registers this; WORKSPACE has to.
-    # make's and pkgconf's BUILD files run their configure checks through it.
+    # m4's, make's and pkgconf's BUILD files run their configure checks
+    # through it.
     #
     # Also gated on register_built_tools: unlike an http_archive declaration, a
     # *registered* toolchain label is fetched and configured before any

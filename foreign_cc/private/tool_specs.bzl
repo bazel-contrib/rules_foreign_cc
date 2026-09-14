@@ -85,10 +85,10 @@ def _wildcards_for(versions):
             out[key] = version
     return out
 
-# `BCR_TOOLS[<module>]` is read directly below for make/ninja/pkgconf. Unlike
-# the other source tables only its keys matter, since one `@make` / `@ninja` /
-# `@pkgconf` exists per build -- see the `source_target` note below. rfcc's
-# `pkgconfig` tool is the `pkgconf` module.
+# `BCR_TOOLS[<module>]` is read directly by the source specs below. Unlike the
+# other source tables only its keys matter, since one `@m4` / `@make` /
+# `@ninja` / `@pkgconf` exists per build -- see the `source_target` note below.
+# rfcc's `pkgconfig` tool is the `pkgconf` module.
 
 # Mode constants. Use these strings everywhere.
 MODE_BINARY = "binary"
@@ -104,8 +104,8 @@ ALL_MODES = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP]
 # `source_target` is where a source-mode toolchain points. None (the common
 # case) means rfcc mints an @<tool>_src_<version> spoke and derives the label
 # from it. A label means the tool comes from a registry module rfcc doesn't own
-# (@make, @ninja, @pkgconf), so the target is static and there is nothing for
-# the planner to fetch or alias. Those tools still offer a version matrix,
+# (@m4, @make, @ninja, @pkgconf), so the target is static and there is nothing
+# for the planner to fetch or alias. Those tools still offer a version matrix,
 # selected where the repo is declared -- a `bazel_dep` under bzlmod,
 # `bcr_repos` under WORKSPACE -- rather than in the label.
 TOOL_SPECS = {
@@ -156,15 +156,16 @@ TOOL_SPECS = {
         noop_env = {"CMAKE": "{NOOP_BIN}"},
     ),
     "m4": struct(
-        modes = [MODE_SYSTEM, MODE_NOOP],
-        ladder = [MODE_SYSTEM],
-        default_version = None,
-        known_versions = None,
-        wildcards = {},
+        modes = [MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
+        ladder = [MODE_SOURCE, MODE_SYSTEM],
+        default_version = "1.4.21",
+        known_versions = exact_versions(BCR_TOOLS["m4"]),
+        wildcards = _wildcards_for(exact_versions(BCR_TOOLS["m4"])),
         binary_versions = None,
-        source_versions = None,
+        source_versions = BCR_TOOLS["m4"],
         binary_target = None,
-        source_target = None,
+        source_target = "@rules_foreign_cc//toolchains/private:built_m4",
+        bcr_binary = "@m4//:m4",
         toolchain_type = "@rules_foreign_cc//toolchains:m4_toolchain",
         noop_env = {"M4": "{NOOP_BIN}"},
     ),
@@ -304,7 +305,7 @@ SPOKE_SOURCE_TOOLS = [
 
 # The exact complement: tools built by a registry module. Only these specs
 # carry `bcr_binary`, so it is safe to read for every member and only for
-# members. Both halves come from the same `source_target` test, so a fourth
+# members. Both halves come from the same `source_target` test, so another
 # registry-backed tool joins every loop without a literal to update.
 BCR_SOURCE_TOOLS = [
     name

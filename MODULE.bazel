@@ -12,6 +12,7 @@ bazel_dep(name = "rules_cc", version = "0.2.18")
 bazel_dep(name = "rules_python", version = "1.9.0")
 bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "bazel_lib", version = "3.2.0")
+bazel_dep(name = "m4", version = "1.4.21.bcr.4")
 bazel_dep(name = "make", version = "4.4.1.bcr.1")
 bazel_dep(name = "ninja", version = "1.13.2")
 bazel_dep(name = "pkgconf", version = "3.0.7")
@@ -78,6 +79,10 @@ tools.ninja(
     version = "1.13.2",
 )
 tools.ninja(mode = "system")
+tools.m4(
+    mode = "source",
+    version = "1.4.21",
+)
 tools.make(
     mode = "source",
     version = "4.4.1",
@@ -92,7 +97,6 @@ tools.pkgconfig(
 )
 tools.autoconf(mode = "system")
 tools.automake(mode = "system")
-tools.m4(mode = "system")
 tools.msbuild(mode = "system")
 
 # rfcc's own pkg-config is the `pkgconf` module, which needs no companions.

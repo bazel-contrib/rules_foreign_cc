@@ -21,9 +21,9 @@ load(":wildcard_resolution_test.bzl", "wildcard_resolution_test_suite")
 # so the ``script_file`` / ``wrapper_script_file`` output groups read
 # through cleanly.
 #
-# make, ninja and pkgconfig are absent: they are plain cc_binary targets in
-# their registry modules, not rfcc framework rules, so they emit no build
-# script to lint. The two below exercise the same script generator.
+# The registry-backed tools are absent: they are plain cc_binary targets in
+# their modules, not rfcc framework rules, so they emit no build script to
+# lint. The two below exercise the same script generator.
 TOOL_TARGETS = [
     "@rules_foreign_cc_toolchains//:cmake_built",
     "@rules_foreign_cc_toolchains//:meson_built",

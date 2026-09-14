@@ -209,7 +209,7 @@ def tag_error(tag):
             spec.modes,
         )
 
-    # Versionless tools (autoconf/automake/m4/nmake/msbuild) have no versioned
+    # Versionless tools -- see `VERSIONLESS_TOOLS` -- have no versioned
     # mode, so a version is meaningless in any mode -- reject it up front rather
     # than silently ignoring it once resolve_mode() lands on system. Checked
     # independently of mode because the system/noop check below only fires when
@@ -371,8 +371,8 @@ def _hub_targets_for(spoke):
     if mode == MODE_BINARY:
         return _binary_platform_entries(tool, version)
     if mode == MODE_SOURCE:
-        # make, ninja and pkg-config build in registry repos rfcc can't append
-        # a toolchain to, so they use the static `source_target` under
+        # The registry-backed tools build in repos rfcc can't append a
+        # toolchain to, so they carry a static `source_target` under
         # //toolchains/private -- same shape as system and noop below. The
         # label carries no version; `tag_error` already rejected any other.
         source_target = get_spec(tool).source_target
@@ -645,10 +645,10 @@ def build_hub_aliases(tagset):
     archive that any consumer's BUILD file can reach without leaking the
     pinned version into a downstream MODULE.bazel.
 
-    Only spoke tools are covered. make, ninja and pkg-config come from registry
+    Only `SPOKE_SOURCE_TOOLS` are covered. The registry-backed tools come from
     modules that define the binary and nothing else, so there is no
-    `make_built` / `ninja_src_all` to alias -- name `@make//:make`,
-    `@ninja//:ninja` and `@pkgconf//:pkg-config` directly.
+    `<tool>_src_all` to alias -- name the module's binary (`@make//:make`,
+    `@pkgconf//:pkg-config`, ...) directly.
 
     Per source-tool aliases:
 

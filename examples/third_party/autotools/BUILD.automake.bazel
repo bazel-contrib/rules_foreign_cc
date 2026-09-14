@@ -14,7 +14,7 @@ configure_make(
     name = "automake",
     build_data = [
         "@autoconf//:gen_dir",
-        "@m4//:m4_exe",
+        "@gnu_m4//:m4_exe",
     ],
     env = {
         "AC_MACRODIR": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/share/autoconf",
@@ -22,7 +22,7 @@ configure_make(
         "AUTOHEADER": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autoheader",
         "AUTOM4TE": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autom4te",
         "AUTORECONF": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin/autoreconf)",
-        "M4": "$$EXT_BUILD_ROOT/$(location @m4//:m4_exe)",
+        "M4": "$$EXT_BUILD_ROOT/$(location @gnu_m4//:m4_exe)",
         "PATH": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/bin:$$PATH",
         "PERL": "$$EXT_BUILD_ROOT/$(PERL)",
         "autom4te_perllibdir": "$$EXT_BUILD_ROOT/$(location @autoconf//:gen_dir)/share/autoconf",

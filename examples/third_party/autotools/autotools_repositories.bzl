@@ -5,9 +5,11 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 def autotools_repositories():
     """Load all repositories needed for autotools"""
 
+    # Not `m4`: rules_foreign_cc's own WORKSPACE setup runs first and declares
+    # the Bazel Central Registry `m4` module under that global repo name.
     maybe(
         http_archive,
-        name = "m4",
+        name = "gnu_m4",
         build_file = Label("//autotools:BUILD.m4.bazel"),
         strip_prefix = "m4-1.4.19",
         urls = [

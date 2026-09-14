@@ -22,6 +22,7 @@ load(
 # buildifier: disable=unnamed-macro
 def built_toolchains(
         cmake_version,
+        m4_version,
         make_version,
         ninja_version,
         meson_version,
@@ -32,6 +33,7 @@ def built_toolchains(
 
     Args:
         cmake_version: The CMake version to build
+        m4_version: The m4 version, used the same way as `make_version`.
         make_version: The make version. Not built here -- `bcr_repos` in
             `//foreign_cc:repositories.bzl` fetches the registry module at this
             version; it only names the `@make_src_<version>` compat repo.
@@ -50,41 +52,45 @@ def built_toolchains(
     # a load-time KeyError here rather than as a silent omission below.
     versions_by_tool = {
         "cmake": cmake_version,
+        "m4": m4_version,
         "make": make_version,
         "meson": meson_version,
         "ninja": ninja_version,
         "pkgconfig": pkgconfig_version,
     }
 
-    _emit_bcr_compat_spokes(versions_by_tool)
+    _emit_bcr_spokes(versions_by_tool)
 
-    # These three wrap binaries built by registry modules, which
+    # These wrap binaries built by registry modules, which
     # //foreign_cc:repositories.bzl declares. The targets carry no version:
-    # only one @make / @ninja / @pkgconf exists per build. The compat spokes
+    # only one @m4 / @make / @ninja / @pkgconf exists per build. The spokes
     # above publish equivalent but unregistered toolchain() targets.
+    #
+    # Derived from the spec, so a newly registry-backed tool registers without
+    # a literal to update here -- an omission would be silent, the tool simply
+    # falling down its ladder to `system`. //toolchains/private:BUILD.bazel
+    # names each toolchain() after the native_tool_toolchain it wraps; drifting
+    # from that surfaces as a no-such-target error during resolution.
     if register_toolchains:
-        native.register_toolchains(
-            "@rules_foreign_cc//toolchains/private:built_make_toolchain",
-            "@rules_foreign_cc//toolchains/private:built_ninja_toolchain",
-        )
-
-        # Gated separately, as it always has been: this one has a dedicated
-        # opt-out.
-        if register_built_pkgconfig_toolchain:
-            native.register_toolchains(
-                "@rules_foreign_cc//toolchains/private:built_pkgconfig_toolchain",
-            )
+        for tool in BCR_SOURCE_TOOLS:
+            # Gated separately, as it always has been: this one has a
+            # dedicated opt-out.
+            if tool == "pkgconfig" and not register_built_pkgconfig_toolchain:
+                continue
+            native.register_toolchains(get_spec(tool).source_target + "_toolchain")
 
     _emit_workspace_hub(versions_by_tool)
 
-def _emit_bcr_compat_spokes(versions_by_tool):
-    """Re-publish the pre-BCR `@<tool>_src_<v>` repo names.
+def _emit_bcr_spokes(versions_by_tool):
+    """Publish `@<tool>_src_<v>` repo names for every BCR-backed tool.
 
-    WORKSPACE consumers could name `@make_src_4.4.1//:make_toolchain`,
-    `:make_tool` or `:make_built` directly. Those repos no longer hold a source
-    tree, so these stand-ins forward to the registry-built binary. `all_srcs` is
-    deliberately absent: there is no target in `@make` / `@ninja` / `@pkgconf`
-    to forward it to. Generated files, not downloads, so an unused shim is free.
+    Uniform over `BCR_SOURCE_TOOLS`. For the tools that predate the registry
+    switch this keeps a name WORKSPACE consumers could already write --
+    `@make_src_4.4.1//:make_toolchain`, `:make_tool` or `:make_built`. Those
+    repos no longer hold a source tree, so these stand-ins forward to the
+    registry-built binary. `all_srcs` is deliberately absent: there is no
+    target in `@m4` / `@make` / `@ninja` / `@pkgconf` to forward it to.
+    Generated files, not downloads, so an unused shim is free.
 
     Bzlmod gets none of this -- an extension's repos aren't nameable without a
     `use_repo`, so the hub aliases were always its only surface.
@@ -130,9 +136,9 @@ def _emit_workspace_hub(versions_by_tool):
         versions_by_tool: `{tool: version}` covering every source-mode tool.
     """
 
-    # Spoke tools get the full alias set; make, ninja and pkgconfig get only
+    # Spoke tools get the full alias set; the BCR-backed ones get only
     # `<tool>_built`, because their registry BUILD files define nothing else to
-    # alias -- no `<tool>_src_all`, see _emit_bcr_compat_spokes.
+    # alias -- no `<tool>_src_all`, see _emit_bcr_spokes.
     aliases = []
     for tool in SPOKE_SOURCE_TOOLS:
         if versions_by_tool[tool]:

@@ -26,7 +26,7 @@ configure_make(
     ],
     build_data = select({
         "@platforms//os:windows": [],
-        "//conditions:default": ["@m4//:m4_exe"],
+        "//conditions:default": ["@gnu_m4//:m4_exe"],
     }),
     configure_options = [
         # See m4 / bison: NLS recipes need msgfmt, which RBE workers
@@ -43,11 +43,11 @@ configure_make(
     }),
     env = select({
         "@platforms//os:linux": {
-            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @m4//:m4_exe)):$$PATH",
+            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @gnu_m4//:m4_exe)):$$PATH",
         },
         "@platforms//os:macos": {
             "AR": "",
-            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @m4//:m4_exe)):$$PATH",
+            "PATH": "$$(dirname $$EXT_BUILD_ROOT/$(location @gnu_m4//:m4_exe)):$$PATH",
         },
         "//conditions:default": {},
     }),
