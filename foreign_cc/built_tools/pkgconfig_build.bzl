@@ -1,4 +1,16 @@
-""" Rule for building pkg-config from source. """
+"""Rule for building pkg-config from source.
+
+Kept for the same reason as `make_tool` -- see the note in `make_build.bzl`.
+Source-mode pkg-config comes from `@pkgconf//:pkg-config`, its Bazel Central
+Registry module; this rule is unused by rfcc and retained only as public API.
+
+Its MSVC branch names `@glib_dev`, `@glib_src` and `@gettext_runtime`, which
+rfcc still declares under both dependency models solely so this macro loads:
+the `Label()` calls below run on every platform (the `select` only picks
+between two already-built variants) and resolve against rfcc's own repo
+mapping, which a consumer cannot extend. Nothing downloads unless an MSVC build
+reaches them. See `pkgconfig_msvc_companions` in `//toolchains/private`.
+"""
 
 load("//foreign_cc:defs.bzl", "make_variant", "runnable_binary")
 load(

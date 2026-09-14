@@ -146,7 +146,7 @@ use_repo(
     "xtrans",
 )
 
-bazel_dep(name = "bazel_skylib", version = "1.9.0")
+bazel_dep(name = "bazel_skylib", version = "1.9.2")
 bazel_dep(name = "bazel_lib", version = "3.2.0")
 
 # Support the integration tests

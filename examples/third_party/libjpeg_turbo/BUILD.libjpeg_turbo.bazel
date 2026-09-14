@@ -11,6 +11,12 @@ cmake(
         "CMAKE_BUILD_TYPE": "Release",
         "WITH_JAVA": "0",
     },
+    # rules_cc >= 0.2.22 passes MSVC `/std:c17`, which implies the conformant
+    # preprocessor; `tjutil.h`'s `snprintf` macro ends `format, __VA_ARGS__`
+    # and with no variadic args that leaves a trailing `,)` (C2059) instead of
+    # swallowing the comma. libjpeg-turbo's CMake build sets no C standard, so
+    # neither do we. No-op off MSVC.
+    features = ["-default_c_std"],
     lib_source = ":all_files",
     out_shared_libs = select({
         "@platforms//os:linux": [

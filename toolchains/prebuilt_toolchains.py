@@ -132,13 +132,12 @@ CMAKE_TARGETS = {
     },
 }
 
-# --- Ninja -----------------------------------------------------------------
+# --- Ninja (prebuilt binaries only) -----------------------------------------
 #
-# Minor series to support; the latest patch within each is auto-discovered and
-# used for BOTH the prebuilt binary and the from-source build (see
-# NINJA_SRC_PATCHES), so the two modes always accept the same versions. Capped
-# at 1.10 because that is the oldest series rules_foreign_cc ships a source
-# build for.
+# Minor series to support; the latest patch within each is auto-discovered.
+# Only the prebuilt binaries are generated here: source-mode ninja comes from
+# its Bazel Central Registry module (//toolchains/private:bcr_modules.bzl), so
+# there is no source table to keep in step with this one.
 NINJA_MINORS = (
     "1.13",
     "1.12",
@@ -152,22 +151,6 @@ NINJA_RELEASES_URL = (
 NINJA_URL_TEMPLATE = (
     "https://github.com/ninja-build/ninja/releases/download/v{full}/ninja-{target}.zip"
 )
-# Source-mode archive (bazel mirror first, upstream github fallback); the
-# sha256 is hashed at generation time. A version with no mirror copy yet
-# 404s past the mirror to github, at both hash time and build time.
-NINJA_SRC_URL_TEMPLATE = (
-    "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v{version}.tar.gz"
-)
-NINJA_SRC_URL_FALLBACK = (
-    "https://github.com/ninja-build/ninja/archive/v{version}.tar.gz"
-)
-# Per-version source patch overrides. The source version SET is derived from
-# NINJA_MINORS (same exact patches as the binaries); this map only attaches
-# patch labels to specific versions. Ninja needs none today, so it's empty --
-# add an entry keyed by exact version (e.g. "1.13.2": [label]) if a future
-# version needs one.
-NINJA_SRC_PATCHES = {}
-
 NINJA_TARGETS = {
     "linux": {
         "os_arch": ("linux", "x86_64"),
@@ -206,20 +189,8 @@ NINJA_TARGETS = {
     },
 }
 
-# --- Make (source-only) ----------------------------------------------------
-#
-# {version: [patch labels]}. The sha256 is hashed at generation time. make's
-# reproducible-bootstrap patch targets per-version bootstrap files, so each
-# version names its own; a version with no divergence can use [].
-MAKE_URL_TEMPLATE = (
-    "https://mirror.bazel.build/ftpmirror.gnu.org/gnu/make/make-{version}.tar.gz"
-)
-MAKE_URL_FALLBACK = "http://ftpmirror.gnu.org/gnu/make/make-{version}.tar.gz"
-MAKE_VERSIONS = {
-    "4.4.1": ["//toolchains/patches:make-4.4.1-reproducible-bootstrap.patch"],
-    "4.4": ["//toolchains/patches:make-4.4-reproducible-bootstrap.patch"],
-    "4.3": ["//toolchains/patches:make-4.3-reproducible-bootstrap.patch"],
-}
+# make is deliberately absent: it is built from its Bazel Central Registry
+# module, not an archive rfcc hashes. See //toolchains/private:bcr_modules.bzl.
 
 # --- Meson (source-only) ---------------------------------------------------
 #
@@ -233,20 +204,8 @@ MESON_VERSIONS = {
     "0.63.0": [],
 }
 
-# --- pkg-config (source-only) ----------------------------------------------
-#
-# {version: [patch labels]}. The sha256 is hashed at generation time.
-PKGCONFIG_URL_TEMPLATE = "https://mirror.bazel.build/pkgconfig.freedesktop.org/releases/pkg-config-{version}.tar.gz"
-PKGCONFIG_URL_FALLBACK = (
-    "https://pkgconfig.freedesktop.org/releases/pkg-config-{version}.tar.gz"
-)
-PKGCONFIG_VERSIONS = {
-    "0.29.2": [
-        "//toolchains/patches:pkgconfig-detectenv.patch",
-        "//toolchains/patches:pkgconfig-makefile-vc.patch",
-        "//toolchains/patches:pkgconfig-builtin-glib-int-conversion.patch",
-    ],
-}
+# pkg-config is deliberately absent, for the same reason make is -- it comes
+# from the `pkgconf` registry module.
 
 # ===========================================================================
 # MACHINERY
@@ -771,13 +730,7 @@ def main():
 
     cmake_bin, cmake_src = get_cmake_definitions()
 
-    # Resolve the ninja patch set once; both modes ship the same versions.
-    ninja_latest = latest_ninja_patches(NINJA_MINORS)
-    ninja_bin = get_ninja_definitions(ninja_latest)
-    ninja_src_versions = {
-        version: list(NINJA_SRC_PATCHES.get(version, []))
-        for version in ninja_latest.values()
-    }
+    ninja_bin = get_ninja_definitions(latest_ninja_patches(NINJA_MINORS))
 
     # --- per-tool version dicts under toolchains/private/ ---
     cmake_versions_text = (
@@ -801,44 +754,8 @@ def main():
         + render_binary_dict("NINJA_BIN_SRCS", ninja_bin)
         + "\n"
         + render_wildcard_map("NINJA_BIN_WILDCARDS", ninja_bin)
-        + "\n"
-        + render_source_dict(
-            varname="NINJA_SRC_SRCS",
-            url_template="",  # explicit `urls` override per entry
-            fallback_template=None,
-            versions=add_source_wildcards(
-                hashed_source_versions(
-                    "ninja",
-                    ninja_src_versions,
-                    NINJA_SRC_URL_TEMPLATE,
-                    NINJA_SRC_URL_FALLBACK,
-                ),
-                "",
-                None,
-                "ninja-{version}",
-            ),
-            prefix_template="ninja-{version}",
-        )
     )
     _write(private_dir / "ninja_versions.bzl", ninja_versions_text)
-
-    _write(
-        private_dir / "make_versions.bzl",
-        emit_source_dict(
-            varname="GNUMAKE_SRCS",
-            url_template="",  # explicit `urls` override per entry
-            fallback_template=None,
-            versions=add_source_wildcards(
-                hashed_source_versions(
-                    "make", MAKE_VERSIONS, MAKE_URL_TEMPLATE, MAKE_URL_FALLBACK
-                ),
-                "",
-                None,
-                "make-{version}",
-            ),
-            prefix_template="make-{version}",
-        ),
-    )
 
     _write(
         private_dir / "meson_versions.bzl",
@@ -855,27 +772,6 @@ def main():
                 "meson-{version}",
             ),
             prefix_template="meson-{version}",
-        ),
-    )
-
-    _write(
-        private_dir / "pkgconfig_versions.bzl",
-        emit_source_dict(
-            varname="PKGCONFIG_SRCS",
-            url_template="",  # explicit `urls` override per entry
-            fallback_template=None,
-            versions=add_source_wildcards(
-                hashed_source_versions(
-                    "pkgconfig",
-                    PKGCONFIG_VERSIONS,
-                    PKGCONFIG_URL_TEMPLATE,
-                    PKGCONFIG_URL_FALLBACK,
-                ),
-                "",
-                None,
-                "pkg-config-{version}",
-            ),
-            prefix_template="pkg-config-{version}",
         ),
     )
 

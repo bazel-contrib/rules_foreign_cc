@@ -7,9 +7,11 @@ versions, adding tools, or adjusting noop env vars.
 `known_versions` is a list-or-None of versions accepted in
 `tools.<tool>(version = ...)`. None means "this tool is
 versionless (system/noop only)." For tools with a binary mode the list is
-the union of binary-table keys and source-table keys (so a version that
-exists in only one of the two is still accepted; the planner picks the
-mode based on the tool's ladder and what's actually available).
+the union of binary-table keys and source-table keys, because the mode a
+bare `version =` resolves to depends on the tool's ladder. The union is only
+an outer bound: `tag_error` re-checks the version against the resolved mode's
+own table, so ninja -- whose prebuilt releases and registry modules overlap
+without coinciding -- rejects `mode = "binary", version = "1.13.1"`.
 """
 
 # The version dicts under //toolchains/private declare a top-of-file
@@ -17,27 +19,23 @@ mode based on the tool's ladder and what's actually available).
 # them; buildifier's bzl-visibility heuristic only inspects path layout
 # and doesn't honor the directive. Suppress the lint here.
 # buildifier: disable=bzl-visibility
-load("//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_SRCS", "CMAKE_SRC_SRCS")
+load("//toolchains/private:bcr_modules.bzl", "BCR_TOOLS")
 
 # buildifier: disable=bzl-visibility
-load("//toolchains/private:make_versions.bzl", "GNUMAKE_SRCS")
+load("//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_SRCS", "CMAKE_SRC_SRCS")
 
 # buildifier: disable=bzl-visibility
 load("//toolchains/private:meson_versions.bzl", "MESON_SRCS")
 
 # buildifier: disable=bzl-visibility
-load("//toolchains/private:ninja_versions.bzl", "NINJA_BIN_SRCS", "NINJA_SRC_SRCS")
+load("//toolchains/private:ninja_versions.bzl", "NINJA_BIN_SRCS")
 
-# buildifier: disable=bzl-visibility
-load("//toolchains/private:pkgconfig_versions.bzl", "PKGCONFIG_SRCS")
-
-def _is_exact(version):
+def _is_exact_version(version):
     """True for an exact version key (not a `major.minor.x` wildcard).
 
-    Accepts both `major.minor.patch` and bare `major.minor` keys: make ships
-    two-component upstream releases (`4.3`, `4.4`) alongside `4.4.1`, and all
-    are real, fetchable versions. Only the `.x` wildcard alias keys are
-    excluded.
+    Accepts both `major.minor.patch` and bare `major.minor` keys, since some
+    upstreams release two-component versions. Only the `.x` wildcard alias
+    keys are excluded.
     """
     parts = version.split(".")
     return len(parts) >= 2 and parts[-1] != "x"
@@ -50,49 +48,34 @@ def _version_tuple(version):
     """
     return tuple([int(p) for p in version.split(".")])
 
-def _exact_versions(*dicts):
+def exact_versions(*dicts):
     """Sorted union of the exact-patch keys across the given version dicts.
 
     The source dicts (e.g. CMAKE_SRC_SRCS) carry duplicate `a.b.x` wildcard
     keys alongside their exact patches; those are filtered out here so
     `known_versions` is exact-only. Wildcards are handled separately via
     `_wildcards_for`.
+
+    Args:
+        *dicts: version tables, keyed by version. Only the keys are read.
+
+    Returns:
+        A sorted list of the exact version keys, wildcards excluded.
     """
     seen = {}
     for d in dicts:
         for k in d.keys():
-            if _is_exact(k):
+            if _is_exact_version(k):
                 seen[k] = True
     return sorted(seen.keys())
-
-def _assert_symmetric(tool, bin_dict, src_dict):
-    """Fail if a tool's binary and source tables cover different versions.
-
-    A tool that offers both `mode = "binary"` and `mode = "source"` must
-    accept the same version in either mode -- otherwise
-    `tools.<tool>(mode = "source", version = V)` could pass validation
-    (which checks the bin+src union) and then fail late when the source
-    archive for V doesn't exist. Keeping the tables in lockstep means the
-    unified `version =` surface behaves identically across modes. The
-    generator enforces this (ninja's NINJA_MINORS is capped to the
-    source-build range); this guard catches a hand-edit that breaks it.
-    """
-    bin_versions = [k for k in bin_dict.keys() if _is_exact(k)]
-    src_versions = [k for k in src_dict.keys() if _is_exact(k)]
-    if sorted(bin_versions) != sorted(src_versions):
-        only_bin = sorted([v for v in bin_versions if v not in src_versions])
-        only_src = sorted([v for v in src_versions if v not in bin_versions])
-        fail(("tool_specs: {} binary and source version tables must match, " +
-              "but binary-only={} source-only={}. A tool with both modes must " +
-              "offer the same versions in each.").format(tool, only_bin, only_src))
 
 def _wildcards_for(versions):
     """Map ``{"a.b.x": "a.b.c"}`` from a list of exact versions.
 
     Each `major.minor.x` resolves to the latest exact version in that series.
-    cmake/ninja ship one patch per minor so there's never a contest; make
-    ships both `4.4` and `4.4.1`, and `4.4.x` must resolve to `4.4.1` (the
-    latest), matching the spelling the old built_toolchains.bzl accepted.
+    Today's tables ship one patch per minor so there's never a contest, but
+    the tie-break is what makes `a.b.x` mean "newest a.b" rather than
+    "whichever key happened to sort last".
     """
     out = {}
     for version in versions:
@@ -102,10 +85,10 @@ def _wildcards_for(versions):
             out[key] = version
     return out
 
-# Tools with both binary and source modes must offer identical version sets
-# so `tools.<tool>(version = ...)` behaves the same in either mode.
-_assert_symmetric("cmake", CMAKE_BIN_SRCS, CMAKE_SRC_SRCS)
-_assert_symmetric("ninja", NINJA_BIN_SRCS, NINJA_SRC_SRCS)
+# `BCR_TOOLS[<module>]` is read directly below for make/ninja/pkgconf. Unlike
+# the other source tables only its keys matter, since one `@make` / `@ninja` /
+# `@pkgconf` exists per build -- see the `source_target` note below. rfcc's
+# `pkgconfig` tool is the `pkgconf` module.
 
 # Mode constants. Use these strings everywhere.
 MODE_BINARY = "binary"
@@ -117,6 +100,14 @@ ALL_MODES = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP]
 
 # Per-tool metadata. Order of LADDER entries is the auto-priority order
 # used when a root tag does not specify `mode`.
+#
+# `source_target` is where a source-mode toolchain points. None (the common
+# case) means rfcc mints an @<tool>_src_<version> spoke and derives the label
+# from it. A label means the tool comes from a registry module rfcc doesn't own
+# (@make, @ninja, @pkgconf), so the target is static and there is nothing for
+# the planner to fetch or alias. Those tools still offer a version matrix,
+# selected where the repo is declared -- a `bazel_dep` under bzlmod,
+# `bcr_repos` under WORKSPACE -- rather than in the label.
 TOOL_SPECS = {
     "autoconf": struct(
         modes = [MODE_SYSTEM, MODE_NOOP],
@@ -127,6 +118,7 @@ TOOL_SPECS = {
         binary_versions = None,
         source_versions = None,
         binary_target = None,
+        source_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:autoconf_toolchain",
         noop_env = {
             "AUTOCONF": "{NOOP_BIN}",
@@ -143,6 +135,7 @@ TOOL_SPECS = {
         binary_versions = None,
         source_versions = None,
         binary_target = None,
+        source_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:automake_toolchain",
         noop_env = {
             "ACLOCAL": "{NOOP_BIN}",
@@ -153,11 +146,12 @@ TOOL_SPECS = {
         modes = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
         ladder = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM],
         default_version = "3.31.12",
-        known_versions = _exact_versions(CMAKE_BIN_SRCS, CMAKE_SRC_SRCS),
-        wildcards = _wildcards_for(_exact_versions(CMAKE_BIN_SRCS, CMAKE_SRC_SRCS)),
+        known_versions = exact_versions(CMAKE_BIN_SRCS, CMAKE_SRC_SRCS),
+        wildcards = _wildcards_for(exact_versions(CMAKE_BIN_SRCS, CMAKE_SRC_SRCS)),
         binary_versions = CMAKE_BIN_SRCS,
         source_versions = CMAKE_SRC_SRCS,
         binary_target = "cmake_tool",
+        source_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:cmake_toolchain",
         noop_env = {"CMAKE": "{NOOP_BIN}"},
     ),
@@ -170,6 +164,7 @@ TOOL_SPECS = {
         binary_versions = None,
         source_versions = None,
         binary_target = None,
+        source_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:m4_toolchain",
         noop_env = {"M4": "{NOOP_BIN}"},
     ),
@@ -177,11 +172,13 @@ TOOL_SPECS = {
         modes = [MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
         ladder = [MODE_SOURCE, MODE_SYSTEM],
         default_version = "4.4.1",
-        known_versions = _exact_versions(GNUMAKE_SRCS),
-        wildcards = _wildcards_for(_exact_versions(GNUMAKE_SRCS)),
+        known_versions = exact_versions(BCR_TOOLS["make"]),
+        wildcards = _wildcards_for(exact_versions(BCR_TOOLS["make"])),
         binary_versions = None,
-        source_versions = GNUMAKE_SRCS,
+        source_versions = BCR_TOOLS["make"],
         binary_target = None,
+        source_target = "@rules_foreign_cc//toolchains/private:built_make",
+        bcr_binary = "@make//:make",
         toolchain_type = "@rules_foreign_cc//toolchains:make_toolchain",
         noop_env = {"MAKE": "{NOOP_BIN}"},
     ),
@@ -192,11 +189,12 @@ TOOL_SPECS = {
         # default) so the bzlmod and WORKSPACE paths build the same meson;
         # default_versions_in_sync_test enforces it for every tool.
         default_version = "1.10.1",
-        known_versions = _exact_versions(MESON_SRCS),
-        wildcards = _wildcards_for(_exact_versions(MESON_SRCS)),
+        known_versions = exact_versions(MESON_SRCS),
+        wildcards = _wildcards_for(exact_versions(MESON_SRCS)),
         binary_versions = None,
         source_versions = MESON_SRCS,
         binary_target = None,
+        source_target = None,
         toolchain_type = "@rules_foreign_cc//toolchains:meson_toolchain",
         noop_env = {"MESON": "{NOOP_BIN}"},
     ),
@@ -209,6 +207,7 @@ TOOL_SPECS = {
         binary_versions = None,
         source_versions = None,
         binary_target = None,
+        source_target = None,
         # msbuild only exists on Windows; gate the system toolchain on both
         # exec and target (matches the legacy preinstalled_msbuild_toolchain).
         system_exec_compatible_with = ["@platforms//os:windows"],
@@ -220,11 +219,13 @@ TOOL_SPECS = {
         modes = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
         ladder = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM],
         default_version = "1.13.2",
-        known_versions = _exact_versions(NINJA_BIN_SRCS, NINJA_SRC_SRCS),
-        wildcards = _wildcards_for(_exact_versions(NINJA_BIN_SRCS, NINJA_SRC_SRCS)),
+        known_versions = exact_versions(NINJA_BIN_SRCS, BCR_TOOLS["ninja"]),
+        wildcards = _wildcards_for(exact_versions(NINJA_BIN_SRCS, BCR_TOOLS["ninja"])),
         binary_versions = NINJA_BIN_SRCS,
-        source_versions = NINJA_SRC_SRCS,
+        source_versions = BCR_TOOLS["ninja"],
         binary_target = "ninja_tool",
+        source_target = "@rules_foreign_cc//toolchains/private:built_ninja",
+        bcr_binary = "@ninja//:ninja",
         toolchain_type = "@rules_foreign_cc//toolchains:ninja_toolchain",
         noop_env = {"NINJA": "{NOOP_BIN}"},
     ),
@@ -237,6 +238,7 @@ TOOL_SPECS = {
         binary_versions = None,
         source_versions = None,
         binary_target = None,
+        source_target = None,
         # nmake only exists on Windows; gate the system toolchain so it never
         # resolves on other hosts (matches the legacy
         # preinstalled_nmake_toolchain constraint).
@@ -252,12 +254,18 @@ TOOL_SPECS = {
     "pkgconfig": struct(
         modes = [MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
         ladder = [MODE_SOURCE, MODE_SYSTEM],
-        default_version = "0.29.2",
-        known_versions = _exact_versions(PKGCONFIG_SRCS),
-        wildcards = _wildcards_for(_exact_versions(PKGCONFIG_SRCS)),
+        default_version = "3.0.7",
+        known_versions = exact_versions(BCR_TOOLS["pkgconf"]),
+        wildcards = _wildcards_for(exact_versions(BCR_TOOLS["pkgconf"])),
         binary_versions = None,
-        source_versions = PKGCONFIG_SRCS,
+        source_versions = BCR_TOOLS["pkgconf"],
         binary_target = None,
+        source_target = "@rules_foreign_cc//toolchains/private:built_pkgconfig",
+        # `:pkg-config`, not the module's `:pkgconf`: the two are the same
+        # binary, but only the former is named what a configure script or
+        # CMake's FindPkgConfig looks for on PATH, and the framework symlinks
+        # `path` into $EXT_BUILD_DEPS/bin under its own basename.
+        bcr_binary = "@pkgconf//:pkg-config",
         toolchain_type = "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
         # Only the binary var, like every other tool: noop sets PKG_CONFIG to
         # the failing sentinel and stops there. A noop PKG_CONFIG_PATH buys
@@ -285,8 +293,45 @@ SOURCE_TOOLS = sorted([
     if MODE_SOURCE in spec.modes
 ])
 
+# Source-mode tools rfcc materializes as an @<tool>_src_<version> spoke.
+# Callers that fetch spokes or publish spoke aliases want this, not
+# SOURCE_TOOLS. Identical under both dependency models.
+SPOKE_SOURCE_TOOLS = [
+    name
+    for name in SOURCE_TOOLS
+    if TOOL_SPECS[name].source_target == None
+]
+
+# The exact complement: tools built by a registry module. Only these specs
+# carry `bcr_binary`, so it is safe to read for every member and only for
+# members. Both halves come from the same `source_target` test, so a fourth
+# registry-backed tool joins every loop without a literal to update.
+BCR_SOURCE_TOOLS = [
+    name
+    for name in SOURCE_TOOLS
+    if TOOL_SPECS[name].source_target != None
+]
+
 def get_spec(tool):
     """Returns the struct for a tool, or fails if the tool is unknown."""
     if tool not in TOOL_SPECS:
         fail("Unknown tool \"{}\". Known tools: {}".format(tool, ALL_TOOLS))
     return TOOL_SPECS[tool]
+
+def versions_for_mode(spec, mode):
+    """Return the version table backing `mode`, or None if it isn't versioned.
+
+    system and noop take no version, so only binary and source have a table.
+
+    Args:
+        spec: a tool struct from `TOOL_SPECS`.
+        mode: one of `ALL_MODES`.
+
+    Returns:
+        A ``{version: spec}`` dict, or None.
+    """
+    if mode == MODE_BINARY:
+        return spec.binary_versions
+    if mode == MODE_SOURCE:
+        return spec.source_versions
+    return None

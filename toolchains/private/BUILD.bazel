@@ -76,6 +76,64 @@ native_tool_toolchain(
     target = ":ninja_wrapper",
 )
 
+# Source-mode make, ninja and pkg-config. The other built tools carry their
+# native_tool_toolchain in their spoke repo; these live here because rfcc
+# cannot append targets to a registry module it doesn't own. One definition,
+# not one per version, and both dependency models reach it.
+#
+# `target` is cfg = "exec", so `$(execpath)` resolves to make.exe /
+# ninja.exe / pkg-config.exe on Windows without a select.
+native_tool_toolchain(
+    name = "built_make",
+    env = {"MAKE": "$(execpath @make//:make)"},
+    path = "$(execpath @make//:make)",
+    target = "@make",
+)
+
+# ninja goes through the wrapper for the same reason preinstalled_ninja does
+# (see ninja_wrapper.cc); that indirection is unrelated to how ninja is built.
+native_tool_toolchain(
+    name = "built_ninja",
+    env = {
+        "NINJA": "$(execpath :ninja_wrapper)",
+        "REAL_NINJA": "$(execpath @ninja//:ninja)",
+    },
+    path = "$(execpath :ninja_wrapper)",
+    target = ":ninja_wrapper",
+    tools = ["@ninja"],
+)
+
+# `:pkg-config`, not `:pkgconf`: same binary, but the framework symlinks
+# `path` into $EXT_BUILD_DEPS/bin under its own basename, and only the former
+# is what configure scripts and CMake's FindPkgConfig look for.
+native_tool_toolchain(
+    name = "built_pkgconfig",
+    env = {"PKG_CONFIG": "$(execpath @pkgconf//:pkg-config)"},
+    path = "$(execpath @pkgconf//:pkg-config)",
+    target = "@pkgconf//:pkg-config",
+)
+
+# Registered by the WORKSPACE path (toolchains/built_toolchains.bzl). bzlmod
+# uses its own hub-generated equivalents instead, so a root module's
+# registrations can be ordered ahead of rfcc's.
+toolchain(
+    name = "built_make_toolchain",
+    toolchain = ":built_make",
+    toolchain_type = "//toolchains:make_toolchain",
+)
+
+toolchain(
+    name = "built_ninja_toolchain",
+    toolchain = ":built_ninja",
+    toolchain_type = "//toolchains:ninja_toolchain",
+)
+
+toolchain(
+    name = "built_pkgconfig_toolchain",
+    toolchain = ":built_pkgconfig",
+    toolchain_type = "//toolchains:pkgconfig_toolchain",
+)
+
 native_tool_toolchain(
     name = "preinstalled_meson",
     path = select({
@@ -145,6 +203,24 @@ bzl_library(
 )
 
 bzl_library(
+    name = "bcr_modules",
+    srcs = ["bcr_modules.bzl"],
+    # This package is the other loader (bcr_repos), hence no entry for it.
+    visibility = ["//foreign_cc/private:__pkg__"],
+)
+
+bzl_library(
+    name = "bcr_repos",
+    srcs = ["bcr_repos.bzl"],
+    visibility = ["//foreign_cc:__pkg__"],
+    deps = [
+        ":bcr_modules",
+        "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
+    ],
+)
+
+bzl_library(
     name = "cmake_versions",
     srcs = ["cmake_versions.bzl"],
     visibility = [
@@ -163,26 +239,8 @@ bzl_library(
 )
 
 bzl_library(
-    name = "make_versions",
-    srcs = ["make_versions.bzl"],
-    visibility = [
-        "//foreign_cc/private:__pkg__",
-        "//toolchains:__pkg__",
-    ],
-)
-
-bzl_library(
     name = "meson_versions",
     srcs = ["meson_versions.bzl"],
-    visibility = [
-        "//foreign_cc/private:__pkg__",
-        "//toolchains:__pkg__",
-    ],
-)
-
-bzl_library(
-    name = "pkgconfig_versions",
-    srcs = ["pkgconfig_versions.bzl"],
     visibility = [
         "//foreign_cc/private:__pkg__",
         "//toolchains:__pkg__",
@@ -219,10 +277,7 @@ bzl_library(
     ],
     deps = [
         ":cmake_versions",
-        ":make_versions",
         ":meson_versions",
-        ":ninja_versions",
-        ":pkgconfig_versions",
         "@bazel_tools//tools/build_defs/repo:http.bzl",
         "@bazel_tools//tools/build_defs/repo:utils.bzl",
     ],

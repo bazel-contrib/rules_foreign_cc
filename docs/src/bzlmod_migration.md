@@ -46,7 +46,7 @@ goes under bzlmod:
 | `ninja_version = "1.13.2"` | `tools.ninja(version = "1.13.2")` |
 | `make_version = "4.4.1"` | `tools.make(version = "4.4.1")` |
 | `meson_version = "1.10.1"` | `tools.meson(version = "1.10.1")` |
-| `pkgconfig_version = "0.29.2"` | `tools.pkgconfig(version = "0.29.2")` |
+| `pkgconfig_version = "3.0.7"` | `tools.pkgconfig(version = "3.0.7")` |
 | `register_toolchains = False` | omit `register_toolchains(...)`; register manually |
 | `native_tools_toolchains = [...]` | `tools.<tool>(..., register_toolchain = False)` + your own `toolchain(...)` |
 
@@ -150,9 +150,9 @@ Renamed source repos (singleton → version-suffixed at default versions):
 |---|---|
 | `@cmake_src` | `@cmake_src_3.31.12` |
 | `@meson_src` | `@meson_src_1.10.1` |
-| `@gnumake_src` | `@make_src_4.4.1` |
-| `@ninja_build_src` | `@ninja_src_1.13.2` |
-| `@pkgconfig_src` | `@pkgconfig_src_0.29.2` |
+| `@gnumake_src` | `@make` (see below) |
+| `@ninja_build_src` | `@ninja` (see below) |
+| `@pkgconfig_src` | `@pkgconf` (see below) |
 
 The per-platform binary spoke repos were also renamed to one scheme,
 `@<tool>-<version>-<os>-<arch>`, where `<os>` and `<arch>` are the Bazel
@@ -183,10 +183,10 @@ per-version spokes registered through the hub:
 | Removed label | Replacement |
 |---|---|
 | `@rules_foreign_cc//toolchains:built_cmake_toolchain` | `tools.cmake(mode = "source", version = "3.31.12")` → hub registration |
-| `@rules_foreign_cc//toolchains:built_ninja_toolchain` | `tools.ninja(mode = "source", version = "1.13.2")` → hub registration |
-| `@rules_foreign_cc//toolchains:built_make_toolchain` | `tools.make(mode = "source", version = "4.4.1")` → hub registration |
+| `@rules_foreign_cc//toolchains:built_ninja_toolchain` | `tools.ninja(mode = "source")` → hub registration |
+| `@rules_foreign_cc//toolchains:built_make_toolchain` | `tools.make(mode = "source")` → hub registration |
 | `@rules_foreign_cc//toolchains:built_meson_toolchain` | `tools.meson(mode = "source", version = "1.10.1")` → hub registration |
-| `@rules_foreign_cc//toolchains:built_pkgconfig_toolchain` | `tools.pkgconfig(mode = "source", version = "0.29.2")` → hub registration |
+| `@rules_foreign_cc//toolchains:built_pkgconfig_toolchain` | `tools.pkgconfig(mode = "source", version = "3.0.7")` → hub registration |
 
 If you registered these labels explicitly (e.g.
 `register_toolchains("@rules_foreign_cc//toolchains:built_make_toolchain")`),
@@ -196,7 +196,6 @@ let the hub register a source-built default through
 `tools.<tool>(mode = "source", version = "...")` tag if you need a non-default
 version), or keep registering by label and point at the source spoke's own
 `toolchain(...)` target:
-`register_toolchains("@make_src_4.4.1//:make_toolchain")`,
 `register_toolchains("@meson_src_1.10.1//:meson_toolchain")`, and so on
 (`@<tool>_src_<version>//:<tool>_toolchain`). The source spoke ships that
 registerable `toolchain(...)` rule directly, unlike the binary per-platform
@@ -222,9 +221,23 @@ filegroup(
 ```
 
 Hub aliases published per source-mode tool: `cmake_src_all`, `cmake_built`,
-`make_src_all`, `make_built`, `meson_src_all`, `meson_built`,
-`meson_src_meson_py`, `meson_src_runtime`, `ninja_src_all`, `ninja_built`,
-`pkgconfig_src_all`, `pkgconfig_built`.
+`meson_src_all`, `meson_built`, `meson_src_meson_py`, `meson_src_runtime`.
+
+make, ninja and pkgconfig publish none under bzlmod: under both dependency
+models they are built from their Bazel Central Registry modules rather than an
+rfcc source spoke, and those modules expose the built binary and nothing else,
+as `@make//:make`, `@ninja//:ninja` and `@pkgconf//:pkg-config`. Add
+`bazel_dep(name = "make", ...)` and so on to your own module to reference them
+under those names. (rfcc's `pkgconfig` tool is the `pkgconf` module -- the
+pkg-config implementation distributions ship as `pkg-config`; its BUILD file
+publishes the binary under both names.) The `WORKSPACE` hub keeps publishing
+`make_built` / `ninja_built` / `pkgconfig_built` for consumers who already name
+them; each forwards straight to the registry module's binary.
+
+There is no `<tool>_src_all` for these three under either model: the registry
+modules unpack their own source trees and expose no target for them. If your
+BUILD files reached the pkg-config sources through `pkgconfig_src_all`, use
+`@pkgconf//:pkg-config` for the binary; the sources have no replacement.
 
 ### Pattern B - pin the version yourself
 
@@ -296,7 +309,7 @@ build-from-source toolchains are now per-version spokes registered through the
 hub. Declare a `tools.<tool>(mode = "source", version = "...")` tag (bzlmod) -- an
 explicit version is required in `source`/`binary` mode -- so the hub registers
 the source toolchain, or register the spoke's `:<tool>_toolchain` target by
-label yourself: `register_toolchains("@make_src_4.4.1//:make_toolchain")`
+label yourself: `register_toolchains("@meson_src_1.10.1//:meson_toolchain")`
 (`@<tool>_src_<version>//:<tool>_toolchain` -- the source spoke ships a
 registerable `toolchain(...)`; see
 [`register_toolchain = False`](bzlmod_hub.md#register_toolchain--false)).

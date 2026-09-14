@@ -169,6 +169,7 @@ bzl_library(
     name = "built_toolchains",
     srcs = ["built_toolchains.bzl"],
     deps = [
+        "//foreign_cc/private:tool_specs",
         "//toolchains/private:hub",
         "//toolchains/private:source_spokes",
     ],

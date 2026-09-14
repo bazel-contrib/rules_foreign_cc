@@ -123,9 +123,8 @@ _BZLMOD_DOC_FILES = glob(["src/bzlmod_*.md"])
 _VERSION_DATA_FILES = [
     "@rules_foreign_cc//toolchains/private:cmake_versions.bzl",
     "@rules_foreign_cc//toolchains/private:ninja_versions.bzl",
-    "@rules_foreign_cc//toolchains/private:make_versions.bzl",
+    "@rules_foreign_cc//toolchains/private:bcr_modules.bzl",
     "@rules_foreign_cc//toolchains/private:meson_versions.bzl",
-    "@rules_foreign_cc//toolchains/private:pkgconfig_versions.bzl",
 ]
 
 py_library(

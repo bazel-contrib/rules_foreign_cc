@@ -21,6 +21,7 @@ load(
     "MODE_NOOP",
     "MODE_SOURCE",
     "MODE_SYSTEM",
+    "get_spec",
 )
 load("//toolchains:toolchains.bzl", "PREINSTALLED_TOOLS")
 
@@ -34,10 +35,8 @@ load("//toolchains/private:hub.bzl", "hub_repo")
 load(
     "//toolchains/private:source_spokes.bzl",
     "cmake_source_spokes",
-    "make_source_spokes",
     "meson_source_spokes",
-    "ninja_source_spokes",
-    "pkgconfig_source_spokes",
+    "pkgconfig_msvc_companions",
 )
 
 # Shared attribute set for every tool's tag class: the attributes needed
@@ -71,23 +70,22 @@ _SPOKE_DISPATCH = {
         MODE_BINARY: cmake_binary_spokes,
         MODE_SOURCE: cmake_source_spokes,
     },
-    "make": {MODE_SOURCE: make_source_spokes},
     "meson": {MODE_SOURCE: meson_source_spokes},
-    "ninja": {
-        MODE_BINARY: ninja_binary_spokes,
-        MODE_SOURCE: ninja_source_spokes,
-    },
-    "pkgconfig": {MODE_SOURCE: pkgconfig_source_spokes},
+    "ninja": {MODE_BINARY: ninja_binary_spokes},
 }
 
 def _materialize_spoke(spoke):
     """Call the right repository_rule for a spoke descriptor.
 
-    For mode=system and mode=noop, no spoke is needed (the hub references
-    static @rules_foreign_cc//toolchains targets).
+    Nothing to do for mode=system and mode=noop (the hub references static
+    @rules_foreign_cc//toolchains targets), nor for a source-mode tool with a
+    `source_target`: that repo comes from a `bazel_dep` rather than from rfcc,
+    so it already exists and the hub points straight at the static target.
     """
     tool, mode, version = spoke["tool"], spoke["mode"], spoke["version"]
     if mode in (MODE_SYSTEM, MODE_NOOP):
+        return
+    if mode == MODE_SOURCE and get_spec(tool).source_target:
         return
 
     dispatch = _SPOKE_DISPATCH.get(tool, {})
@@ -154,6 +152,10 @@ def _init(module_ctx):
     # root so it never runs for downstream consumers.
     if any([m.is_root and m.name == "rules_foreign_cc" for m in module_ctx.modules]):
         _assert_defaults_match_workspace(tagset.default_tags)
+
+    # Unconditional, and not a spoke: rfcc `use_repo`s these so that a label
+    # written in `pkgconfig_build.bzl` resolves. See pkgconfig_msvc_companions.
+    pkgconfig_msvc_companions()
 
     # Materialize spokes (deduplicated by name later via maybe()).
     seen_spokes = {}

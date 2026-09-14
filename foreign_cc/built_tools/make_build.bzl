@@ -1,4 +1,11 @@
-""" Rule for building GNU Make from sources. """
+"""Rule for building GNU Make from sources.
+
+`rules_foreign_cc` no longer uses this itself: source-mode make comes from the
+Bazel Central Registry module `@make//:make`, which carries a maintained
+Bazel-native `BUILD` file. Kept because it was public API, so a consumer
+building their own make keeps working -- but unexercised by rfcc's tests and
+toolchains, and not updated as make's build requirements move upstream.
+"""
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(

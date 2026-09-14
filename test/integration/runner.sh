@@ -62,6 +62,32 @@ fi
 cd "${BIT_WORKSPACE_DIR}"
 BAZEL="${BIT_BAZEL_BINARY}"
 
+# Startup flags for every inner invocation below. Must precede the command, so
+# they can't ride along in MODE_FLAGS.
+STARTUP_FLAGS=()
+
+# Windows MAX_PATH. The inner Bazel's default output base sits ~85 characters
+# deep inside the outer execroot; add its own bazel-out/.../external/<repo>/
+# and the deepest path in the graph -- a py_binary's interpreter in its
+# runfiles tree, e.g. @glib's gen_visibility_macros reaching
+# @rules_python++python+python_3_11_x86_64-pc-windows-msvc/python.exe -- and
+# CreateProcess gets ~273 characters and fails with WinError 206. Every other
+# segment belongs to Bazel or an upstream module, so the output base is the
+# only one we can shorten (same trick as _short_path_wrapper_setup in
+# foreign_cc/private/framework.bzl). Stable rather than mktemp'd so repeat runs
+# keep the inner cache; scenarios are `exclusive`, so they never share it.
+case "${OSTYPE:-}" in
+  msys* | cygwin*)
+    inner_root="${TMP:-C:/temp}"
+    inner_root="${inner_root//\\//}/rfcc_bit"
+    mkdir -p "${inner_root}"
+    STARTUP_FLAGS+=("--output_user_root=${inner_root}")
+    ;;
+esac
+
+# bash 3.2 (macOS /bin/bash) errors on "${arr[@]}" under `set -u` when the
+# array is empty, so every expansion below goes through the ${x+...} guard.
+
 # Count the recognized assertions that actually ran. A scenario that sets no
 # (or a misspelled) EXPECT_* var would otherwise fall through to PASS having
 # verified nothing; we fail loudly at the end instead.
@@ -69,7 +95,7 @@ assertions=0
 
 if [[ -n "${EXPECT_BUILD:-}" ]]; then
   echo ">> ${SCENARIO}: bazel build ${MODE_FLAGS[*]} ${EXPECT_BUILD}"
-  "${BAZEL}" build "${MODE_FLAGS[@]}" "${EXPECT_BUILD}"
+  "${BAZEL}" ${STARTUP_FLAGS[@]+"${STARTUP_FLAGS[@]}"} build "${MODE_FLAGS[@]}" "${EXPECT_BUILD}"
   assertions=$((assertions + 1))
 fi
 
@@ -84,7 +110,7 @@ if [[ -n "${EXPECT_BUILD_FAIL:-}" ]]; then
   echo ">> ${SCENARIO}: bazel build ${MODE_FLAGS[*]} ${EXPECT_BUILD_FAIL} (expecting failure)"
   # Capture combined output so we can assert on the failure reason.
   set +e
-  fail_output="$("${BAZEL}" build "${MODE_FLAGS[@]}" "${EXPECT_BUILD_FAIL}" 2>&1)"
+  fail_output="$("${BAZEL}" ${STARTUP_FLAGS[@]+"${STARTUP_FLAGS[@]}"} build "${MODE_FLAGS[@]}" "${EXPECT_BUILD_FAIL}" 2>&1)"
   fail_status=$?
   set -e
   echo "${fail_output}"
@@ -101,7 +127,7 @@ fi
 
 if [[ -n "${EXPECT_CQUERY:-}" ]]; then
   echo ">> ${SCENARIO}: bazel cquery ${MODE_FLAGS[*]} ${EXPECT_CQUERY}"
-  output="$("${BAZEL}" cquery "${MODE_FLAGS[@]}" "${EXPECT_CQUERY}" 2>&1)"
+  output="$("${BAZEL}" ${STARTUP_FLAGS[@]+"${STARTUP_FLAGS[@]}"} cquery "${MODE_FLAGS[@]}" "${EXPECT_CQUERY}" 2>&1)"
   echo "${output}"
   if [[ -n "${EXPECT_STDOUT_PATTERN:-}" ]] && ! grep -qE "${EXPECT_STDOUT_PATTERN}" <<<"${output}"; then
     echo "FAIL: expected pattern '${EXPECT_STDOUT_PATTERN}' not found in output"

@@ -58,8 +58,8 @@ scenario(
 # `tools.explicit()` with a mix of binary/source/noop modes across tools.
 # Building //:hello_cmake only needs cmake+ninja, so on its own it never
 # exercises the declared source-make or noop tags. Two extra assertions give
-# them teeth: EXPECT_BUILD on a probe that also pulls @make_src_4.4.1//:all_srcs
-# proves the source-make tag materialized its (non-default) spoke, and the
+# them teeth: EXPECT_BUILD on a probe that also builds @make//:make proves the
+# repo behind the source-make tag compiles on this platform, and the
 # cquery lists the hub's targets and asserts the noop m4/pkgconfig root tags
 # produced hub entries under explicit() (they would be absent if explicit() had
 # dropped them). cquery deps() can't reach the noop impl through a toolchain()

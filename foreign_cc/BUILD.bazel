@@ -190,6 +190,7 @@ bzl_library(
     deps = [
         "//foreign_cc/private/framework:toolchain",
         "//toolchains",
+        "//toolchains/private:bcr_repos",
         "@bazel_tools//tools/build_defs/repo:http.bzl",
         "@bazel_tools//tools/build_defs/repo:utils.bzl",
     ],
