@@ -188,6 +188,7 @@ goes under bzlmod:</p>
 <tr><td><code>register_preinstalled_tools = True</code> (host tools)</td><td><code>tools.&lt;tool&gt;(mode = "system")</code></td></tr>
 <tr><td><code>cmake_version = "3.31.12"</code></td><td><code>tools.cmake(version = "3.31.12")</code></td></tr>
 <tr><td><code>ninja_version = "1.13.2"</code></td><td><code>tools.ninja(version = "1.13.2")</code></td></tr>
+<tr><td><code>m4_version = "1.4.21"</code></td><td><code>tools.m4(version = "1.4.21")</code></td></tr>
 <tr><td><code>make_version = "4.4.1"</code></td><td><code>tools.make(version = "4.4.1")</code></td></tr>
 <tr><td><code>meson_version = "1.10.1"</code></td><td><code>tools.meson(version = "1.10.1")</code></td></tr>
 <tr><td><code>pkgconfig_version = "3.0.7"</code></td><td><code>tools.pkgconfig(version = "3.0.7")</code></td></tr>
@@ -340,17 +341,17 @@ reach the source archive through the hub's version-neutral aliases:</p>
 </code></pre>
 <p>Hub aliases published per source-mode tool: <code>cmake_src_all</code>, <code>cmake_built</code>,
 <code>meson_src_all</code>, <code>meson_built</code>, <code>meson_src_meson_py</code>, <code>meson_src_runtime</code>.</p>
-<p>make, ninja and pkgconfig publish none under bzlmod: under both dependency
+<p>m4, make, ninja and pkgconfig publish none under bzlmod: under both dependency
 models they are built from their Bazel Central Registry modules rather than an
 rfcc source spoke, and those modules expose the built binary and nothing else,
-as <code>@make//:make</code>, <code>@ninja//:ninja</code> and <code>@pkgconf//:pkg-config</code>. Add
+as <code>@m4//:m4</code>, <code>@make//:make</code>, <code>@ninja//:ninja</code> and <code>@pkgconf//:pkg-config</code>. Add
 <code>bazel_dep(name = "make", ...)</code> and so on to your own module to reference them
 under those names. (rfcc's <code>pkgconfig</code> tool is the <code>pkgconf</code> module -- the
 pkg-config implementation distributions ship as <code>pkg-config</code>; its BUILD file
 publishes the binary under both names.) The <code>WORKSPACE</code> hub keeps publishing
-<code>make_built</code> / <code>ninja_built</code> / <code>pkgconfig_built</code> for consumers who already name
-them; each forwards straight to the registry module's binary.</p>
-<p>There is no <code>&lt;tool&gt;_src_all</code> for these three under either model: the registry
+<code>m4_built</code> / <code>make_built</code> / <code>ninja_built</code> / <code>pkgconfig_built</code> for consumers who
+already name them; each forwards straight to the registry module's binary.</p>
+<p>There is no <code>&lt;tool&gt;_src_all</code> for these tools under either model: the registry
 modules unpack their own source trees and expose no target for them. If your
 BUILD files reached the pkg-config sources through <code>pkgconfig_src_all</code>, use
 <code>@pkgconf//:pkg-config</code> for the binary; the sources have no replacement.</p>

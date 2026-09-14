@@ -181,19 +181,19 @@ constraint), and its arch token is <code>universal</code> -
 <code>@cmake-3.31.12-macos-universal</code>.</li>
 <li><strong>Source spokes</strong> are named <code>@&lt;tool&gt;_src_&lt;version&gt;</code>, e.g.
 <code>@cmake_src_3.31.12</code>, <code>@meson_src_1.10.1</code> (target <code>:&lt;tool&gt;_tool</code>).
-make, ninja and pkgconfig have no source spoke: in <code>source</code> mode they come
-from their Bazel Central Registry modules, <code>@make//:make</code>, <code>@ninja//:ninja</code>
-and <code>@pkgconf//:pkg-config</code>, which <code>rules_foreign_cc</code> depends on with a
-<code>bazel_dep</code>. (rfcc's <code>pkgconfig</code> tool is the <code>pkgconf</code> module - the
-pkg-config implementation distributions ship as <code>pkg-config</code>; its BUILD
-file publishes the binary under both names.) A <code>bazel_dep</code> resolves to a
-single version graph-wide under MVS, so under bzlmod the tag's <code>version =</code>
-does not select one: <code>tools.make(mode = "source", version = ...)</code> accepts
-any version rfcc offers, but the resolved module is what gets built. To
-build a different one, declare your own <code>bazel_dep</code> (or a
-<code>single_version_override</code>) on <code>make</code> / <code>ninja</code> / <code>pkgconf</code> -- MVS then hands
-rfcc that version. (Under <code>WORKSPACE</code> there is no MVS, so
-<code>rules_foreign_cc_dependencies(make_version = ...)</code> does select directly.)</li>
+m4, make, ninja and pkgconfig have no source spoke: in <code>source</code> mode they
+come from their Bazel Central Registry modules, <code>@m4//:m4</code>, <code>@make//:make</code>,
+<code>@ninja//:ninja</code> and <code>@pkgconf//:pkg-config</code>, which <code>rules_foreign_cc</code>
+depends on with a <code>bazel_dep</code>. (rfcc's <code>pkgconfig</code> tool is the <code>pkgconf</code>
+module - the pkg-config implementation distributions ship as <code>pkg-config</code>;
+its BUILD file publishes the binary under both names.) A <code>bazel_dep</code>
+resolves to a single version graph-wide under MVS, so under bzlmod the
+tag's <code>version =</code> does not select one: <code>tools.make(mode = "source", version = ...)</code> accepts any version rfcc offers, but the resolved module
+is what gets built. To build a different one, declare your own
+<code>bazel_dep</code> (or a <code>single_version_override</code>) on <code>m4</code> / <code>make</code> / <code>ninja</code> /
+<code>pkgconf</code> -- MVS then hands rfcc that version. (Under <code>WORKSPACE</code> there
+is no MVS, so <code>rules_foreign_cc_dependencies(make_version = ...)</code> does
+select directly.)</li>
 </ul>
 <p>For most users these names are an implementation detail: <code>rules_foreign_cc</code>
 registers the hub and you never touch the spokes directly.</p>
@@ -233,8 +233,8 @@ depend on <code>rules_foreign_cc</code>:</p>
 <pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
 </code></pre>
 <p>That's it. <code>rules_foreign_cc</code> contributes its default tool set - cmake and
-ninja as prebuilt binaries, make, meson, and pkgconfig built from source, plus
-autoconf, automake, m4, and msbuild as system tools - and <strong>registers the hub
+ninja as prebuilt binaries, m4, make, meson, and pkgconfig built from source,
+plus autoconf, automake, and msbuild as system tools - and <strong>registers the hub
 for you</strong> from its own MODULE.bazel. (For the exact default mode and pinned
 version of each tool, see the
 <a href="#per-tool-support">per-tool support table</a> below.) cmake and ninja
@@ -291,7 +291,7 @@ while <code>system</code>/<code>noop</code> forbid one (see <a href="#tag-attrib
 <tr><td><code>autoconf</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
 <tr><td><code>automake</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
 <tr><td><code>cmake</code></td><td>binary, source, system, noop</td><td>binary</td><td>yes</td></tr>
-<tr><td><code>m4</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
+<tr><td><code>m4</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
 <tr><td><code>make</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
 <tr><td><code>meson</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
 <tr><td><code>msbuild</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
