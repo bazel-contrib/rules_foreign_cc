@@ -2,8 +2,9 @@
 # You should use an annotated tag, like `git tag -a 0.16.0`
 # and put the release notes into the commit message for the tag.
 #
-# This job packages the tag and smoke-tests that it still analyzes; it does not
-# build it. Buildkite is the only CI that can build this repo (the examples and
+# This workflow packages the tag, smoke-tests that it still analyzes, and
+# publishes the module to the Bazel Central Registry; it does not build the
+# tag. Buildkite is the only CI that can build this repo (the examples and
 # built tools are far too slow to build on a GitHub runner), so maintainers are
 # expected to tag only commits whose Buildkite build is green.
 name: Release
@@ -14,13 +15,19 @@ on:
       - "*.*.*"
 
 permissions:
+  # Needed to upload the release files.
   contents: write
+  # Needed to attest the provenance of the release files, which the Bazel
+  # Central Registry entry published by publish.yaml refers to.
+  id-token: write
+  attestations: write
 
 jobs:
   release:
-    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v6
+    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.7.0
     with:
       release_files: rules_foreign_cc-*.tar.gz
+      tag_name: ${{ github.ref_name }}
 
       # The reusable workflow has no input to skip its test step, so replace
       # the default `bazel test //...` with an analysis-only check: --nobuild
@@ -33,3 +40,14 @@ jobs:
       # The reusable workflow defaults this to true; every rules_foreign_cc
       # release so far has been a full release.
       prerelease: false
+
+  # Open the Bazel Central Registry pull request for the tag that was just
+  # released. This runs in the same workflow run as `release` so it can read
+  # the release archive and its attestations straight from the run's artifacts.
+  publish:
+    needs: release
+    uses: ./.github/workflows/publish.yaml
+    with:
+      tag_name: ${{ github.ref_name }}
+    secrets:
+      BCR_PUBLISH_TOKEN: ${{ secrets.BCR_PUBLISH_TOKEN }}

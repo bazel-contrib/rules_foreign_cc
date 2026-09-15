@@ -1,0 +1,69 @@
+# Publish a released tag to the Bazel Central Registry.
+#
+# This replaces the legacy "Publish to BCR" GitHub App. The app must be
+# uninstalled from this repository, otherwise every release opens two pull
+# requests against the registry.
+#
+# See https://github.com/bazel-contrib/publish-to-bcr
+name: Publish
+
+on:
+  # Run the publish workflow after a successful release.
+  # Triggered from the release.yml workflow.
+  workflow_call:
+    inputs:
+      tag_name:
+        required: true
+        type: string
+    secrets:
+      BCR_PUBLISH_TOKEN:
+        required: true
+  # In case of problems, let release engineers retry by manually dispatching
+  # the workflow from the GitHub UI.
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: A tag pointing at the release to publish, like `0.16.0`
+        required: true
+        type: string
+      templates_ref:
+        description: Override the ref to read the .bcr templates from
+        default: ""
+        type: string
+
+jobs:
+  publish:
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.5.0
+    with:
+      tag_name: ${{ inputs.tag_name }}
+      templates_ref: ${{ inputs.templates_ref }}
+
+      # Tags in this repo are bare versions like `0.16.0`, so there is no
+      # prefix to strip when computing the module version.
+      tag_prefix: ""
+
+      # The fork that the entry branch is pushed to before a pull request is
+      # opened against bazelbuild/bazel-central-registry.
+      registry_fork: bazel-contrib/bazel-central-registry
+
+      # Attribute the entry to the bazel-contrib machine account that owns
+      # BCR_PUBLISH_TOKEN rather than to whoever happened to push the tag,
+      # which is what both of these default to. The committer otherwise
+      # defaults to github-actions[bot]; pin it as well so every entry this
+      # repo publishes carries the same identity.
+      author_name: bazel-contrib-bot
+      author_email: 210917734+bazel-contrib-bot@users.noreply.github.com
+      committer_name: bazel-contrib-bot
+      committer_email: 210917734+bazel-contrib-bot@users.noreply.github.com
+
+      # The pull request is authored by a bot, so the "author marks it ready
+      # for review" approval path does not apply; a maintainer listed in
+      # .bcr/metadata.template.json approves it instead.
+      draft: false
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    secrets:
+      # Necessary to push to the registry fork and to open the pull request.
+      publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}
