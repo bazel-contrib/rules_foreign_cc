@@ -1,9 +1,0 @@
-# This module is the BCR presubmit's test module, so it is built as a workspace
-# root. That puts Bazel's convenience symlinks (bazel-out, bazel-bin, ...) in
-# the same package as the `all_srcs` `glob(["**"])` below, and the second build
-# in the directory then globs the output tree into the cmake source tree. Ignore
-# them so the glob only ever sees the checked-in sources.
-bazel-basic
-bazel-bin
-bazel-out
-bazel-testlogs
