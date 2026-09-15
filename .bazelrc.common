@@ -48,9 +48,17 @@ common --experimental_ui_max_stdouterr_bytes=10485760
 # Keep these config names around for BazelCI task selection. BazelCI expands
 # dict values only when they stand alone, so we need the bazel-x.x names until
 # https://github.com/bazelbuild/continuous-integration/pull/2526 lands
-# everywhere. Bazel 7 still needs a noop flag there, so use --show_progress;
-# see https://github.com/bazelbuild/bazel/issues/12844.
-common:bazel-7.x --show_progress
+# everywhere.
+#
+# MODULE.bazel.lock is written by the primary Bazel (8.x) at lockFileVersion 24,
+# which 7.x cannot read -- it hard-errors out of "Computing the main repository
+# mapping" rather than falling back. One checked-in lockfile can't serve both
+# versions, and the 8.x lanes are the ones that keep it honest, so opt the
+# bazel 7 lanes out of the --lockfile_mode=error guard above rather than
+# weakening it everywhere. `off` (not the `update` default) so a 7.x lane can't
+# clobber the v24 lockfile either. BazelCI passes `--config=ci` before
+# `${{ bazel_rc_config }}`, so this wins.
+common:bazel-7.x --lockfile_mode=off
 common:bazel-8.x --incompatible_disable_autoloads_in_main_repo
 # Remind people to set good test timeouts / sizes
 common --test_verbose_timeout_warnings
