@@ -1,6 +1,11 @@
 # Cut a release whenever a new tag is pushed to the repo.
-# You should use an annotated tag, like `git tag -a v1.2.3`
+# You should use an annotated tag, like `git tag -a 0.16.0`
 # and put the release notes into the commit message for the tag.
+#
+# This job packages the tag and smoke-tests that it still analyzes; it does not
+# build it. Buildkite is the only CI that can build this repo (the examples and
+# built tools are far too slow to build on a GitHub runner), so maintainers are
+# expected to tag only commits whose Buildkite build is green.
 name: Release
 
 on:
@@ -16,3 +21,15 @@ jobs:
     uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v6
     with:
       release_files: rules_foreign_cc-*.tar.gz
+
+      # The reusable workflow has no input to skip its test step, so replace
+      # the default `bazel test //...` with an analysis-only check: --nobuild
+      # loads and analyzes every target (resolving selects and toolchains) and
+      # exits non-zero on any analysis error, without executing a single
+      # action. Execution -- the part that needs real compilers and minutes of
+      # wall time -- stays on Buildkite.
+      bazel_test_command: "bazel build --nobuild //..."
+
+      # The reusable workflow defaults this to true; every rules_foreign_cc
+      # release so far has been a full release.
+      prerelease: false
