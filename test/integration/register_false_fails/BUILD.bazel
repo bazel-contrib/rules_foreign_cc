@@ -8,5 +8,19 @@ cmake(
 
 filegroup(
     name = "all_srcs",
-    srcs = glob(["**"]),
+    srcs = glob(
+        include = ["**"],
+        exclude = [
+            ".bazelignore",
+            ".bazelrc",
+            ".bazelversion",
+            "BUILD",
+            "BUILD.bazel",
+            "MODULE.bazel",
+            "MODULE.bazel.lock",
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+            "bazel-*/**",
+        ],
+    ),
 )
