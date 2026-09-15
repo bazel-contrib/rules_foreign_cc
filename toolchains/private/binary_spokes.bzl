@@ -8,9 +8,9 @@ version-neutral, so they live in source rather than being emitted.
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("@rules_foreign_cc//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_SRCS", "CMAKE_BIN_WILDCARDS")
-load("@rules_foreign_cc//toolchains/private:ninja_versions.bzl", "NINJA_BIN_SRCS", "NINJA_BIN_WILDCARDS")
-load("@rules_foreign_cc//toolchains/private:prebuilt_toolchains_repository.bzl", "prebuilt_toolchains_repository")
+load("//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_SRCS", "CMAKE_BIN_WILDCARDS")
+load("//toolchains/private:ninja_versions.bzl", "NINJA_BIN_SRCS", "NINJA_BIN_WILDCARDS")
+load("//toolchains/private:prebuilt_toolchains_repository.bzl", "prebuilt_toolchains_repository")
 
 visibility([
     "//foreign_cc",

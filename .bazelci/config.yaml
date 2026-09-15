@@ -38,11 +38,15 @@ matrix:
     - bazel_version: 9.x
       bzlmod: workspaces
 
-    # bazel 7 has an unfortunate habit of crashing on bzlmod lock files, so
-    # only support bazel 7 in workspace mode
-    - bazel_version: 7.x
-      bzlmod: bzlmod
-
+    # bazel 7 runs both the workspaces and the bzlmod lane. The bzlmod lane is
+    # what the BCR presubmit exercises, so it needs to be covered here or a
+    # regression only surfaces at publish time, on a tagged release. It reads no
+    # lockfile (see common:bazel-7.x in .bazelrc.common), which is what the
+    # "bazel 7 crashes on bzlmod lock files" exclusion used to work around.
+    #
+    # Mixed stays excluded: it is the same bzlmod resolution plus a WORKSPACE
+    # that the root module doesn't have, and skipping it keeps the bazel 7 job
+    # count down.
     - bazel_version: 7.x
       bzlmod: mixed
 
