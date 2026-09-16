@@ -196,7 +196,7 @@ class Sha256OfTest(unittest.TestCase):
 
 class HashedSourceVersionsTest(unittest.TestCase):
     def test_templates_both_urls_and_hashes_first_reachable(self):
-        # Each version expands to [mirror, fallback] and the sha256 is hashed
+        # Each version expands to [mirror, fallback] and the digest is hashed
         # from whichever url is reachable -- no hand-pasted digest.
         with mock.patch.object(
             prebuilt_toolchains, "_sha256_of_first", return_value="deadbeef"
@@ -214,7 +214,7 @@ class HashedSourceVersionsTest(unittest.TestCase):
                 "https://upstream/meson-1.10.1.tar.gz",
             ],
         )
-        self.assertEqual(out["1.10.1"]["sha256"], "deadbeef")
+        self.assertEqual(out["1.10.1"]["integrity"], "sha256-3q2+7w==")
         # The hasher is handed the mirror-first url list, not a single url.
         hasher.assert_called_once_with(
             [
@@ -227,7 +227,7 @@ class HashedSourceVersionsTest(unittest.TestCase):
         # No version of the one source tool still generated here (meson) needs
         # a patch today, so the pass-through is only covered by this test.
         with mock.patch.object(
-            prebuilt_toolchains, "_sha256_of_first", return_value="abc"
+            prebuilt_toolchains, "_sha256_of_first", return_value="abcd"
         ):
             out = hashed_source_versions(
                 "meson",
