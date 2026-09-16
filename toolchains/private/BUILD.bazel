@@ -97,6 +97,14 @@ native_tool_toolchain(
     target = "@make",
 )
 
+filegroup(
+    name = "built_ninja_files",
+    srcs = [
+        ":ninja_wrapper",
+        "@ninja",
+    ],
+)
+
 # ninja goes through the wrapper for the same reason preinstalled_ninja does
 # (see ninja_wrapper.cc); that indirection is unrelated to how ninja is built.
 native_tool_toolchain(
@@ -106,8 +114,11 @@ native_tool_toolchain(
         "REAL_NINJA": "$(execpath @ninja//:ninja)",
     },
     path = "$(execpath :ninja_wrapper)",
-    target = ":ninja_wrapper",
-    tools = ["@ninja"],
+    target = ":built_ninja_files",
+    tools = [
+        ":ninja_wrapper",
+        "@ninja",
+    ],
 )
 
 # `:pkg-config`, not `:pkgconf`: same binary, but the framework symlinks
