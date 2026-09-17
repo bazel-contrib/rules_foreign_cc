@@ -1,6 +1,18 @@
 # Cut a release whenever a new tag is pushed to the repo.
-# You should use an annotated tag, like `git tag -a v1.2.3`
+# You should use an annotated tag, like `git tag -a 1.2.3`
 # and put the release notes into the commit message for the tag.
+#
+# See /RELEASING.md for the full maintainer checklist.
+#
+# The release is created as a draft, then the BCR entry is published, and only
+# then is the draft finalized. Two reasons for that ordering:
+#   * Attestations must be uploaded to a release that is still a draft, which is
+#     also what GitHub immutable releases require.
+#   * If the BCR publish fails, the release has not gone public yet, so it can be
+#     retried (or the tag deleted) without anyone having consumed it.
+#
+# A tag containing `-` (e.g. `0.17.0-rc1`) is treated as a prerelease: it is
+# marked as such on GitHub and is NOT published to the BCR.
 name: Release
 
 on:
@@ -10,9 +22,58 @@ on:
 
 permissions:
   contents: write
+  # Both needed to attest build provenance for the release archive.
+  id-token: write
+  attestations: write
 
 jobs:
   release:
-    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v6
+    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.7.0
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     with:
       release_files: rules_foreign_cc-*.tar.gz
+      tag_name: ${{ github.ref_name }}
+      # Required so publish-to-bcr can attach attestations before the release
+      # goes public; the finalize job below un-drafts it.
+      draft: true
+      # Derived from the tag: `0.17.0-rc1` is a prerelease, `0.17.0` is not.
+      # Must be set explicitly -- the reusable workflow defaults it to true,
+      # which would mark every release a prerelease.
+      prerelease: ${{ contains(github.ref_name, '-') }}
+
+  # Prereleases are deliberately not mirrored to the registry. A BCR entry is
+  # immutable once merged, so a throwaway `0.17.0-rc1` would sit in the version
+  # list forever. Testers consume a prerelease with `archive_override` or
+  # `git_override` against the tag instead.
+  publish:
+    needs: release
+    if: ${{ !contains(github.ref_name, '-') }}
+    uses: ./.github/workflows/publish.yaml
+    with:
+      tag_name: ${{ github.ref_name }}
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    # Passes BCR_PUBLISH_TOKEN through; see the note in publish.yaml.
+    secrets: inherit
+
+  finalize:
+    needs: [release, publish]
+    # `publish` is skipped for prereleases, and a skipped dependency would
+    # normally skip this job too -- stranding the release as a draft forever.
+    # Calling a status function opts out of that default. A failed publish still
+    # leaves the release a draft, which is what RELEASING.md tells you to retry.
+    if: ${{ !cancelled() && needs.release.result == 'success' && needs.publish.result != 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish the draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release edit "$TAG" --draft=false --repo "$GITHUB_REPOSITORY"

@@ -4,7 +4,14 @@
     {
       "email": "james.sharpe@zenotech.com",
       "github": "jsharpe",
+      "github_user_id": 11253,
       "name": "James Sharpe"
+    },
+    {
+      "email": "mike@fluffypenguin.org",
+      "github": "novas0x2a",
+      "github_user_id": 9639,
+      "name": "Mike Lundy"
     }
   ],
   "repository": ["github:bazel-contrib/rules_foreign_cc"],

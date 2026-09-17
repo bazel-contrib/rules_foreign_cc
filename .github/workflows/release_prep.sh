@@ -2,9 +2,10 @@
 
 set -o errexit -o nounset -o pipefail
 
-# Set by GH actions, see
-# https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
-TAG=${GITHUB_REF_NAME}
+# Passed as $1 by the reusable release workflow, which invokes this script as
+# `.github/workflows/release_prep.sh <tag>`. See
+# https://github.com/bazel-contrib/.github/blob/master/.github/workflows/release_ruleset.yaml
+TAG=$1
 # The prefix is chosen to match what GitHub generates for source archives
 PREFIX="rules_foreign_cc-${TAG}"
 ARCHIVE="rules_foreign_cc-$TAG.tar.gz"
@@ -14,16 +15,20 @@ SHA="$(shasum -a 256 "$ARCHIVE" | awk '{print $1}')"
 cat <<EOF
 ## Using Bzlmod
 
-1. Enable with \`common --enable_bzlmod\` in \`.bazelrc\`.
-2. Add to your \`MODULE.bazel\` file:
+Requires Bazel 8 or newer. Add to your \`MODULE.bazel\` file:
 
 \`\`\`starlark
 bazel_dep(name = "rules_foreign_cc", version = "${TAG}")
 \`\`\`
 
+That is all you need for the default cmake/ninja toolchains -- \`rules_foreign_cc\`
+registers them for you. To pin tool versions or build them from source, see the
+[bzlmod hub-and-spoke docs](https://bazel-contrib.github.io/rules_foreign_cc/bzlmod_hub.html).
+
 ## Using WORKSPACE
 
-Paste this snippet into your \`WORKSPACE.bazel\` file:
+\`WORKSPACE\` is supported on Bazel 7 and 8. Paste this snippet into your
+\`WORKSPACE.bazel\` file:
 
 \`\`\`starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -36,8 +41,9 @@ http_archive(
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
-# This sets up some common toolchains for building targets. For more details, please see
-# https://bazel-contrib.github.io/rules_foreign_cc/${TAG}/flatten.html#rules_foreign_cc_dependencies
+# This sets up some common toolchains for building targets. For the full set of
+# options, see the macro's own documentation:
+# https://github.com/bazel-contrib/rules_foreign_cc/blob/${TAG}/foreign_cc/repositories.bzl
 rules_foreign_cc_dependencies()
 
 # If you're not already using bazel_skylib, bazel_features or rules_python,

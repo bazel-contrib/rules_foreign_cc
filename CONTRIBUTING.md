@@ -16,6 +16,19 @@ pre-commit install
 
 Otherwise the Buildkite CI will yell at you about formatting/linting violations.
 
+## Changelog
+
+If your change is user-visible -- a new feature, a behavior change, a bug fix
+people would notice, or anything breaking -- add an entry to the `Unreleased`
+section of [NEWS.md](NEWS.md) and link the PR. Breaking changes should say what
+users need to do differently.
+
+Internal refactors, test-only changes, and CI work do not need an entry.
+
+## Releasing
+
+Maintainers: see [RELEASING.md](RELEASING.md).
+
 ## Contributor License Agreement
 
 Contributions to this project must be accompanied by a Contributor License

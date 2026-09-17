@@ -1,0 +1,67 @@
+# Mirror a release into the Bazel Central Registry.
+#
+# Normally invoked by release.yml after the draft release is created. It is a
+# separate workflow with its own `workflow_dispatch` so that a failed publish can
+# be retried by hand without re-cutting the release.
+#
+# Requires a BCR_PUBLISH_TOKEN secret: a *classic* PAT with `repo` and `workflow`
+# scopes, owned by someone with push access to the registry fork below. See
+# /RELEASING.md.
+#
+# This workflow declares no `workflow_call` secrets. release.yml calls it with
+# `secrets: inherit`, so BCR_PUBLISH_TOKEN resolves identically whether this runs
+# as a called workflow or a manual dispatch, and is named in exactly one place.
+name: Publish to BCR
+
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        required: true
+        type: string
+      release_artifacts_run_id:
+        description: Defaults to the current run, which is what release.yml wants.
+        required: false
+        type: string
+  # In case of problems, let release engineers retry by manually dispatching
+  # this workflow from the GitHub UI or `gh workflow run`.
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: The git tag to publish, e.g. 0.16.0
+        required: true
+        type: string
+      release_artifacts_run_id:
+        description: |
+          Run id of the Release workflow that built this tag. Needed on a manual
+          retry so integrity hashes are computed from that run's uploaded
+          artifacts. Leave blank if the release is already published, in which
+          case the archive is fetched from the release itself.
+        required: false
+        type: string
+
+jobs:
+  publish:
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.5.0
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    with:
+      tag_name: ${{ inputs.tag_name }}
+      # Fork of bazelbuild/bazel-central-registry that the entry branch is
+      # pushed to before the PR is opened upstream.
+      registry_fork: bazel-contrib/bazel-central-registry
+      # This repo tags bare versions (`0.16.0`, not `v0.16.0`). The input
+      # defaults to "v", which happens to be harmless here but would silently
+      # mangle the version if the scheme ever changed.
+      tag_prefix: ""
+      attest: true
+      # Draft PRs let the author mark "Ready for review" to trigger the BCR's
+      # auto-approve, which is the only way an author can approve their own
+      # entry. Switch to false if a bot/machine account owns the PAT, since then
+      # a human maintainer can approve it directly.
+      draft: true
+      release_artifacts_run_id: ${{ inputs.release_artifacts_run_id || github.run_id }}
+    secrets:
+      publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}

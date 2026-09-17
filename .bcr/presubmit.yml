@@ -1,11 +1,31 @@
-matrix:
-  platform: ["centos7", "debian10", "macos", "ubuntu2004", "windows"]
-  bazel: ["7.x"]
-
-tasks:
-  verify_targets:
-    name: "Verify build targets"
-    platform: ${{ platform }}
-    bazel: ${{ bazel }}
-    build_targets:
-      - "@rules_foreign_cc//toolchains/private:make_tool"
+# Presubmit run by the Bazel Central Registry against a candidate entry.
+#
+# The test module is `test/integration/basic`, which mirrors what
+# `docs/src/index.md` tells bzlmod users to write: depend on rules_foreign_cc
+# and nothing else, and let it register its own cmake/ninja toolchains. It
+# carries the Windows-specific flags it needs in its own `.bazelrc`, so it works
+# standalone here as well as under the bazel-in-bazel harness.
+#
+# Only 8.x and 9.x are exercised. bzlmod requires Bazel 8; Bazel 7 is still
+# supported but only in WORKSPACE mode, which BCR does not test.
+bcr_test_module:
+  module_path: test/integration/basic
+  matrix:
+    platform:
+      - debian11
+      - macos
+      - ubuntu2204
+      - windows
+    bazel:
+      - 8.x
+      - 9.x
+  tasks:
+    run_test_module:
+      # `build_targets`, not `test_targets`: the module has no test rules, and
+      # `bazel test` fails outright when it matches none. Building `//...`
+      # still runs cmake end to end to produce the static library.
+      name: Build the test module
+      platform: ${{ platform }}
+      bazel: ${{ bazel }}
+      build_targets:
+        - "//..."

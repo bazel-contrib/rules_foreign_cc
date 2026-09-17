@@ -6,3 +6,8 @@ WORKSPACE.bzlmod linguist-language=Starlark
 # .bazelrc are mostly a collection of the CLI arguments, so highlighting them
 # as shell scripts looks quite alright and makes them quite readable
 .bazelrc linguist-language=Shell
+
+# Stamp the release version into version.bzl when `git archive` builds the
+# release tarball. `match=*.*.*` restricts `git describe` to release tags so
+# scratch tags (backup-*, wip-*) can never be picked up.
+version.bzl export-subst
