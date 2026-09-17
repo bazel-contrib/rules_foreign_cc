@@ -2,7 +2,7 @@
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
-load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str", "get_flags_info", "get_tools_info")
+load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str", "get_flags_info", "get_tools_info", "targets_windows")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load(
     "//foreign_cc/private:framework.bzl",
@@ -12,6 +12,7 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load("//foreign_cc/private:runtime_library_search_directories.bzl", "runtime_library_search_directories_enabled")
 load("//foreign_cc/private/framework:helpers.bzl", "escape_dquote_bash")
 
 def _boost_build_impl(ctx):
@@ -69,8 +70,19 @@ def _create_configure_script(configureParameters):
     data = ctx.attr.data + ctx.attr.build_data
     user_options = expand_locations_and_make_variables(ctx, ctx.attr.user_options, "user_options", data)
 
-    flags = get_flags_info(ctx)
     cc_toolchain = find_cpp_toolchain(ctx)
+    runtime_search_enabled = runtime_library_search_directories_enabled(
+        ctx,
+        is_windows = targets_windows(ctx, cc_toolchain),
+    )
+    if runtime_search_enabled:
+        fail((
+            "ERROR: {} enables runtime_library_search_directories, but " +
+            "runtime_library_search_directories is not supported by the " +
+            "boost_build rule."
+        ).format(ctx.label))
+
+    flags = get_flags_info(ctx)
     tools = get_tools_info(ctx)
 
     toolset = _b2_toolset(cc_toolchain.compiler)

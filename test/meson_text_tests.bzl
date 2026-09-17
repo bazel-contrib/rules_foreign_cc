@@ -25,10 +25,46 @@ def _list_to_str_repr_test(ctx):
 
     return unittest.end(env)
 
+def _join_flags_list_escapes_loader_tokens_for_shell_test(ctx):
+    env = unittest.begin(ctx)
+
+    result = export_for_test.join_flags_list("ws", [
+        "-Wl,-rpath,$ORIGIN/lib",
+        "-Wl,-rpath,$EXEC_ORIGIN/bin",
+    ])
+
+    asserts.equals(
+        env,
+        "-Wl,-rpath,\\$ORIGIN/lib -Wl,-rpath,\\$EXEC_ORIGIN/bin",
+        result,
+    )
+
+    return unittest.end(env)
+
+def _join_flags_list_preserves_escaped_loader_tokens_for_shell_test(ctx):
+    env = unittest.begin(ctx)
+
+    result = export_for_test.join_flags_list("ws", [
+        "-Wl,-rpath,\\$ORIGIN/lib",
+        "-Wl,-rpath,\\$EXEC_ORIGIN/bin",
+    ])
+
+    asserts.equals(
+        env,
+        "-Wl,-rpath,\\$ORIGIN/lib -Wl,-rpath,\\$EXEC_ORIGIN/bin",
+        result,
+    )
+
+    return unittest.end(env)
+
 list_to_str_repr_test = unittest.make(_list_to_str_repr_test)
+join_flags_list_escapes_loader_tokens_for_shell_test = unittest.make(_join_flags_list_escapes_loader_tokens_for_shell_test)
+join_flags_list_preserves_escaped_loader_tokens_for_shell_test = unittest.make(_join_flags_list_preserves_escaped_loader_tokens_for_shell_test)
 
 def meson_script_test_suite():
     unittest.suite(
         "meson_script_test_suite",
         partial.make(list_to_str_repr_test, size = "small"),
+        partial.make(join_flags_list_escapes_loader_tokens_for_shell_test, size = "small"),
+        partial.make(join_flags_list_preserves_escaped_loader_tokens_for_shell_test, size = "small"),
     )
