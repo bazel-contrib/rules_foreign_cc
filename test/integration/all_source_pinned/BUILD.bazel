@@ -1,0 +1,21 @@
+# Probes the hub's version-neutral source aliases, one per source-mode tool.
+# These are what `build_hub_aliases` publishes for whatever version
+# `pick_source_version` settled on, so the filegroup fails analysis if a pinned
+# tool produced no alias -- which is what rfcc's default pkgconfig does, since
+# 3.0.7 is not a source version.
+#
+# Deliberately NOT the spokes themselves (@cmake_src_3.30.9//:all_srcs): a root
+# tag materializes its spoke whether or not the hub routes anything to it, so
+# naming the spoke would prove only that it was fetched. Going through the hub
+# is what ties the pin to the plan. Which version each alias landed on is the
+# cquery's job (see the scenario in ../BUILD.bazel).
+filegroup(
+    name = "pinned_probe",
+    srcs = [
+        "@rules_foreign_cc_toolchains//:cmake_src_all",
+        "@rules_foreign_cc_toolchains//:make_src_all",
+        "@rules_foreign_cc_toolchains//:meson_src_all",
+        "@rules_foreign_cc_toolchains//:ninja_src_all",
+        "@rules_foreign_cc_toolchains//:pkgconfig_src_all",
+    ],
+)

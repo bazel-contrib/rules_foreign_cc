@@ -257,3 +257,86 @@ NINJA_BIN_WILDCARDS = {
     "1.12.x": "1.12.1",
     "1.13.x": "1.13.2",
 }
+
+NINJA_SRC_SRCS = {
+    "1.10.2": struct(
+        urls = [
+            "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.10.2.tar.gz",
+            "https://github.com/ninja-build/ninja/archive/v1.10.2.tar.gz",
+        ],
+        strip_prefix = "ninja-1.10.2",
+        sha256 = "ce35865411f0490368a8fc383f29071de6690cbadc27704734978221f25e2bed",
+        integrity = "",
+        patches = [],
+    ),
+    "1.10.x": struct(
+        urls = [
+            "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.10.2.tar.gz",
+            "https://github.com/ninja-build/ninja/archive/v1.10.2.tar.gz",
+        ],
+        strip_prefix = "ninja-1.10.2",
+        sha256 = "ce35865411f0490368a8fc383f29071de6690cbadc27704734978221f25e2bed",
+        integrity = "",
+        patches = [],
+    ),
+    "1.11.1": struct(
+        urls = [
+            "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.11.1.tar.gz",
+            "https://github.com/ninja-build/ninja/archive/v1.11.1.tar.gz",
+        ],
+        strip_prefix = "ninja-1.11.1",
+        sha256 = "31747ae633213f1eda3842686f83c2aa1412e0f5691d1c14dbbcc67fe7400cea",
+        integrity = "",
+        patches = [],
+    ),
+    "1.11.x": struct(
+        urls = [
+            "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.11.1.tar.gz",
+            "https://github.com/ninja-build/ninja/archive/v1.11.1.tar.gz",
+        ],
+        strip_prefix = "ninja-1.11.1",
+        sha256 = "31747ae633213f1eda3842686f83c2aa1412e0f5691d1c14dbbcc67fe7400cea",
+        integrity = "",
+        patches = [],
+    ),
+    "1.12.1": struct(
+        urls = [
+            "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.12.1.tar.gz",
+            "https://github.com/ninja-build/ninja/archive/v1.12.1.tar.gz",
+        ],
+        strip_prefix = "ninja-1.12.1",
+        sha256 = "821bdff48a3f683bc4bb3b6f0b5fe7b2d647cf65d52aeb63328c91a6c6df285a",
+        integrity = "",
+        patches = [],
+    ),
+    "1.12.x": struct(
+        urls = [
+            "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.12.1.tar.gz",
+            "https://github.com/ninja-build/ninja/archive/v1.12.1.tar.gz",
+        ],
+        strip_prefix = "ninja-1.12.1",
+        sha256 = "821bdff48a3f683bc4bb3b6f0b5fe7b2d647cf65d52aeb63328c91a6c6df285a",
+        integrity = "",
+        patches = [],
+    ),
+    "1.13.2": struct(
+        urls = [
+            "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.13.2.tar.gz",
+            "https://github.com/ninja-build/ninja/archive/v1.13.2.tar.gz",
+        ],
+        strip_prefix = "ninja-1.13.2",
+        sha256 = "974d6b2f4eeefa25625d34da3cb36bdcebe7fbce40f4c16ac0835fd1c0cbae17",
+        integrity = "",
+        patches = [],
+    ),
+    "1.13.x": struct(
+        urls = [
+            "https://mirror.bazel.build/github.com/ninja-build/ninja/archive/v1.13.2.tar.gz",
+            "https://github.com/ninja-build/ninja/archive/v1.13.2.tar.gz",
+        ],
+        strip_prefix = "ninja-1.13.2",
+        sha256 = "974d6b2f4eeefa25625d34da3cb36bdcebe7fbce40f4c16ac0835fd1c0cbae17",
+        integrity = "",
+        patches = [],
+    ),
+}

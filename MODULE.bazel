@@ -60,7 +60,7 @@ tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 # is in the graph (so macros like `meson_with_requirements` and rfcc's own
 # //test:build_scripts can reach the hub-published `<tool>_built` /
 # `<tool>_src_all` / `meson_src_*` aliases): the planner's all_required_spokes
-# fetches each SPOKE_SOURCE_TOOLS archive at pick_source_version (the default version
+# fetches each SOURCE_TOOLS archive at pick_source_version (the default version
 # here), independent of these registration tags.
 # cmake and ninja default to prebuilt binaries, which only exist for the five
 # platforms in the binary spoke tables. The WORKSPACE defaults also
@@ -81,20 +81,20 @@ tools.ninja(
 )
 tools.ninja(mode = "system")
 tools.m4(
-    mode = "source",
-    version = "1.4.21",
+    mode = "custom",
+    target = "@m4",
 )
 tools.make(
-    mode = "source",
-    version = "4.4.1",
+    mode = "custom",
+    target = "@make",
 )
 tools.meson(
     mode = "source",
     version = "1.10.1",
 )
 tools.pkgconfig(
-    mode = "source",
-    version = "3.0.7",
+    mode = "custom",
+    target = "@pkgconf//:pkg-config",
 )
 tools.autoconf(mode = "system")
 tools.automake(mode = "system")

@@ -42,14 +42,18 @@ goes under bzlmod:
 | `register_default_tools = True` (cmake/ninja) | automatic; rfcc registers the hub for you |
 | `register_built_tools = True` (build from source) | `tools.<tool>(mode = "source", version = "...")` (an explicit version is required), or the source defaults in the hub |
 | `register_preinstalled_tools = True` (host tools) | `tools.<tool>(mode = "system")` |
-| `cmake_version = "3.31.12"` | `tools.cmake(version = "3.31.12")` |
-| `ninja_version = "1.13.2"` | `tools.ninja(version = "1.13.2")` |
-| `m4_version = "1.4.21"` | `tools.m4(version = "1.4.21")` |
-| `make_version = "4.4.1"` | `tools.make(version = "4.4.1")` |
-| `meson_version = "1.10.1"` | `tools.meson(version = "1.10.1")` |
-| `pkgconfig_version = "3.0.7"` | `tools.pkgconfig(version = "3.0.7")` |
+| `cmake_version = "3.31.12"` | `tools.cmake(mode = "binary", version = "3.31.12")` |
+| `ninja_version = "1.13.2"` | `tools.ninja(mode = "binary", version = "1.13.2")` |
+| `m4_version = "1.4.21"` | nothing - m4 has no versioned mode; `tools.m4(mode = "custom", target = "@m4")` to point it elsewhere |
+| `make_version = "4.4.1"` | `tools.make(mode = "source", version = "4.4.1")` |
+| `meson_version = "1.10.1"` | `tools.meson(mode = "source", version = "1.10.1")` |
+| `pkgconfig_version = "3.0.7"` | nothing - 3.0.7 is pkgconf, reached via `tools.pkgconfig(mode = "custom", target = "@pkgconf//:pkg-config")`; source mode is pkg-config 0.29.2 |
 | `register_toolchains = False` | omit `register_toolchains(...)`; register manually |
-| `native_tools_toolchains = [...]` | `tools.<tool>(..., register_toolchain = False)` + your own `toolchain(...)` |
+| `native_tools_toolchains = [...]` | `tools.<tool>(mode = "custom", target = "//your:binary")`, or `tools.<tool>(..., register_toolchain = False)` + your own `toolchain(...)` |
+
+Every tag above names a `mode`. That is not optional: a tag is
+all-or-nothing, so writing one commits you to specifying it completely. See
+[Declaring a tag is all-or-nothing](bzlmod_hub.md#declaring-a-tag-is-all-or-nothing).
 
 ### Selecting nmake by label (Windows)
 

@@ -8,7 +8,7 @@ then), so it is long-lived enough to keep in sync with the bzlmod path.
 """
 
 # buildifier: disable=bzl-visibility
-load("//foreign_cc/private:tool_specs.bzl", "BCR_SOURCE_TOOLS", "SPOKE_SOURCE_TOOLS", "get_spec")
+load("//foreign_cc/private:tool_specs.bzl", "BCR_BACKED_TOOLS", "get_spec")
 
 # buildifier: disable=bzl-visibility
 load("//toolchains/private:hub.bzl", "hub_repo", "source_spoke_aliases")
@@ -18,6 +18,11 @@ load(
     "meson_source_spokes",
     "source_spoke_repo",
 )
+
+# The tools `built_toolchains` below mints a source spoke for. Keep in step
+# with the `*_source_spokes` calls there: this is what WORKSPACE built, which
+# is narrower than SOURCE_TOOLS (what bzlmod *can* build).
+_WORKSPACE_SOURCE_TOOLS = ["cmake", "meson"]
 
 # buildifier: disable=unnamed-macro
 def built_toolchains(
@@ -47,9 +52,9 @@ def built_toolchains(
     cmake_source_spokes(cmake_version, register_toolchains = register_toolchains)
     meson_source_spokes(meson_version, register_toolchains = register_toolchains)
 
-    # Every source-mode tool's version. SPOKE_SOURCE_TOOLS and
-    # BCR_SOURCE_TOOLS partition the same set, so a new source tool surfaces as
-    # a load-time KeyError here rather than as a silent omission below.
+    # Keyed by every tool the loops below iterate: _WORKSPACE_SOURCE_TOOLS plus
+    # BCR_BACKED_TOOLS, which partition for WORKSPACE. A newly added tool
+    # surfaces as a load-time KeyError here rather than as a silent omission.
     versions_by_tool = {
         "cmake": cmake_version,
         "m4": m4_version,
@@ -68,23 +73,24 @@ def built_toolchains(
     #
     # Derived from the spec, so a newly registry-backed tool registers without
     # a literal to update here -- an omission would be silent, the tool simply
-    # falling down its ladder to `system`. //toolchains/private:BUILD.bazel
-    # names each toolchain() after the native_tool_toolchain it wraps; drifting
-    # from that surfaces as a no-such-target error during resolution.
+    # going unregistered and falling through to `system`.
+    # //toolchains/private:BUILD.bazel names each toolchain() after the
+    # native_tool_toolchain it wraps; drifting from that surfaces as a
+    # no-such-target error during resolution.
     if register_toolchains:
-        for tool in BCR_SOURCE_TOOLS:
+        for tool in BCR_BACKED_TOOLS:
             # Gated separately, as it always has been: this one has a
             # dedicated opt-out.
             if tool == "pkgconfig" and not register_built_pkgconfig_toolchain:
                 continue
-            native.register_toolchains(get_spec(tool).source_target + "_toolchain")
+            native.register_toolchains(get_spec(tool).workspace_bcr_toolchain + "_toolchain")
 
     _emit_workspace_hub(versions_by_tool)
 
 def _emit_bcr_spokes(versions_by_tool):
     """Publish `@<tool>_src_<v>` repo names for every BCR-backed tool.
 
-    Uniform over `BCR_SOURCE_TOOLS`. For the tools that predate the registry
+    Uniform over `BCR_BACKED_TOOLS`. For the tools that predate the registry
     switch this keeps a name WORKSPACE consumers could already write --
     `@make_src_4.4.1//:make_toolchain`, `:make_tool` or `:make_built`. Those
     repos no longer hold a source tree, so these stand-ins forward to the
@@ -92,14 +98,16 @@ def _emit_bcr_spokes(versions_by_tool):
     target in `@m4` / `@make` / `@ninja` / `@pkgconf` to forward it to.
     Generated files, not downloads, so an unused shim is free.
 
-    Bzlmod gets none of this -- an extension's repos aren't nameable without a
-    `use_repo`, so the hub aliases were always its only surface.
+    The name is free to reuse because WORKSPACE never calls the source-mode
+    spoke helpers -- `source` mode is a bzlmod-only path, and an extension's
+    repos aren't nameable without a `use_repo`, so the two can't collide.
 
     Args:
-        versions_by_tool: `{tool: version}` covering every source-mode tool.
-            Only the BCR-backed ones are read. A falsy version skips that tool.
+        versions_by_tool: `{tool: version}` covering every source-mode and
+            registry-backed tool. Only the latter are read. A falsy version
+            skips that tool.
     """
-    for tool in BCR_SOURCE_TOOLS:
+    for tool in BCR_BACKED_TOOLS:
         version = versions_by_tool[tool]
         if not version:
             continue
@@ -114,11 +122,11 @@ def _emit_bcr_spokes(versions_by_tool):
                 # tree: `$(execpath)` names the executable, not a directory
                 # holding `bin/<tool>`.
                 {"actual": spec.bcr_binary, "name": "{}_built".format(tool)},
-                {"actual": spec.source_target, "name": "{}_tool".format(tool)},
+                {"actual": spec.workspace_bcr_toolchain, "name": "{}_tool".format(tool)},
             ]],
             toolchain_specs_json_list = [json.encode({
                 "name": "{}_toolchain".format(tool),
-                "toolchain": spec.source_target,
+                "toolchain": spec.workspace_bcr_toolchain,
                 "toolchain_type": spec.toolchain_type,
             })],
         )
@@ -136,18 +144,20 @@ def _emit_workspace_hub(versions_by_tool):
         versions_by_tool: `{tool: version}` covering every source-mode tool.
     """
 
-    # Spoke tools get the full alias set; the BCR-backed ones get only
-    # `<tool>_built`, because their registry BUILD files define nothing else to
-    # alias -- no `<tool>_src_all`, see _emit_bcr_spokes.
+    # Only the tools _built_toolchains actually minted a source spoke for can
+    # get the full alias set -- the others have no repo holding `<tool>_src_all`
+    # to alias (see _emit_bcr_spokes). SOURCE_TOOLS is the *bzlmod* answer and
+    # is wider: make, ninja and pkgconfig build from source under bzlmod but
+    # come from a registry module here.
     aliases = []
-    for tool in SPOKE_SOURCE_TOOLS:
+    for tool in _WORKSPACE_SOURCE_TOOLS:
         if versions_by_tool[tool]:
             aliases.extend(source_spoke_aliases(tool, versions_by_tool[tool]))
 
     # Kept for WORKSPACE consumers who already name these; the bzlmod hub
     # dropped them. Pointed straight at the binary rather than through the
     # compat shim above, so the hub doesn't depend on a legacy-label repo.
-    for tool in BCR_SOURCE_TOOLS:
+    for tool in BCR_BACKED_TOOLS:
         if versions_by_tool[tool]:
             aliases.append({
                 "actual": get_spec(tool).bcr_binary,

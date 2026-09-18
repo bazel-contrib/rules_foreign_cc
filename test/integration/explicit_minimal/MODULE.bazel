@@ -12,11 +12,6 @@ local_path_override(
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.17")
 
-# The repo behind the source-make tag below. `use_repo` cannot surface it --
-# source-mode make is a `bazel_dep`, not an rfcc spoke -- so the scenario names
-# it directly, at the version rfcc pins so MVS resolves to one make.
-bazel_dep(name = "make", version = "4.4.1.bcr.1")
-
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 tools.explicit()
 tools.cmake(
@@ -37,7 +32,4 @@ tools.pkgconfig(mode = "noop")
 # Surface the hub so the scenario's cquery can assert the noop tags above
 # actually took effect (the //:hello_cmake build alone only invokes
 # cmake+ninja).
-use_repo(
-    tools,
-    "rules_foreign_cc_toolchains",
-)
+use_repo(tools, "rules_foreign_cc_toolchains")

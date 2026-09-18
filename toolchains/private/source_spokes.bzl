@@ -10,18 +10,22 @@ Each helper materializes one repo per ``(tool, version)`` named
   * ``:<tool>_built``: the build-from-source macro target.
   * ``:<tool>_tool``: the ``native_tool_toolchain`` referenced from the hub.
 
-The registry-backed tools are deliberately absent: each is published on the
-Bazel Central Registry with a maintained BUILD file, so rfcc consumes
-``@m4`` / ``@make`` / ``@ninja`` / ``@pkgconf`` instead of building them itself (see
-``//toolchains/private:bcr_modules.bzl``). The one leftover is
-``pkgconfig_msvc_companions``, which declares -- but never builds -- the glib
-archives the public ``pkgconfig_tool`` macro still names.
+``m4`` has no helper here: it has never had a build-from-source path, so
+``custom`` mode over the ``@m4`` registry module is the only way to get one.
+The other four registry-backed tools keep both -- see
+``//toolchains/private:bcr_modules.bzl`` for the registry side.
+
+``pkgconfig_msvc_companions`` is the odd one out: it declares, but never
+builds, the glib archives the public ``pkgconfig_tool`` macro names on MSVC.
 """
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//toolchains/private:cmake_versions.bzl", "CMAKE_SRC_SRCS")
+load("//toolchains/private:make_versions.bzl", "GNUMAKE_SRCS")
 load("//toolchains/private:meson_versions.bzl", "MESON_SRCS")
+load("//toolchains/private:ninja_versions.bzl", "NINJA_SRC_SRCS")
+load("//toolchains/private:pkgconfig_versions.bzl", "PKGCONFIG_SRCS")
 
 visibility([
     "//foreign_cc",
@@ -79,6 +83,84 @@ toolchain(
 )
 """
 
+_MAKE_SRC_BUILD_FILE = """\
+load("@rules_foreign_cc//foreign_cc/built_tools:make_build.bzl", "make_tool")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+make_tool(
+    name = "make_built",
+    srcs = ":all_srcs",
+    resource_size = "small",
+    tags = ["manual"],
+)
+
+native_tool_toolchain(
+    name = "make_tool",
+    env = select({
+        "@platforms//os:windows": {"MAKE": "$(execpath :make_built)/bin/make.exe"},
+        "//conditions:default": {"MAKE": "$(execpath :make_built)/bin/make"},
+    }),
+    path = select({
+        "@platforms//os:windows": "$(execpath :make_built)/bin/make.exe",
+        "//conditions:default": "$(execpath :make_built)/bin/make",
+    }),
+    target = ":make_built",
+)
+
+toolchain(
+    name = "make_toolchain",
+    toolchain = ":make_tool",
+    toolchain_type = "@rules_foreign_cc//toolchains:make_toolchain",
+)
+"""
+
+_NINJA_SRC_BUILD_FILE = """\
+load("@rules_foreign_cc//foreign_cc/built_tools:ninja_build.bzl", "ninja_tool")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+ninja_tool(
+    name = "ninja_built",
+    srcs = ":all_srcs",
+    resource_size = "small",
+    tags = ["manual"],
+)
+
+native_tool_toolchain(
+    name = "ninja_tool",
+    env = {
+        "NINJA": "$(execpath @rules_foreign_cc//toolchains/private:ninja_wrapper)",
+    } | select({
+        "@platforms//os:windows": {"REAL_NINJA": "$(execpath :ninja_built)/bin/ninja.exe"},
+        "//conditions:default": {"REAL_NINJA": "$(execpath :ninja_built)/bin/ninja"},
+    }),
+    path = "$(execpath @rules_foreign_cc//toolchains/private:ninja_wrapper)",
+    target = "@rules_foreign_cc//toolchains/private:ninja_wrapper",
+    tools = [
+        ":ninja_built",
+    ],
+)
+
+toolchain(
+    name = "ninja_toolchain",
+    toolchain = ":ninja_tool",
+    toolchain_type = "@rules_foreign_cc//toolchains:ninja_toolchain",
+)
+"""
+
 _MESON_SRC_BUILD_FILE = """\
 load("@rules_foreign_cc//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
@@ -121,6 +203,44 @@ toolchain(
     name = "meson_toolchain",
     toolchain = ":meson_tool",
     toolchain_type = "@rules_foreign_cc//toolchains:meson_toolchain",
+)
+"""
+
+_PKGCONFIG_SRC_BUILD_FILE = """\
+load("@rules_foreign_cc//foreign_cc/built_tools:pkgconfig_build.bzl", "pkgconfig_tool")
+load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+pkgconfig_tool(
+    name = "pkgconfig_built",
+    srcs = ":all_srcs",
+    resource_size = "small",
+    tags = ["manual"],
+)
+
+native_tool_toolchain(
+    name = "pkgconfig_tool",
+    env = select({
+        "@platforms//os:windows": {"PKG_CONFIG": "$(execpath :pkgconfig_built)"},
+        "//conditions:default": {"PKG_CONFIG": "$(execpath :pkgconfig_built)/bin/pkg-config"},
+    }),
+    path = select({
+        "@platforms//os:windows": "$(execpath :pkgconfig_built)",
+        "//conditions:default": "$(execpath :pkgconfig_built)/bin/pkg-config",
+    }),
+    target = ":pkgconfig_built",
+)
+
+toolchain(
+    name = "pkgconfig_toolchain",
+    toolchain = ":pkgconfig_tool",
+    toolchain_type = "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
 )
 """
 
@@ -173,12 +293,39 @@ def cmake_source_spokes(version, register_toolchains = False):
 
 # buildifier: disable=unnamed-macro
 # buildifier: disable=function-docstring-args
+def make_source_spokes(version, register_toolchains = False):
+    """Define the @make_src_<version> archive for a source-mode make."""
+    name = source_spoke_repo("make", version)
+    _archive_for(GNUMAKE_SRCS, version, "make", name, _MAKE_SRC_BUILD_FILE)
+    if register_toolchains:
+        native.register_toolchains("@{}//:make_toolchain".format(name))
+
+# buildifier: disable=unnamed-macro
+# buildifier: disable=function-docstring-args
+def ninja_source_spokes(version, register_toolchains = False):
+    """Define the @ninja_src_<version> archive for a source-mode ninja."""
+    name = source_spoke_repo("ninja", version)
+    _archive_for(NINJA_SRC_SRCS, version, "ninja", name, _NINJA_SRC_BUILD_FILE)
+    if register_toolchains:
+        native.register_toolchains("@{}//:ninja_toolchain".format(name))
+
+# buildifier: disable=unnamed-macro
+# buildifier: disable=function-docstring-args
 def meson_source_spokes(version, register_toolchains = False):
     """Define the @meson_src_<version> archive for a source-mode meson."""
     name = source_spoke_repo("meson", version)
     _archive_for(MESON_SRCS, version, "meson", name, _MESON_SRC_BUILD_FILE)
     if register_toolchains:
         native.register_toolchains("@{}//:meson_toolchain".format(name))
+
+# buildifier: disable=unnamed-macro
+# buildifier: disable=function-docstring-args
+def pkgconfig_source_spokes(version, register_toolchains = False):
+    """Define the @pkgconfig_src_<version> archive for a source-mode pkg-config."""
+    name = source_spoke_repo("pkgconfig", version)
+    _archive_for(PKGCONFIG_SRCS, version, "pkgconfig", name, _PKGCONFIG_SRC_BUILD_FILE)
+    if register_toolchains:
+        native.register_toolchains("@{}//:pkgconfig_toolchain".format(name))
 
 # buildifier: disable=unnamed-macro
 def pkgconfig_msvc_companions():
