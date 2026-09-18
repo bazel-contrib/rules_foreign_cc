@@ -28,16 +28,3 @@ filegroup(
         ],
     ),
 )
-
-# One target the runner can build that covers both halves of this scenario:
-# //:hello_cmake exercises the explicit cmake+ninja binary path end to end, and
-# @make//:make builds the tool behind the source-make tag, which registers no
-# toolchain //:hello_cmake uses -- without this the make half goes unexercised.
-# That the tag reached the hub is the scenario's cquery's job, not this one's.
-filegroup(
-    name = "explicit_probe",
-    srcs = [
-        ":hello_cmake",
-        "@make",
-    ],
-)

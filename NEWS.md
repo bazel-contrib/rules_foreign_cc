@@ -1,5 +1,86 @@
 # News
 
+## Unreleased
+
+### Breaking changes
+
+- **A `bzlmod` `tools.<tool>(...)` tag is now all-or-nothing.** Every attribute
+  defaults to empty and nothing is inferred: `mode` is always required,
+  `version` is required for `binary`/`source` and rejected everywhere else, and
+  the new `target` is required for `custom` and rejected everywhere else.
+  Previously a tag could omit `mode` and be resolved through a per-tool
+  priority ladder (binary > source > system). Omitting a tag entirely still
+  inherits rfcc's own registration, unchanged. If your root module has a tag
+  with no `mode`, add the one the ladder was picking for you:
+
+  ```python
+  # Before                              # After
+  tools.cmake(version = "3.31.12")      tools.cmake(mode = "binary", version = "3.31.12")
+  tools.meson(version = "1.10.1")       tools.meson(mode = "source", version = "1.10.1")
+  tools.ninja(                          tools.ninja(
+      exec_compatible_with = [...],         mode = "binary",
+  )                                         version = "1.13.2",
+                                            exec_compatible_with = [...],
+                                        )
+  ```
+
+  Inference had to go because `source` changed meaning underneath it (below):
+  an under-specified `tools.pkgconfig(...)` would have resolved to `source` and
+  then to pkgconf 3.0.7, a version the pkg-config source table has never
+  contained, failing far from the tag that caused it.
+- **`mode = "source"` builds from source again** for `make`, `ninja` and
+  `pkg-config`, reversing the 0.16.0 change below. It fetches the upstream
+  release tarball and bootstraps it, as it did before 0.16.0; the registry
+  modules are still the **default**, now reached through `custom` mode, so a
+  build that declares no tag for these tools sees no change at all. Only a tag
+  that explicitly says `mode = "source"` gets the bootstrap. Note the source
+  tables are the stale ones 0.16.0 moved away from - source `pkgconfig` is
+  **pkg-config 0.29.2**, a different program from the default pkgconf 3.0.7 -
+  so treat a `source` version as pinned rather than tracking.
+- **Under `bzlmod`, the hub's `make_built`, `make_src_all`, `ninja_built` and
+  `ninja_src_all` aliases are back**, pointing at the restored source spokes
+  (`@make_src_4.4.1`, `@ninja_src_1.13.2`) rather than at the registry
+  modules' `cc_binary` targets. `pkgconfig_built` stays absent: the default
+  pkgconf version has no entry in the pkg-config source table, so there is no
+  spoke for it to alias. The *registered* make, ninja and pkgconfig toolchains
+  are unaffected.
+- **`tools.m4(version = ...)` is rejected again.** m4 has never had a
+  from-source bootstrap, so it gained no `source` mode in this restoration; its
+  modes are `custom`, `system` and `noop`, defaulting to `custom` over the
+  `@m4` registry module. The default tool is exactly what 0.16.0 shipped - only
+  the mode name and the version attribute changed.
+- **`WORKSPACE` is unaffected by all of the above.** `custom` and the restored
+  `source` bootstrap are tag-driven, so they exist only under `bzlmod`;
+  `rules_foreign_cc_dependencies()` keeps 0.16.0's behavior verbatim.
+
+### Added
+
+- **New `custom` tool mode**, for pointing a toolchain at an executable your
+  build already produces:
+
+  ```python
+  tools.make(mode = "custom", target = "//tools/make:my_make")
+  ```
+
+  `target` is a plain executable, not a `native_tool_toolchain` -
+  `rules_foreign_cc` generates the wrapper into a spoke repo and slots the
+  resulting `toolchain(...)` into the hub, so a `custom` tag participates in
+  the hub's precedence ordering and honours `exec_compatible_with` /
+  `target_compatible_with`. That is what it offers over registering your own
+  `toolchain(...)` alongside rfcc's, which was previously the only option.
+  Supported for every tool driven by a single environment variable: `cmake`,
+  `m4`, `make`, `meson`, `msbuild`, `ninja` and `pkgconfig`. Two caveats are
+  covered in [the hub docs](docs/src/bzlmod_hub.md#custom-mode): the target
+  must be `//visibility:public`, and the generated alias does not rename the
+  underlying file.
+
+  `rules_foreign_cc` uses this mode itself - its `MODULE.bazel` now reads
+  `tools.m4(mode = "custom", target = "@m4")`,
+  `tools.make(mode = "custom", target = "@make")` and
+  `tools.pkgconfig(mode = "custom", target = "@pkgconf//:pkg-config")`, which
+  is what makes the 0.16.0 defaults survive the `source` restoration
+  unchanged.
+
 ## 0.16.0 (2026-09-14)
 
 This is the first entry in the resumed changelog. Changes below are listed

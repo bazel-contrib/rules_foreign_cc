@@ -513,8 +513,7 @@ def cc_external_rule_impl(ctx, attrs):
     data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
     tools_env = {}
     for tool in attrs.tools_data:
-        if tool.target:
-            data_dependencies.append(tool.target)
+        data_dependencies += tool.tools
         if tool.env:
             tools_env.update(tool.env)
 
@@ -1142,9 +1141,8 @@ def _define_inputs(attrs):
     input_files = []
     for tool in attrs.tools_data:
         tools.append(tool.path)
-        if tool.target:
-            for file_list in tool.target.files.to_list():
-                tools_files += _list(file_list)
+        for target in tool.tools:
+            tools_files += target.files.to_list()
 
     # TODO: Remove, `additional_tools` is deprecated.
     for tool in attrs.additional_tools:

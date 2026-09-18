@@ -189,6 +189,7 @@ bzl_library(
     deps = [
         ":built_toolchains",
         ":prebuilt_toolchains",
+        "//toolchains/native_tools:native_tools_toolchain",
     ],
 )
 

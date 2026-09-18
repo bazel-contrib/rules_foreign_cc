@@ -1,0 +1,34 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "make")
+
+# The custom-mode target. `//:make` is what MODULE.bazel hands to
+# tools.make(mode = "custom"), so rfcc mints a spoke wrapping it and the hub
+# registers that spoke as the make toolchain. It is a fake (see fake_make.c):
+# it fails with a sentinel the moment it runs.
+#
+# Public because the generated alias lives in a repo of its own; a private
+# target fails analysis with a visibility error naming a repo the user never
+# wrote. That constraint is documented in docs/src/bzlmod_hub.md's `custom`
+# mode section, and this scenario is what keeps the documented workaround
+# honest.
+cc_binary(
+    name = "make",
+    srcs = ["fake_make.c"],
+    visibility = ["//visibility:public"],
+)
+
+# Built (not manual): the make rule invokes the make toolchain, which is now
+# the cc_binary above, so the build must fail with that binary's sentinel.
+make(
+    name = "hello_make",
+    lib_source = ":sources",
+    out_static_libs = ["libhello.a"],
+)
+
+filegroup(
+    name = "sources",
+    srcs = [
+        "Makefile",
+        "hello.c",
+    ],
+)

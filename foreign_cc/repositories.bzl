@@ -70,7 +70,9 @@ def rules_foreign_cc_dependencies(
             Central Registry `ninja` module the source-built toolchain uses,
             whose versions do not all coincide with the prebuilt ones.
 
-        meson_version: The target version of the meson toolchain if `register_built_tools` is set to `True`.
+        meson_version: The target version of the default meson toolchain. Selects
+            which Bazel Central Registry `meson` module is fetched, so it applies
+            whenever `register_repos` is `True`, not only to the built toolchain.
 
         pkgconfig_version: The target version of the default pkg-config
             toolchain. Selects which Bazel Central Registry `pkgconf` module is
@@ -194,6 +196,7 @@ def rules_foreign_cc_dependencies(
     bcr_repos(
         m4_version = m4_version,
         make_version = make_version,
+        meson_version = meson_version,
         ninja_version = ninja_version,
         pkgconfig_version = pkgconfig_version,
     )

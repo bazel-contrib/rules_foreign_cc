@@ -1,7 +1,17 @@
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
+# `-GNinja` is what makes this the suite's one end-to-end ninja test. cmake
+# defaults to Unix Makefiles on Linux and macOS (see _get_generator_target in
+# foreign_cc/cmake.bzl), so without it no scenario ever runs ninja at all and
+# the ninja toolchain is only ever asserted at the planning level.
+#
+# Nothing here tags ninja, so it resolves to rfcc's default -- `custom` over the
+# `@ninja` registry module, which runs through the ninja_wrapper launcher. That
+# makes this the regression test for `ToolInfo.tools`: stage the
+# wrapper without the binary it execs and ninja dies with "failed to exec".
 cmake(
     name = "hello_cmake",
+    generate_args = ["-GNinja"],
     lib_source = ":all_srcs",
     # MSVC names the static lib hello.lib; everyone else libhello.a.
     out_static_libs = select({

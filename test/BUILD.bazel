@@ -21,12 +21,15 @@ load(":wildcard_resolution_test.bzl", "wildcard_resolution_test_suite")
 # so the ``script_file`` / ``wrapper_script_file`` output groups read
 # through cleanly.
 #
-# The registry-backed tools are absent: they are plain cc_binary targets in
-# their modules, not rfcc framework rules, so they emit no build script to
-# lint. The two below exercise the same script generator.
+# pkgconfig is absent. Its alias exists only when the hub picks a source
+# version for the tool, and pkgconfig's default is the pkgconf registry module
+# (3.0.7), which its source table -- pkg-config 0.29.2 -- does not contain. The
+# four below exercise the same script generator regardless.
 TOOL_TARGETS = [
     "@rules_foreign_cc_toolchains//:cmake_built",
+    "@rules_foreign_cc_toolchains//:make_built",
     "@rules_foreign_cc_toolchains//:meson_built",
+    "@rules_foreign_cc_toolchains//:ninja_built",
 ]
 
 filegroup(

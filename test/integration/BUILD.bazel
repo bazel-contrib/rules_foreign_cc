@@ -24,6 +24,9 @@ scenario(
 )
 
 # Default case: no `tools` tags at all -> rfcc registers its default toolchains.
+# Also the suite's only end-to-end ninja run: the cmake target asks for `-GNinja`
+# so the default ninja toolchain is actually invoked rather than merely resolved.
+# See the comment on //:hello_cmake in default_mode/BUILD.bazel.
 scenario(
     name = "default_mode",
     env = {"EXPECT_BUILD": "//:hello_cmake"},
@@ -34,9 +37,39 @@ scenario(
     name = "bare_tag_fails",
     env = {
         "EXPECT_BUILD_FAIL": "//:hello_cmake",
-        # Must fail for the *right* reason: the no-op-tag guard in
+        # Must fail for the *right* reason: the all-or-nothing tag rule in
         # extension_impl.validate_tag, not some unrelated build error.
-        "EXPECT_BUILD_FAIL_PATTERN": "no-op tag",
+        "EXPECT_BUILD_FAIL_PATTERN": "mode is required",
+    },
+)
+
+# Every source-mode tool pinned to a version behind the one rfcc's own
+# MODULE.bazel registers -- the whole toolset moved off the defaults at once,
+# where single_tool_override moves one. The probe names the hub's
+# version-neutral `<tool>_src_all` aliases rather than the spokes directly, so
+# building it proves the *hub* published an alias for each pinned tool; the
+# cquery then proves cmake's alias terminates at 3.30.9 and not rfcc's default
+# 3.31.12, which the build alone cannot tell apart (the alias resolves either
+# way). Both halves matter, and the cquery's echoed output lists all five
+# resolved spokes for anyone reading a failure. Nothing is compiled --
+# `all_srcs` is the unpacked archive -- so this costs five downloads, not five
+# from-source tool builds.
+#
+# pkgconfig is the odd pin: its source table holds only freedesktop
+# pkg-config 0.29.2, a different program from the pkgconf 3.0.7 module rfcc
+# defaults to, so "one behind" isn't available and any source pin diverges.
+# That it gets a hub alias at all is the point -- rfcc's default emits no
+# pkgconfig_src_all, because 3.0.7 is not a source version.
+scenario(
+    name = "all_source_pinned",
+    env = {
+        "EXPECT_BUILD": "//:pinned_probe",
+        # Depth 2: the probe, then the five hub aliases, then what each alias
+        # actually points at -- the pinned `@<tool>_src_<version>//:all_srcs`.
+        # Unbounded deps() would work too but drags every file of five
+        # unpacked archives through the log (~3MB).
+        "EXPECT_CQUERY": "filter(\"_src_\", deps(//:pinned_probe, 2))",
+        "EXPECT_STDOUT_PATTERN": "cmake_src_3\\.30\\.9",
     },
 )
 
@@ -57,18 +90,21 @@ scenario(
 
 # `tools.explicit()` with a mix of binary/source/noop modes across tools.
 # Building //:hello_cmake only needs cmake+ninja, so on its own it never
-# exercises the declared source-make or noop tags. Two extra assertions give
-# them teeth: EXPECT_BUILD on a probe that also builds @make//:make proves the
-# repo behind the source-make tag compiles on this platform, and the
-# cquery lists the hub's targets and asserts the noop m4/pkgconfig root tags
+# exercises the declared source-make or noop tags. The cquery gives them teeth:
+# it lists the hub's targets and asserts the noop m4/pkgconfig root tags
 # produced hub entries under explicit() (they would be absent if explicit() had
 # dropped them). cquery deps() can't reach the noop impl through a toolchain()
 # rule's `toolchain` attr -- that's resolved in a separate phase -- so we match
 # the entry names the planner emits instead.
+#
+# The source-make tag is asserted at the planning level only. Whether that
+# bootstrap still *compiles* is //test/boostrap_tools' job, where it is a
+# plain cacheable build rather than a from-source tool build nested inside an
+# `exclusive` bazel-in-bazel run.
 scenario(
     name = "explicit_minimal",
     env = {
-        "EXPECT_BUILD": "//:explicit_probe",
+        "EXPECT_BUILD": "//:hello_cmake",
         "EXPECT_CQUERY": "@rules_foreign_cc_toolchains//:all",
         "EXPECT_STDOUT_PATTERN": "10_(m4|pkgconfig)_000_000",
     },
@@ -163,4 +199,31 @@ scenario(
         "EXPECT_CQUERY": "filter(\"meson_src_1.10.1\", deps(//:meson_tool_for_hello_meson))",
         "EXPECT_STDOUT_PATTERN": "meson_src_1\\.10\\.1",
     },
+)
+
+# One tool tagged three times, one of the three `custom`. Tags accumulate per
+# tool instead of overwriting, and the hub registers them in zero-padded name
+# order, so tag order is precedence order -- this is the only scenario that
+# shows the three modes sharing a toolchain type and the ordering deciding
+# between them.
+#
+# The two assertions split the claim. The cquery names `10_make_002_000`:
+# indices are dense and count only registerable tags, so an entry at 002 can
+# only exist if all three tags produced one -- coexistence. The failing build
+# names the sentinel that the custom tag's fake make prints: it can only reach
+# the log if tag 1 won, which means the Windows-constrained tag 0 was skipped
+# and the unconstrained tag 2 behind it was shadowed. Host make (tag 2) would
+# have built the Makefile silently, so the two outcomes cannot be confused.
+scenario(
+    name = "multi_tag_make",
+    env = {
+        "EXPECT_BUILD_FAIL": "//:hello_make",
+        "EXPECT_BUILD_FAIL_PATTERN": "CUSTOM_MAKE_SENTINEL",
+        "EXPECT_CQUERY": "@rules_foreign_cc_toolchains//:all",
+        "EXPECT_STDOUT_PATTERN": "10_make_002_000",
+    },
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
