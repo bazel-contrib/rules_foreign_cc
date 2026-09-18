@@ -261,6 +261,24 @@ bzl_library(
 )
 
 bzl_library(
+    name = "make_versions",
+    srcs = ["make_versions.bzl"],
+    visibility = [
+        "//foreign_cc/private:__pkg__",
+        "//toolchains:__pkg__",
+    ],
+)
+
+bzl_library(
+    name = "pkgconfig_versions",
+    srcs = ["pkgconfig_versions.bzl"],
+    visibility = [
+        "//foreign_cc/private:__pkg__",
+        "//toolchains:__pkg__",
+    ],
+)
+
+bzl_library(
     name = "prebuilt_toolchains_repository",
     srcs = ["prebuilt_toolchains_repository.bzl"],
     visibility = [
@@ -290,8 +308,25 @@ bzl_library(
     ],
     deps = [
         ":cmake_versions",
+        ":make_versions",
         ":meson_versions",
+        ":ninja_versions",
+        ":pkgconfig_versions",
         "@bazel_tools//tools/build_defs/repo:http.bzl",
         "@bazel_tools//tools/build_defs/repo:utils.bzl",
+    ],
+)
+
+bzl_library(
+    name = "custom_spokes",
+    srcs = ["custom_spokes.bzl"],
+    visibility = [
+        "//foreign_cc:__pkg__",
+        "//foreign_cc/private:__pkg__",
+        "//toolchains:__pkg__",
+    ],
+    deps = [
+        ":hub",
+        "//foreign_cc/private:tool_specs",
     ],
 )

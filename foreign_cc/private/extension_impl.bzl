@@ -7,11 +7,11 @@ load(
     "//foreign_cc/private:tool_specs.bzl",
     "ALL_TOOLS",
     "MODE_BINARY",
+    "MODE_CUSTOM",
     "MODE_NOOP",
     "MODE_SOURCE",
     "MODE_SYSTEM",
-    "SPOKE_SOURCE_TOOLS",
-    "VERSIONLESS_TOOLS",
+    "SOURCE_TOOLS",
     "exact_versions",
     "get_spec",
     "versions_for_mode",
@@ -20,6 +20,9 @@ load("//foreign_cc/private/framework/toolchains:mappings.bzl", "TOOLCHAIN_MAPPIN
 
 # buildifier: disable=bzl-visibility
 load("//toolchains/private:binary_spokes.bzl", "binary_spoke_repo")
+
+# buildifier: disable=bzl-visibility
+load("//toolchains/private:custom_spokes.bzl", "custom_spoke_repo")
 
 # buildifier: disable=bzl-visibility
 load("//toolchains/private:hub.bzl", "source_spoke_aliases")
@@ -81,6 +84,12 @@ def _tag_to_dict(tool, tag):
     exact patch (or the empty string / an unknown value for validate_tag to
     reject).
 
+    The label-valued attrs are stringified. A label in a tag class resolves
+    against the *declaring* module's repo mapping, and `str()` on the result
+    is the canonical (apparent-name-free) form -- json-safe (the planner's
+    output is `json.encode`d into a repository rule) and unambiguous from the
+    generated BUILD file it lands in.
+
     Args:
         tool: tool name string (key into ALL_TOOLS).
         tag: a Bazel tag value object (or any object with the same attrs).
@@ -88,11 +97,13 @@ def _tag_to_dict(tool, tag):
     Returns:
         A plain dict with all tag fields.
     """
+    target = getattr(tag, "target", None)
     return {
-        "exec_compatible_with": list(getattr(tag, "exec_compatible_with", [])),
+        "exec_compatible_with": [str(lbl) for lbl in getattr(tag, "exec_compatible_with", [])],
         "mode": getattr(tag, "mode", ""),
         "register_toolchain": getattr(tag, "register_toolchain", True),
-        "target_compatible_with": list(getattr(tag, "target_compatible_with", [])),
+        "target": str(target) if target else "",
+        "target_compatible_with": [str(lbl) for lbl in getattr(tag, "target_compatible_with", [])],
         "tool": tool,
         "version": resolve_version(tool, getattr(tag, "version", "")),
     }
@@ -158,14 +169,23 @@ def tag_error(tag):
     """Return a descriptive error string if `tag` is invalid, else None.
 
     Pure (no `fail()`), so the rejection branches are unit-testable in-process
-    -- `validate_tag` wraps this with the actual `fail()`. Rules:
-      - mode must be in the tool's allowed modes list.
-      - version is rejected for mode in (system, noop).
-      - version is required for mode in (binary, source) unless tool is versionless.
-      - version, when present, must resolve to the tool's known-version
-        table. A `major.minor.x` wildcard is resolved to its latest patch in
-        `_tag_to_dict` before this runs, so by here `version` is always an
-        exact patch (or an unknown value to reject).
+    -- `validate_tag` wraps this with the actual `fail()`.
+
+    A tag is all-or-nothing: writing one at all commits you to specifying it
+    completely, and every attr defaults to empty. Declaring no tag for a tool
+    inherits rfcc's own registration instead. The rules:
+
+      | attr      | required when          | rejected when          |
+      | --------- | ---------------------- | ---------------------- |
+      | `mode`    | always                 | not in the tool's list |
+      | `version` | mode is binary, source | mode is system, noop,  |
+      |           |                        | custom                 |
+      | `target`  | mode is custom         | mode is not custom     |
+
+    A version, when present, must also resolve to the tool's known-version
+    table *and* to the requested mode's own table. A `major.minor.x` wildcard
+    is resolved to its latest patch in `_tag_to_dict` before this runs, so by
+    here `version` is always an exact patch (or an unknown value to reject).
 
     Args:
         tag: tag dict as produced by _tag_to_dict.
@@ -175,24 +195,15 @@ def tag_error(tag):
     """
     spec = get_spec(tag["tool"])
     mode = tag["mode"]
-    if (
-        not mode and
-        not tag["version"] and
-        not tag["exec_compatible_with"] and
-        not tag["target_compatible_with"]
-    ):
-        # A tag with no mode, version, or constraints is a no-op in either
-        # register_toolchain setting: with register_toolchain=True it registers
-        # the same default rfcc's own defaults already would, and with
-        # register_toolchain=False it suppresses nothing (rfcc's defaults still
-        # register) while redundantly fetching the binary-default spoke. Reject
-        # both -- register_toolchain=False is only meaningful alongside a mode
-        # or version (the spoke-fetch-without-registration pattern).
-        return ("tools.{tool}(): tag has no mode, version, or platform constraints. " +
-                "This is a no-op tag (it neither selects a tool variant nor constrains " +
-                "one). Either remove the tag (rfcc will register defaults), or specify " +
-                "at least one of: mode, version, exec_compatible_with, " +
-                "target_compatible_with.").format(tool = tag["tool"])
+    if not mode:
+        # Checked first, so a bare or partially-filled tag reports the missing
+        # mode rather than a downstream symptom. Without a mode there is
+        # nothing to infer from: `version` alone doesn't identify binary vs
+        # source (ninja's tables overlap), and constraints alone identify
+        # nothing at all.
+        return ("tools.{tool}(): mode is required. Valid modes for {tool}: {modes}. " +
+                "To inherit the registration rules_foreign_cc makes itself, drop " +
+                "the tag entirely.").format(tool = tag["tool"], modes = spec.modes)
     if tag["tool"] == "nmake" and mode == MODE_NOOP:
         # nmake shares the make_toolchain type and is Windows-only, selected by
         # explicit toolchain= label. A noop nmake entry would carry no platform
@@ -201,7 +212,7 @@ def tag_error(tag):
         return ("tools.nmake: mode=\"noop\" is not supported. nmake shares the make " +
                 "toolchain type, so use tools.make(mode = \"noop\") to no-op the " +
                 "make-family toolchain.")
-    if mode and mode not in spec.modes:
+    if mode not in spec.modes:
         return "tools.{}: mode=\"{}\" is not supported. Valid modes for {}: {}".format(
             tag["tool"],
             mode,
@@ -209,24 +220,32 @@ def tag_error(tag):
             spec.modes,
         )
 
-    # Versionless tools -- see `VERSIONLESS_TOOLS` -- have no versioned
-    # mode, so a version is meaningless in any mode -- reject it up front rather
-    # than silently ignoring it once resolve_mode() lands on system. Checked
-    # independently of mode because the system/noop check below only fires when
-    # the user named the mode explicitly.
+    # `custom` wraps a target the consumer already builds, so rfcc has nothing
+    # to pick a version of -- and without a target there is nothing to wrap.
+    if mode == MODE_CUSTOM and not tag["target"]:
+        return "tools.{}: target is required for mode=\"custom\".".format(tag["tool"])
+    if mode != MODE_CUSTOM and tag["target"]:
+        return "tools.{}: target=\"{}\" is only allowed with mode=\"custom\".".format(
+            tag["tool"],
+            tag["target"],
+        )
+
+    # Versionless tools -- see `VERSIONLESS_TOOLS` -- have no versioned mode, so
+    # say that plainly rather than letting the mode-specific message below
+    # imply some other mode would have accepted it.
     if spec.known_versions == None and tag["version"]:
         return "tools.{}: version=\"{}\" is not allowed; {} has no versioned mode.".format(
             tag["tool"],
             tag["version"],
             tag["tool"],
         )
-    if mode in (MODE_SYSTEM, MODE_NOOP) and tag["version"]:
+    if mode in (MODE_SYSTEM, MODE_NOOP, MODE_CUSTOM) and tag["version"]:
         return "tools.{}: version=\"{}\" is not allowed with mode=\"{}\".".format(
             tag["tool"],
             tag["version"],
             mode,
         )
-    if mode in (MODE_BINARY, MODE_SOURCE) and not tag["version"] and tag["tool"] not in VERSIONLESS_TOOLS:
+    if mode in (MODE_BINARY, MODE_SOURCE) and not tag["version"]:
         return "tools.{}: version is required for mode=\"{}\".".format(tag["tool"], mode)
 
     if tag["version"]:
@@ -239,18 +258,17 @@ def tag_error(tag):
                 sorted(spec.wildcards.keys()),
             )
 
-        # `known_versions` spans every mode, since a bare `version =` resolves
-        # through the tool's ladder. With the mode known, narrow to its own
-        # table: ninja's prebuilt and registry versions overlap without
-        # coinciding, so mode="binary" must reject the source-only 1.13.0.
-        effective_mode = resolve_mode(tag)
-        mode_versions = versions_for_mode(spec, effective_mode)
+        # `known_versions` is the union across modes, so it accepts a version
+        # the requested mode can't actually supply. Narrow to that mode's own
+        # table: ninja's prebuilt and source versions overlap without
+        # coinciding, so mode="binary" must reject a source-only version.
+        mode_versions = versions_for_mode(spec, mode)
         if mode_versions != None and tag["version"] not in mode_versions:
             return ("tools.{}: version=\"{}\" is not available in mode=\"{}\". " +
                     "Versions for that mode: {}.").format(
                 tag["tool"],
                 tag["version"],
-                effective_mode,
+                mode,
                 # The tables carry `a.b.x` wildcard aliases alongside their
                 # exact patches; only the exact ones belong in this message.
                 exact_versions(mode_versions),
@@ -274,26 +292,39 @@ def validate_tag(tag):
     if err:
         fail(err)
 
-# ============================================================
-# Mode resolution
-# ============================================================
+def spoke_plan_error(spokes):
+    """Return a descriptive error string if the spoke plan collides, else None.
 
-def resolve_mode(tag):
-    """Return the effective mode for a tag dict.
+    Pure, like `tag_error`, so the rejection branch is unit-testable
+    in-process; `extensions._init` supplies the `fail()`.
 
-    Uses the tag's explicit mode if set; otherwise falls back to the tool's
-    top-priority mode from spec.ladder.
+    Custom spokes are named after a slug of their target (see
+    `custom_spokes._slug`), and distinct labels can slug alike. Two targets
+    quietly sharing one spoke would mean silently building against the wrong
+    binary, so reject the plan instead.
 
     Args:
-        tag: tag dict as produced by _tag_to_dict.
+        spokes: list of spoke descriptors, as `all_required_spokes` returns.
 
     Returns:
-        A mode string (one of MODE_BINARY, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP).
+        An error string, or None if every custom spoke name is unambiguous.
     """
-    if tag["mode"]:
-        return tag["mode"]
-    spec = get_spec(tag["tool"])
-    return spec.ladder[0]
+    claimed = {}
+    for spoke in spokes:
+        if spoke["mode"] != MODE_CUSTOM:
+            continue
+        repo = custom_spoke_repo(spoke["tool"], spoke["target"])
+        if repo in claimed and claimed[repo] != spoke["target"]:
+            return ("tools.{tool}(mode = \"custom\"): targets \"{a}\" and \"{b}\" " +
+                    "both map to the spoke repo \"{repo}\". Rename one of the " +
+                    "targets so the two differ by more than punctuation.").format(
+                a = claimed[repo],
+                b = spoke["target"],
+                repo = repo,
+                tool = spoke["tool"],
+            )
+        claimed[repo] = spoke["target"]
+    return None
 
 # ============================================================
 # Spoke specification
@@ -303,33 +334,23 @@ def spoke_specs_for_tag(tag):
     """Return a list of spoke descriptors that need to exist for this tag.
 
     Descriptor shape:
-        {"tool": <str>, "version": <str>, "mode": <str>}
+        {"tool": <str>, "version": <str>, "mode": <str>, "target": <str>}
 
-    When a tag specifies no ``version`` and the resolved mode is binary or
-    source, fall back to ``spec.default_version`` so the rfcc-pinned spoke
-    is materialized instead of emitting an empty version. Tags whose
-    resolved mode is system or noop don't need a version, so the empty
-    string is preserved. (``validate_tag`` requires a version for an
-    explicit binary/source mode, so the fallback is reached by a tag that
-    names no mode and no version but carries platform constraints -- e.g.
-    ``tools.cmake(exec_compatible_with=[...])`` -- which resolves to the
-    tool's default binary/source mode and needs the default version.)
+    ``version`` is empty for the unversioned modes (system, noop, custom) and
+    ``target`` is empty for every mode but custom; `tag_error` has already
+    guaranteed both, so this is a straight projection.
 
     Args:
-        tag: tag dict as produced by _tag_to_dict.
+        tag: tag dict as produced by _tag_to_dict, already validated.
 
     Returns:
         A list of spoke-descriptor dicts (currently always one entry).
     """
-    mode = resolve_mode(tag)
-    version = tag["version"]
-    if not version and mode in (MODE_BINARY, MODE_SOURCE):
-        spec = get_spec(tag["tool"])
-        version = spec.default_version
     return [{
-        "mode": mode,
+        "mode": tag["mode"],
+        "target": tag["target"],
         "tool": tag["tool"],
-        "version": version,
+        "version": tag["version"],
     }]
 
 # ============================================================
@@ -370,15 +391,15 @@ def _hub_targets_for(spoke):
     tool, version, mode = spoke["tool"], spoke["version"], spoke["mode"]
     if mode == MODE_BINARY:
         return _binary_platform_entries(tool, version)
-    if mode == MODE_SOURCE:
-        # The registry-backed tools build in repos rfcc can't append a
-        # toolchain to, so they carry a static `source_target` under
-        # //toolchains/private -- same shape as system and noop below. The
-        # label carries no version; `tag_error` already rejected any other.
-        source_target = get_spec(tool).source_target
-        if source_target:
-            return [(source_target, [], [])]
-        repo = source_spoke_repo(tool, version)
+    if mode in (MODE_SOURCE, MODE_CUSTOM):
+        # Both name a per-tag spoke holding one native_tool_toolchain. The
+        # tag's own constraints are appended by the caller, same as any other
+        # mode, which is what keeps a custom entry inside the hub's precedence
+        # ordering instead of standing outside it.
+        if mode == MODE_SOURCE:
+            repo = source_spoke_repo(tool, version)
+        else:
+            repo = custom_spoke_repo(tool, spoke["target"])
         return [("@{repo}//:{tool}_tool".format(repo = repo, tool = tool), [], [])]
     if mode == MODE_SYSTEM:
         spec = get_spec(tool)
@@ -560,7 +581,7 @@ def pick_source_version(tagset, tool):
     if spec.known_versions == None:
         return None
     for tag in tagset.root_tags[tool]:
-        if resolve_mode(tag) == MODE_SOURCE and tag["version"] and tag["register_toolchain"]:
+        if tag["mode"] == MODE_SOURCE and tag["version"] and tag["register_toolchain"]:
             return tag["version"]
     if tagset.explicit:
         return None
@@ -600,7 +621,8 @@ def all_required_spokes(tagset):
         tagset: struct as returned by collect_tags.
 
     Returns:
-        A list of spoke descriptor dicts with keys "tool", "version", "mode".
+        A list of spoke descriptor dicts with keys "tool", "version", "mode"
+        and "target".
     """
     out = []
     for tool in ALL_TOOLS:
@@ -617,11 +639,11 @@ def all_required_spokes(tagset):
         # exist whenever rfcc is in the graph -- even when a downstream root's
         # tools.explicit() suppresses their *registration*. Suppression gates
         # only the 20_ hub registration (build_hub_plan), never materialization.
-        # Duplicates against the SPOKE_SOURCE_TOOLS loop below dedup in
+        # Duplicates against the SOURCE_TOOLS loop below dedup in
         # extensions._init.
         for tag in tagset.default_tags[tool]:
             spoke = spoke_specs_for_tag(tag)[0]
-            if spoke["mode"] in (MODE_BINARY, MODE_SOURCE):
+            if spoke["mode"] in (MODE_BINARY, MODE_SOURCE, MODE_CUSTOM):
                 out.append(spoke)
 
     # Materialize the source spoke behind every alias build_hub_aliases emits,
@@ -632,10 +654,15 @@ def all_required_spokes(tagset):
     # drifting, the same way the default registration is tied to its
     # spoke. (Source-default tools re-request the version their default tag
     # already added; the duplicate deduplicates downstream in extensions._init.)
-    for tool in SPOKE_SOURCE_TOOLS:
+    for tool in SOURCE_TOOLS:
         version = pick_source_version(tagset, tool)
         if version != None:
-            out.append({"mode": MODE_SOURCE, "tool": tool, "version": version})
+            out.append({
+                "mode": MODE_SOURCE,
+                "target": "",
+                "tool": tool,
+                "version": version,
+            })
     return out
 
 def build_hub_aliases(tagset):
@@ -645,10 +672,17 @@ def build_hub_aliases(tagset):
     archive that any consumer's BUILD file can reach without leaking the
     pinned version into a downstream MODULE.bazel.
 
-    Only `SPOKE_SOURCE_TOOLS` are covered. The registry-backed tools come from
-    modules that define the binary and nothing else, so there is no
-    `<tool>_src_all` to alias -- name the module's binary (`@make//:make`,
-    `@pkgconf//:pkg-config`, ...) directly.
+    Only `SOURCE_TOOLS` are covered, and only where
+    `pick_source_version` finds a version -- these aliases point *into* a
+    source spoke, so a tool whose source table lacks its default version (m4
+    has no source mode at all; pkgconfig's table is pkg-config 0.29.2 against
+    a pkgconf 3.0.7 default) publishes nothing here. A `custom`-mode tag is
+    likewise invisible to this: the target it names is one the consumer
+    already has a label for.
+
+    The WORKSPACE hub (`built_toolchains._emit_workspace_hub`) additionally
+    publishes a `<tool>_built` pointing straight at each registry module's
+    binary. Bzlmod has never done so.
 
     Per source-tool aliases:
 
@@ -673,7 +707,7 @@ def build_hub_aliases(tagset):
         stable (sorted by name) for deterministic BUILD-file emission.
     """
     aliases = []
-    for tool in SPOKE_SOURCE_TOOLS:
+    for tool in SOURCE_TOOLS:
         version = pick_source_version(tagset, tool)
         if version == None:
             continue

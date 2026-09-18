@@ -5,13 +5,12 @@ toolchains/private/noop_toolchains.bzl. Edit this module when bumping default
 versions, adding tools, or adjusting noop env vars.
 
 `known_versions` is a list-or-None of versions accepted in
-`tools.<tool>(version = ...)`. None means "this tool is
-versionless (system/noop only)." For tools with a binary mode the list is
-the union of binary-table keys and source-table keys, because the mode a
-bare `version =` resolves to depends on the tool's ladder. The union is only
-an outer bound: `tag_error` re-checks the version against the resolved mode's
-own table, so ninja -- whose prebuilt releases and registry modules overlap
-without coinciding -- rejects `mode = "binary", version = "1.13.1"`.
+`tools.<tool>(version = ...)`. None means "this tool takes no version in any
+mode." For tools with more than one versioned mode the list is the union of
+those modes' tables; the union is only an outer bound, because `tag_error`
+re-checks the version against the named mode's own table. ninja -- whose
+prebuilt releases and source archives overlap without coinciding -- is why:
+it rejects `mode = "binary", version = "1.12.0"` on that second pass.
 """
 
 # The version dicts under //toolchains/private declare a top-of-file
@@ -19,16 +18,19 @@ without coinciding -- rejects `mode = "binary", version = "1.13.1"`.
 # them; buildifier's bzl-visibility heuristic only inspects path layout
 # and doesn't honor the directive. Suppress the lint here.
 # buildifier: disable=bzl-visibility
-load("//toolchains/private:bcr_modules.bzl", "BCR_TOOLS")
+load("//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_SRCS", "CMAKE_SRC_SRCS")
 
 # buildifier: disable=bzl-visibility
-load("//toolchains/private:cmake_versions.bzl", "CMAKE_BIN_SRCS", "CMAKE_SRC_SRCS")
+load("//toolchains/private:make_versions.bzl", "GNUMAKE_SRCS")
 
 # buildifier: disable=bzl-visibility
 load("//toolchains/private:meson_versions.bzl", "MESON_SRCS")
 
 # buildifier: disable=bzl-visibility
-load("//toolchains/private:ninja_versions.bzl", "NINJA_BIN_SRCS")
+load("//toolchains/private:ninja_versions.bzl", "NINJA_BIN_SRCS", "NINJA_SRC_SRCS")
+
+# buildifier: disable=bzl-visibility
+load("//toolchains/private:pkgconfig_versions.bzl", "PKGCONFIG_SRCS")
 
 def _is_exact_version(version):
     """True for an exact version key (not a `major.minor.x` wildcard).
@@ -85,40 +87,56 @@ def _wildcards_for(versions):
             out[key] = version
     return out
 
-# `BCR_TOOLS[<module>]` is read directly by the source specs below. Unlike the
-# other source tables only its keys matter, since one `@m4` / `@make` /
-# `@ninja` / `@pkgconf` exists per build -- see the `source_target` note below.
-# rfcc's `pkgconfig` tool is the `pkgconf` module.
-
 # Mode constants. Use these strings everywhere.
 MODE_BINARY = "binary"
+MODE_CUSTOM = "custom"
 MODE_SOURCE = "source"
 MODE_SYSTEM = "system"
 MODE_NOOP = "noop"
 
-ALL_MODES = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP]
+ALL_MODES = [MODE_BINARY, MODE_CUSTOM, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP]
 
-# Per-tool metadata. Order of LADDER entries is the auto-priority order
-# used when a root tag does not specify `mode`.
+# Per-tool metadata.
 #
-# `source_target` is where a source-mode toolchain points. None (the common
-# case) means rfcc mints an @<tool>_src_<version> spoke and derives the label
-# from it. A label means the tool comes from a registry module rfcc doesn't own
-# (@m4, @make, @ninja, @pkgconf), so the target is static and there is nothing
-# for the planner to fetch or alias. Those tools still offer a version matrix,
-# selected where the repo is declared -- a `bazel_dep` under bzlmod,
-# `bcr_repos` under WORKSPACE -- rather than in the label.
+# `default_mode` is the mode rules_foreign_cc's own MODULE.bazel registers for
+# the tool. It is not a fallback: a tag must name its mode (see `tag_error`).
+# A module that declares no tag for a tool inherits rfcc's registration, and
+# this field is what models that for tests and docs.
+#
+# The three `custom_*` fields describe what a `custom` toolchain generates;
+# they are None together on the tools that offer no `custom` mode (autoconf and
+# automake set three and two variables naming different binaries, which one
+# `target` cannot satisfy; nmake sets none). Whether the mode is *offered* is
+# `spec.modes`, which is what `tag_error` checks. `custom_env_var` is the one
+# environment variable the toolchain sets. `custom_alias_name` is the name rfcc
+# gives the generated alias -- pkg-config, not pkgconf, because the framework
+# symlinks the tool into $EXT_BUILD_DEPS/bin under its own basename.
+# `custom_launcher` is a wrapper the tool must be invoked through rather than
+# directly, which only ninja needs.
+#
+# `workspace_bcr_toolchain` is the prebuilt `native_tool_toolchain` that the
+# WORKSPACE path registers for a tool backed by a registry module (@m4, @make,
+# @ninja, @pkgconf). Bzlmod does not read it: there a `custom` tag points at
+# the module's binary directly. A non-None `bcr_binary` is what marks a tool as
+# registry-backed -- see `BCR_BACKED_TOOLS`.
+#
+# Every spec spells out every field, including the Nones, so readers and
+# callers never have to guess a default.
 TOOL_SPECS = {
     "autoconf": struct(
         modes = [MODE_SYSTEM, MODE_NOOP],
-        ladder = [MODE_SYSTEM],
+        default_mode = MODE_SYSTEM,
         default_version = None,
         known_versions = None,
         wildcards = {},
         binary_versions = None,
         source_versions = None,
         binary_target = None,
-        source_target = None,
+        custom_env_var = None,
+        custom_alias_name = None,
+        custom_launcher = None,
+        workspace_bcr_toolchain = None,
+        bcr_binary = None,
         toolchain_type = "@rules_foreign_cc//toolchains:autoconf_toolchain",
         noop_env = {
             "AUTOCONF": "{NOOP_BIN}",
@@ -128,14 +146,18 @@ TOOL_SPECS = {
     ),
     "automake": struct(
         modes = [MODE_SYSTEM, MODE_NOOP],
-        ladder = [MODE_SYSTEM],
+        default_mode = MODE_SYSTEM,
         default_version = None,
         known_versions = None,
         wildcards = {},
         binary_versions = None,
         source_versions = None,
         binary_target = None,
-        source_target = None,
+        custom_env_var = None,
+        custom_alias_name = None,
+        custom_launcher = None,
+        workspace_bcr_toolchain = None,
+        bcr_binary = None,
         toolchain_type = "@rules_foreign_cc//toolchains:automake_toolchain",
         noop_env = {
             "ACLOCAL": "{NOOP_BIN}",
@@ -143,49 +165,63 @@ TOOL_SPECS = {
         },
     ),
     "cmake": struct(
-        modes = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
-        ladder = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM],
+        modes = [MODE_BINARY, MODE_CUSTOM, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
+        default_mode = MODE_BINARY,
         default_version = "3.31.12",
         known_versions = exact_versions(CMAKE_BIN_SRCS, CMAKE_SRC_SRCS),
         wildcards = _wildcards_for(exact_versions(CMAKE_BIN_SRCS, CMAKE_SRC_SRCS)),
         binary_versions = CMAKE_BIN_SRCS,
         source_versions = CMAKE_SRC_SRCS,
         binary_target = "cmake_tool",
-        source_target = None,
+        custom_env_var = "CMAKE",
+        custom_alias_name = "cmake",
+        custom_launcher = None,
+        workspace_bcr_toolchain = None,
+        bcr_binary = None,
         toolchain_type = "@rules_foreign_cc//toolchains:cmake_toolchain",
         noop_env = {"CMAKE": "{NOOP_BIN}"},
     ),
     "m4": struct(
-        modes = [MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
-        ladder = [MODE_SOURCE, MODE_SYSTEM],
+        modes = [MODE_CUSTOM, MODE_SYSTEM, MODE_NOOP],
+        default_mode = MODE_CUSTOM,
+        # No versioned mode: rfcc has never shipped an m4 bootstrap, so there
+        # is no archive table to pick from and `known_versions` is None. This
+        # field is still the @m4 module version the WORKSPACE path fetches, and
+        # default_versions_in_sync_test holds it to repositories.bzl.
         default_version = "1.4.21",
-        known_versions = exact_versions(BCR_TOOLS["m4"]),
-        wildcards = _wildcards_for(exact_versions(BCR_TOOLS["m4"])),
+        known_versions = None,
+        wildcards = {},
         binary_versions = None,
-        source_versions = BCR_TOOLS["m4"],
+        source_versions = None,
         binary_target = None,
-        source_target = "@rules_foreign_cc//toolchains/private:built_m4",
+        custom_env_var = "M4",
+        custom_alias_name = "m4",
+        custom_launcher = None,
+        workspace_bcr_toolchain = "@rules_foreign_cc//toolchains/private:built_m4",
         bcr_binary = "@m4//:m4",
         toolchain_type = "@rules_foreign_cc//toolchains:m4_toolchain",
         noop_env = {"M4": "{NOOP_BIN}"},
     ),
     "make": struct(
-        modes = [MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
-        ladder = [MODE_SOURCE, MODE_SYSTEM],
+        modes = [MODE_CUSTOM, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
+        default_mode = MODE_CUSTOM,
         default_version = "4.4.1",
-        known_versions = exact_versions(BCR_TOOLS["make"]),
-        wildcards = _wildcards_for(exact_versions(BCR_TOOLS["make"])),
+        known_versions = exact_versions(GNUMAKE_SRCS),
+        wildcards = _wildcards_for(exact_versions(GNUMAKE_SRCS)),
         binary_versions = None,
-        source_versions = BCR_TOOLS["make"],
+        source_versions = GNUMAKE_SRCS,
         binary_target = None,
-        source_target = "@rules_foreign_cc//toolchains/private:built_make",
+        custom_env_var = "MAKE",
+        custom_alias_name = "make",
+        custom_launcher = None,
+        workspace_bcr_toolchain = "@rules_foreign_cc//toolchains/private:built_make",
         bcr_binary = "@make//:make",
         toolchain_type = "@rules_foreign_cc//toolchains:make_toolchain",
         noop_env = {"MAKE": "{NOOP_BIN}"},
     ),
     "meson": struct(
-        modes = [MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
-        ladder = [MODE_SOURCE, MODE_SYSTEM],
+        modes = [MODE_CUSTOM, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
+        default_mode = MODE_SOURCE,
         # Must match repositories.bzl's DEFAULT_TOOL_VERSIONS (the WORKSPACE
         # default) so the bzlmod and WORKSPACE paths build the same meson;
         # default_versions_in_sync_test enforces it for every tool.
@@ -195,20 +231,28 @@ TOOL_SPECS = {
         binary_versions = None,
         source_versions = MESON_SRCS,
         binary_target = None,
-        source_target = None,
+        custom_env_var = "MESON",
+        custom_alias_name = "meson",
+        custom_launcher = None,
+        workspace_bcr_toolchain = None,
+        bcr_binary = None,
         toolchain_type = "@rules_foreign_cc//toolchains:meson_toolchain",
         noop_env = {"MESON": "{NOOP_BIN}"},
     ),
     "msbuild": struct(
-        modes = [MODE_SYSTEM, MODE_NOOP],
-        ladder = [MODE_SYSTEM],
+        modes = [MODE_CUSTOM, MODE_SYSTEM, MODE_NOOP],
+        default_mode = MODE_SYSTEM,
         default_version = None,
         known_versions = None,
         wildcards = {},
         binary_versions = None,
         source_versions = None,
         binary_target = None,
-        source_target = None,
+        custom_env_var = "MSBUILD",
+        custom_alias_name = "msbuild",
+        custom_launcher = None,
+        workspace_bcr_toolchain = None,
+        bcr_binary = None,
         # msbuild only exists on Windows; gate the system toolchain on both
         # exec and target (matches the legacy preinstalled_msbuild_toolchain).
         system_exec_compatible_with = ["@platforms//os:windows"],
@@ -217,29 +261,39 @@ TOOL_SPECS = {
         noop_env = {"MSBUILD": "{NOOP_BIN}"},
     ),
     "ninja": struct(
-        modes = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
-        ladder = [MODE_BINARY, MODE_SOURCE, MODE_SYSTEM],
+        modes = [MODE_BINARY, MODE_CUSTOM, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
+        default_mode = MODE_BINARY,
         default_version = "1.13.2",
-        known_versions = exact_versions(NINJA_BIN_SRCS, BCR_TOOLS["ninja"]),
-        wildcards = _wildcards_for(exact_versions(NINJA_BIN_SRCS, BCR_TOOLS["ninja"])),
+        known_versions = exact_versions(NINJA_BIN_SRCS, NINJA_SRC_SRCS),
+        wildcards = _wildcards_for(exact_versions(NINJA_BIN_SRCS, NINJA_SRC_SRCS)),
         binary_versions = NINJA_BIN_SRCS,
-        source_versions = BCR_TOOLS["ninja"],
+        source_versions = NINJA_SRC_SRCS,
         binary_target = "ninja_tool",
-        source_target = "@rules_foreign_cc//toolchains/private:built_ninja",
+        custom_env_var = "NINJA",
+        custom_alias_name = "ninja",
+        # meson's and CMake's dependency lookups search PATH for a binary
+        # literally named `ninja`, which an arbitrary `target` will not be, so
+        # a custom ninja is invoked through the wrapper instead.
+        custom_launcher = "@rules_foreign_cc//toolchains/private:ninja_wrapper",
+        workspace_bcr_toolchain = "@rules_foreign_cc//toolchains/private:built_ninja",
         bcr_binary = "@ninja//:ninja",
         toolchain_type = "@rules_foreign_cc//toolchains:ninja_toolchain",
         noop_env = {"NINJA": "{NOOP_BIN}"},
     ),
     "nmake": struct(
         modes = [MODE_SYSTEM],
-        ladder = [MODE_SYSTEM],
+        default_mode = MODE_SYSTEM,
         default_version = None,
         known_versions = None,
         wildcards = {},
         binary_versions = None,
         source_versions = None,
         binary_target = None,
-        source_target = None,
+        custom_env_var = None,
+        custom_alias_name = None,
+        custom_launcher = None,
+        workspace_bcr_toolchain = None,
+        bcr_binary = None,
         # nmake only exists on Windows; gate the system toolchain so it never
         # resolves on other hosts (matches the legacy
         # preinstalled_nmake_toolchain constraint).
@@ -253,19 +307,27 @@ TOOL_SPECS = {
         noop_env = {},
     ),
     "pkgconfig": struct(
-        modes = [MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
-        ladder = [MODE_SOURCE, MODE_SYSTEM],
+        modes = [MODE_CUSTOM, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP],
+        default_mode = MODE_CUSTOM,
+        # The @pkgconf module version WORKSPACE fetches, held to
+        # repositories.bzl by default_versions_in_sync_test. Deliberately not a
+        # key of `known_versions`: source mode builds freedesktop pkg-config,
+        # a different program from pkgconf, and the two do not share a version
+        # line. `tools.pkgconfig(mode = "source", version = "3.0.7")` is
+        # rejected, which is the honest answer.
         default_version = "3.0.7",
-        known_versions = exact_versions(BCR_TOOLS["pkgconf"]),
-        wildcards = _wildcards_for(exact_versions(BCR_TOOLS["pkgconf"])),
+        known_versions = exact_versions(PKGCONFIG_SRCS),
+        wildcards = _wildcards_for(exact_versions(PKGCONFIG_SRCS)),
         binary_versions = None,
-        source_versions = BCR_TOOLS["pkgconf"],
+        source_versions = PKGCONFIG_SRCS,
         binary_target = None,
-        source_target = "@rules_foreign_cc//toolchains/private:built_pkgconfig",
-        # `:pkg-config`, not the module's `:pkgconf`: the two are the same
-        # binary, but only the former is named what a configure script or
-        # CMake's FindPkgConfig looks for on PATH, and the framework symlinks
-        # `path` into $EXT_BUILD_DEPS/bin under its own basename.
+        custom_env_var = "PKG_CONFIG",
+        # `pkg-config`, not `pkgconf`: the framework symlinks the tool into
+        # $EXT_BUILD_DEPS/bin under its own basename, and configure scripts and
+        # CMake's FindPkgConfig search PATH for the former.
+        custom_alias_name = "pkg-config",
+        custom_launcher = None,
+        workspace_bcr_toolchain = "@rules_foreign_cc//toolchains/private:built_pkgconfig",
         bcr_binary = "@pkgconf//:pkg-config",
         toolchain_type = "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
         # Only the binary var, like every other tool: noop sets PKG_CONFIG to
@@ -288,29 +350,26 @@ VERSIONLESS_TOOLS = [
     if spec.default_version == None
 ]
 
+# Tools with a source mode. Each is materialized as an @<tool>_src_<version>
+# spoke: source mode means "build it from an archive rfcc hashes", with no
+# exceptions.
 SOURCE_TOOLS = sorted([
     name
     for name, spec in TOOL_SPECS.items()
     if MODE_SOURCE in spec.modes
 ])
 
-# Source-mode tools rfcc materializes as an @<tool>_src_<version> spoke.
-# Callers that fetch spokes or publish spoke aliases want this, not
-# SOURCE_TOOLS. Identical under both dependency models.
-SPOKE_SOURCE_TOOLS = [
+# Tools whose binary comes from a registry module (@m4, @make, @ninja,
+# @pkgconf) rather than from an archive rfcc builds. Only these specs have a
+# non-None `bcr_binary` and `workspace_bcr_toolchain`.
+#
+# This is *not* the complement of SOURCE_TOOLS: make, ninja and pkgconfig are
+# in both -- they bootstrap from source under `mode = "source"` and use the
+# registry module under `mode = "custom"` -- while m4 is registry-only.
+BCR_BACKED_TOOLS = [
     name
-    for name in SOURCE_TOOLS
-    if TOOL_SPECS[name].source_target == None
-]
-
-# The exact complement: tools built by a registry module. Only these specs
-# carry `bcr_binary`, so it is safe to read for every member and only for
-# members. Both halves come from the same `source_target` test, so another
-# registry-backed tool joins every loop without a literal to update.
-BCR_SOURCE_TOOLS = [
-    name
-    for name in SOURCE_TOOLS
-    if TOOL_SPECS[name].source_target != None
+    for name in ALL_TOOLS
+    if TOOL_SPECS[name].bcr_binary != None
 ]
 
 def get_spec(tool):
@@ -322,7 +381,8 @@ def get_spec(tool):
 def versions_for_mode(spec, mode):
     """Return the version table backing `mode`, or None if it isn't versioned.
 
-    system and noop take no version, so only binary and source have a table.
+    Only binary and source are versioned. custom takes a target instead, and
+    system and noop take neither.
 
     Args:
         spec: a tool struct from `TOOL_SPECS`.
