@@ -12,11 +12,13 @@ load(
     _meson = "meson",
     _meson_with_requirements = "meson_with_requirements",
     _ninja = "ninja",
+    _runtime_executable = "runtime_executable",
 )
 load(
     "@rules_foreign_cc//foreign_cc:providers.bzl",
     _ForeignCcArtifactInfo = "ForeignCcArtifactInfo",
     _ForeignCcDepsInfo = "ForeignCcDepsInfo",
+    _ForeignCcRuntimeExecutableInfo = "ForeignCcRuntimeExecutableInfo",
 )
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", _rules_foreign_cc_dependencies = "rules_foreign_cc_dependencies")
 load("@rules_foreign_cc//foreign_cc/built_tools:cmake_build.bzl", _cmake_tool = "cmake_tool")
@@ -44,7 +46,9 @@ native_tool_toolchain = _native_tool_toolchain
 ninja = _ninja
 ninja_tool = _ninja_tool
 rules_foreign_cc_dependencies = _rules_foreign_cc_dependencies
+runtime_executable = _runtime_executable
 
 ForeignCcArtifactInfo = _ForeignCcArtifactInfo
 ForeignCcDepsInfo = _ForeignCcDepsInfo
+ForeignCcRuntimeExecutableInfo = _ForeignCcRuntimeExecutableInfo
 ToolInfo = _ToolInfo

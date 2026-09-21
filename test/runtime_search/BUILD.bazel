@@ -1,0 +1,74 @@
+load("//foreign_cc:defs.bzl", "configure_make", "make", "meson")
+
+# This files contains targets used by runtime search tests.
+
+package(default_visibility = ["//test:__pkg__"])
+
+filegroup(
+    name = "contract_src",
+    testonly = True,
+
+    # These analysis-failure fixtures never build their source inputs. The
+    # filegroup only gives foreign_cc rules a stable lib_source label.
+    srcs = ["BUILD.bazel"],
+)
+
+make(
+    name = "make_missing_shared_ldflags_vars_explicit",
+    testonly = True,
+    lib_source = ":contract_src",
+    out_include_dir = "",
+    out_shared_libs = ["libruntime_search_contract.so"],
+    runtime_library_search_directories = "enabled",
+    tags = ["manual"],
+)
+
+make(
+    name = "make_missing_shared_ldflags_vars_auto",
+    testonly = True,
+    lib_source = ":contract_src",
+    out_include_dir = "",
+    out_shared_libs = ["libruntime_search_contract.so"],
+    runtime_library_search_directories = "auto",
+    tags = ["manual"],
+)
+
+configure_make(
+    name = "configure_make_missing_shared_ldflags_vars_explicit",
+    testonly = True,
+    lib_source = ":contract_src",
+    out_include_dir = "",
+    out_shared_libs = ["libruntime_search_contract.so"],
+    runtime_library_search_directories = "enabled",
+    tags = ["manual"],
+)
+
+configure_make(
+    name = "configure_make_missing_shared_ldflags_vars_auto",
+    testonly = True,
+    lib_source = ":contract_src",
+    out_include_dir = "",
+    out_shared_libs = ["libruntime_search_contract.so"],
+    runtime_library_search_directories = "auto",
+    tags = ["manual"],
+)
+
+meson(
+    name = "meson_missing_shared_ldflags_option_explicit",
+    testonly = True,
+    lib_source = ":contract_src",
+    out_include_dir = "",
+    out_shared_libs = ["libruntime_search_contract.so"],
+    runtime_library_search_directories = "enabled",
+    tags = ["manual"],
+)
+
+meson(
+    name = "meson_missing_shared_ldflags_option_auto",
+    testonly = True,
+    lib_source = ":contract_src",
+    out_include_dir = "",
+    out_shared_libs = ["libruntime_search_contract.so"],
+    runtime_library_search_directories = "auto",
+    tags = ["manual"],
+)
