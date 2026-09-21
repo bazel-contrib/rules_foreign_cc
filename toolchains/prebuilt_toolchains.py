@@ -103,6 +103,13 @@ CMAKE_TARGETS = {
             "@platforms//os:macos",
         ],
     },
+    "windows-arm64": {
+        "os_arch": ("windows", "aarch64"),
+        "constraints": [
+            "@platforms//cpu:aarch64",
+            "@platforms//os:windows",
+        ],
+    },
     "windows-i386": {
         "os_arch": ("windows", "x86_32"),
         "constraints": [
