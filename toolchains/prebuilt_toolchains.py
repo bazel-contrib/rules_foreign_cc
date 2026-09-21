@@ -16,6 +16,7 @@ Run from the repo root:
     python3 toolchains/prebuilt_toolchains.py
 """
 
+import base64
 import hashlib
 import json
 import os
@@ -284,6 +285,11 @@ def _sha256_of(url):
     return h.hexdigest()
 
 
+def _integrity_of(sha256_hex):
+    """Return the `sha256-<base64>` integrity spelling of a hex sha256."""
+    return "sha256-" + base64.b64encode(bytes.fromhex(sha256_hex)).decode("ascii")
+
+
 def _sha256_of_first(urls):
     """Return the sha256 of the first reachable url, trying them in order.
 
@@ -402,7 +408,7 @@ def hashed_source_versions(tool, versions, url_template, fallback_template):
         _log("hashing {} {}".format(tool, version))
         out[version] = {
             "urls": urls,
-            "sha256": _sha256_of_first(urls),
+            "integrity": _integrity_of(_sha256_of_first(urls)),
             "patches": list(patches),
         }
     return out
@@ -618,7 +624,7 @@ def get_cmake_definitions():
                         # directory name; render_source_dict would otherwise
                         # derive "cmake-3.19.x" from the alias key.
                         "strip_prefix": "cmake-{}.{}.{}".format(major, minor, patch),
-                        "sha256": sha256,
+                        "integrity": _integrity_of(sha256),
                         "patches": [],
                     }
                     src_versions["{}.{}.{}".format(major, minor, patch)] = entry
@@ -643,8 +649,7 @@ def get_cmake_definitions():
             per_plat[os_arch] = {
                 "urls": [CMAKE_URL_TEMPLATE.format(full=version, file=file)],
                 "strip_prefix": prefix,
-                "sha256": sha256,
-                "integrity": "",
+                "integrity": _integrity_of(sha256),
                 "constraints": list(target_meta["constraints"]),
                 "bin": bin_name,
             }
@@ -697,8 +702,7 @@ def get_ninja_definitions(latest_by_minor):
             per_plat[os_arch] = {
                 "urls": [url],
                 "strip_prefix": "",
-                "sha256": sha256,
-                "integrity": "",
+                "integrity": _integrity_of(sha256),
                 "constraints": list(target_meta["constraints"]),
                 "bin": "ninja.exe" if "win" in target else "ninja",
             }
