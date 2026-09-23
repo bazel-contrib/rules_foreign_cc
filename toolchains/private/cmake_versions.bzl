@@ -376,6 +376,19 @@ CMAKE_BIN_SRCS = {
             ],
             bin = "cmake",
         ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.24.4/cmake-3.24.4-windows-arm64.zip",
+            ],
+            strip_prefix = "cmake-3.24.4-windows-arm64",
+            sha256 = "",
+            integrity = "sha256-VegfDJWwakQ1twjN7n1XOeOMwpyQnT0xNMGjEX4JuWU=",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "cmake.exe",
+        ),
         ("windows", "x86_32"): struct(
             urls = [
                 "https://github.com/Kitware/CMake/releases/download/v3.24.4/cmake-3.24.4-windows-i386.zip",
@@ -441,6 +454,19 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
+        ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.25.3/cmake-3.25.3-windows-arm64.zip",
+            ],
+            strip_prefix = "cmake-3.25.3-windows-arm64",
+            sha256 = "",
+            integrity = "sha256-NJj+omJX7r+/yJ7ReWPz2Ng8GTYrkPsjUXhC3nd6Uio=",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "cmake.exe",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -508,6 +534,19 @@ CMAKE_BIN_SRCS = {
             ],
             bin = "cmake",
         ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.26.6/cmake-3.26.6-windows-arm64.zip",
+            ],
+            strip_prefix = "cmake-3.26.6-windows-arm64",
+            sha256 = "",
+            integrity = "sha256-Fs8TxC0/TWOtHWHQMzthAcDoj4k6w59DXvRytG9Q6bI=",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "cmake.exe",
+        ),
         ("windows", "x86_32"): struct(
             urls = [
                 "https://github.com/Kitware/CMake/releases/download/v3.26.6/cmake-3.26.6-windows-i386.zip",
@@ -573,6 +612,19 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
+        ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.27.9/cmake-3.27.9-windows-arm64.zip",
+            ],
+            strip_prefix = "cmake-3.27.9-windows-arm64",
+            sha256 = "",
+            integrity = "sha256-vKeVE0lWJk7eFC95qlE0dphfT0EPZQGnJ9YCdg6SEt0=",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "cmake.exe",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -640,6 +692,19 @@ CMAKE_BIN_SRCS = {
             ],
             bin = "cmake",
         ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.28.6/cmake-3.28.6-windows-arm64.zip",
+            ],
+            strip_prefix = "cmake-3.28.6-windows-arm64",
+            sha256 = "",
+            integrity = "sha256-Y+Tr0trbWtY/qvTtONtA0/7JLRsFDSpOaQEeo+5pnSk=",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "cmake.exe",
+        ),
         ("windows", "x86_32"): struct(
             urls = [
                 "https://github.com/Kitware/CMake/releases/download/v3.28.6/cmake-3.28.6-windows-i386.zip",
@@ -705,6 +770,19 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
+        ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.29.9/cmake-3.29.9-windows-arm64.zip",
+            ],
+            strip_prefix = "cmake-3.29.9-windows-arm64",
+            sha256 = "",
+            integrity = "sha256-QWSXg8t9odwDx1A56AuDhn2xr026uwPkOioPiwVlEG8=",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "cmake.exe",
         ),
         ("windows", "x86_32"): struct(
             urls = [
@@ -772,6 +850,19 @@ CMAKE_BIN_SRCS = {
             ],
             bin = "cmake",
         ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.30.9/cmake-3.30.9-windows-arm64.zip",
+            ],
+            strip_prefix = "cmake-3.30.9-windows-arm64",
+            sha256 = "",
+            integrity = "sha256-5SbNMNHfdpiJ/2eac5331LPpKnT4tPYal9uWKkoITtY=",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "cmake.exe",
+        ),
         ("windows", "x86_32"): struct(
             urls = [
                 "https://github.com/Kitware/CMake/releases/download/v3.30.9/cmake-3.30.9-windows-i386.zip",
@@ -838,6 +929,19 @@ CMAKE_BIN_SRCS = {
             ],
             bin = "cmake",
         ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v3.31.12/cmake-3.31.12-windows-arm64.zip",
+            ],
+            strip_prefix = "cmake-3.31.12-windows-arm64",
+            sha256 = "",
+            integrity = "sha256-5BYMGELeqFitN2/y7BdYcQRRW1FxTspZY7i915gQVVM=",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "cmake.exe",
+        ),
         ("windows", "x86_32"): struct(
             urls = [
                 "https://github.com/Kitware/CMake/releases/download/v3.31.12/cmake-3.31.12-windows-i386.zip",
@@ -903,6 +1007,19 @@ CMAKE_BIN_SRCS = {
                 "@platforms//os:macos",
             ],
             bin = "cmake",
+        ),
+        ("windows", "aarch64"): struct(
+            urls = [
+                "https://github.com/Kitware/CMake/releases/download/v4.0.7/cmake-4.0.7-windows-arm64.zip",
+            ],
+            strip_prefix = "cmake-4.0.7-windows-arm64",
+            sha256 = "",
+            integrity = "sha256-eQBJdE96QU9E6dkhYA9RkKNj6DYpVn5wlmE2A8GP8X0=",
+            constraints = [
+                "@platforms//cpu:aarch64",
+                "@platforms//os:windows",
+            ],
+            bin = "cmake.exe",
         ),
         ("windows", "x86_32"): struct(
             urls = [

@@ -587,11 +587,11 @@ def _binary_platform_expansion_test(ctx):
     plan = build_hub_plan(_tagset(root = {"cmake": [_tag("cmake", mode = "binary", version = default)]}))
     cmake_entries = [e for e in plan if e["name"].startswith("10_cmake_")]
 
-    # cmake ships 5 prebuilt platforms (linux x86_64/aarch64, macos universal,
-    # windows x86_64/i386), so the single tag fans out to 5 entries.
+    # cmake ships 6 prebuilt platforms (linux x86_64/aarch64, macos universal,
+    # windows x86_64/i386/aarch64), so the single tag fans out to 6 entries.
     asserts.equals(
         env,
-        5,
+        6,
         len(cmake_entries),
         "binary cmake tag should expand to one hub entry per prebuilt platform",
     )
@@ -613,6 +613,11 @@ def _binary_platform_expansion_test(ctx):
         env,
         "@cmake-{}-windows-x86_64//:cmake_tool".format(default) in all_toolchains,
         "binary expansion missing the windows-x86_64 spoke",
+    )
+    asserts.true(
+        env,
+        "@cmake-{}-windows-aarch64//:cmake_tool".format(default) in all_toolchains,
+        "binary expansion missing the windows-aarch64 spoke",
     )
     asserts.true(
         env,
