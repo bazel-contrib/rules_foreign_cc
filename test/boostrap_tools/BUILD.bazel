@@ -1,9 +1,19 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
-# Builds every tool rfcc can produce from source. `manual` because these are
+# Builds every tool rfcc can bootstrap from source. `manual` because these are
 # long builds; run it explicitly when touching the source-mode toolchains.
-# make and ninja are their registry modules' cc_binary targets; cmake goes
-# through the hub, so no version is pinned here.
+#
+# Each target is the hub's version-neutral alias, so no version is pinned here
+# and the test follows whatever `pick_source_version` settles on. They forward
+# to `@<tool>_src_<picked>//:<tool>_built`, which is the archive rfcc unpacks,
+# patches and compiles -- not a registry module's prebuilt binary.
+#
+# pkgconfig is absent for the same reason it is absent from `TOOL_TARGETS` in
+# //test: the hub publishes a `pkgconfig_built` alias only when it picks a
+# source version, and the default is the pkgconf registry module (3.0.7), which
+# the source table -- pkg-config 0.29.2 -- does not contain. Building that
+# bootstrap needs a module that pins `mode = "source"`, which is what
+# //test/integration:all_source_pinned sets up.
 build_test(
     name = "boostrap_tools",
     tags = [
@@ -11,8 +21,9 @@ build_test(
         "manual",
     ],
     targets = [
-        "@make//:make",
-        "@ninja//:ninja",
         "@rules_foreign_cc_toolchains//:cmake_built",
+        "@rules_foreign_cc_toolchains//:make_built",
+        "@rules_foreign_cc_toolchains//:meson_built",
+        "@rules_foreign_cc_toolchains//:ninja_built",
     ],
 )

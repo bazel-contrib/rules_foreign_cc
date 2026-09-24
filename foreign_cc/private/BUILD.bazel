@@ -166,9 +166,10 @@ bzl_library(
     srcs = ["tool_specs.bzl"],
     visibility = ["//:__subpackages__"],
     deps = [
-        "//toolchains/private:bcr_modules",
         "//toolchains/private:cmake_versions",
+        "//toolchains/private:make_versions",
         "//toolchains/private:meson_versions",
         "//toolchains/private:ninja_versions",
+        "//toolchains/private:pkgconfig_versions",
     ],
 )

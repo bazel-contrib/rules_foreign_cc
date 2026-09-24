@@ -24,9 +24,9 @@ version string, and the repos come out byte-identical to the bzlmod ones.
 
 Three things bzlmod does that this cannot:
 
-  * MVS. `bcr_repos` just fetches whichever `m4`, `make`, `ninja` and `pkgconf`
-    the caller of `rules_foreign_cc_dependencies` asked for; a bzlmod root
-    reaches the same versions by raising rfcc's `bazel_dep`.
+  * MVS. `bcr_repos` just fetches whichever `m4`, `make`, `meson`, `ninja` and
+    `pkgconf` the caller of `rules_foreign_cc_dependencies` asked for; a bzlmod
+    root reaches the same versions by raising rfcc's `bazel_dep`.
   * Resolve transitive `bazel_dep`s -- hence `BCR_CLOSURE`, holding the modules
     the tool BUILD files need but rfcc never loads from.
   * Guarantee apparent repo names. A BCR BUILD file spells its deps
@@ -50,7 +50,7 @@ visibility(["//foreign_cc"])
 # URL could not silently alter a build, but it could 404 the day the registry
 # reorganizes a path. Advance it alongside the versions in `bcr_modules.bzl`,
 # to a commit carrying all of them.
-_BCR_COMMIT = "854bc2bda5b6c7fefc101a2632ee3f525862f958"
+_BCR_COMMIT = "40e6f858d7226e67ff66de9609d19d133966508d"
 
 _BCR_RAW = "https://raw.githubusercontent.com/bazelbuild/bazel-central-registry/{}/modules".format(_BCR_COMMIT)
 
@@ -94,7 +94,7 @@ def _bcr_repo(name, spec):
         **kwargs
     )
 
-def bcr_repos(m4_version, make_version, ninja_version, pkgconfig_version):
+def bcr_repos(m4_version, make_version, meson_version, ninja_version, pkgconfig_version):
     """Declare every BCR module rfcc needs under WORKSPACE.
 
     Includes the transitive closure that bzlmod would resolve from
@@ -103,6 +103,8 @@ def bcr_repos(m4_version, make_version, ninja_version, pkgconfig_version):
     Args:
         m4_version: the m4 version to fetch; a key of `BCR_TOOLS["m4"]`.
         make_version: the make version to fetch; a key of `BCR_TOOLS["make"]`.
+        meson_version: the meson version to fetch; a key of
+            `BCR_TOOLS["meson"]`.
         ninja_version: the ninja version to fetch; a key of
             `BCR_TOOLS["ninja"]`. Selects the source-built ninja only. The
             prebuilt one is a separate archive keyed off the same argument, so
@@ -114,6 +116,7 @@ def bcr_repos(m4_version, make_version, ninja_version, pkgconfig_version):
     for module, version in [
         ("m4", m4_version),
         ("make", make_version),
+        ("meson", meson_version),
         ("ninja", ninja_version),
         ("pkgconf", pkgconfig_version),
     ]:

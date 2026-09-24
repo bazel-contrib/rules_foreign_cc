@@ -76,10 +76,10 @@ native_tool_toolchain(
     target = ":ninja_wrapper",
 )
 
-# Source-mode m4, make, ninja and pkg-config. The other built tools carry their
-# native_tool_toolchain in their spoke repo; these live here because rfcc
-# cannot append targets to a registry module it doesn't own. One definition,
-# not one per version, and both dependency models reach it.
+# Registry-backed m4, make, meson, ninja and pkg-config. The other built tools
+# carry their native_tool_toolchain in their spoke repo; these live here
+# because rfcc cannot append targets to a registry module it doesn't own. One
+# definition, not one per version, and both dependency models reach it.
 #
 # `target` is cfg = "exec", so `$(execpath)` resolves to m4.exe / make.exe /
 # ninja.exe / pkg-config.exe on Windows without a select.
@@ -95,6 +95,18 @@ native_tool_toolchain(
     env = {"MAKE": "$(execpath @make//:make)"},
     path = "$(execpath @make//:make)",
     target = "@make",
+)
+
+# A py_binary, not a cc_binary like its neighbours. `target` alone is enough:
+# `$(execpath)` names the launcher and the framework stages the launcher's
+# runfiles, which is where the `mesonbuild` package lives. No REAL_MESON here
+# -- that variable belongs to rfcc's own meson_tool wrapper (see
+# meson_tool_wrapper.py), which the registry module does not use.
+native_tool_toolchain(
+    name = "built_meson",
+    env = {"MESON": "$(execpath @meson//:meson)"},
+    path = "$(execpath @meson//:meson)",
+    target = "@meson",
 )
 
 # ninja goes through the wrapper for the same reason preinstalled_ninja does
@@ -133,6 +145,12 @@ toolchain(
     name = "built_make_toolchain",
     toolchain = ":built_make",
     toolchain_type = "//toolchains:make_toolchain",
+)
+
+toolchain(
+    name = "built_meson_toolchain",
+    toolchain = ":built_meson",
+    toolchain_type = "//toolchains:meson_toolchain",
 )
 
 toolchain(
@@ -261,6 +279,24 @@ bzl_library(
 )
 
 bzl_library(
+    name = "make_versions",
+    srcs = ["make_versions.bzl"],
+    visibility = [
+        "//foreign_cc/private:__pkg__",
+        "//toolchains:__pkg__",
+    ],
+)
+
+bzl_library(
+    name = "pkgconfig_versions",
+    srcs = ["pkgconfig_versions.bzl"],
+    visibility = [
+        "//foreign_cc/private:__pkg__",
+        "//toolchains:__pkg__",
+    ],
+)
+
+bzl_library(
     name = "prebuilt_toolchains_repository",
     srcs = ["prebuilt_toolchains_repository.bzl"],
     visibility = [
@@ -290,8 +326,25 @@ bzl_library(
     ],
     deps = [
         ":cmake_versions",
+        ":make_versions",
         ":meson_versions",
+        ":ninja_versions",
+        ":pkgconfig_versions",
         "@bazel_tools//tools/build_defs/repo:http.bzl",
         "@bazel_tools//tools/build_defs/repo:utils.bzl",
+    ],
+)
+
+bzl_library(
+    name = "custom_spokes",
+    srcs = ["custom_spokes.bzl"],
+    visibility = [
+        "//foreign_cc:__pkg__",
+        "//foreign_cc/private:__pkg__",
+        "//toolchains:__pkg__",
+    ],
+    deps = [
+        ":hub",
+        "//foreign_cc/private:tool_specs",
     ],
 )

@@ -1,16 +1,17 @@
 """Bazel Central Registry modules rules_foreign_cc consumes as external repos.
 
-`m4`, `make`, `ninja` and `pkgconf` are not built by rules_foreign_cc. Each is
-published on the BCR with a maintained BUILD file that compiles them as
-plain `cc_binary` targets against the resolved exec-platform cc_toolchain, so
-rfcc just depends on those repos and points a `native_tool_toolchain` at the
-binary. A build problem in any of them is then fixed by patching the BCR
-module, where the fix is shared with every other consumer, instead of in a
-bootstrap script only rfcc runs.
+`m4`, `make`, `meson`, `ninja` and `pkgconf` are not built by
+rules_foreign_cc. Each is published on the BCR with a maintained BUILD file
+that builds it against the resolved exec-platform toolchain -- a plain
+`cc_binary` for the four C programs, a `py_binary` over the upstream sources
+for meson -- so rfcc just depends on those repos and points a
+`native_tool_toolchain` at the binary. A build problem in any of them is then
+fixed by patching the BCR module, where the fix is shared with every other
+consumer, instead of in a bootstrap script only rfcc runs.
 
 `BCR_TOOLS` is keyed by the module's registry name, which is also the repo name
-rfcc gives it under both dependency models. For m4, make and ninja that is the
-tool's own name; rfcc's `pkgconfig` tool is the `pkgconf` module, the
+rfcc gives it under both dependency models. For m4, make, meson and ninja that
+is the tool's own name; rfcc's `pkgconfig` tool is the `pkgconf` module, the
 pkg-config implementation distributions have shipped as `pkg-config` for years
 (its BUILD file publishes the binary under both names).
 
@@ -165,6 +166,23 @@ BCR_TOOLS = {
             patch_strip = 1,
         ),
     },
+    # Unlike the others this is not a compiled program: the module's overlay
+    # BUILD file wraps the release tarball's `meson.py` in a `py_binary` and
+    # publishes the `mesonbuild` package as `:runtime`. Those two targets are
+    # exactly what the `@meson_src_<version>` source spoke exposes, which is
+    # what lets `meson_with_requirements` build on either one.
+    "meson": {
+        "1.10.1": _module(
+            registry_version = "1.10.1",
+            urls = ["https://github.com/mesonbuild/meson/releases/download/1.10.1/meson-1.10.1.tar.gz"],
+            integrity = "sha256-xCKW8S2zFqRRW5N1pd8zDy51HM3U9ghDDUHX1iEOQxc=",
+            strip_prefix = "meson-1.10.1",
+            overlay = {
+                "BUILD.bazel": "sha256-za43yrgJI0T3z5gBYpeJ8kLU7IPAyIc9YWJCfeRZ+y4=",
+                "MODULE.bazel": "sha256-MK0KBIY5eXjFJRMiradR+j8UiXrL6NGt9UJjBr/Mhts=",
+            },
+        ),
+    },
     "ninja": {
         "1.10.2": _module(
             registry_version = "1.10.2",
@@ -251,6 +269,11 @@ BCR_TOOLS = {
 # rules_cc_autoconf, which in turn needs nlohmann_json. Every version in
 # `BCR_TOOLS` resolves to the same two, so there is one entry each rather than
 # a per-version table.
+#
+# meson's `rules_python` and `platforms` deps are absent on purpose: rfcc
+# depends on both itself, under those same apparent names, on both dependency
+# models (`//foreign_cc:repositories.bzl` declares them for WORKSPACE), so the
+# meson BUILD file's loads already resolve.
 BCR_CLOSURE = {
     "nlohmann_json": _module(
         registry_version = "3.12.0.bcr.1",
@@ -276,7 +299,7 @@ def bcr_tool_module(module, version):
 
     Args:
         module: a key of `BCR_TOOLS`, i.e. the module's registry name (`m4`,
-            `make`, `ninja` or `pkgconf`).
+            `make`, `meson`, `ninja` or `pkgconf`).
         version: an exact tool version, i.e. a key of `BCR_TOOLS[module]`.
 
     Returns:

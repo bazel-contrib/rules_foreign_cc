@@ -15,6 +15,7 @@ bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "bazel_lib", version = "3.2.0")
 bazel_dep(name = "m4", version = "1.4.21.bcr.4")
 bazel_dep(name = "make", version = "4.4.1.bcr.1")
+bazel_dep(name = "meson", version = "1.10.1")
 bazel_dep(name = "ninja", version = "1.13.2")
 bazel_dep(name = "pkgconf", version = "3.0.7")
 
@@ -60,41 +61,42 @@ tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 # is in the graph (so macros like `meson_with_requirements` and rfcc's own
 # //test:build_scripts can reach the hub-published `<tool>_built` /
 # `<tool>_src_all` / `meson_src_*` aliases): the planner's all_required_spokes
-# fetches each SPOKE_SOURCE_TOOLS archive at pick_source_version (the default version
+# fetches each SOURCE_TOOLS archive at pick_source_version (the default version
 # here), independent of these registration tags.
-# cmake and ninja default to prebuilt binaries, which only exist for the five
-# platforms in the binary spoke tables. The WORKSPACE defaults also
-# registered a system (host-PATH) toolchain for each, giving any other host a
-# fallback. The extra system tag below restores that: it emits an
-# unconstrained hub entry (20_cmake_001_000 / 20_ninja_001_000) that lex-sorts
-# AFTER the per-platform binary rows (20_cmake_000_*), so the binary toolchain
-# still wins wherever a prebuilt exists and the system tool only resolves on
+# cmake defaults to a prebuilt binary, which exists only for the five platforms
+# in the binary spoke tables. The WORKSPACE defaults also registered a system
+# (host-PATH) cmake, giving any other host a fallback. The extra system tag
+# below restores that: it emits an unconstrained hub entry (20_cmake_001_000)
+# that lex-sorts AFTER the per-platform binary rows (20_cmake_000_*), so the
+# prebuilt still wins wherever one exists and the system tool only resolves on
 # hosts the binaries don't cover.
+#
+# ninja needs no such fallback: it is `custom` over the @ninja registry module,
+# which builds from source and so covers every platform with a C++ toolchain.
 tools.cmake(
     mode = "binary",
     version = "3.31.12",
 )
 tools.cmake(mode = "system")
 tools.ninja(
-    mode = "binary",
-    version = "1.13.2",
+    mode = "custom",
+    target = "@ninja",
 )
-tools.ninja(mode = "system")
 tools.m4(
-    mode = "source",
-    version = "1.4.21",
+    mode = "custom",
+    target = "@m4",
 )
 tools.make(
-    mode = "source",
-    version = "4.4.1",
+    mode = "custom",
+    target = "@make",
 )
 tools.meson(
-    mode = "source",
-    version = "1.10.1",
+    mode = "custom",
+    target = "@meson",
 )
 tools.pkgconfig(
-    mode = "source",
-    version = "3.0.7",
+    mode = "custom",
+    target = "@pkgconf//:pkg-config",
 )
 tools.autoconf(mode = "system")
 tools.automake(mode = "system")
