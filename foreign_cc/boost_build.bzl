@@ -12,6 +12,7 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load("//foreign_cc/private:resource_sets.bzl", "get_resource_parallelism")
 load("//foreign_cc/private/framework:helpers.bzl", "escape_dquote_bash")
 
 def _boost_build_impl(ctx):
@@ -49,6 +50,27 @@ def _user_supplied_toolset(user_options):
         if opt.startswith("toolset=") or opt == "--user-config" or opt.startswith("--user-config="):
             return True
     return False
+
+def _user_supplied_jobs(user_options):
+    # b2 spells this `-jN` or `-j N`; it has no long form.
+    for opt in user_options:
+        if opt.startswith("-j"):
+            return True
+    return False
+
+def _b2_install_command(b2_extra_args, user_options, jobs):
+    # b2 defaults `-j` to every detected CPU thread, which ignores whatever
+    # Bazel reserved for this action. Derive it from the same `resource_size`
+    # that produced the resource_set so the two cannot disagree. The flag goes
+    # ahead of `user_options` so an explicit user `-j` still wins, matching the
+    # convention in the ninja wrapper and cmake's build args.
+    jobs_args = []
+    if jobs and not _user_supplied_jobs(user_options):
+        jobs_args = ["-j{}".format(jobs)]
+
+    return " ".join(
+        ["./b2", "install"] + jobs_args + b2_extra_args + user_options + ["--prefix=."],
+    )
 
 def _jam_quote(text):
     # b2's jam parser accepts double-quoted strings with backslash escaping.
@@ -117,7 +139,11 @@ def _create_configure_script(configureParameters):
             if opt
         ])
 
-    script.append("./b2 install {} {} --prefix=.".format(" ".join(b2_extra_args), " ".join(user_options)))
+    script.append(_b2_install_command(
+        b2_extra_args = b2_extra_args,
+        user_options = user_options,
+        jobs = get_resource_parallelism(ctx.attr),
+    ))
     script.append("##disable_tracing##")
     return script
 
@@ -147,4 +173,8 @@ boost_build = rule(
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
     ],
+)
+
+export_for_test = struct(
+    b2_install_command = _b2_install_command,
 )
