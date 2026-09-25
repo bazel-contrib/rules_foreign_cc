@@ -22,6 +22,7 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
+load("//foreign_cc/private:resource_sets.bzl", "size_exec_groups")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_make_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
@@ -267,6 +268,16 @@ def _attrs():
     })
     return attrs
 
+_MESON_TOOLCHAINS = [
+    "@rules_foreign_cc//toolchains:meson_toolchain",
+    "@rules_foreign_cc//toolchains:cmake_toolchain",
+    "@rules_foreign_cc//toolchains:ninja_toolchain",
+    "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
+    "@rules_foreign_cc//toolchains:make_toolchain",
+    "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
+    "@bazel_tools//tools/cpp:toolchain_type",
+]
+
 meson = rule(
     doc = (
         "Rule for building external libraries with [Meson](https://mesonbuild.com/)."
@@ -276,15 +287,8 @@ meson = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _meson_impl,
-    toolchains = [
-        "@rules_foreign_cc//toolchains:meson_toolchain",
-        "@rules_foreign_cc//toolchains:cmake_toolchain",
-        "@rules_foreign_cc//toolchains:ninja_toolchain",
-        "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
-        "@rules_foreign_cc//toolchains:make_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
-        "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    exec_groups = size_exec_groups(_MESON_TOOLCHAINS),
+    toolchains = _MESON_TOOLCHAINS,
 )
 
 def meson_with_requirements(name, requirements, **kwargs):

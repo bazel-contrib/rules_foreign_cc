@@ -46,6 +46,24 @@ env_test_make(
     },
 )
 
+# A sized target runs its build action in the exec group named after its
+# resource_size, which is how remote executors get told how big the action is.
+# Bazel rejects exec_properties naming an exec group the rule didn't declare
+# ("Tried to set properties for non-existent exec groups"), so this both pins
+# the group name -- it is public API for anyone writing an RBE platform -- and
+# proves the action still builds when routed out of the default exec group.
+env_test_make(
+    name = "make_tiny_exec_group",
+    check_makevars = STANDARD_VARS | {
+        "GNUMAKEFLAGS": "",
+        "MAKEFLAGS": " -j3 --jobserver-auth={{JOBSERVER}} -- PREFIX={{INSTALLDIR}}",
+    },
+    make_attrs = {
+        "exec_properties": {"size_tiny.EstimatedCPU": "1"},
+        "resource_size": "tiny",
+    },
+)
+
 env_test_make(
     name = "make_tiny",
     check_makevars = STANDARD_VARS | {

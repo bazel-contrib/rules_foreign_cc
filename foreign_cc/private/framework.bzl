@@ -10,7 +10,13 @@ load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("@rules_cc//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
-load("//foreign_cc/private:resource_sets.bzl", "SIZE_ATTRIBUTES", "get_resource_env_vars")
+load(
+    "//foreign_cc/private:resource_sets.bzl",
+    "SIZE_ATTRIBUTES",
+    "get_resource_env_vars",
+    "get_resource_exec_group",
+    "get_resource_set",
+)
 load(
     "//foreign_cc/private/framework:helpers.bzl",
     "convert_shell_script",
@@ -605,8 +611,10 @@ def cc_external_rule_impl(ctx, attrs):
         tool_runfiles += tool[DefaultInfo].default_runfiles.files.to_list()
 
     resource_set, env = get_resource_env_vars(ctx.attr)
+    exec_group = get_resource_exec_group(ctx.label, ctx.attr, get_resource_set(ctx.attr))
 
     ctx.actions.run_shell(
+        exec_group = exec_group,
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
         outputs = rule_outputs + [wrapped_outputs.log_file],

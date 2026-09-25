@@ -20,6 +20,7 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:ninja_script.bzl", "create_ninja_script")
+load("//foreign_cc/private:resource_sets.bzl", "size_exec_groups")
 load("//toolchains/native_tools:tool_access.bzl", "get_ninja_data")
 
 def _ninja_impl(ctx):
@@ -121,6 +122,12 @@ def _attrs():
     })
     return attrs
 
+_NINJA_TOOLCHAINS = [
+    "@rules_foreign_cc//toolchains:ninja_toolchain",
+    "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
+    "@bazel_tools//tools/cpp:toolchain_type",
+]
+
 ninja = rule(
     doc = (
         "Rule for building external libraries with [Ninja](https://ninja-build.org/)."
@@ -130,9 +137,6 @@ ninja = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _ninja_impl,
-    toolchains = [
-        "@rules_foreign_cc//toolchains:ninja_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
-        "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    exec_groups = size_exec_groups(_NINJA_TOOLCHAINS),
+    toolchains = _NINJA_TOOLCHAINS,
 )

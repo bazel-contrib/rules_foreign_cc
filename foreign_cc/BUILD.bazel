@@ -91,12 +91,20 @@ bzl_library(
         ":boost_build",
         ":cmake",
         ":configure",
+        ":exec_properties",
         ":make",
         ":meson",
         ":msbuild",
         ":ninja",
         ":utils",
     ],
+)
+
+bzl_library(
+    name = "exec_properties",
+    srcs = ["exec_properties.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["//foreign_cc/private:resource_sets"],
 )
 
 bzl_library(
