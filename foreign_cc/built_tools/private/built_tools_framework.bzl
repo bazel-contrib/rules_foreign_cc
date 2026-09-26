@@ -5,7 +5,23 @@ load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:framework.bzl", "FOREIGN_CC_FRAMEWORK_COMMON_ATTRS", "get_env_prelude", "wrap_outputs")
 load("//foreign_cc/private:resource_sets.bzl", "get_resource_env_vars")
+load("//foreign_cc/private:runtime_library_search_directories.bzl", "RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES")
 load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script", "shebang")
+
+def _without_attrs(attrs, excluded_attrs):
+    return {
+        name: value
+        for name, value in attrs.items()
+        if name not in excluded_attrs
+    }
+
+# Built-tools do not have the regular foreign_cc outputs model needed for
+# runtime library search directory derivation. They also don't produce
+# shared libs that needs rpath treatment.
+_FOREIGN_CC_BUILT_TOOLS_COMMON_ATTRS = _without_attrs(
+    FOREIGN_CC_FRAMEWORK_COMMON_ATTRS,
+    RUNTIME_LIBRARY_SEARCH_DIRECTORY_ATTRIBUTES,
+)
 
 # Common attributes for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_ATTRS = {
@@ -19,7 +35,7 @@ FOREIGN_CC_BUILT_TOOLS_ATTRS = {
         doc = "The target containing the build tool's sources",
         mandatory = True,
     ),
-} | FOREIGN_CC_FRAMEWORK_COMMON_ATTRS
+} | _FOREIGN_CC_BUILT_TOOLS_COMMON_ATTRS
 
 # Common fragments for all built_tool rules
 FOREIGN_CC_BUILT_TOOLS_FRAGMENTS = [
