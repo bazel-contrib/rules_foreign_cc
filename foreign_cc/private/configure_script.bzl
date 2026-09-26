@@ -93,10 +93,20 @@ def create_configure_script(
     if regen_stub_prefix:
         regen_stub_prefix += " "
 
-    make_commands = []
+    # The "make" expansion context here is to allow runtime search path with $ORIGIN to be properly escaped
+    # for Makefiles. The actual nuance is a bit subtle.
+    # If we pass "\$ORIGIN" in LDFLAGS to configure, it will see "$ORIGIN" and this will end up as "RIGIN"
+    # in the generated Makefile.
+    # If we pass "\\$\$ORIGIN" in LDFLAGS to configure, it will see "\$$ORIGIN" and this will end up as
+    # "$$ORIGIN" in the generated Makefile. This is what we want.
+    # However, that latter option does mean configure probes will see "\$$ORIGIN" in RUNPATH of a built
+    # binary. This is ok since these RUNPATH are never intended for configure probes. Also an incorrect
+    # RUNPATH does not fail execution and will move on to the next defined RUNPATH.
+    configure_env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, is_msvc, [], expansion_context = "make")
+
     script.append("{regen_stubs}{env_vars} {prefix}\"{configure}\" {prefix_flag}$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
         regen_stubs = regen_stub_prefix,
-        env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, is_msvc, make_commands),
+        env_vars = configure_env_vars,
         prefix = configure_prefix,
         configure = configure_path,
         prefix_flag = prefix_flag,

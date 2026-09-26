@@ -1,0 +1,27 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "runtime_executable")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+runtime_executable(
+    name = "openssl_runtime_executable",
+    binary = select({
+        "@rules_cc//cc/compiler:msvc-cl": "openssl.exe",
+        "//conditions:default": "openssl",
+    }),
+    foreign_cc_target = "@openssl//:openssl",
+)
+
+sh_test(
+    name = "openssl_help_test",
+    size = "small",
+    srcs = ["openssl_help_test.sh"],
+    args = ["$(rlocationpath :openssl_runtime_executable)"],
+    data = [
+        ":openssl_runtime_executable",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [":openssl_help_test"],
+)

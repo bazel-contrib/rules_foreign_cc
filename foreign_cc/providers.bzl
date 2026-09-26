@@ -23,3 +23,11 @@ Instances of ForeignCcArtifactInfo are encapsulated in a depset [ForeignCcDepsIn
         "lib_dir_name": "Lib directory, relative to install directory",
     },
 )
+
+ForeignCcRuntimeExecutableInfo = provider(
+    doc = """Provider exposing declared foreign_cc runtime files for executable adapters.""",
+    fields = {
+        "binaries": "Dictionary mapping exact out_binaries entries to declared binary Files.",
+        "runtime_files": "Depset of declared foreign_cc outputs needed at runtime.",
+    },
+)
