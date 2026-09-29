@@ -830,6 +830,18 @@ def _correct_path_variable(toolchain, env):
                 path_paths = [prefix + path if path and path[1] != ":" else path for path in value.split(";")]
                 corrected_env[key] = ";".join(path_paths)
         env = corrected_env
+    else:
+        # Anchor exec-root-relative paths (external/, bazel-out/) in env values to
+        # $EXT_BUILD_ROOT, since foreign builds run outside the exec root.
+        corrected_env = dict()
+        for key, value in env.items():
+            if key != "PATH":
+                value = ":".join([
+                    "$EXT_BUILD_ROOT/" + path if path.startswith("external/") or path.startswith("bazel-out/") else path
+                    for path in value.split(":")
+                ])
+            corrected_env[key] = value
+        env = corrected_env
 
     value = env.get("PATH")
     if value == None:
