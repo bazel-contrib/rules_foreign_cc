@@ -412,6 +412,13 @@ meson's and CMake's dependency search insist on finding one.</li>
 </ul>
 <p><code>version</code> is rejected on a <code>custom</code> tag: the tag names the binary outright, so
 there is nothing left for rfcc to pick a version of.</p>
+<p>For meson the target is a Python binary, such as <code>@meson//:meson</code> or one
+from another Python ruleset, and the spoke declares a <code>meson_tool_toolchain</code>
+over it rather than a <code>native_tool_toolchain</code>. It runs the binary as is and
+additionally exports <code>REAL_MESON</code> and <code>MESON_REAL</code> (its entry script, as an
+rlocationpath and an exec path) and <code>PYTHON3</code> (the exec-configuration
+interpreter), and puts the binary's <code>deps</code> on <code>PYTHONPATH</code> for the child
+interpreters meson spawns.</p>
 <h2 id="source-mode-and-table-staleness"><a class="header" href="#source-mode-and-table-staleness"><code>source</code> mode and table staleness</a></h2>
 <p><code>mode = "source"</code> builds the tool from its upstream release tarball. The
 versions available are whatever <code>rules_foreign_cc</code> carries download URLs and
