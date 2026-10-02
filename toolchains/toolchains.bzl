@@ -1,5 +1,6 @@
 """A module defining the various toolchain definitions for `rules_foreign_cc`"""
 
+load("//toolchains/native_tools:native_tools_toolchain.bzl", "tool_targets")
 load(":built_toolchains.bzl", _built_toolchains = "built_toolchains")
 load(":prebuilt_toolchains.bzl", _prebuilt_toolchains = "prebuilt_toolchains")
 
@@ -43,13 +44,17 @@ def preinstalled_toolchains():
 def _current_toolchain_impl(ctx):
     toolchain = ctx.toolchains[ctx.attr._toolchain]
 
-    if toolchain.data.target:
+    targets = tool_targets(toolchain.data)
+    if targets:
         return [
             toolchain,
             platform_common.TemplateVariableInfo(toolchain.data.env),
             DefaultInfo(
-                files = toolchain.data.target.files,
-                runfiles = toolchain.data.target.default_runfiles,
+                files = depset(transitive = [t[DefaultInfo].files for t in targets]),
+                runfiles = ctx.runfiles().merge_all([
+                    t[DefaultInfo].default_runfiles
+                    for t in targets
+                ]),
             ),
         ]
     return [

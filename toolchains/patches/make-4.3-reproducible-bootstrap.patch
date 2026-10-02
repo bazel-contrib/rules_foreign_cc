@@ -1,0 +1,14 @@
+diff --git Makefile.in Makefile.in
+--- Makefile.in
++++ Makefile.in
+@@ -1042,8 +1042,8 @@ make_LDADD = $(LIBOBJS) $(GUILE_LIBS) lib/libgnu.a $(GETLOADAVG_LIBS) \
+ 		@LIBINTL@
+
+ AM_CPPFLAGS = -Isrc -I$(top_srcdir)/src -Ilib -I$(top_srcdir)/lib \
+-	-DLIBDIR=\"$(libdir)\" -DINCLUDEDIR=\"$(includedir)\" \
+-	-DLOCALEDIR=\"$(localedir)\" $(am__append_2)
++	-DLIBDIR=\"nonexistent\" -DINCLUDEDIR=\"nonexistent\" \
++	-DLOCALEDIR=\"nonexistent\" $(am__append_2)
+ AM_CFLAGS = $(GUILE_CFLAGS)
+
+ # Extra stuff to include in the distribution.

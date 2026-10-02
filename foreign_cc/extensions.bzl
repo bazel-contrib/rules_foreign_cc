@@ -11,6 +11,7 @@ load(
     "build_hub_aliases",
     "build_hub_plan",
     "collect_tags",
+    "spoke_plan_error",
     "validate_tag",
 )
 load(
@@ -18,15 +19,18 @@ load(
     "ALL_MODES",
     "ALL_TOOLS",
     "MODE_BINARY",
+    "MODE_CUSTOM",
     "MODE_NOOP",
     "MODE_SOURCE",
     "MODE_SYSTEM",
-    "get_spec",
 )
 load("//toolchains:toolchains.bzl", "PREINSTALLED_TOOLS")
 
 # buildifier: disable=bzl-visibility
 load("//toolchains/private:binary_spokes.bzl", "cmake_binary_spokes", "ninja_binary_spokes")
+
+# buildifier: disable=bzl-visibility
+load("//toolchains/private:custom_spokes.bzl", "custom_spokes")
 
 # buildifier: disable=bzl-visibility
 load("//toolchains/private:hub.bzl", "hub_repo")
@@ -35,8 +39,11 @@ load("//toolchains/private:hub.bzl", "hub_repo")
 load(
     "//toolchains/private:source_spokes.bzl",
     "cmake_source_spokes",
+    "make_source_spokes",
     "meson_source_spokes",
+    "ninja_source_spokes",
     "pkgconfig_msvc_companions",
+    "pkgconfig_source_spokes",
 )
 
 # Shared attribute set for every tool's tag class: the attributes needed
@@ -44,10 +51,16 @@ load(
 # is not a breaking change, so the set can grow as new functionality lands.
 _COMMON_TAG_ATTRS = {
     "exec_compatible_with": attr.label_list(default = []),
-    # "" means "unset" (accept the tool's default mode); the rest mirror
-    # ALL_MODES so the accepted set can't drift from the planner's modes.
+    # Every attr defaults to empty and the planner requires a mode, so a tag is
+    # all-or-nothing: declaring one commits you to specifying it. "" is kept in
+    # `values` only so the planner -- not an opaque attr error -- reports the
+    # omission; the rest mirror ALL_MODES so the accepted set can't drift.
     "mode": attr.string(default = "", values = [""] + ALL_MODES),
     "register_toolchain": attr.bool(default = True),
+    # A label, not a string: it resolves against the declaring module's repo
+    # mapping, so `@make//:make` means what the author's MODULE.bazel says.
+    # Required for -- and only accepted with -- mode = "custom".
+    "target": attr.label(),
     "target_compatible_with": attr.label_list(default = []),
     "version": attr.string(default = ""),
 }
@@ -70,22 +83,30 @@ _SPOKE_DISPATCH = {
         MODE_BINARY: cmake_binary_spokes,
         MODE_SOURCE: cmake_source_spokes,
     },
+    "make": {MODE_SOURCE: make_source_spokes},
     "meson": {MODE_SOURCE: meson_source_spokes},
-    "ninja": {MODE_BINARY: ninja_binary_spokes},
+    "ninja": {
+        MODE_BINARY: ninja_binary_spokes,
+        MODE_SOURCE: ninja_source_spokes,
+    },
+    "pkgconfig": {MODE_SOURCE: pkgconfig_source_spokes},
 }
 
 def _materialize_spoke(spoke):
     """Call the right repository_rule for a spoke descriptor.
 
-    Nothing to do for mode=system and mode=noop (the hub references static
-    @rules_foreign_cc//toolchains targets), nor for a source-mode tool with a
-    `source_target`: that repo comes from a `bazel_dep` rather than from rfcc,
-    so it already exists and the hub points straight at the static target.
+    Nothing to do for mode=system and mode=noop: the hub references static
+    @rules_foreign_cc//toolchains targets for those.
+
+    mode=custom needs no `_SPOKE_DISPATCH` entry. Unlike a version-keyed
+    archive, every custom spoke is rendered the same way from the same spec
+    fields, so one branch covers all of them.
     """
     tool, mode, version = spoke["tool"], spoke["mode"], spoke["version"]
     if mode in (MODE_SYSTEM, MODE_NOOP):
         return
-    if mode == MODE_SOURCE and get_spec(tool).source_target:
+    if mode == MODE_CUSTOM:
+        custom_spokes(tool, spoke["target"])
         return
 
     dispatch = _SPOKE_DISPATCH.get(tool, {})
@@ -158,9 +179,14 @@ def _init(module_ctx):
     pkgconfig_msvc_companions()
 
     # Materialize spokes (deduplicated by name later via maybe()).
+    spokes = all_required_spokes(tagset)
+    err = spoke_plan_error(spokes)
+    if err:
+        fail(err)
+
     seen_spokes = {}
-    for spoke in all_required_spokes(tagset):
-        key = (spoke["tool"], spoke["version"], spoke["mode"])
+    for spoke in spokes:
+        key = (spoke["tool"], spoke["version"], spoke["mode"], spoke["target"])
         if key in seen_spokes:
             continue
         seen_spokes[key] = True

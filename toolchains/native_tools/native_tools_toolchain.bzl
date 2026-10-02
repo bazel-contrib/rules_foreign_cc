@@ -16,8 +16,31 @@ ToolInfo = provider(
             "If the tool is built as part of the build, the corresponding build target, which should produce " +
             "the tree artifact with the binary to call."
         ),
+        "tools": (
+            "Every target that has to be staged into an action using this tool, `target` included. " +
+            "Empty when the tool is preinstalled and nothing is staged at all. Toolchain rules that " +
+            "predate this field leave it None; read it through `tool_targets`."
+        ),
     },
 )
+
+def tool_targets(tool_info):
+    """Every target to stage for a tool, however old the provider is.
+
+    `tools` was added to `ToolInfo` after the provider became public API, so a
+    third-party toolchain rule that still constructs it from `path` and
+    `target` alone leaves the field None. For such a tool `target` is the whole
+    list, which is exactly what rfcc staged before the field existed.
+
+    Args:
+        tool_info (ToolInfo): a resolved toolchain's tool data.
+
+    Returns:
+        list of Target: the targets to stage; empty for a preinstalled tool.
+    """
+    if tool_info.tools != None:
+        return tool_info.tools
+    return [tool_info.target] if tool_info.target else []
 
 def _resolve_tool_path(ctx, path, target, tools):
     """
@@ -55,6 +78,7 @@ def _native_tool_toolchain_impl(ctx):
         env = env,
         path = path,
         target = ctx.attr.target,
+        tools = ([ctx.attr.target] if ctx.attr.target else []) + ctx.attr.tools,
     ))
 
 native_tool_toolchain = rule(
@@ -92,9 +116,10 @@ native_tool_toolchain = rule(
             mandatory = False,
             cfg = "exec",
             doc = (
-                "Additional tools." +
-                "If `target` expands to several files, `tools` can be used to " +
-                "isolate a specific file that can be used in `env`."
+                "Additional targets making up this tool, staged into the action alongside `target`. " +
+                "Use it whenever `path` or `env` must name a single file: to isolate one file out of a " +
+                "`target` that expands to several, or to add a file `target` does not produce at all, " +
+                "such as the real binary behind a launcher."
             ),
             allow_files = True,
         ),

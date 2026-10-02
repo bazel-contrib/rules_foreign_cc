@@ -1,0 +1,52 @@
+module(
+    name = "multi_tag_make_test",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../../..",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+
+# Three tags for one tool, one of them `custom`. Tags are collected per tool
+# into a list rather than a slot, so each registerable one gets its own hub
+# entry -- 10_make_000_000, _001_000, _002_000. Those entries are registered
+# in zero-padded name order, which makes tag order precedence order: Bazel
+# takes the first whose constraints match the host. Three different modes,
+# three different spoke shapes (a fetched source archive, a generated custom
+# wrapper, a preinstalled host tool), all coexisting for one toolchain type.
+#
+# No tools.explicit(): a registerable root tag already suppresses rfcc's own
+# make registration, so every other tool keeps rfcc's defaults.
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+
+# Tag 0 -- constrained to Windows, and this scenario never runs on Windows, so
+# it must be skipped rather than shadow the tags behind it. Its spoke is still
+# fetched: constraints govern registration, not materialization.
+tools.make(
+    exec_compatible_with = ["@platforms//os:windows"],
+    mode = "source",
+    version = "4.4.1",
+)
+
+# Tag 1 -- unconstrained, so it is the first match and wins. `//:make` is a
+# fake that prints a sentinel and exits 1 (see fake_make.c); that sentinel
+# reaching the build log is how the scenario proves it was *this* tag that
+# drove the build.
+tools.make(
+    mode = "custom",
+    target = "//:make",
+)
+
+# Tag 2 -- also unconstrained, so it would win if the ordering were wrong.
+# Host make would build the Makefile and never print the sentinel, so the two
+# outcomes are impossible to confuse.
+tools.make(mode = "system")
+
+# Surface the hub so the scenario's cquery can count the entries the three
+# tags produced.
+use_repo(tools, "rules_foreign_cc_toolchains")

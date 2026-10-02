@@ -95,23 +95,12 @@ select_executable(
     src = "{wrapper}",
 )
 
-filegroup(
-    name = "ninja_data",
-    srcs = [
-        ":ninja_bin",
-        "{wrapper}",
-    ]
-)
-
 native_tool_toolchain(
     name = "ninja_tool",
     env = {env},
     path = "$(execpath :ninja_wrapper_bin)",
-    target = ":ninja_data",
-    tools = [
-        ":ninja_bin",
-        ":ninja_wrapper_bin",
-    ]
+    target = ":ninja_wrapper_bin",
+    tools = [":ninja_bin"],
 )
 """
 

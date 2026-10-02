@@ -16,7 +16,11 @@ predict a spoke's name rather than look it up:
 
 - **Binary spokes** are named `@<tool>-<version>-<os>-<arch>`, e.g.
   `@cmake-3.31.12-linux-x86_64` and `@ninja-1.13.2-linux-x86_64` (target
-  `:<tool>_tool`). `<os>` and `<arch>` are the Bazel platform names
+  `:<tool>_tool`). A binary spoke exists only for a `mode = "binary"` tag:
+  rfcc's default cmake is one, but its default ninja is `custom` over the
+  `@ninja` registry module, so the ninja spoke above is only declared once a
+  root writes `tools.ninja(mode = "binary", version = "1.13.2")` itself.
+  `<os>` and `<arch>` are the Bazel platform names
   (`linux`/`macos`/`windows`, `x86_64`/`aarch64`/`x86_32`), so the suffix
   matches the toolchain's `exec_compatible_with` constraints. The one
   exception is cmake's macOS build: it ships a single universal2 binary that
@@ -24,21 +28,16 @@ predict a spoke's name rather than look it up:
   constraint), and its arch token is `universal` -
   `@cmake-3.31.12-macos-universal`.
 - **Source spokes** are named `@<tool>_src_<version>`, e.g.
-  `@cmake_src_3.31.12`, `@meson_src_1.10.1` (target `:<tool>_tool`).
-  m4, make, ninja and pkgconfig have no source spoke: in `source` mode they
-  come from their Bazel Central Registry modules, `@m4//:m4`, `@make//:make`,
-  `@ninja//:ninja` and `@pkgconf//:pkg-config`, which `rules_foreign_cc`
-  depends on with a `bazel_dep`. (rfcc's `pkgconfig` tool is the `pkgconf`
-  module - the pkg-config implementation distributions ship as `pkg-config`;
-  its BUILD file publishes the binary under both names.) A `bazel_dep`
-  resolves to a single version graph-wide under MVS, so under bzlmod the
-  tag's `version =` does not select one: `tools.make(mode = "source",
-  version = ...)` accepts any version rfcc offers, but the resolved module
-  is what gets built. To build a different one, declare your own
-  `bazel_dep` (or a `single_version_override`) on `m4` / `make` / `ninja` /
-  `pkgconf` -- MVS then hands rfcc that version. (Under `WORKSPACE` there
-  is no MVS, so `rules_foreign_cc_dependencies(make_version = ...)` does
-  select directly.)
+  `@cmake_src_3.31.12`, `@make_src_4.4.1`, `@meson_src_1.10.1` (target
+  `:<tool>_tool`). These hold the upstream release tarball, which
+  `rules_foreign_cc` bootstraps into a working tool. m4 has no source spoke:
+  it has never had a bootstrap, so `custom` is the only way to point it at a
+  different m4.
+- **Custom spokes** are named `@<tool>_custom_<target>`, with the target
+  label flattened into a repo-name-safe token (`@@pkgconf+//:pkg-config` ->
+  `pkgconf_pkg-config`). They hold nothing but generated BUILD text: an alias
+  onto the target your tag named, and the `native_tool_toolchain` wrapping it.
+  See [`custom` mode](#custom-mode).
 
 For most users these names are an implementation detail: `rules_foreign_cc`
 registers the hub and you never touch the spokes directly.
@@ -88,16 +87,19 @@ depend on `rules_foreign_cc`:
 bazel_dep(name = "rules_foreign_cc", version = "{version}")
 ```
 
-That's it. `rules_foreign_cc` contributes its default tool set - cmake and
-ninja as prebuilt binaries, m4, make, meson, and pkgconfig built from source,
-plus autoconf, automake, and msbuild as system tools - and **registers the hub
-for you** from its own MODULE.bazel. (For the exact default mode and pinned
+That's it. `rules_foreign_cc` contributes its default tool set - cmake as a
+prebuilt binary, m4, make, meson, ninja and pkgconfig wrapped from the
+`m4` / `make` / `meson` / `ninja` / `pkgconf` Bazel Central Registry modules
+rfcc `bazel_dep`s on, plus autoconf, automake, and msbuild as system tools -
+and **registers the hub for you** from its own MODULE.bazel. (For the exact
+default mode and pinned
 version of each tool, see the
-[per-tool support table](#per-tool-support) below.) cmake and ninja
-additionally register an unconstrained `system` toolchain as a host-PATH
+[per-tool support table](#per-tool-support) below.) cmake
+additionally registers an unconstrained `system` toolchain as a host-PATH
 fallback: the prebuilt binary wins on the platforms rfcc ships prebuilts for,
-and any other host falls back to a `cmake`/`ninja` on `PATH` rather than
-failing resolution.
+and any other host falls back to a `cmake` on `PATH` rather than
+failing resolution. The registry-backed tools need no such fallback - they
+build from source, so they cover every platform with a C++ toolchain.
 (nmake is *not* a default: it shares make's toolchain type, so it's selected
 only by an explicit `toolchain =` label, never registered for resolution.)
 bzlmod honors a dependency's `register_toolchains(...)` for the whole build, so
@@ -108,7 +110,7 @@ you don't call it yourself.
 Customisation goes through the `tools` module extension. You add only the tags
 for the tools you care about; every other tool keeps its default, and you still
 don't register anything yourself. (Tagging a tool replaces *all* of rfcc's
-default tags for that one tool - relevant for cmake and ninja, which default to
+default tags for that one tool - relevant for cmake, which defaults to
 a binary plus a `system` fallback; see the note in
 [Minimal setup](#minimal-setup).)
 
@@ -117,7 +119,7 @@ tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 
 tools.cmake(version = "3.31.12", mode = "binary")
 tools.ninja(mode = "system")
-tools.make(mode = "system")  # opt out of source-build, use system make
+tools.make(mode = "system")  # use make from PATH
 ```
 
 `use_repo(tools, "rules_foreign_cc_toolchains")` and
@@ -126,15 +128,26 @@ you reference the hub repo by name in your own BUILD files, or if you opt out
 of rfcc's registration (see
 [`register_toolchain = False`](#register_toolchain--false)).
 
-Omitting a `tools.<tool>(...)` tag entirely is how you accept rfcc's default
-mode and pinned default version for that tool. A bare `tools.<tool>()` tag
-with no attributes is rejected - it neither selects a tool variant nor
-constrains one, so it's a no-op (`register_toolchain = False` doesn't change
-that: with no mode/version/constraints there's nothing to declare or
-suppress). A tag must carry at least one of `mode`, `version`,
-`exec_compatible_with`, or `target_compatible_with`. Beyond that minimum the
-attributes still interact: a `binary`/`source` mode requires a `version`,
-while `system`/`noop` forbid one (see [Tag attributes](#tag-attributes)).
+### Declaring a tag is all-or-nothing
+
+Omitting a `tools.<tool>(...)` tag entirely is how you accept rfcc's own
+registration for that tool. Writing one commits you to specifying it
+completely: every attribute defaults to empty, and nothing is inferred from
+rfcc's defaults or from the rest of the tag.
+
+| Attribute | Required when | Rejected when |
+|---|---|---|
+| `mode` | always | not one of the tool's supported modes |
+| `version` | mode is `binary` or `source` | mode is `system`, `noop` or `custom`; tool is versionless |
+| `target` | mode is `custom` | mode is not `custom` |
+
+`mode` is checked first, so a bare or half-filled tag says so plainly rather
+than failing later on a symptom. This is deliberate: with no mode there is
+nothing to infer from. A `version` alone doesn't distinguish `binary` from
+`source` (ninja's tables overlap), and constraints alone identify nothing.
+
+`register_toolchain = False` does not relax any of this - it suppresses the
+hub entry, not the declaration.
 
 Each tool has its own tag class: `tools.autoconf`, `tools.automake`,
 `tools.cmake`, `tools.m4`, `tools.make`, `tools.meson`, `tools.msbuild`,
@@ -146,26 +159,36 @@ All `tools.<tool>(...)` tags share the same shape:
 
 | Attribute | Type | Notes |
 |---|---|---|
-| `mode` | string | One of the modes supported by the tool. See the table below. If unset, the planner picks the highest-priority mode the tool supports (binary > source > system). |
-| `version` | string | Required when the resolved mode is `binary` or `source`; forbidden for `system`/`noop` and for versionless tools. Accepts an exact patch (`3.31.12`) or a `major.minor.x` wildcard (`3.31.x`) that resolves to that minor series' latest patch - see [Version wildcards](#version-wildcards). |
+| `mode` | string | **Required.** One of the modes supported by the tool - see [Per-tool support](#per-tool-support). |
+| `version` | string | Required when `mode` is `binary` or `source`; forbidden for `system`/`noop`/`custom` and for versionless tools. Accepts an exact patch (`3.31.12`) or a `major.minor.x` wildcard (`3.31.x`) that resolves to that minor series' latest patch - see [Version wildcards](#version-wildcards). |
+| `target` | label | Required when `mode` is `custom`, forbidden otherwise. The executable to use as the tool - see [`custom` mode](#custom-mode). |
 | `register_toolchain` | bool | Default `True`. If `False`, declare the spoke but skip registration - see below. |
 | `exec_compatible_with` | label list | Forwarded to the registered `toolchain(...)` target's `exec_compatible_with`. |
 | `target_compatible_with` | label list | Forwarded to the registered `toolchain(...)` target's `target_compatible_with`. |
 
 ### Per-tool support
 
-| Tool | Supported modes | Default mode | Versioned |
+| Tool | Supported modes | rfcc's own default | Versioned |
 |---|---|---|---|
 | `autoconf` | system, noop | system | no |
 | `automake` | system, noop | system | no |
-| `cmake` | binary, source, system, noop | binary | yes |
-| `m4` | source, system, noop | source | yes |
-| `make` | source, system, noop | source | yes |
-| `meson` | source, system, noop | source | yes |
-| `msbuild` | system, noop | system | no |
-| `ninja` | binary, source, system, noop | binary | yes |
+| `cmake` | binary, custom, source, system, noop | binary | yes |
+| `m4` | custom, system, noop | custom (`@m4`) | no |
+| `make` | custom, source, system, noop | custom (`@make`) | yes |
+| `meson` | custom, source, system, noop | custom (`@meson`) | yes |
+| `msbuild` | custom, system, noop | system | no |
+| `ninja` | binary, custom, source, system, noop | custom (`@ninja`) | yes |
 | `nmake` | system | system | no |
-| `pkgconfig` | source, system, noop | source | yes |
+| `pkgconfig` | custom, source, system, noop | custom (`@pkgconf//:pkg-config`) | yes |
+
+"rfcc's own default" is what you inherit by *not* writing a tag for that tool;
+it is not a fallback within a tag you do write (see
+[Declaring a tag is all-or-nothing](#declaring-a-tag-is-all-or-nothing)).
+
+`autoconf`, `automake` and `nmake` have no `custom` mode. The first two drive
+three and two environment variables respectively, which one binary cannot
+satisfy; nmake has no environment variable at all. For those, register your
+own `toolchain(...)` with `register_toolchain = False`.
 
 The pinned default version for each versioned tool lives in
 [`foreign_cc/private/tool_specs.bzl`](https://github.com/bazel-contrib/rules_foreign_cc/blob/main/foreign_cc/private/tool_specs.bzl)
@@ -192,6 +215,64 @@ identically.
 
 An unknown wildcard (a minor series rfcc doesn't ship) is rejected with a
 message listing the accepted exact versions and wildcards.
+
+## `custom` mode
+
+`mode = "custom"` points a toolchain at an executable your build already
+produces - one you build yourself, or one from another module:
+
+```python
+tools.make(mode = "custom", target = "//tools/make:my_make")
+tools.cmake(mode = "custom", target = "@some_module//:cmake")
+```
+
+`target` is a **plain executable**, not a `native_tool_toolchain`.
+`rules_foreign_cc` generates the wrapper for you, into a spoke repo named
+`@<tool>_custom_<flattened target label>`, and slots the resulting
+`toolchain(...)` into the hub alongside every other entry. That placement is
+the point: a `custom` tag participates in the hub's ordering (root tags ahead
+of rfcc's defaults) and honours `exec_compatible_with` /
+`target_compatible_with`, which a hand-written `toolchain(...)` registered
+outside the hub cannot do.
+
+This is how rfcc reaches its own default m4, make and pkg-config: its
+`MODULE.bazel` carries `tools.m4(mode = "custom", target = "@m4")` and
+friends over the Bazel Central Registry modules it `bazel_dep`s on.
+
+Two constraints are worth knowing before you use it:
+
+- **The target must be visible to the spoke.** The generated alias lives in a
+  repo of its own, so a `//visibility:private` target fails analysis with a
+  visibility error naming a repo you never wrote. Mark it
+  `//visibility:public`.
+- **The alias does not rename the file.** `rules_foreign_cc` symlinks the tool
+  into `$EXT_BUILD_DEPS/bin` under the *underlying file's* basename, not the
+  alias's. That only matters for tools something else looks up by name on
+  `PATH` - which is why rfcc's own pkgconfig default points at
+  `@pkgconf//:pkg-config` and not `@pkgconf//:pkgconf`. ninja is handled for
+  you: rfcc routes it through a wrapper literally named `ninja`, because
+  meson's and CMake's dependency search insist on finding one.
+
+`version` is rejected on a `custom` tag: the tag names the binary outright, so
+there is nothing left for rfcc to pick a version of.
+
+## `source` mode and table staleness
+
+`mode = "source"` builds the tool from its upstream release tarball. The
+versions available are whatever `rules_foreign_cc` carries download URLs and
+build files for, which is **not** the same set as the registry modules rfcc
+defaults to:
+
+- **pkgconfig** source mode is **pkg-config 0.29.2** - a different, long
+  unmaintained program from the **pkgconf 3.0.7** that `custom` mode
+  defaults to.
+- **ninja** and **make** source tables trail their prebuilt/registry
+  counterparts.
+
+These tables are stale by nature: keeping a hand-maintained bootstrap current
+is exactly what the registry modules exist to avoid. Prefer `binary` or
+`custom` unless you specifically need the tool built from source in your own
+toolchain, and treat a `source` version as pinned rather than tracking.
 
 ## `tools.explicit()`
 
@@ -322,8 +403,12 @@ The current surface does not handle these cases:
   wildcard (see [Version wildcards](#version-wildcards)); a bare major series
   like `3.x` is not accepted.
 - **Versions rfcc doesn't ship.** A `version` must resolve to a version
-  `rules_foreign_cc` has download URLs for; there is no way to point a tag at
-  an arbitrary unsupported version.
+  `rules_foreign_cc` has download URLs for. To use a version rfcc doesn't
+  carry, build it yourself and point a
+  [`custom` tag](#custom-mode) at the result.
+- **`custom` for autoconf, automake and nmake.** These drive more than one
+  environment variable (or none), so one executable can't stand in for the
+  toolchain; see [Per-tool support](#per-tool-support).
 - **Only the root shapes the default registration set.** Non-root modules can
   declare spokes for their own scope but cannot append to the hub's `:all`
   registration list; that list is driven by the root module and rfcc's

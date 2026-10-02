@@ -19,18 +19,28 @@ load(
     "collect_tags",
     "pad3",
     "pick_source_version",
+    "spoke_plan_error",
     "tag_error",
 )
 
 # buildifier: disable=bzl-visibility
-load("//foreign_cc/private:tool_specs.bzl", "ALL_TOOLS", "get_spec")
+load(
+    "//foreign_cc/private:tool_specs.bzl",
+    "ALL_TOOLS",
+    "MODE_BINARY",
+    "MODE_CUSTOM",
+    "MODE_SOURCE",
+    "MODE_SYSTEM",
+    "get_spec",
+)
 
-def _tag(tool, mode = "", version = "", register_toolchain = True, exec_compatible_with = [], target_compatible_with = []):
+def _tag(tool, mode = "", version = "", target = "", register_toolchain = True, exec_compatible_with = [], target_compatible_with = []):
     """Build a tag dict in the shape _tag_to_dict produces."""
     return {
         "exec_compatible_with": list(exec_compatible_with),
         "mode": mode,
         "register_toolchain": register_toolchain,
+        "target": target,
         "target_compatible_with": list(target_compatible_with),
         "tool": tool,
         "version": version,
@@ -39,25 +49,28 @@ def _tag(tool, mode = "", version = "", register_toolchain = True, exec_compatib
 def _rfcc_defaults():
     """rfcc's own default tags, mirroring its MODULE.bazel defaults.
 
-    One tag per tool rfcc enables by default, in the tool's default mode
-    (ladder[0]) at its default version. nmake is excluded -- it shares the
-    make_toolchain type and is selected only by explicit label, never
-    registered by default (the same exclusion MODULE.bazel and
-    PREINSTALLED_TOOLS encode). cmake and ninja get a second, system-mode
-    fallback tag mirroring MODULE.bazel: their prebuilt binaries only cover
-    five platforms, so the unconstrained system toolchain catches every other
-    host. Derived from tool_specs so the test fixture can't drift from the
-    specs it tests.
+    One tag per tool rfcc enables by default, in the tool's `default_mode`.
+    A tag is all-or-nothing, so each carries exactly what its mode requires:
+    a version for the versioned modes, a target for custom, neither
+    otherwise. nmake is excluded -- it shares the make_toolchain type and is
+    selected only by explicit label, never registered by default (the same
+    exclusion MODULE.bazel and PREINSTALLED_TOOLS encode). cmake gets a second,
+    system-mode fallback tag mirroring MODULE.bazel: it is the one tool still
+    defaulting to a prebuilt binary, those cover only five platforms, and the
+    unconstrained system toolchain catches every other host. Derived from
+    tool_specs so the test fixture can't drift from the specs it tests.
     """
     out = {}
     for tool in ALL_TOOLS:
         if tool == "nmake":
             continue
         spec = get_spec(tool)
-        version = spec.default_version if spec.default_version else ""
-        out[tool] = [_tag(tool, mode = spec.ladder[0], version = version)]
-        if tool in ("cmake", "ninja"):
-            out[tool].append(_tag(tool, mode = "system"))
+        mode = spec.default_mode
+        version = spec.default_version if mode in (MODE_BINARY, MODE_SOURCE) else ""
+        target = spec.bcr_binary if mode == MODE_CUSTOM else ""
+        out[tool] = [_tag(tool, mode = mode, version = version, target = target)]
+        if tool == "cmake":
+            out[tool].append(_tag(tool, mode = MODE_SYSTEM))
     return out
 
 def _tagset(root = {}, nonroot = {}, default = None, explicit = False):
@@ -83,12 +96,13 @@ def _tagset(root = {}, nonroot = {}, default = None, explicit = False):
 # collect_tags
 # ---------------------------------------------------------------------------
 
-def _module_tag(mode = "", version = "", register_toolchain = True):
+def _module_tag(mode = "", version = "", target = None, register_toolchain = True):
     """A fake Bazel tag value (struct with the attrs _tag_to_dict reads)."""
     return struct(
         exec_compatible_with = [],
         mode = mode,
         register_toolchain = register_toolchain,
+        target = target,
         target_compatible_with = [],
         version = version,
     )
@@ -185,10 +199,18 @@ def _validate_tag_accepts_test(ctx):
         # register_toolchain=False with only a mode: valid (spoke fetch
         # without registration).
         _tag("cmake", mode = "source", version = "3.31.12", register_toolchain = False),
-        # Constraint-only tag: no mode, no version, but platform constraints.
-        # Valid -- it constrains the default tag; spoke_specs_for_tag fills in
-        # the default mode+version.
-        _tag("cmake", exec_compatible_with = ["@platforms//os:linux"]),
+        # Constraints narrow a fully-specified tag; they never stand in for
+        # one (see the rejects test).
+        _tag(
+            "cmake",
+            mode = "binary",
+            version = "3.31.12",
+            exec_compatible_with = ["@platforms//os:linux"],
+        ),
+        # custom: a target, and no version.
+        _tag("make", mode = "custom", target = "@make//:make"),
+        _tag("pkgconfig", mode = "custom", target = "@pkgconf//:pkg-config"),
+        _tag("m4", mode = "custom", target = "//third_party:my_m4"),
     ]
     for tag in valid:
         asserts.equals(env, None, tag_error(tag), "expected valid: {}".format(tag))
@@ -224,12 +246,22 @@ def _validate_tag_rejects_test(ctx):
                 "{}: error {} missing {}".format(what, repr(err), repr(needle)),
             )
 
-    # 1. No-op tag (no mode/version/constraints). Rejected in either
-    # register_toolchain setting: True registers the default rfcc's own
-    # defaults already would; False suppresses nothing and just fetches the binary
-    # default redundantly.
-    _assert_rejects(_tag("cmake"), "no-op tag", "bare tag")
-    _assert_rejects(_tag("cmake", register_toolchain = False), "no-op tag", "bare tag register_toolchain=False")
+    # 1. mode is required -- a tag is all-or-nothing. Every under-specified
+    # shape lands here: the bare tag, the bare tag with register_toolchain
+    # turned off, and the constraints-only tag that once resolved through the
+    # tool's default mode.
+    _assert_rejects(_tag("cmake"), "mode is required", "bare tag")
+    _assert_rejects(_tag("cmake", register_toolchain = False), "mode is required", "bare tag register_toolchain=False")
+    _assert_rejects(
+        _tag("cmake", exec_compatible_with = ["@platforms//os:linux"]),
+        "mode is required",
+        "constraints without a mode",
+    )
+    _assert_rejects(
+        _tag("cmake", version = "3.31.12"),
+        "mode is required",
+        "version without a mode",
+    )
 
     # 2. Unsupported mode for the tool (make has no binary mode).
     _assert_rejects(_tag("make", mode = "binary", version = "4.4.1"), "is not supported", "bad mode")
@@ -244,10 +276,15 @@ def _validate_tag_rejects_test(ctx):
     # 5. Unknown version (not in the tool's known-version table).
     _assert_rejects(_tag("cmake", mode = "binary", version = "9.9.9"), "is not supported", "unknown version")
 
-    # 6. version on a versionless tool, with mode omitted -- must be rejected
-    # even though resolve_mode would land on system (the system/noop check only
-    # fires when mode is named explicitly).
-    _assert_rejects(_tag("autoconf", version = "1.2.3"), "no versioned mode", "version+versionless")
+    # 6. version on a versionless tool. The dedicated message fires ahead of
+    # the generic system/noop one, so the user is told the tool has no
+    # versioned mode at all rather than being sent hunting for one that would
+    # have taken it.
+    _assert_rejects(
+        _tag("autoconf", mode = "system", version = "1.2.3"),
+        "no versioned mode",
+        "version+versionless",
+    )
 
     # 7. An unknown version on a register_toolchain=False source tag still
     # reports "not supported" -- a non-default source pin with
@@ -266,6 +303,41 @@ def _validate_tag_rejects_test(ctx):
         _tag("nmake", mode = "noop"),
         "tools.make(mode = \"noop\")",
         "nmake noop is rejected with a pointer to make noop",
+    )
+
+    # 9. custom's own half of the all-or-nothing rule: it needs a target, and
+    # nothing else may carry one.
+    _assert_rejects(
+        _tag("make", mode = "custom"),
+        "target is required",
+        "custom without a target",
+    )
+    _assert_rejects(
+        _tag("make", mode = "source", version = "4.4.1", target = "@make//:make"),
+        "only allowed with mode=\"custom\"",
+        "target on a source tag",
+    )
+    _assert_rejects(
+        _tag("make", mode = "system", target = "@make//:make"),
+        "only allowed with mode=\"custom\"",
+        "target on a system tag",
+    )
+
+    # 10. custom names a target, never a version -- there is nothing for rfcc
+    # to pick a version of.
+    _assert_rejects(
+        _tag("make", mode = "custom", target = "@make//:make", version = "4.4.1"),
+        "is not allowed with",
+        "version on a custom tag",
+    )
+
+    # 11. Not every tool can take a custom target. autoconf and automake each
+    # set several environment variables, which one binary can't satisfy, and
+    # nmake sets none.
+    _assert_rejects(
+        _tag("autoconf", mode = "custom", target = "//:autoconf"),
+        "is not supported",
+        "custom on a multi-variable tool",
     )
 
     return unittest.end(env)
@@ -342,19 +414,23 @@ def _build_hub_aliases_test(ctx):
     # different version than the registered toolchain (they both flow from
     # spec.default_version, and must agree with the WORKSPACE path).
     #
-    # make and pkgconfig are not among them: with no rfcc-owned source spoke to
-    # alias, the bzlmod hub publishes nothing for them. The WORKSPACE hub still
-    # publishes `<tool>_built`, but via built_toolchains.bzl, not this planner.
+    # pkgconfig is not among them. Its default version is pkgconf 3.0.7 --
+    # the registry module rfcc registers by default -- while its source table
+    # holds pkg-config 0.29.2, a different program. pick_source_version finds
+    # no match, so the bzlmod hub publishes nothing for it. (The WORKSPACE hub
+    # still publishes `pkgconfig_built`, but via built_toolchains.bzl, not this
+    # planner.) make and ninja *are* among them: their default versions do
+    # appear in their source tables, so the hub aliases the bootstrap even
+    # though the registered toolchain is the registry binary.
     aliases = build_hub_aliases(_tagset())
     by_name = {a["name"]: a["actual"] for a in aliases}
-    for tool in ["make", "pkgconfig"]:
-        asserts.equals(
-            env,
-            None,
-            by_name.get("{}_src_all".format(tool)),
-            "{} has no bzlmod source spoke, so the hub must not alias one".format(tool),
-        )
-    for tool in ["cmake", "meson"]:
+    asserts.equals(
+        env,
+        None,
+        by_name.get("pkgconfig_src_all"),
+        "pkgconfig's default version is not in its source table, so no alias",
+    )
+    for tool in ["cmake", "make", "meson", "ninja"]:
         default = get_spec(tool).default_version
         asserts.equals(
             env,
@@ -364,11 +440,11 @@ def _build_hub_aliases_test(ctx):
         )
 
     # The alias version and the registered default toolchain version must
-    # agree. rfcc's default meson tag (mode=source, version=default) drives both
-    # the default registration and -- via pick_source_version reading the
-    # default tag's version -- the alias. A consumer source pin at a different
-    # version would diverge, which validate_tag rejects for register_toolchain
-    # tags; here we confirm the default config keeps them aligned.
+    # agree. rfcc's default meson is the `@meson` registry module, pinned by
+    # MODULE.bazel's bazel_dep to default_version; the alias comes from
+    # pick_source_version's fallback, which returns that same default_version
+    # because it is in MESON_SRCS. Both read one field, so they can only
+    # diverge if the source table drops the default -- which this catches.
     default = get_spec("meson").default_version
     ts = _tagset()
     aliases = build_hub_aliases(ts)
@@ -475,29 +551,30 @@ def _build_hub_plan_test(ctx):
         "nmake must not get a default registration (shadows make)",
     )
 
-    # cmake and ninja each ship a second, system-mode default tag as an
-    # unconstrained fallback. It must emit a 20_<tool>_001_000 row (tag index 1)
-    # that lex-sorts after the per-platform binary rows (20_<tool>_000_*), so a
-    # prebuilt binary still wins wherever one exists.
-    for tool in ("cmake", "ninja"):
-        asserts.true(
-            env,
-            "20_{}_001_000".format(tool) in names,
-            "system fallback row missing for " + tool,
-        )
-        fallback = [e for e in plan if e["name"] == "20_{}_001_000".format(tool)][0]
-        asserts.equals(
-            env,
-            [],
-            fallback["exec_compatible_with"],
-            "system fallback for {} must be unconstrained".format(tool),
-        )
-        asserts.equals(
-            env,
-            "@rules_foreign_cc//toolchains/private:preinstalled_{}".format(tool),
-            fallback["toolchain"],
-            "system fallback for {} must point at the preinstalled toolchain".format(tool),
-        )
+    # cmake ships a second, system-mode default tag as an unconstrained
+    # fallback. It must emit a 20_cmake_001_000 row (tag index 1) that lex-sorts
+    # after the per-platform binary rows (20_cmake_000_*), so the prebuilt binary
+    # still wins wherever one exists. cmake is the only tool that needs this:
+    # it is the only one still defaulting to a prebuilt binary, and prebuilts
+    # exist for just the five platforms in the binary spoke tables.
+    asserts.true(
+        env,
+        "20_cmake_001_000" in names,
+        "system fallback row missing for cmake",
+    )
+    fallback = [e for e in plan if e["name"] == "20_cmake_001_000"][0]
+    asserts.equals(
+        env,
+        [],
+        fallback["exec_compatible_with"],
+        "system fallback for cmake must be unconstrained",
+    )
+    asserts.equals(
+        env,
+        "@rules_foreign_cc//toolchains/private:preinstalled_cmake",
+        fallback["toolchain"],
+        "system fallback for cmake must point at the preinstalled toolchain",
+    )
 
     # A registerable root tag suppresses that tool's default tag and adds a
     # 10_ entry instead.
@@ -739,7 +816,15 @@ def _nmake_system_carries_windows_test(ctx):
 # ---------------------------------------------------------------------------
 
 def _spoke_key(s):
-    return (s["tool"], s["version"], s["mode"])
+    return (s["tool"], s["version"], s["mode"], s["target"])
+
+def _default_spoke_key(tool):
+    """The spoke key rfcc's own default tag for `tool` should materialize.
+
+    Reads the tag `_rfcc_defaults` built rather than re-deriving it, so the two
+    cannot disagree about what the default is.
+    """
+    return _spoke_key(_rfcc_defaults()[tool][0])
 
 def _mirrored_default_predicate_test(ctx):
     env = unittest.begin(ctx)
@@ -755,7 +840,7 @@ def _mirrored_default_predicate_test(ctx):
         _tagset(explicit = True),
     ]
 
-    # Cover both binary-default (cmake/ninja) and source-default
+    # Cover both binary-default (cmake/ninja) and custom-default
     # (make/meson/pkgconfig) tools, so the predicate is checked for every
     # mode whose default tag materializes a spoke.
     repo_tools = ["cmake", "ninja", "make", "meson", "pkgconfig"]
@@ -767,14 +852,11 @@ def _mirrored_default_predicate_test(ctx):
         # hub registers a toolchain() pointing at an unfetched repo.
         plan_names = {e["name"]: True for e in build_hub_plan(ts)}
         for tool in repo_tools:
-            spec = get_spec(tool)
-            mode = spec.ladder[0]
-            version = spec.default_version
             has_default_tag = "20_{}_000_000".format(tool) in plan_names
             if has_default_tag:
                 asserts.true(
                     env,
-                    (tool, version, mode) in spokes,
+                    _default_spoke_key(tool) in spokes,
                     "default tag for {} present but its spoke wasn't materialized".format(tool),
                 )
 
@@ -790,7 +872,6 @@ def _mirrored_default_predicate_test(ctx):
     plan_explicit = {e["name"]: True for e in build_hub_plan(ts_explicit)}
     spokes_explicit = {_spoke_key(s): True for s in all_required_spokes(ts_explicit)}
     for tool in repo_tools:
-        spec = get_spec(tool)
         asserts.false(
             env,
             "20_{}_000_000".format(tool) in plan_explicit,
@@ -798,7 +879,7 @@ def _mirrored_default_predicate_test(ctx):
         )
         asserts.true(
             env,
-            (tool, spec.default_version, spec.ladder[0]) in spokes_explicit,
+            _default_spoke_key(tool) in spokes_explicit,
             "explicit() must still materialize {}'s default spoke".format(tool),
         )
 
@@ -849,7 +930,63 @@ def _pad3_test(ctx):
 
     return unittest.end(env)
 
+def _spoke_plan_error_test(ctx):
+    env = unittest.begin(ctx)
+
+    # Custom spoke names come from a lossy slug of the target, so two labels
+    # that differ only in punctuation land on one repo. Before this guard the
+    # second tag would silently win and the tool would build against the wrong
+    # binary, so the plan has to be rejected outright. Targets here are written
+    # without the canonical "@@" prefix -- the slug treats it as separator
+    # punctuation either way, and buildifier flags the literal.
+    def spoke(tool, target):
+        return {"mode": MODE_CUSTOM, "target": target, "tool": tool, "version": ""}
+
+    asserts.equals(
+        env,
+        None,
+        spoke_plan_error([]),
+        "an empty plan has nothing to collide",
+    )
+    asserts.equals(
+        env,
+        None,
+        spoke_plan_error([spoke("make", "x//:a"), spoke("make", "y//:b")]),
+        "distinct targets that slug apart are fine",
+    )
+    asserts.equals(
+        env,
+        None,
+        spoke_plan_error([spoke("make", "x//:a"), spoke("make", "x//:a")]),
+        "the same target twice shares one spoke by design",
+    )
+
+    # Only custom spokes are slug-named; source spokes are keyed by version and
+    # can repeat freely.
+    asserts.equals(
+        env,
+        None,
+        spoke_plan_error([
+            {"mode": MODE_SOURCE, "target": "", "tool": "make", "version": "4.4.1"},
+            {"mode": MODE_SOURCE, "target": "", "tool": "make", "version": "4.4.1"},
+        ]),
+        "source spokes are not slug-named and never collide",
+    )
+
+    # The lossy case: `+` and `//:` are both separator punctuation, so
+    # `x//:a` and `x+//:a` collapse to the same `make_custom_x_a`.
+    err = spoke_plan_error([spoke("make", "x//:a"), spoke("make", "x+//:a")])
+    asserts.true(env, err != None, "labels that slug alike must be rejected")
+    asserts.true(
+        env,
+        "both map to the spoke repo" in err,
+        "the error must name the shared repo: got {}".format(err),
+    )
+
+    return unittest.end(env)
+
 collect_tags_test = unittest.make(_collect_tags_test)
+spoke_plan_error_test = unittest.make(_spoke_plan_error_test)
 validate_tag_accepts_test = unittest.make(_validate_tag_accepts_test)
 default_versions_in_sync_test = unittest.make(_default_versions_in_sync_test)
 validate_tag_rejects_test = unittest.make(_validate_tag_rejects_test)
@@ -868,6 +1005,7 @@ def planner_test_suite():
     unittest.suite(
         "planner_test_suite",
         partial.make(collect_tags_test, size = "small"),
+        partial.make(spoke_plan_error_test, size = "small"),
         partial.make(validate_tag_accepts_test, size = "small"),
         partial.make(default_versions_in_sync_test, size = "small"),
         partial.make(validate_tag_rejects_test, size = "small"),

@@ -1,0 +1,53 @@
+module(
+    name = "all_source_pinned_test",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../../..",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+
+# Every tool with a source mode, pinned one release behind what rfcc's own
+# MODULE.bazel registers. No tools.explicit(): a registerable root tag already
+# suppresses rfcc's default for that tool, so this also exercises the ordinary
+# root-wins path rather than the opt-out one.
+#
+# m4 is absent on purpose -- it has no source mode (rfcc has never shipped an
+# m4 bootstrap), so it keeps rfcc's registration and demonstrates that an
+# untagged tool is left alone while its neighbours are all repinned.
+tools.cmake(
+    mode = "source",
+    version = "3.30.9",  # rfcc: 3.31.12
+)
+tools.make(
+    mode = "source",
+    version = "4.4",  # rfcc: 4.4.1
+)
+tools.meson(
+    mode = "source",
+    version = "1.5.1",  # rfcc: 1.10.1
+)
+tools.ninja(
+    mode = "source",
+    version = "1.12.1",  # rfcc: 1.13.2
+)
+
+# The source table holds only freedesktop pkg-config 0.29.2; rfcc defaults to
+# the pkgconf 3.0.7 registry module, which is a different program and not a
+# source version at all. So there is no "one behind" here -- any source pin
+# diverges, and rfcc's default publishes no pkgconfig_src_all to compare
+# against.
+tools.pkgconfig(
+    mode = "source",
+    version = "0.29.2",
+)
+use_repo(tools, "rules_foreign_cc_toolchains")
+
+register_toolchains("@rules_foreign_cc_toolchains//:all")

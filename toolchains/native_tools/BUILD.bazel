@@ -16,4 +16,5 @@ bzl_library(
     name = "tool_access",
     srcs = ["tool_access.bzl"],
     visibility = ["//visibility:public"],
+    deps = [":native_tools_toolchain"],
 )
