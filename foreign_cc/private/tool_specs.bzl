@@ -112,7 +112,9 @@ ALL_MODES = [MODE_BINARY, MODE_CUSTOM, MODE_SOURCE, MODE_SYSTEM, MODE_NOOP]
 # gives the generated alias -- pkg-config, not pkgconf, because the framework
 # symlinks the tool into $EXT_BUILD_DEPS/bin under its own basename.
 # `custom_launcher` is a wrapper the tool must be invoked through rather than
-# directly, which only ninja needs.
+# directly, which only ninja needs. `custom_rule` is the toolchain rule the
+# spoke declares over `target`: `native_tool_toolchain`, or for meson
+# `meson_tool_toolchain`, whose target is a Python binary; None without `custom`.
 #
 # `workspace_bcr_toolchain` is the prebuilt `native_tool_toolchain` that the
 # WORKSPACE path registers for a tool backed by a registry module (@m4, @make,
@@ -135,6 +137,7 @@ TOOL_SPECS = {
         custom_env_var = None,
         custom_alias_name = None,
         custom_launcher = None,
+        custom_rule = None,
         workspace_bcr_toolchain = None,
         bcr_binary = None,
         toolchain_type = "@rules_foreign_cc//toolchains:autoconf_toolchain",
@@ -156,6 +159,7 @@ TOOL_SPECS = {
         custom_env_var = None,
         custom_alias_name = None,
         custom_launcher = None,
+        custom_rule = None,
         workspace_bcr_toolchain = None,
         bcr_binary = None,
         toolchain_type = "@rules_foreign_cc//toolchains:automake_toolchain",
@@ -176,6 +180,7 @@ TOOL_SPECS = {
         custom_env_var = "CMAKE",
         custom_alias_name = "cmake",
         custom_launcher = None,
+        custom_rule = "native_tool_toolchain",
         workspace_bcr_toolchain = None,
         bcr_binary = None,
         toolchain_type = "@rules_foreign_cc//toolchains:cmake_toolchain",
@@ -197,6 +202,7 @@ TOOL_SPECS = {
         custom_env_var = "M4",
         custom_alias_name = "m4",
         custom_launcher = None,
+        custom_rule = "native_tool_toolchain",
         workspace_bcr_toolchain = "@rules_foreign_cc//toolchains/private:built_m4",
         bcr_binary = "@m4//:m4",
         toolchain_type = "@rules_foreign_cc//toolchains:m4_toolchain",
@@ -214,6 +220,7 @@ TOOL_SPECS = {
         custom_env_var = "MAKE",
         custom_alias_name = "make",
         custom_launcher = None,
+        custom_rule = "native_tool_toolchain",
         workspace_bcr_toolchain = "@rules_foreign_cc//toolchains/private:built_make",
         bcr_binary = "@make//:make",
         toolchain_type = "@rules_foreign_cc//toolchains:make_toolchain",
@@ -238,6 +245,7 @@ TOOL_SPECS = {
         custom_env_var = "MESON",
         custom_alias_name = "meson",
         custom_launcher = None,
+        custom_rule = "meson_tool_toolchain",
         workspace_bcr_toolchain = "@rules_foreign_cc//toolchains/private:built_meson",
         bcr_binary = "@meson//:meson",
         toolchain_type = "@rules_foreign_cc//toolchains:meson_toolchain",
@@ -255,6 +263,7 @@ TOOL_SPECS = {
         custom_env_var = "MSBUILD",
         custom_alias_name = "msbuild",
         custom_launcher = None,
+        custom_rule = "native_tool_toolchain",
         workspace_bcr_toolchain = None,
         bcr_binary = None,
         # msbuild only exists on Windows; gate the system toolchain on both
@@ -279,6 +288,7 @@ TOOL_SPECS = {
         # literally named `ninja`, which an arbitrary `target` will not be, so
         # a custom ninja is invoked through the wrapper instead.
         custom_launcher = "@rules_foreign_cc//toolchains/private:ninja_wrapper",
+        custom_rule = "native_tool_toolchain",
         workspace_bcr_toolchain = "@rules_foreign_cc//toolchains/private:built_ninja",
         bcr_binary = "@ninja//:ninja",
         toolchain_type = "@rules_foreign_cc//toolchains:ninja_toolchain",
@@ -296,6 +306,7 @@ TOOL_SPECS = {
         custom_env_var = None,
         custom_alias_name = None,
         custom_launcher = None,
+        custom_rule = None,
         workspace_bcr_toolchain = None,
         bcr_binary = None,
         # nmake only exists on Windows; gate the system toolchain so it never
@@ -331,6 +342,7 @@ TOOL_SPECS = {
         # CMake's FindPkgConfig search PATH for the former.
         custom_alias_name = "pkg-config",
         custom_launcher = None,
+        custom_rule = "native_tool_toolchain",
         workspace_bcr_toolchain = "@rules_foreign_cc//toolchains/private:built_pkgconfig",
         bcr_binary = "@pkgconf//:pkg-config",
         toolchain_type = "@rules_foreign_cc//toolchains:pkgconfig_toolchain",

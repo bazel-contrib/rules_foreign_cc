@@ -1,8 +1,9 @@
 """A rule for building projects using the [Meson](https://mesonbuild.com/) build system"""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
+load("@rules_python//python:py_binary.bzl", "py_binary")
 load("//foreign_cc:utils.bzl", "full_label")
-load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "absolutize_path_in_str",
@@ -23,7 +24,8 @@ load(
 )
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
-load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("//foreign_cc/private/framework:platform.bzl", "os_name")
+load("//toolchains/native_tools:meson_tool_toolchain.bzl", "meson_tool_toolchain")
 load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_make_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
 
 def _meson_impl(ctx):
@@ -50,6 +52,8 @@ def _meson_impl(ctx):
         create_configure_script = _create_meson_script,
         tools_data = tools_data,
         meson_path = meson_data.path,
+        meson_python = meson_data.python,
+        meson_pythonpath = meson_data.pythonpath if ctx.attr._meson_pythonpath[BuildSettingInfo].value else [],
         cmake_path = cmake_data.path,
         ninja_path = ninja_data.path,
         make_path = make_data.path,
@@ -109,6 +113,9 @@ def _create_meson_script(configureParameters):
     script.append("##export_var## NINJA {}".format(attrs.ninja_path))
     script.append("##export_var## PKG_CONFIG {}".format(attrs.pkg_config_path))
     script.append("##export_var## MAKE {}".format(attrs.make_path))
+
+    if attrs.meson_python:
+        script.extend(_python_env_script(ctx, attrs.meson_pythonpath))
 
     root = detect_root(ctx.attr.lib_source)
     data = ctx.attr.data + ctx.attr.build_data
@@ -220,6 +227,43 @@ def _create_meson_script(configureParameters):
 
     return script
 
+# Where launchers that build a venv at run time put it, see
+# _python_env_script. Dot-prefixed and short on purpose: EXT_BUILD_DEPS also
+# holds every foreign dependency under its lib_name, and the paths below it
+# get long on Windows.
+_PYTHON_DIR = "$$EXT_BUILD_DEPS$$/.rfcc_py"
+
+def _python_env_script(ctx, pythonpath):
+    """Environment for a meson from a `meson_tool_toolchain`.
+
+    The binary's `deps` go first on PYTHONPATH so the child interpreters meson
+    spawns see them (unless `//foreign_cc/settings:meson_pythonpath` is off,
+    for an entrypoint that does this itself), and a venv built at run time is
+    kept under `_PYTHON_DIR` for the whole action, since meson records
+    `[sys.executable, meson]` at setup and re-invokes it from ninja. Both
+    defer to a user-set value. How the interpreter itself is configured is
+    left to the binary's entrypoint. A preinstalled meson is left alone.
+
+    Args:
+        ctx (ctx): The rule's context object
+        pythonpath (list of string): the toolchain's PYTHONPATH entries, absolutized.
+
+    Returns:
+        list of string: script lines.
+    """
+    lines = [
+        "##export_var## RULES_PYTHON_EXTRACT_ROOT \"${{RULES_PYTHON_EXTRACT_ROOT:-{}}}\"".format(_PYTHON_DIR),
+        "##mkdirs## {}".format(_PYTHON_DIR),
+    ]
+    if pythonpath:
+        # Python's os.pathsep, for the interpreter the action runs on.
+        separator = ";" if os_name(ctx) == "windows" else ":"
+        lines.append("##export_var## PYTHONPATH \"{paths}${{PYTHONPATH:+{sep}$PYTHONPATH}}\"".format(
+            paths = separator.join(pythonpath),
+            sep = separator,
+        ))
+    return lines
+
 def _attrs():
     """Modifies the common set of attributes used by rules_foreign_cc and sets Meson specific attrs
 
@@ -264,6 +308,9 @@ def _attrs():
             default = ["compile", "install"],
             mandatory = False,
         ),
+        "_meson_pythonpath": attr.label(
+            default = Label("@rules_foreign_cc//foreign_cc/settings:meson_pythonpath"),
+        ),
     })
     return attrs
 
@@ -297,23 +344,24 @@ def meson_with_requirements(name, requirements, **kwargs):
     """
     tags = kwargs.pop("tags", [])
 
-    meson_tool(
+    # The toolchain also exports the binary's import roots on PYTHONPATH, so
+    # child interpreters see `requirements` under every bootstrap. Precompiling
+    # is off because rules_python declares each .pyc beside its source, which
+    # it cannot do for a `main` from another repository.
+    py_binary(
         name = "meson_tool_for_{}".format(name),
+        srcs = ["@rules_foreign_cc//foreign_cc:meson_src_meson_py"],
         main = "@rules_foreign_cc//foreign_cc:meson_src_meson_py",
         data = ["@rules_foreign_cc//foreign_cc:meson_src_runtime"],
-        requirements = requirements,
+        deps = requirements,
+        precompile = "disabled",
         tags = tags + ["manual"],
     )
 
-    native_tool_toolchain(
+    meson_tool_toolchain(
         name = "built_meson_for_{}".format(name),
-        env = {
-            "MESON": "$(execpath :meson_tool_for_{})".format(name),
-            "REAL_MESON": "$(rlocationpath @rules_foreign_cc//foreign_cc:meson_src_meson_py)",
-        },
-        path = "$(execpath :meson_tool_for_{})".format(name),
-        target = ":meson_tool_for_{}".format(name),
-        tools = ["@rules_foreign_cc//foreign_cc:meson_src_meson_py"],
+        meson = ":meson_tool_for_{}".format(name),
+        tags = tags + ["manual"],
     )
 
     native.toolchain(

@@ -52,6 +52,18 @@
 - **`WORKSPACE` is unaffected by all of the above.** `custom` and the restored
   `source` bootstrap are tag-driven, so they exist only under `bzlmod`;
   `rules_foreign_cc_dependencies()` keeps 0.16.0's behavior verbatim.
+- **meson toolchains export `PYTHON3` and `MESON_REAL` and pin the Python
+  environment.** Every shipped meson toolchain is now a `meson_tool_toolchain`
+  (see Added). It runs the same binary as before and additionally exports
+  `PYTHON3` (the exec-configuration interpreter) and `MESON_REAL` (the exec
+  path of `meson.py`; `REAL_MESON` stays its rlocationpath), puts the
+  binary's import roots on `PYTHONPATH`, and points launchers that build a
+  venv at run time (`RULES_PYTHON_EXTRACT_ROOT`) to a directory under
+  `EXT_BUILD_DEPS`, removed with it when the action ends. Both defer to the
+  target's `env`. A `system` meson is untouched. The
+  `meson_tool` macro in `foreign_cc/built_tools/meson_build.bzl` and its
+  wrapper script are removed; `PYTHONPATH` now does the wrapper's job, and
+  `meson_with_requirements`'s `meson_tool_for_<name>` is a plain `py_binary`.
 
 ### Added
 
@@ -80,6 +92,12 @@
   `tools.pkgconfig(mode = "custom", target = "@pkgconf//:pkg-config")`, which
   is what makes the 0.16.0 defaults survive the `source` restoration
   unchanged.
+- **New `meson_tool_toolchain` rule**
+  (`//toolchains/native_tools:meson_tool_toolchain.bzl`): a
+  `native_tool_toolchain` for meson that takes the Python binary as `meson`
+  and defines `MESON`, `REAL_MESON`, `MESON_REAL` and `PYTHON3` itself. The
+  binary may be a rules_python `py_binary` or one from another Python ruleset
+  that provides `PyInfo` and `PyExecutableInfo`.
 
 ## 0.16.0 (2026-09-14)
 

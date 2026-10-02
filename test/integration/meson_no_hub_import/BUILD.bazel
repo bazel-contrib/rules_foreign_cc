@@ -1,4 +1,15 @@
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson_with_requirements")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson", "meson_with_requirements")
+
+# A plain meson build under `tools.meson(mode = "source")`: the only place a
+# source-mode meson toolchain (the @meson_src_<version> spoke's) actually runs
+# meson. The project resolves Python through meson and writes a file with it,
+# so it needs no C toolchain and builds the same on every platform.
+meson(
+    name = "hello",
+    lib_source = ":srcs",
+    out_data_files = ["hello.txt"],
+    out_include_dir = "",
+)
 
 # Exercises the meson_with_requirements macro from a module that does NOT
 # use_repo @rules_foreign_cc_toolchains. The macro expands hub label strings
@@ -9,26 +20,15 @@ load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson_with_requirements")
 # aliases instead. requirements is empty so no pip setup is needed.
 meson_with_requirements(
     name = "hello_meson",
-    lib_source = ":all_srcs",
-    out_static_libs = ["libhello.a"],
+    lib_source = ":srcs",
+    out_data_files = ["hello.txt"],
+    out_include_dir = "",
     requirements = [],
 )
 
+# Explicit, not a glob: the runner drops the inner Bazel's download cache
+# into this directory, and a glob would hand it to meson as source.
 filegroup(
-    name = "all_srcs",
-    srcs = glob(
-        include = ["**"],
-        exclude = [
-            ".bazelignore",
-            ".bazelrc",
-            ".bazelversion",
-            "BUILD",
-            "BUILD.bazel",
-            "MODULE.bazel",
-            "MODULE.bazel.lock",
-            "WORKSPACE",
-            "WORKSPACE.bazel",
-            "bazel-*/**",
-        ],
-    ),
+    name = "srcs",
+    srcs = ["meson.build"],
 )

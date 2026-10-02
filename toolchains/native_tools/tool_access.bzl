@@ -38,7 +38,43 @@ def get_ninja_data(ctx):
     return _access_and_expect_label_copied(Label("//toolchains:ninja_toolchain"), ctx)
 
 def get_meson_data(ctx):
-    return _access_and_expect_label_copied(Label("//toolchains:meson_toolchain"), ctx)
+    """Like the other accessors, plus the Python side of a `meson_tool_toolchain`.
+
+    Args:
+        ctx (ctx): The rule's context object
+
+    Returns:
+        struct: the fields of the other accessors plus `python` (True for a
+            `meson_tool_toolchain`) and `pythonpath`; for any other meson
+            toolchain these are False and empty.
+    """
+    toolchain_type = Label("//toolchains:meson_toolchain")
+    tool = _access_and_expect_label_copied(toolchain_type, ctx)
+    meson = getattr(ctx.toolchains[toolchain_type], "meson", None)
+
+    env = dict(tool.env)
+    if meson != None:
+        # MESON was absolutized above like any tool; the interpreter and entry
+        # script are absolutized here. REAL_MESON is an rlocationpath, left as is.
+        env["PYTHON3"] = _absolutize(meson.interpreter)
+        env["MESON_REAL"] = _absolutize(meson.main.path)
+
+    return struct(
+        target = tool.target,
+        tools = tool.tools,
+        env = env,
+        path = tool.path,
+        python = meson != None,
+        pythonpath = [_absolutize(p) for p in meson.pythonpath] if meson != None else [],
+    )
+
+def _absolutize(path):
+    """`path` as usable from $BUILD_TMPDIR: exec-root-relative paths get the root prepended."""
+    if path.startswith("/") or (len(path) > 1 and path[1] == ":"):
+        return path
+    if path == ".":
+        return "$EXT_BUILD_ROOT"
+    return "$EXT_BUILD_ROOT/{}".format(path)
 
 def get_pkgconfig_data(ctx):
     return _access_and_expect_label_copied(Label("//toolchains:pkgconfig_toolchain"), ctx)

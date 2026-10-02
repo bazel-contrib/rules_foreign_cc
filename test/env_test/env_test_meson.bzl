@@ -4,7 +4,7 @@ load("@bazel_lib//lib:expand_template.bzl", "expand_template")
 load("//foreign_cc:meson.bzl", "meson")
 load(":utils.bzl", "create_env_diff_tests", "normalize_checked_vars", "prepare_build_attrs")
 
-def env_test_meson(name, *, check_shellvars = None, meson_attrs = None, test_attrs = None):
+def env_test_meson(name, *, check_shellvars = None, check_paths = None, meson_attrs = None, test_attrs = None):
     """Macro to test the environment of a meson build
 
     Args:
@@ -13,6 +13,11 @@ def env_test_meson(name, *, check_shellvars = None, meson_attrs = None, test_att
 
         check_shellvars: dict[str, str]:
             The shellvars to check, and their expected values.
+
+        check_paths: list[str]:
+            Shellvars whose value must name an existing path, checked from
+            inside the build as `<VAR>_EXISTS=1`. For values that differ per
+            platform or lane, where an exact expectation is impossible.
 
         meson_attrs: dict[*, *]:
             additional attrs to pass to the meson() rule
@@ -23,12 +28,20 @@ def env_test_meson(name, *, check_shellvars = None, meson_attrs = None, test_att
     name = name + "_env_test"
 
     check_shellvars = normalize_checked_vars("check_shellvars", check_shellvars)
+    check_paths = check_paths or []
+
+    # Key -> shell expression for its value. The output must come out sorted
+    # by key, like the expected file, so both kinds go through one sorted pass.
+    expressions = {shellvar: "$${" + shellvar + "}" for shellvar in check_shellvars}
+    for shellvar in check_paths:
+        expressions[shellvar + "_EXISTS"] = "$$(test -e \"$${" + shellvar + "}\" && echo 1 || echo 0)"
+    check_shellvars = check_shellvars | {shellvar + "_EXISTS": "1" for shellvar in check_paths}
 
     meson_build = name + "_src"
     subs = []
-    for shellvar in sorted(check_shellvars):
+    for key in sorted(expressions):
         subs.append(
-            "run_command('sh', '-c', 'printf \"%s=%s\\\\n\" \"" + shellvar + "\" \"$${" + shellvar + "}\" >> \"$$SHELLVARS_FILE\"', check: true)",
+            "run_command('sh', '-c', 'printf \"%s=%s\\\\n\" \"" + key + "\" \"" + expressions[key] + "\" >> \"$$SHELLVARS_FILE\"', check: true)",
         )
 
     expand_template(

@@ -87,9 +87,22 @@ env_test_ninja(
     },
 )
 
+# What a meson_tool_toolchain adds to the environment. The interpreter and
+# entry-script paths differ per platform and lane, so they are checked for
+# existence; the extract root is exact.
+MESON_PYTHON_VARS = {
+    "RULES_PYTHON_EXTRACT_ROOT": "{{EXT_BUILD_DEPS}}/.rfcc_py",
+}
+
+MESON_PYTHON_PATHS = [
+    "MESON_REAL",
+    "PYTHON3",
+]
+
 env_test_meson(
     name = "meson_default",
-    check_shellvars = STANDARD_VARS | {
+    check_paths = MESON_PYTHON_PATHS,
+    check_shellvars = STANDARD_VARS | MESON_PYTHON_VARS | {
         "MESON_NUM_PROCESSES": "",
         "NINJA_JOBS": "",
     },
@@ -97,7 +110,8 @@ env_test_meson(
 
 env_test_meson(
     name = "meson_tiny",
-    check_shellvars = STANDARD_VARS | {
+    check_paths = MESON_PYTHON_PATHS,
+    check_shellvars = STANDARD_VARS | MESON_PYTHON_VARS | {
         "MESON_NUM_PROCESSES": "3",
         "NINJA_JOBS": "3",
     },

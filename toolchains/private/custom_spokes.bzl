@@ -10,8 +10,9 @@ repo is pure generated BUILD text:
 
   * `:<alias>`: an alias onto the tag's `target`, named what the tool has to be
     called (the spec's `custom_alias_name`).
-  * `:<tool>_tool`: the `native_tool_toolchain` the hub's `toolchain()` points
-    at, wiring the tool's one environment variable to that alias.
+  * `:<tool>_tool`: the `native_tool_toolchain` (or, for meson,
+    `meson_tool_toolchain`) the hub's `toolchain()` points at, wiring the
+    tool's environment variables to that alias.
 
 The `toolchain()` itself lives in the hub, not here, which is what keeps a
 custom tag inside the hub's zero-padded precedence ordering and is where the
@@ -78,8 +79,15 @@ def custom_spoke_repo(tool, target):
     return CUSTOM_SPOKE_REPO_FORMAT.format(tool = tool, slug = _slug(target))
 
 def _native_tool_spec(spec, tool, alias):
-    """The `native_tool_toolchain` for one custom spoke, as a spec dict."""
+    """The toolchain rule for one custom spoke, as a spec dict."""
     local = ":{}".format(alias)
+    if spec.custom_rule == "meson_tool_toolchain":
+        # A Python binary; the rule knows meson's variables itself.
+        return {
+            "meson": local,
+            "name": "{}_tool".format(tool),
+            "rule": spec.custom_rule,
+        }
     if spec.custom_launcher:
         # Launcher-shaped: the toolchain runs the launcher, which execs the
         # user's binary out of `tools`.
