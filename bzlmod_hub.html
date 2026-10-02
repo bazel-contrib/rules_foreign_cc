@@ -172,7 +172,11 @@ predict a spoke's name rather than look it up:</p>
 <ul>
 <li><strong>Binary spokes</strong> are named <code>@&lt;tool&gt;-&lt;version&gt;-&lt;os&gt;-&lt;arch&gt;</code>, e.g.
 <code>@cmake-3.31.12-linux-x86_64</code> and <code>@ninja-1.13.2-linux-x86_64</code> (target
-<code>:&lt;tool&gt;_tool</code>). <code>&lt;os&gt;</code> and <code>&lt;arch&gt;</code> are the Bazel platform names
+<code>:&lt;tool&gt;_tool</code>). A binary spoke exists only for a <code>mode = "binary"</code> tag:
+rfcc's default cmake is one, but its default ninja is <code>custom</code> over the
+<code>@ninja</code> registry module, so the ninja spoke above is only declared once a
+root writes <code>tools.ninja(mode = "binary", version = "1.13.2")</code> itself.
+<code>&lt;os&gt;</code> and <code>&lt;arch&gt;</code> are the Bazel platform names
 (<code>linux</code>/<code>macos</code>/<code>windows</code>, <code>x86_64</code>/<code>aarch64</code>/<code>x86_32</code>), so the suffix
 matches the toolchain's <code>exec_compatible_with</code> constraints. The one
 exception is cmake's macOS build: it ships a single universal2 binary that
@@ -180,20 +184,16 @@ resolves for both <code>x86_64</code> and <code>aarch64</code> (so the toolchain
 constraint), and its arch token is <code>universal</code> -
 <code>@cmake-3.31.12-macos-universal</code>.</li>
 <li><strong>Source spokes</strong> are named <code>@&lt;tool&gt;_src_&lt;version&gt;</code>, e.g.
-<code>@cmake_src_3.31.12</code>, <code>@meson_src_1.10.1</code> (target <code>:&lt;tool&gt;_tool</code>).
-m4, make, ninja and pkgconfig have no source spoke: in <code>source</code> mode they
-come from their Bazel Central Registry modules, <code>@m4//:m4</code>, <code>@make//:make</code>,
-<code>@ninja//:ninja</code> and <code>@pkgconf//:pkg-config</code>, which <code>rules_foreign_cc</code>
-depends on with a <code>bazel_dep</code>. (rfcc's <code>pkgconfig</code> tool is the <code>pkgconf</code>
-module - the pkg-config implementation distributions ship as <code>pkg-config</code>;
-its BUILD file publishes the binary under both names.) A <code>bazel_dep</code>
-resolves to a single version graph-wide under MVS, so under bzlmod the
-tag's <code>version =</code> does not select one: <code>tools.make(mode = "source", version = ...)</code> accepts any version rfcc offers, but the resolved module
-is what gets built. To build a different one, declare your own
-<code>bazel_dep</code> (or a <code>single_version_override</code>) on <code>m4</code> / <code>make</code> / <code>ninja</code> /
-<code>pkgconf</code> -- MVS then hands rfcc that version. (Under <code>WORKSPACE</code> there
-is no MVS, so <code>rules_foreign_cc_dependencies(make_version = ...)</code> does
-select directly.)</li>
+<code>@cmake_src_3.31.12</code>, <code>@make_src_4.4.1</code>, <code>@meson_src_1.10.1</code> (target
+<code>:&lt;tool&gt;_tool</code>). These hold the upstream release tarball, which
+<code>rules_foreign_cc</code> bootstraps into a working tool. m4 has no source spoke:
+it has never had a bootstrap, so <code>custom</code> is the only way to point it at a
+different m4.</li>
+<li><strong>Custom spokes</strong> are named <code>@&lt;tool&gt;_custom_&lt;target&gt;</code>, with the target
+label flattened into a repo-name-safe token (<code>@@pkgconf+//:pkg-config</code> -&gt;
+<code>pkgconf_pkg-config</code>). They hold nothing but generated BUILD text: an alias
+onto the target your tag named, and the <code>native_tool_toolchain</code> wrapping it.
+See <a href="#custom-mode"><code>custom</code> mode</a>.</li>
 </ul>
 <p>For most users these names are an implementation detail: <code>rules_foreign_cc</code>
 registers the hub and you never touch the spokes directly.</p>
@@ -232,16 +232,19 @@ so there is nothing for Step 3 to register, but the spoke is still declared.</p>
 depend on <code>rules_foreign_cc</code>:</p>
 <pre><code class="language-python">bazel_dep(name = "rules_foreign_cc", version = "{version}")
 </code></pre>
-<p>That's it. <code>rules_foreign_cc</code> contributes its default tool set - cmake and
-ninja as prebuilt binaries, m4, make, meson, and pkgconfig built from source,
-plus autoconf, automake, and msbuild as system tools - and <strong>registers the hub
-for you</strong> from its own MODULE.bazel. (For the exact default mode and pinned
+<p>That's it. <code>rules_foreign_cc</code> contributes its default tool set - cmake as a
+prebuilt binary, m4, make, meson, ninja and pkgconfig wrapped from the
+<code>m4</code> / <code>make</code> / <code>meson</code> / <code>ninja</code> / <code>pkgconf</code> Bazel Central Registry modules
+rfcc <code>bazel_dep</code>s on, plus autoconf, automake, and msbuild as system tools -
+and <strong>registers the hub for you</strong> from its own MODULE.bazel. (For the exact
+default mode and pinned
 version of each tool, see the
-<a href="#per-tool-support">per-tool support table</a> below.) cmake and ninja
-additionally register an unconstrained <code>system</code> toolchain as a host-PATH
+<a href="#per-tool-support">per-tool support table</a> below.) cmake
+additionally registers an unconstrained <code>system</code> toolchain as a host-PATH
 fallback: the prebuilt binary wins on the platforms rfcc ships prebuilts for,
-and any other host falls back to a <code>cmake</code>/<code>ninja</code> on <code>PATH</code> rather than
-failing resolution.
+and any other host falls back to a <code>cmake</code> on <code>PATH</code> rather than
+failing resolution. The registry-backed tools need no such fallback - they
+build from source, so they cover every platform with a C++ toolchain.
 (nmake is <em>not</em> a default: it shares make's toolchain type, so it's selected
 only by an explicit <code>toolchain =</code> label, never registered for resolution.)
 bzlmod honors a dependency's <code>register_toolchains(...)</code> for the whole build, so
@@ -250,56 +253,72 @@ you don't call it yourself.</p>
 <p>Customisation goes through the <code>tools</code> module extension. You add only the tags
 for the tools you care about; every other tool keeps its default, and you still
 don't register anything yourself. (Tagging a tool replaces <em>all</em> of rfcc's
-default tags for that one tool - relevant for cmake and ninja, which default to
+default tags for that one tool - relevant for cmake, which defaults to
 a binary plus a <code>system</code> fallback; see the note in
 <a href="#minimal-setup">Minimal setup</a>.)</p>
 <pre><code class="language-python">tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 
 tools.cmake(version = "3.31.12", mode = "binary")
 tools.ninja(mode = "system")
-tools.make(mode = "system")  # opt out of source-build, use system make
+tools.make(mode = "system")  # use make from PATH
 </code></pre>
 <p><code>use_repo(tools, "rules_foreign_cc_toolchains")</code> and
 <code>register_toolchains("@rules_foreign_cc_toolchains//:all")</code> are only needed if
 you reference the hub repo by name in your own BUILD files, or if you opt out
 of rfcc's registration (see
 <a href="#register_toolchain--false"><code>register_toolchain = False</code></a>).</p>
-<p>Omitting a <code>tools.&lt;tool&gt;(...)</code> tag entirely is how you accept rfcc's default
-mode and pinned default version for that tool. A bare <code>tools.&lt;tool&gt;()</code> tag
-with no attributes is rejected - it neither selects a tool variant nor
-constrains one, so it's a no-op (<code>register_toolchain = False</code> doesn't change
-that: with no mode/version/constraints there's nothing to declare or
-suppress). A tag must carry at least one of <code>mode</code>, <code>version</code>,
-<code>exec_compatible_with</code>, or <code>target_compatible_with</code>. Beyond that minimum the
-attributes still interact: a <code>binary</code>/<code>source</code> mode requires a <code>version</code>,
-while <code>system</code>/<code>noop</code> forbid one (see <a href="#tag-attributes">Tag attributes</a>).</p>
+<h3 id="declaring-a-tag-is-all-or-nothing"><a class="header" href="#declaring-a-tag-is-all-or-nothing">Declaring a tag is all-or-nothing</a></h3>
+<p>Omitting a <code>tools.&lt;tool&gt;(...)</code> tag entirely is how you accept rfcc's own
+registration for that tool. Writing one commits you to specifying it
+completely: every attribute defaults to empty, and nothing is inferred from
+rfcc's defaults or from the rest of the tag.</p>
+<div class="table-wrapper"><table><thead><tr><th>Attribute</th><th>Required when</th><th>Rejected when</th></tr></thead><tbody>
+<tr><td><code>mode</code></td><td>always</td><td>not one of the tool's supported modes</td></tr>
+<tr><td><code>version</code></td><td>mode is <code>binary</code> or <code>source</code></td><td>mode is <code>system</code>, <code>noop</code> or <code>custom</code>; tool is versionless</td></tr>
+<tr><td><code>target</code></td><td>mode is <code>custom</code></td><td>mode is not <code>custom</code></td></tr>
+</tbody></table>
+</div>
+<p><code>mode</code> is checked first, so a bare or half-filled tag says so plainly rather
+than failing later on a symptom. This is deliberate: with no mode there is
+nothing to infer from. A <code>version</code> alone doesn't distinguish <code>binary</code> from
+<code>source</code> (ninja's tables overlap), and constraints alone identify nothing.</p>
+<p><code>register_toolchain = False</code> does not relax any of this - it suppresses the
+hub entry, not the declaration.</p>
 <p>Each tool has its own tag class: <code>tools.autoconf</code>, <code>tools.automake</code>,
 <code>tools.cmake</code>, <code>tools.m4</code>, <code>tools.make</code>, <code>tools.meson</code>, <code>tools.msbuild</code>,
 <code>tools.ninja</code>, <code>tools.nmake</code>, <code>tools.pkgconfig</code>.</p>
 <h3 id="tag-attributes"><a class="header" href="#tag-attributes">Tag attributes</a></h3>
 <p>All <code>tools.&lt;tool&gt;(...)</code> tags share the same shape:</p>
 <div class="table-wrapper"><table><thead><tr><th>Attribute</th><th>Type</th><th>Notes</th></tr></thead><tbody>
-<tr><td><code>mode</code></td><td>string</td><td>One of the modes supported by the tool. See the table below. If unset, the planner picks the highest-priority mode the tool supports (binary &gt; source &gt; system).</td></tr>
-<tr><td><code>version</code></td><td>string</td><td>Required when the resolved mode is <code>binary</code> or <code>source</code>; forbidden for <code>system</code>/<code>noop</code> and for versionless tools. Accepts an exact patch (<code>3.31.12</code>) or a <code>major.minor.x</code> wildcard (<code>3.31.x</code>) that resolves to that minor series' latest patch - see <a href="#version-wildcards">Version wildcards</a>.</td></tr>
+<tr><td><code>mode</code></td><td>string</td><td><strong>Required.</strong> One of the modes supported by the tool - see <a href="#per-tool-support">Per-tool support</a>.</td></tr>
+<tr><td><code>version</code></td><td>string</td><td>Required when <code>mode</code> is <code>binary</code> or <code>source</code>; forbidden for <code>system</code>/<code>noop</code>/<code>custom</code> and for versionless tools. Accepts an exact patch (<code>3.31.12</code>) or a <code>major.minor.x</code> wildcard (<code>3.31.x</code>) that resolves to that minor series' latest patch - see <a href="#version-wildcards">Version wildcards</a>.</td></tr>
+<tr><td><code>target</code></td><td>label</td><td>Required when <code>mode</code> is <code>custom</code>, forbidden otherwise. The executable to use as the tool - see <a href="#custom-mode"><code>custom</code> mode</a>.</td></tr>
 <tr><td><code>register_toolchain</code></td><td>bool</td><td>Default <code>True</code>. If <code>False</code>, declare the spoke but skip registration - see below.</td></tr>
 <tr><td><code>exec_compatible_with</code></td><td>label list</td><td>Forwarded to the registered <code>toolchain(...)</code> target's <code>exec_compatible_with</code>.</td></tr>
 <tr><td><code>target_compatible_with</code></td><td>label list</td><td>Forwarded to the registered <code>toolchain(...)</code> target's <code>target_compatible_with</code>.</td></tr>
 </tbody></table>
 </div>
 <h3 id="per-tool-support"><a class="header" href="#per-tool-support">Per-tool support</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Tool</th><th>Supported modes</th><th>Default mode</th><th>Versioned</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Tool</th><th>Supported modes</th><th>rfcc's own default</th><th>Versioned</th></tr></thead><tbody>
 <tr><td><code>autoconf</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
 <tr><td><code>automake</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
-<tr><td><code>cmake</code></td><td>binary, source, system, noop</td><td>binary</td><td>yes</td></tr>
-<tr><td><code>m4</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
-<tr><td><code>make</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
-<tr><td><code>meson</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
-<tr><td><code>msbuild</code></td><td>system, noop</td><td>system</td><td>no</td></tr>
-<tr><td><code>ninja</code></td><td>binary, source, system, noop</td><td>binary</td><td>yes</td></tr>
+<tr><td><code>cmake</code></td><td>binary, custom, source, system, noop</td><td>binary</td><td>yes</td></tr>
+<tr><td><code>m4</code></td><td>custom, system, noop</td><td>custom (<code>@m4</code>)</td><td>no</td></tr>
+<tr><td><code>make</code></td><td>custom, source, system, noop</td><td>custom (<code>@make</code>)</td><td>yes</td></tr>
+<tr><td><code>meson</code></td><td>custom, source, system, noop</td><td>custom (<code>@meson</code>)</td><td>yes</td></tr>
+<tr><td><code>msbuild</code></td><td>custom, system, noop</td><td>system</td><td>no</td></tr>
+<tr><td><code>ninja</code></td><td>binary, custom, source, system, noop</td><td>custom (<code>@ninja</code>)</td><td>yes</td></tr>
 <tr><td><code>nmake</code></td><td>system</td><td>system</td><td>no</td></tr>
-<tr><td><code>pkgconfig</code></td><td>source, system, noop</td><td>source</td><td>yes</td></tr>
+<tr><td><code>pkgconfig</code></td><td>custom, source, system, noop</td><td>custom (<code>@pkgconf//:pkg-config</code>)</td><td>yes</td></tr>
 </tbody></table>
 </div>
+<p>"rfcc's own default" is what you inherit by <em>not</em> writing a tag for that tool;
+it is not a fallback within a tag you do write (see
+<a href="#declaring-a-tag-is-all-or-nothing">Declaring a tag is all-or-nothing</a>).</p>
+<p><code>autoconf</code>, <code>automake</code> and <code>nmake</code> have no <code>custom</code> mode. The first two drive
+three and two environment variables respectively, which one binary cannot
+satisfy; nmake has no environment variable at all. For those, register your
+own <code>toolchain(...)</code> with <code>register_toolchain = False</code>.</p>
 <p>The pinned default version for each versioned tool lives in
 <a href="https://github.com/bazel-contrib/rules_foreign_cc/blob/main/foreign_cc/private/tool_specs.bzl"><code>foreign_cc/private/tool_specs.bzl</code></a>
 (the <code>default_version</code> of each entry), the authoritative source for this whole
@@ -319,6 +338,55 @@ patch are interchangeable: <code>version = "3.31.x"</code> materializes the same
 identically.</p>
 <p>An unknown wildcard (a minor series rfcc doesn't ship) is rejected with a
 message listing the accepted exact versions and wildcards.</p>
+<h2 id="custom-mode"><a class="header" href="#custom-mode"><code>custom</code> mode</a></h2>
+<p><code>mode = "custom"</code> points a toolchain at an executable your build already
+produces - one you build yourself, or one from another module:</p>
+<pre><code class="language-python">tools.make(mode = "custom", target = "//tools/make:my_make")
+tools.cmake(mode = "custom", target = "@some_module//:cmake")
+</code></pre>
+<p><code>target</code> is a <strong>plain executable</strong>, not a <code>native_tool_toolchain</code>.
+<code>rules_foreign_cc</code> generates the wrapper for you, into a spoke repo named
+<code>@&lt;tool&gt;_custom_&lt;flattened target label&gt;</code>, and slots the resulting
+<code>toolchain(...)</code> into the hub alongside every other entry. That placement is
+the point: a <code>custom</code> tag participates in the hub's ordering (root tags ahead
+of rfcc's defaults) and honours <code>exec_compatible_with</code> /
+<code>target_compatible_with</code>, which a hand-written <code>toolchain(...)</code> registered
+outside the hub cannot do.</p>
+<p>This is how rfcc reaches its own default m4, make and pkg-config: its
+<code>MODULE.bazel</code> carries <code>tools.m4(mode = "custom", target = "@m4")</code> and
+friends over the Bazel Central Registry modules it <code>bazel_dep</code>s on.</p>
+<p>Two constraints are worth knowing before you use it:</p>
+<ul>
+<li><strong>The target must be visible to the spoke.</strong> The generated alias lives in a
+repo of its own, so a <code>//visibility:private</code> target fails analysis with a
+visibility error naming a repo you never wrote. Mark it
+<code>//visibility:public</code>.</li>
+<li><strong>The alias does not rename the file.</strong> <code>rules_foreign_cc</code> symlinks the tool
+into <code>$EXT_BUILD_DEPS/bin</code> under the <em>underlying file's</em> basename, not the
+alias's. That only matters for tools something else looks up by name on
+<code>PATH</code> - which is why rfcc's own pkgconfig default points at
+<code>@pkgconf//:pkg-config</code> and not <code>@pkgconf//:pkgconf</code>. ninja is handled for
+you: rfcc routes it through a wrapper literally named <code>ninja</code>, because
+meson's and CMake's dependency search insist on finding one.</li>
+</ul>
+<p><code>version</code> is rejected on a <code>custom</code> tag: the tag names the binary outright, so
+there is nothing left for rfcc to pick a version of.</p>
+<h2 id="source-mode-and-table-staleness"><a class="header" href="#source-mode-and-table-staleness"><code>source</code> mode and table staleness</a></h2>
+<p><code>mode = "source"</code> builds the tool from its upstream release tarball. The
+versions available are whatever <code>rules_foreign_cc</code> carries download URLs and
+build files for, which is <strong>not</strong> the same set as the registry modules rfcc
+defaults to:</p>
+<ul>
+<li><strong>pkgconfig</strong> source mode is <strong>pkg-config 0.29.2</strong> - a different, long
+unmaintained program from the <strong>pkgconf 3.0.7</strong> that <code>custom</code> mode
+defaults to.</li>
+<li><strong>ninja</strong> and <strong>make</strong> source tables trail their prebuilt/registry
+counterparts.</li>
+</ul>
+<p>These tables are stale by nature: keeping a hand-maintained bootstrap current
+is exactly what the registry modules exist to avoid. Prefer <code>binary</code> or
+<code>custom</code> unless you specifically need the tool built from source in your own
+toolchain, and treat a <code>source</code> version as pinned rather than tracking.</p>
 <h2 id="toolsexplicit"><a class="header" href="#toolsexplicit"><code>tools.explicit()</code></a></h2>
 <p>By default, <code>rules_foreign_cc</code> contributes a baseline set of registrations
 into the hub so that downstream consumers Just Work. If you want full
@@ -423,8 +491,12 @@ extension-driven way to register one of these.</p>
 wildcard (see <a href="#version-wildcards">Version wildcards</a>); a bare major series
 like <code>3.x</code> is not accepted.</li>
 <li><strong>Versions rfcc doesn't ship.</strong> A <code>version</code> must resolve to a version
-<code>rules_foreign_cc</code> has download URLs for; there is no way to point a tag at
-an arbitrary unsupported version.</li>
+<code>rules_foreign_cc</code> has download URLs for. To use a version rfcc doesn't
+carry, build it yourself and point a
+<a href="#custom-mode"><code>custom</code> tag</a> at the result.</li>
+<li><strong><code>custom</code> for autoconf, automake and nmake.</strong> These drive more than one
+environment variable (or none), so one executable can't stand in for the
+toolchain; see <a href="#per-tool-support">Per-tool support</a>.</li>
 <li><strong>Only the root shapes the default registration set.</strong> Non-root modules can
 declare spokes for their own scope but cannot append to the hub's <code>:all</code>
 registration list; that list is driven by the root module and rfcc's

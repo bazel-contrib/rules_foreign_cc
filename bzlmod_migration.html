@@ -186,16 +186,19 @@ goes under bzlmod:</p>
 <tr><td><code>register_default_tools = True</code> (cmake/ninja)</td><td>automatic; rfcc registers the hub for you</td></tr>
 <tr><td><code>register_built_tools = True</code> (build from source)</td><td><code>tools.&lt;tool&gt;(mode = "source", version = "...")</code> (an explicit version is required), or the source defaults in the hub</td></tr>
 <tr><td><code>register_preinstalled_tools = True</code> (host tools)</td><td><code>tools.&lt;tool&gt;(mode = "system")</code></td></tr>
-<tr><td><code>cmake_version = "3.31.12"</code></td><td><code>tools.cmake(version = "3.31.12")</code></td></tr>
-<tr><td><code>ninja_version = "1.13.2"</code></td><td><code>tools.ninja(version = "1.13.2")</code></td></tr>
-<tr><td><code>m4_version = "1.4.21"</code></td><td><code>tools.m4(version = "1.4.21")</code></td></tr>
-<tr><td><code>make_version = "4.4.1"</code></td><td><code>tools.make(version = "4.4.1")</code></td></tr>
-<tr><td><code>meson_version = "1.10.1"</code></td><td><code>tools.meson(version = "1.10.1")</code></td></tr>
-<tr><td><code>pkgconfig_version = "3.0.7"</code></td><td><code>tools.pkgconfig(version = "3.0.7")</code></td></tr>
+<tr><td><code>cmake_version = "3.31.12"</code></td><td><code>tools.cmake(mode = "binary", version = "3.31.12")</code></td></tr>
+<tr><td><code>ninja_version = "1.13.2"</code></td><td><code>tools.ninja(mode = "binary", version = "1.13.2")</code></td></tr>
+<tr><td><code>m4_version = "1.4.21"</code></td><td>nothing - m4 has no versioned mode; <code>tools.m4(mode = "custom", target = "@m4")</code> to point it elsewhere</td></tr>
+<tr><td><code>make_version = "4.4.1"</code></td><td><code>tools.make(mode = "source", version = "4.4.1")</code></td></tr>
+<tr><td><code>meson_version = "1.10.1"</code></td><td>nothing - rfcc's default is the <code>meson</code> registry module at this version, reached via <code>tools.meson(mode = "custom", target = "@meson")</code>; <code>tools.meson(mode = "source", version = "1.10.1")</code> builds the same version from its archive</td></tr>
+<tr><td><code>pkgconfig_version = "3.0.7"</code></td><td>nothing - 3.0.7 is pkgconf, reached via <code>tools.pkgconfig(mode = "custom", target = "@pkgconf//:pkg-config")</code>; source mode is pkg-config 0.29.2</td></tr>
 <tr><td><code>register_toolchains = False</code></td><td>omit <code>register_toolchains(...)</code>; register manually</td></tr>
-<tr><td><code>native_tools_toolchains = [...]</code></td><td><code>tools.&lt;tool&gt;(..., register_toolchain = False)</code> + your own <code>toolchain(...)</code></td></tr>
+<tr><td><code>native_tools_toolchains = [...]</code></td><td><code>tools.&lt;tool&gt;(mode = "custom", target = "//your:binary")</code>, or <code>tools.&lt;tool&gt;(..., register_toolchain = False)</code> + your own <code>toolchain(...)</code></td></tr>
 </tbody></table>
 </div>
+<p>Every tag above names a <code>mode</code>. That is not optional: a tag is
+all-or-nothing, so writing one commits you to specifying it completely. See
+<a href="bzlmod_hub.html#declaring-a-tag-is-all-or-nothing">Declaring a tag is all-or-nothing</a>.</p>
 <h3 id="selecting-nmake-by-label-windows"><a class="header" href="#selecting-nmake-by-label-windows">Selecting nmake by label (Windows)</a></h3>
 <p>If you build an MSVC target by pointing a rule's <code>toolchain</code> attribute at
 <code>@rules_foreign_cc//toolchains:preinstalled_nmake_toolchain</code> (e.g.
@@ -307,10 +310,10 @@ update.</p>
 per-version spokes registered through the hub:</p>
 <div class="table-wrapper"><table><thead><tr><th>Removed label</th><th>Replacement</th></tr></thead><tbody>
 <tr><td><code>@rules_foreign_cc//toolchains:built_cmake_toolchain</code></td><td><code>tools.cmake(mode = "source", version = "3.31.12")</code> → hub registration</td></tr>
-<tr><td><code>@rules_foreign_cc//toolchains:built_ninja_toolchain</code></td><td><code>tools.ninja(mode = "source")</code> → hub registration</td></tr>
-<tr><td><code>@rules_foreign_cc//toolchains:built_make_toolchain</code></td><td><code>tools.make(mode = "source")</code> → hub registration</td></tr>
+<tr><td><code>@rules_foreign_cc//toolchains:built_ninja_toolchain</code></td><td><code>tools.ninja(mode = "source", version = "1.13.2")</code> → hub registration</td></tr>
+<tr><td><code>@rules_foreign_cc//toolchains:built_make_toolchain</code></td><td><code>tools.make(mode = "source", version = "4.4.1")</code> → hub registration</td></tr>
 <tr><td><code>@rules_foreign_cc//toolchains:built_meson_toolchain</code></td><td><code>tools.meson(mode = "source", version = "1.10.1")</code> → hub registration</td></tr>
-<tr><td><code>@rules_foreign_cc//toolchains:built_pkgconfig_toolchain</code></td><td><code>tools.pkgconfig(mode = "source", version = "3.0.7")</code> → hub registration</td></tr>
+<tr><td><code>@rules_foreign_cc//toolchains:built_pkgconfig_toolchain</code></td><td><code>tools.pkgconfig(mode = "source", version = "0.29.2")</code> → hub registration</td></tr>
 </tbody></table>
 </div>
 <p>If you registered these labels explicitly (e.g.
@@ -340,21 +343,29 @@ reach the source archive through the hub's version-neutral aliases:</p>
 )
 </code></pre>
 <p>Hub aliases published per source-mode tool: <code>cmake_src_all</code>, <code>cmake_built</code>,
-<code>meson_src_all</code>, <code>meson_built</code>, <code>meson_src_meson_py</code>, <code>meson_src_runtime</code>.</p>
-<p>m4, make, ninja and pkgconfig publish none under bzlmod: under both dependency
-models they are built from their Bazel Central Registry modules rather than an
-rfcc source spoke, and those modules expose the built binary and nothing else,
-as <code>@m4//:m4</code>, <code>@make//:make</code>, <code>@ninja//:ninja</code> and <code>@pkgconf//:pkg-config</code>. Add
-<code>bazel_dep(name = "make", ...)</code> and so on to your own module to reference them
-under those names. (rfcc's <code>pkgconfig</code> tool is the <code>pkgconf</code> module -- the
-pkg-config implementation distributions ship as <code>pkg-config</code>; its BUILD file
-publishes the binary under both names.) The <code>WORKSPACE</code> hub keeps publishing
-<code>m4_built</code> / <code>make_built</code> / <code>ninja_built</code> / <code>pkgconfig_built</code> for consumers who
-already name them; each forwards straight to the registry module's binary.</p>
-<p>There is no <code>&lt;tool&gt;_src_all</code> for these tools under either model: the registry
-modules unpack their own source trees and expose no target for them. If your
-BUILD files reached the pkg-config sources through <code>pkgconfig_src_all</code>, use
-<code>@pkgconf//:pkg-config</code> for the binary; the sources have no replacement.</p>
+<code>make_src_all</code>, <code>make_built</code>, <code>meson_src_all</code>, <code>meson_built</code>,
+<code>meson_src_meson_py</code>, <code>meson_src_runtime</code>, <code>ninja_src_all</code>, <code>ninja_built</code>.</p>
+<p>These are published whenever rfcc is in the graph, independent of which mode
+you register: the source archive for the tool's default version is fetched
+either way. For make and ninja they point at rfcc's own bootstrap
+(<code>@make_src_4.4.1</code>, <code>@ninja_src_1.13.2</code>), which is <em>not</em> the same binary the
+default toolchain uses - by default both tools resolve to their Bazel Central
+Registry module instead.</p>
+<p>m4 and pkgconfig publish nothing under bzlmod. m4 has no source mode at all,
+and pkgconfig's default version (3.0.7, which is pkgconf) is absent from the
+source table, whose only entry is pkg-config 0.29.2 - a different program, and
+a stale one. Reach either through its registry module, <code>@m4//:m4</code> and
+<code>@pkgconf//:pkg-config</code>, adding <code>bazel_dep(name = "pkgconf", ...)</code> and so on to
+your own module to name them. (rfcc's <code>pkgconfig</code> tool is the <code>pkgconf</code> module;
+its BUILD file publishes the binary under both names, and rfcc uses
+<code>pkg-config</code> because that is the basename configure scripts and CMake's
+<code>FindPkgConfig</code> look for.)</p>
+<p>The <code>WORKSPACE</code> hub keeps publishing <code>m4_built</code> / <code>make_built</code> / <code>ninja_built</code>
+/ <code>pkgconfig_built</code> for consumers who already name them; each forwards straight
+to the registry module's binary. There is no <code>m4_src_all</code> or
+<code>pkgconfig_src_all</code> under either model. If your BUILD files reached the
+pkg-config sources through <code>pkgconfig_src_all</code>, use <code>@pkgconf//:pkg-config</code> for
+the binary; the sources have no replacement.</p>
 <h3 id="pattern-b---pin-the-version-yourself"><a class="header" href="#pattern-b---pin-the-version-yourself">Pattern B - pin the version yourself</a></h3>
 <p>If you want the version stable across rfcc upgrades, declare the spoke in your
 MODULE.bazel and reference its version-suffixed name:</p>
