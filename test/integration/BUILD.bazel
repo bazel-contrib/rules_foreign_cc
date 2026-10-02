@@ -186,11 +186,17 @@ scenario(
 # the caller's package; the cquery forces those generated targets to analyze,
 # which fails with "no repository visible" if the macro reaches the hub by its
 # apparent name. It must instead reach the rfcc-owned //foreign_cc:meson_src_*
-# aliases. cquery (not build) because we only need the labels to resolve, not a
-# from-source meson build.
+# aliases.
+#
+# The build is the one end-to-end run of a source-mode meson: the module pins
+# `tools.meson(mode = "source")`, so `//:hello` goes through the spoke's own
+# toolchain and `//:hello_meson` through the macro's, both running the
+# archive's meson.py under the Python toolchain. meson needs no bootstrap, so
+# unlike the cmake scenarios this is cheap.
 scenario(
     name = "meson_no_hub_import",
     env = {
+        "EXPECT_BUILD": "//:all",
         # Querying the macro-generated tool target forces its hub label strings
         # to resolve. Filtering its deps for the backing source spoke
         # (@meson_src_1.10.1, reached via the //foreign_cc:meson_src_* aliases)

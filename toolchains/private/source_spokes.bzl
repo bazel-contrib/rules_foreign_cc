@@ -160,8 +160,8 @@ toolchain(
 """
 
 _MESON_SRC_BUILD_FILE = """\
-load("@rules_foreign_cc//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
-load("@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
+load("@rules_foreign_cc//toolchains/native_tools:meson_tool_toolchain.bzl", "meson_tool_toolchain")
+load("@rules_python//python:py_binary.bzl", "py_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -179,22 +179,17 @@ filegroup(
     srcs = glob(["mesonbuild/**"], exclude = ["**/__pycache__/*"]),
 )
 
-meson_tool(
+py_binary(
     name = "meson_built",
+    srcs = ["meson.py"],
     data = [":runtime"],
-    main = ":meson.py",
+    main = "meson.py",
     tags = ["manual"],
 )
 
-native_tool_toolchain(
+meson_tool_toolchain(
     name = "meson_tool",
-    env = {
-        "MESON": "$(execpath :meson_built)",
-        "REAL_MESON": "$(rlocationpath :meson.py)",
-    },
-    path = "$(execpath :meson_built)",
-    target = ":meson_built",
-    tools = [":meson.py"],
+    meson = ":meson_built",
 )
 
 toolchain(

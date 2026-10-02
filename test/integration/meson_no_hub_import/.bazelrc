@@ -1,0 +1,9 @@
+# Config for the INNER Bazel build (the one runner.sh spawns inside this
+# scenario workspace). Building the meson targets on Windows needs what every
+# rules_foreign_cc consumer there sets for meson's py_binary: runfiles, no
+# python zip, native symlinks and short build paths. Import //.bazelrc.common
+# by reference, as default_mode does, so this scenario stays in sync instead
+# of duplicating the flags. rfcc is staged 3 levels up (matching the
+# MODULE.bazel local_path_override) and ships .bazelrc.common via
+# //:distribution.
+import %workspace%/../../../.bazelrc.common

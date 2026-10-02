@@ -94,14 +94,22 @@ package(default_visibility = ["//visibility:public"])
 
 """
 
-# Only emitted when the repo actually declares a native_tool_toolchain, so a
-# hub that holds nothing but toolchain()/alias() stays load-free.
-_NATIVE_TOOL_LOAD = """
+# Only emitted when the repo actually declares a tool toolchain, so a hub that
+# holds nothing but toolchain()/alias() stays load-free.
+_TOOL_LOADS = {
+    "meson_tool_toolchain": """
+load(
+    "@rules_foreign_cc//toolchains/native_tools:meson_tool_toolchain.bzl",
+    "meson_tool_toolchain",
+)
+""",
+    "native_tool_toolchain": """
 load(
     "@rules_foreign_cc//toolchains/native_tools:native_tools_toolchain.bzl",
     "native_tool_toolchain",
 )
-"""
+""",
+}
 
 _TOOLCHAIN_TEMPLATE = """\
 toolchain(
@@ -132,6 +140,14 @@ native_tool_toolchain(
 
 """
 
+_MESON_TOOL_TEMPLATE = """\
+meson_tool_toolchain(
+    name = {name},
+    meson = {meson},
+)
+
+"""
+
 def _format_constraints(label_list, attr_name):
     if not label_list:
         return ""
@@ -150,10 +166,18 @@ def _format_env(env):
 
 def _hub_repo_impl(rctx):
     native_tools = [json.decode(e) for e in rctx.attr.native_tool_specs_json_list]
+    rules = sorted({spec.get("rule", "native_tool_toolchain"): None for spec in native_tools})
     parts = [_BUILD_HEADER.format(
-        loads = _NATIVE_TOOL_LOAD if native_tools else "",
+        loads = "".join([_TOOL_LOADS[rule] for rule in rules]),
     )]
     for spec in native_tools:
+        if spec.get("rule") == "meson_tool_toolchain":
+            parts.append(_MESON_TOOL_TEMPLATE.format(
+                name = repr(spec["name"]),
+                meson = repr(spec["meson"]),
+            ))
+            continue
+
         # `tools` is only needed when `env` names a file that `target` does not
         # expand to -- the ninja wrapper's REAL_NINJA, for instance.
         parts.append(_NATIVE_TOOL_TEMPLATE.format(
@@ -201,7 +225,9 @@ hub_repo = repository_rule(
         ),
         "native_tool_specs_json_list": attr.string_list(
             doc = "JSON-encoded native_tool_toolchain specs (keys: name, env, " +
-                  "path, target, and optionally tools), one per entry. Emitted " +
+                  "path, target, and optionally tools), or meson_tool_toolchain " +
+                  "specs (rule = \"meson_tool_toolchain\"; keys: name, meson), " +
+                  "one per entry. Emitted " +
                   "ahead of the toolchain entries that reference them, and the " +
                   "only thing that pulls a load() into the generated BUILD file.",
         ),

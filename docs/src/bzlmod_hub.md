@@ -256,6 +256,14 @@ Two constraints are worth knowing before you use it:
 `version` is rejected on a `custom` tag: the tag names the binary outright, so
 there is nothing left for rfcc to pick a version of.
 
+For meson the target is a Python binary, such as `@meson//:meson` or one
+from another Python ruleset, and the spoke declares a `meson_tool_toolchain`
+over it rather than a `native_tool_toolchain`. It runs the binary as is and
+additionally exports `REAL_MESON` and `MESON_REAL` (its entry script, as an
+rlocationpath and an exec path) and `PYTHON3` (the exec-configuration
+interpreter), and puts the binary's `deps` on `PYTHONPATH` for the child
+interpreters meson spawns.
+
 ## `source` mode and table staleness
 
 `mode = "source"` builds the tool from its upstream release tarball. The

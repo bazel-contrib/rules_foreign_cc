@@ -23,6 +23,16 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
+# Whether `meson` exports its Python binary's import roots (`deps`) on
+# PYTHONPATH, so the child interpreters meson spawns see them. Needed when the
+# binary's entrypoint configures only its own process, as rules_python's does.
+# Set to False when the entrypoint's environment already carries `deps`.
+bool_flag(
+    name = "meson_pythonpath",
+    build_setting_default = True,
+    visibility = ["//visibility:public"],
+)
+
 # `bazel run //foreign_cc/settings` prints every public build setting in
 # bazelrc form so users can copy them verbatim into their own bazelrc.
 _settings_script(
