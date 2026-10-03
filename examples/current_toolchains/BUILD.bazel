@@ -1,4 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "make")
 
 genrule(
     name = "current_make_toolchain_test",
@@ -7,7 +8,29 @@ genrule(
     toolchains = ["@rules_foreign_cc//toolchains:current_make_toolchain"],
 )
 
+# A foreign build using a tool through its hub rather than its own rule. meson
+# is a Python launcher, so beyond the make variable this needs the launcher's
+# runfiles tree staged into the action.
+make(
+    name = "current_meson_toolchain_test",
+    env = {
+        "MESON_BIN": "$$EXT_BUILD_ROOT/$(MESON)",
+    },
+    lib_source = ":makefile",
+    out_data_files = ["meson_version.txt"],
+    out_include_dir = "",
+    toolchains = ["@rules_foreign_cc//toolchains:current_meson_toolchain"],
+)
+
+filegroup(
+    name = "makefile",
+    srcs = ["Makefile"],
+)
+
 build_test(
     name = "current_toolchain_tests",
-    targets = [":current_make_toolchain_test"],
+    targets = [
+        ":current_make_toolchain_test",
+        ":current_meson_toolchain_test",
+    ],
 )

@@ -75,6 +75,7 @@ bzl_library(
         "//foreign_cc:providers",
         "//foreign_cc/private/framework:helpers",
         "//foreign_cc/private/framework:platform",
+        "//toolchains/native_tools:native_tools_toolchain",
         "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:paths",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",

@@ -20,6 +20,7 @@ load(
     "shebang",
 )
 load("//foreign_cc/private/framework:platform.bzl", "PLATFORM_CONSTRAINTS_RULE_ATTRIBUTES")
+load("//toolchains/native_tools:native_tools_toolchain.bzl", "tool_targets")
 load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
@@ -511,6 +512,18 @@ def cc_external_rule_impl(ctx, attrs):
     target_root = paths.dirname(installdir_copy.file.dirname)
 
     data_dependencies = ctx.attr.data + ctx.attr.build_data + ctx.attr.toolchains
+
+    # A `current_*_toolchain` hub under `toolchains` forwards its tool's files,
+    # but its `files_to_run` has no executable, so an executable tool reached
+    # that way (a Python launcher such as meson's) would be staged without the
+    # runfiles tree it needs. Stage the hub's own tool targets too, as a
+    # binary listed in `build_data` would be.
+    for toolchain in ctx.attr.toolchains:
+        if platform_common.ToolchainInfo in toolchain:
+            tool_info = getattr(toolchain[platform_common.ToolchainInfo], "data", None)
+            if tool_info != None:
+                data_dependencies += tool_targets(tool_info)
+
     tools_env = {}
     for tool in attrs.tools_data:
         data_dependencies += tool.tools
@@ -519,6 +532,11 @@ def cc_external_rule_impl(ctx, attrs):
 
     # Also add legacy dependencies while they're still available
     data_dependencies += ctx.attr.tools_deps + ctx.attr.additional_tools
+
+    # The same target can arrive by more than one route (a toolchain's tool
+    # also listed in `build_data`, or reached through both `toolchains` and the
+    # rule's own toolchain); location expansion rejects duplicates.
+    data_dependencies = uniq_list_keep_order(data_dependencies)
 
     installdir = target_root + "/" + lib_name
     env_prelude = get_env_prelude(ctx, installdir, data_dependencies, tools_env)
