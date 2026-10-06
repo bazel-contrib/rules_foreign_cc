@@ -79,7 +79,7 @@ def _make_tool_impl(ctx):
         # flags list.
         absolute_ar = absolutize(ctx.workspace_name, ar_path, True)
         arflags = [e for e in frozen_arflags]
-        if absolute_ar == "libtool" or absolute_ar.endswith("/libtool"):
+        if absolute_ar.split("/")[-1] in ["libtool", "llvm-libtool-darwin"]:
             arflags.append("-o")
 
         if os_name(ctx) == "macos":
