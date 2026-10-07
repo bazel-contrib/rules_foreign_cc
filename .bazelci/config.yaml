@@ -12,13 +12,14 @@ matrix:
   bazel_version:
     7.x: 7.7.1
     8.x: 8.6.0
-    # 9.x: 9.0.1
+    9.x: 9.3.0
 
   # hack to work around it until the fix lands:
   # https://github.com/bazelbuild/continuous-integration/pull/2526
   bazel_rc_config:
     7.x: --config=bazel-7.x
     8.x: --config=bazel-8.x
+    9.x: --config=bazel-9.x
 
   bzlmod:
     bzlmod: [--enable_bzlmod, --noenable_workspace]
@@ -34,9 +35,12 @@ matrix:
     Examples: examples
 
   exclude:
-    # bazel 9 no longer supports workspaces
+    # bazel 9 no longer supports workspaces. It also accepts --enable_workspace
+    # as a no-op, so the mixed lane would be a second copy of the bzlmod lane.
     - bazel_version: 9.x
       bzlmod: workspaces
+    - bazel_version: 9.x
+      bzlmod: mixed
 
     # bazel 7 runs both the workspaces and the bzlmod lane. The bzlmod lane is
     # what the BCR presubmit exercises, so it needs to be covered here or a
@@ -50,11 +54,19 @@ matrix:
     - bazel_version: 7.x
       bzlmod: mixed
 
+    # Pair each bazel version with its own rc config (see bazel_rc_config).
     - bazel_version: 7.x
       bazel_rc_config: 8.x
-
+    - bazel_version: 7.x
+      bazel_rc_config: 9.x
     - bazel_version: 8.x
       bazel_rc_config: 7.x
+    - bazel_version: 8.x
+      bazel_rc_config: 9.x
+    - bazel_version: 9.x
+      bazel_rc_config: 7.x
+    - bazel_version: 9.x
+      bazel_rc_config: 8.x
 
     # Windows doesn't actually have a sandbox anyway, and there aren't a lot of
     # windows runners, so don't run the standalones
@@ -65,10 +77,17 @@ matrix:
     - primary: Main
       spawn_strategy: standalone
 
-    # The RBE config does not work with workspaces disabled, since it must be
-    # invoked from WORKSPACE.bzlmod
+    # On bazel 7 and 8 the RBE platform is already covered by the workspaces
+    # and mixed lanes, so skip its bzlmod lane to keep the job count down. Bazel
+    # 9 has neither of those lanes, so there the bzlmod lane is the RBE
+    # coverage; @buildkite_config comes from MODULE.bazel (rbe_preconfig) rather
+    # than WORKSPACE.bazel, which bazel 9 never reads.
     - platform: rbe_ubuntu2204
       bzlmod: bzlmod
+      bazel_version: 7.x
+    - platform: rbe_ubuntu2204
+      bzlmod: bzlmod
+      bazel_version: 8.x
 
 # Note: we're not using the default_flags idiom because the matrix expander
 # currently can't handle expanding dict keys
