@@ -2,6 +2,7 @@ load("@bazel_lib//lib:diff_test.bzl", "diff_test")
 load("@rules_shell//shell:sh_library.bzl", "sh_library")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//tools/lint:linters.bzl", "shellcheck_test")
+load(":built_tools_flags_test.bzl", "built_tools_flags_test_suite")
 load(":cmake_text_tests.bzl", "cmake_script_test_suite")
 load(":convert_shell_script_test.bzl", "shell_script_conversion_suite")
 load(":make_env_vars_test.bzl", "make_env_vars_test_suite")
@@ -129,3 +130,5 @@ sh_test(
     args = ["$(locations //test/output_validation:wrong_output_in_action_check_script)"],
     data = ["//test/output_validation:wrong_output_in_action_check_script"],
 )
+
+built_tools_flags_test_suite()
