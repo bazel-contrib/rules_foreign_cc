@@ -1,5 +1,7 @@
 build --enable_platform_specific_config
 
+common --incompatible_auto_exec_groups
+
 # Required by Meson on Windows
 build:windows --action_env=PROCESSOR_ARCHITECTURE
 build:windows --action_env=USERPROFILE
