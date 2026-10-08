@@ -4,9 +4,26 @@
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", _find_cpp_toolchain = "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
+load("//foreign_cc/private/framework:exec_groups.bzl", "FOREIGN_CC_EXEC_GROUP", "get_toolchains")
 load("//foreign_cc/private/framework:platform.bzl", "target_os_name")
+
+def find_cpp_toolchain(ctx):
+    """Find the C++ toolchain on the foreign build's execution platform.
+
+    Args:
+        ctx: The rule context.
+
+    Returns:
+        CcToolchainInfo: The resolved C++ toolchain.
+    """
+    if FOREIGN_CC_EXEC_GROUP not in ctx.exec_groups:
+        return _find_cpp_toolchain(ctx)
+    if hasattr(cc_common, "is_cc_toolchain_resolution_enabled_do_not_use") and not cc_common.is_cc_toolchain_resolution_enabled_do_not_use(ctx = ctx):
+        return _find_cpp_toolchain(ctx)
+    toolchain = get_toolchains(ctx)[Label("@bazel_tools//tools/cpp:toolchain_type")]
+    return toolchain.cc if hasattr(toolchain, "cc_provider_in_toolchain") and hasattr(toolchain, "cc") else toolchain
 
 LibrariesToLinkInfo = provider(
     doc = "Libraries to be wrapped into CcLinkingInfo",

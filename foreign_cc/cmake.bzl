@@ -146,6 +146,7 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
+load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
 load(
     "//foreign_cc/private/framework:platform.bzl",
     "arch_name",
@@ -428,7 +429,7 @@ cmake = rule(
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
     output_to_genfiles = True,
     implementation = _cmake_impl,
-    toolchains = [
+    exec_groups = foreign_cc_exec_groups([
         "@rules_foreign_cc//toolchains:cmake_toolchain",
         "@rules_foreign_cc//toolchains:ninja_toolchain",
         "@rules_foreign_cc//toolchains:make_toolchain",
@@ -436,7 +437,7 @@ cmake = rule(
         "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    ]),
     provides = [CcInfo],
 )
 

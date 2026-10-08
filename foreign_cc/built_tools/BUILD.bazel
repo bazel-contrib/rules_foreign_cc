@@ -22,8 +22,8 @@ bzl_library(
     deps = [
         "//foreign_cc/built_tools/private:built_tools_framework",
         "//foreign_cc/private:cc_toolchain_util",
+        "//foreign_cc/private/framework:exec_groups",
         "//foreign_cc/private/framework:platform",
-        "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     ],
 )
 
@@ -33,6 +33,8 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "//foreign_cc/built_tools/private:built_tools_framework",
+        "//foreign_cc/private:cc_toolchain_util",
+        "//foreign_cc/private/framework:exec_groups",
         "//foreign_cc/private/framework:platform",
     ],
 )
@@ -44,6 +46,7 @@ bzl_library(
     deps = [
         "//foreign_cc:defs",
         "//foreign_cc/built_tools/private:built_tools_framework",
+        "//foreign_cc/private/framework:exec_groups",
         "//toolchains/native_tools:tool_access",
     ],
 )

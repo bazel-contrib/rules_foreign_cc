@@ -1,5 +1,6 @@
 """A module defining functionality for invoking toolchain commands"""
 
+load("//foreign_cc/private/framework:exec_groups.bzl", "get_toolchains")
 load(":commands.bzl", "FunctionAndCallInfo", "PLATFORM_COMMANDS")
 
 _function_and_call_type = type(FunctionAndCallInfo(text = ""))
@@ -16,7 +17,7 @@ def create_context(ctx):
             - prelude (dict): A cache for rendered functions
     """
     return struct(
-        shell = ctx.toolchains[Label("//foreign_cc/private/framework:shell_toolchain")].commands,
+        shell = get_toolchains(ctx)[Label("//foreign_cc/private/framework:shell_toolchain")].commands,
         prelude = {},
     )
 

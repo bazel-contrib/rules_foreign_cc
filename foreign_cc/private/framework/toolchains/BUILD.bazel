@@ -10,7 +10,10 @@ bzl_library(
     name = "access",
     srcs = ["access.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
-    deps = [":commands"],
+    deps = [
+        ":commands",
+        "//foreign_cc/private/framework:exec_groups",
+    ],
 )
 
 bzl_library(

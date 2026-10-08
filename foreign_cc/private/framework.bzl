@@ -5,12 +5,12 @@
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("@rules_cc//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
 load("//foreign_cc:providers.bzl", "ForeignCcArtifactInfo", "ForeignCcDepsInfo")
 load("//foreign_cc/private:detect_root.bzl", "filter_containing_dirs_from_inputs")
 load("//foreign_cc/private:resource_sets.bzl", "SIZE_ATTRIBUTES", "get_resource_env_vars")
+load("//foreign_cc/private/framework:exec_groups.bzl", "FOREIGN_CC_EXEC_GROUP")
 load(
     "//foreign_cc/private/framework:helpers.bzl",
     "convert_shell_script",
@@ -25,6 +25,7 @@ load(
     ":cc_toolchain_util.bzl",
     "LibrariesToLinkInfo",
     "create_linking_info",
+    "find_cpp_toolchain",
     "get_env_vars",
     "targets_windows",
 )
@@ -76,7 +77,7 @@ FOREIGN_CC_FRAMEWORK_COMMON_ATTRS = {
     ),
     "_foreign_cc_framework_platform": attr.label(
         doc = "Information about the execution platform",
-        cfg = "exec",
+        cfg = config.exec(FOREIGN_CC_EXEC_GROUP),
         default = Label("@rules_foreign_cc//foreign_cc/private/framework:platform_info"),
     ),
     "_set_file_prefix_map_default": attr.label(
@@ -106,7 +107,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         ),
         mandatory = False,
         allow_files = True,
-        cfg = "exec",
+        cfg = config.exec(FOREIGN_CC_EXEC_GROUP),
         default = [],
     ),
     "alwayslink": attr.bool(
@@ -121,7 +122,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "Files needed by this rule only during build/compile time. May list file or rule targets. Generally allows any target.",
         mandatory = False,
         allow_files = True,
-        cfg = "exec",
+        cfg = config.exec(FOREIGN_CC_EXEC_GROUP),
         default = [],
     ),
     "data": attr.label_list(
@@ -267,7 +268,7 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         doc = "__deprecated__: Please use the `build_data` attribute.",
         mandatory = False,
         allow_files = True,
-        cfg = "exec",
+        cfg = config.exec(FOREIGN_CC_EXEC_GROUP),
         default = [],
     ),
 } | FOREIGN_CC_FRAMEWORK_COMMON_ATTRS
@@ -624,6 +625,7 @@ def cc_external_rule_impl(ctx, attrs):
     resource_set, env = get_resource_env_vars(ctx.attr)
 
     ctx.actions.run_shell(
+        exec_group = FOREIGN_CC_EXEC_GROUP,
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
         inputs = depset(inputs.declared_inputs),
         outputs = rule_outputs + [wrapped_outputs.log_file],

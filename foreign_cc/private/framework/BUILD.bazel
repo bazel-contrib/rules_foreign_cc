@@ -17,6 +17,12 @@ toolchain_type(
 framework_platform_info()
 
 bzl_library(
+    name = "exec_groups",
+    srcs = ["exec_groups.bzl"],
+    visibility = ["//:__subpackages__"],
+)
+
+bzl_library(
     name = "helpers",
     srcs = ["helpers.bzl"],
     visibility = [

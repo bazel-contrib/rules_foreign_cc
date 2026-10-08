@@ -99,6 +99,7 @@ load(
     "get_foreign_cc_dep",
 )
 load("//foreign_cc/private:msbuild_script.bzl", "create_msbuild_script")
+load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
 load("//toolchains/native_tools:tool_access.bzl", "get_msbuild_data")
 
 def _msbuild(ctx):
@@ -218,11 +219,11 @@ msbuild = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _msbuild,
-    toolchains = [
+    exec_groups = foreign_cc_exec_groups([
         "@rules_foreign_cc//toolchains:msbuild_toolchain",
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    ]),
 )
 
 def _properties_to_args(properties):

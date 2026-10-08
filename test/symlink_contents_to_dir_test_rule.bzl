@@ -28,6 +28,7 @@ def _symlink_contents_to_dir_test_rule_impl(ctx):
     ]
     converted_script = convert_shell_script(ctx, script_lines)
     ctx.actions.run_shell(
+        toolchain = "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         mnemonic = "TestSymlinkContentsToDir",
         inputs = depset(
             direct =

@@ -18,6 +18,7 @@ bzl_library(
     srcs = ["cc_toolchain_util.bzl"],
     visibility = ["//foreign_cc:__subpackages__"],
     deps = [
+        "//foreign_cc/private/framework:exec_groups",
         "@bazel_skylib//lib:collections",
         "@bazel_tools//tools/build_defs/cc:action_names.bzl",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
@@ -73,12 +74,12 @@ bzl_library(
         ":resource_sets",
         ":run_shell_file_utils",
         "//foreign_cc:providers",
+        "//foreign_cc/private/framework:exec_groups",
         "//foreign_cc/private/framework:helpers",
         "//foreign_cc/private/framework:platform",
         "//toolchains/native_tools:native_tools_toolchain",
         "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:paths",
-        "@bazel_tools//tools/cpp:toolchain_utils.bzl",
         "@rules_cc//cc/common:cc_shared_library_info_bzl",
     ],
 )
