@@ -78,9 +78,7 @@ def _make_tool_impl(ctx):
         # output file always comes first and we can append this argument to the
         # flags list.
         absolute_ar = absolutize(ctx.workspace_name, ar_path, True)
-        arflags = [e for e in frozen_arflags]
-        if absolute_ar.split("/")[-1] in ["libtool", "llvm-libtool-darwin"]:
-            arflags.append("-o")
+        arflags = _make_arflags(absolute_ar, frozen_arflags)
 
         if os_name(ctx) == "macos":
             non_system_include_ldflags += ["-undefined", "error"]
@@ -155,3 +153,11 @@ make_tool = rule(
 
 def _join_flags_list(workspace_name, flags):
     return " ".join([escape_dquote_bash(absolutize(workspace_name, flag)) for flag in flags])
+
+def _make_arflags(absolute_ar, flags):
+    arflags = [e for e in flags]
+    if absolute_ar.split("/")[-1] in ["libtool", "llvm-libtool-darwin"]:
+        arflags.append("-o")
+    return arflags
+
+export_for_test = struct(make_arflags = _make_arflags)
