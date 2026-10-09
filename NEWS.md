@@ -99,6 +99,21 @@
   binary may be a rules_python `py_binary` or one from another Python ruleset
   that provides `PyInfo` and `PyExecutableInfo`.
 
+### Internal
+
+- CI now runs the full platform matrix (Linux, RBE, macOS, Windows) on Bazel
+  9.3.0 as well as 7.x and 8.x, in bzlmod mode. The RBE toolchain config repo
+  is declared in `MODULE.bazel` so that the bzlmod-only lanes, which never read
+  `WORKSPACE.bzlmod`, can reach it. Bringing the examples up on Bazel 9 also
+  moved macOS fully onto Apple toolchain resolution: the legacy
+  `--crosstool_top` flags are gone from `.bazelrc.common`,
+  `--incompatible_enable_apple_toolchain_resolution` is on for Bazel 7 and 8
+  (Bazel 9 has no other mode), `examples/platform_mappings` is deleted, and
+  `rules_apple` is bumped to 4.3.3, the first 4.x release whose transitions no
+  longer touch the removed legacy settings. rules_python's own
+  `build_python_zip` flag is switched off under Bazel 9, which reads it in place
+  of the native one.
+
 ## 0.16.0 (2026-09-14)
 
 This is the first entry in the resumed changelog. Changes below are listed
