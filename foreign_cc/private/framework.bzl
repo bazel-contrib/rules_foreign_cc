@@ -347,7 +347,7 @@ def get_env_prelude(ctx, installdir, data_dependencies, tools_env):
         "export INSTALLDIR=$$EXT_BUILD_ROOT$$/" + installdir,
         "export BUILD_TMPDIR=$$INSTALLDIR$$.build_tmpdir",
         "export EXT_BUILD_DEPS=$$INSTALLDIR$$.ext_build_deps",
-    ]
+    ] + _short_path_env_aliases(ctx)
 
     env = dict()
     env.update(tools_env)
@@ -406,6 +406,12 @@ def _use_short_paths(ctx):
     """Returns True if the build should use shortened paths on Windows."""
     if not targets_windows(ctx, None):
         return False
+
+    # The built-tool rules (built_tools_framework.bzl) share get_env_prelude
+    # and wrap_outputs but not CC_EXTERNAL_RULE_ATTRIBUTES, so they carry no
+    # opt-in and keep the long paths.
+    if not hasattr(ctx.attr, "_allow_building_in_tmp"):
+        return False
     return ctx.attr._allow_building_in_tmp[BuildSettingInfo].value
 
 def _short_path_wrapper_setup(ctx):
@@ -429,9 +435,13 @@ def _short_path_env_aliases(ctx):
     """Redirect BUILD_TMPDIR/EXT_BUILD_DEPS to short paths under RFCC_SHORT_PATH_ROOT_WIN.
 
     Uses the mixed Windows path form so that downstream tools (CMake, pkg-config,
-    etc.) receive paths they understand. Must run after env_prelude in any script
-    that sets BUILD_TMPDIR/EXT_BUILD_DEPS, since env_prelude sets them to the
-    original long paths.
+    etc.) receive paths they understand. Emitted by get_env_prelude directly
+    after the long-path defaults and before any other variable: a user `env`
+    value such as `LIB = "$$EXT_BUILD_DEPS/lib"` is expanded by the shell at
+    export time, so a later redirect would leave it pointing at the long path
+    that nothing is staged under. The wrapper exports RFCC_SHORT_PATH_ROOT_WIN
+    (see _short_path_wrapper_setup) before the prelude, and the build script
+    inherits it.
     """
     if not _use_short_paths(ctx):
         return []
@@ -560,7 +570,6 @@ def cc_external_rule_impl(ctx, attrs):
         "##script_prelude##",
     ] + env_prelude + [
         "##path## $$EXT_BUILD_ROOT$$",
-    ] + _short_path_env_aliases(ctx) + [
         "##rm_rf## $$BUILD_TMPDIR$$",
         "##rm_rf## $$EXT_BUILD_DEPS$$",
         "##mkdirs## $$INSTALLDIR$$",
@@ -769,7 +778,7 @@ def wrap_outputs(ctx, lib_name, configure_name, script_text, env_prelude, build_
         # the call trap is defined inside, in a way how the shell function should be called
         # see, for instance, linux_commands.bzl
         trap_function,
-    ] + env_prelude + _short_path_wrapper_setup(ctx) + _short_path_env_aliases(ctx) + [
+    ] + _short_path_wrapper_setup(ctx) + env_prelude + [
         "export BUILD_WRAPPER_SCRIPT=\"{}\"".format(wrapper_script_file.path),
         "export BUILD_SCRIPT=\"{}\"".format(build_script_file.path),
         "export BUILD_LOG=\"{}\"".format(build_log_file.path),

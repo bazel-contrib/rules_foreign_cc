@@ -242,9 +242,17 @@ local children=$($REAL_FIND "$1" -mindepth 1 -name '*.pc')
 # assume there is only one directory with pkg config
 for child in $children; do
   LIB_DIR=$(dirname $child)
-  # pkg-config requires unix paths, e.g of the form /c/Users/..., rather than C:/Users/...
-  LIB_DIR=$(cygpath $${LIB_DIR//\\\\//}$$)
-  export PKG_CONFIG_PATH="$${PKG_CONFIG_PATH:-}$$:$${LIB_DIR}$$"
+  # The default pkg-config is a native pkgconf.exe, and meson splits
+  # PKG_CONFIG_PATH on os.pathsep (';' on Windows) before passing it on, so
+  # hand over Windows paths joined by ';'. A POSIX list (/c/...:/c/...) only
+  # works if the MSYS runtime happens to rewrite it as bash spawns the native
+  # tool, which the Bazel 9 lanes showed cannot be relied on.
+  LIB_DIR=$(cygpath -m $${LIB_DIR//\\\\//}$$)
+  if [ -n "$${PKG_CONFIG_PATH:-}$$" ]; then
+    export PKG_CONFIG_PATH="$$PKG_CONFIG_PATH$$;$$LIB_DIR$$"
+  else
+    export PKG_CONFIG_PATH="$$LIB_DIR$$"
+  fi
   return
 done
 """
