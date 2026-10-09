@@ -15,11 +15,12 @@ load(
     "split_system_include_flags",
 )
 load("//foreign_cc/private:cc_toolchain_util.bzl", "get_flags_info", "get_tools_info")
+load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups", "get_toolchains")
 load("//foreign_cc/private/framework:helpers.bzl", "escape_dquote_bash")
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 
 def _ninja_tool_impl(ctx):
-    py_toolchain = ctx.toolchains["@rules_python//python:toolchain_type"]
+    py_toolchain = get_toolchains(ctx)["@rules_python//python:toolchain_type"]
 
     additional_tools = depset(
         [py_toolchain.py3_runtime.interpreter],
@@ -85,9 +86,9 @@ ninja_tool = rule(
     fragments = FOREIGN_CC_BUILT_TOOLS_FRAGMENTS,
     output_to_genfiles = True,
     implementation = _ninja_tool_impl,
-    toolchains = [
+    exec_groups = foreign_cc_exec_groups([
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
         "@rules_python//python:toolchain_type",
-    ],
+    ]),
 )

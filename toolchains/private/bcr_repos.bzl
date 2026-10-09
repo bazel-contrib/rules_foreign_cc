@@ -50,7 +50,7 @@ visibility(["//foreign_cc"])
 # URL could not silently alter a build, but it could 404 the day the registry
 # reorganizes a path. Advance it alongside the versions in `bcr_modules.bzl`,
 # to a commit carrying all of them.
-_BCR_COMMIT = "40e6f858d7226e67ff66de9609d19d133966508d"
+_BCR_COMMIT = "b7efac26be4f06b0ece4a2f30458f047d819eb49"
 
 _BCR_RAW = "https://raw.githubusercontent.com/bazelbuild/bazel-central-registry/{}/modules".format(_BCR_COMMIT)
 

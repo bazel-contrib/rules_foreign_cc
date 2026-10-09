@@ -4,6 +4,9 @@ load("@rules_foreign_cc//foreign_cc/private:cc_toolchain_util.bzl", "get_flags_i
 
 # buildifier: disable=bzl-visibility
 load("@rules_foreign_cc//foreign_cc/private:framework.bzl", "FOREIGN_CC_FRAMEWORK_COMMON_ATTRS")
+
+# buildifier: disable=bzl-visibility
+load("@rules_foreign_cc//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
 load("@with_cfg.bzl", "with_cfg")
 
 def _impl(ctx):
@@ -65,7 +68,7 @@ _flags_test_test = rule(
         "deps": attr.label_list(),
         "out": attr.output(),
     } | FOREIGN_CC_FRAMEWORK_COMMON_ATTRS,
-    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+    exec_groups = foreign_cc_exec_groups(["@bazel_tools//tools/cpp:toolchain_type"]),
     fragments = ["cpp", "j2objc"],
     test = True,
 )

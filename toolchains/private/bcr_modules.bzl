@@ -288,9 +288,9 @@ BCR_CLOSURE = {
         },
     ),
     "rules_cc_autoconf": _module(
-        registry_version = "0.24.0",
-        urls = ["https://github.com/periareon/rules_cc_autoconf/releases/download/0.24.0/rules_cc_autoconf-0.24.0.tar.gz"],
-        integrity = "sha256-bbTRzLQWUVGBZALHP9wbiIac3+wb/vFVcIjPY2iwRqQ=",
+        registry_version = "0.25.0",
+        urls = ["https://github.com/periareon/rules_cc_autoconf/releases/download/0.25.0/rules_cc_autoconf-0.25.0.tar.gz"],
+        integrity = "sha256-k3rqwip7kUbFwCRvdeYZdcTfZXOmzNY2wNK8GEFM/VQ=",
     ),
 }
 

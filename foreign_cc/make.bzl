@@ -1,12 +1,7 @@
 """A rule for building projects using the [GNU Make](https://www.gnu.org/software/make/) build tool"""
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
-load(
-    "//foreign_cc/private:cc_toolchain_util.bzl",
-    "get_flags_info",
-    "get_tools_info",
-)
+load("//foreign_cc/private:cc_toolchain_util.bzl", "find_cpp_toolchain", "get_flags_info", "get_tools_info")
 load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",
@@ -21,6 +16,7 @@ load(
 )
 load("//foreign_cc/private:make_script.bzl", "create_make_script")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
+load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
 def _make(ctx):
@@ -167,11 +163,11 @@ make = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _make,
-    toolchains = [
+    exec_groups = foreign_cc_exec_groups([
         "@rules_foreign_cc//toolchains:make_toolchain",
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    ]),
 )
 
 def make_variant(name, toolchain, **kwargs):

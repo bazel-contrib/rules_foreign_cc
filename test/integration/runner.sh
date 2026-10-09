@@ -59,6 +59,8 @@ else
   fi
 fi
 
+MODE_FLAGS+=(--incompatible_auto_exec_groups)
+
 cd "${BIT_WORKSPACE_DIR}"
 BAZEL="${BIT_BAZEL_BINARY}"
 

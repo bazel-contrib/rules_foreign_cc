@@ -1,6 +1,7 @@
 workspace(name = "rules_foreign_cc")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies(register_built_pkgconfig_toolchain = True)
@@ -98,6 +99,22 @@ http_archive(
     ],
 )
 
+load("@platforms//host:extension.bzl", "host_platform_repo")
+
+maybe(
+    host_platform_repo,
+    name = "host_platform",
+)
+
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "68af54cb97fbdee5e5e8fe8d210d15a518f9d62abfd71620c3eaff3b26a5ff86",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.59.0/rules_go-v0.59.0.zip",
+        "https://github.com/bazel-contrib/rules_go/releases/download/v0.59.0/rules_go-v0.59.0.zip",
+    ],
+)
+
 load("@bazel_skylib_gazelle_plugin//:workspace.bzl", "bazel_skylib_gazelle_plugin_workspace")
 
 bazel_skylib_gazelle_plugin_workspace()
@@ -105,7 +122,7 @@ bazel_skylib_gazelle_plugin_workspace()
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 load("@bazel_skylib_gazelle_plugin//:setup.bzl", "bazel_skylib_gazelle_plugin_setup")
 
-bazel_skylib_gazelle_plugin_setup()
+bazel_skylib_gazelle_plugin_setup(go_version = "1.25.4")
 
 gazelle_dependencies(go_repository_default_config = "//:WORKSPACE.bazel")
 

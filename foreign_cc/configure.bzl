@@ -2,13 +2,8 @@
 build tool
 """
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
-load(
-    "//foreign_cc/private:cc_toolchain_util.bzl",
-    "get_flags_info",
-    "get_tools_info",
-)
+load("//foreign_cc/private:cc_toolchain_util.bzl", "find_cpp_toolchain", "get_flags_info", "get_tools_info")
 load("//foreign_cc/private:configure_script.bzl", "create_configure_script")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
@@ -22,6 +17,7 @@ load(
 )
 load("//foreign_cc/private:regen_stubs.bzl", "REGEN_STUBS")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
+load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
 load(
     "//toolchains/native_tools:tool_access.bzl",
     "get_autoconf_data",
@@ -344,7 +340,7 @@ configure_make = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _configure_make,
-    toolchains = [
+    exec_groups = foreign_cc_exec_groups([
         "@rules_foreign_cc//toolchains:autoconf_toolchain",
         "@rules_foreign_cc//toolchains:automake_toolchain",
         "@rules_foreign_cc//toolchains:make_toolchain",
@@ -352,7 +348,7 @@ configure_make = rule(
         "@rules_foreign_cc//toolchains:pkgconfig_toolchain",
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    ]),
 )
 
 def configure_make_variant(name, toolchain, **kwargs):

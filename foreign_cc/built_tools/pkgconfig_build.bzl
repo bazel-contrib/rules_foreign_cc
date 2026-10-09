@@ -29,6 +29,7 @@ load(
     "get_tools_info",
 )
 load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
+load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
 load(
     "//foreign_cc/private/framework:helpers.bzl",
     "escape_dquote_bash",
@@ -123,11 +124,11 @@ pkgconfig_tool_unix = rule(
     fragments = FOREIGN_CC_BUILT_TOOLS_FRAGMENTS,
     output_to_genfiles = True,
     implementation = _pkgconfig_tool_impl,
-    toolchains = [
+    exec_groups = foreign_cc_exec_groups([
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@rules_foreign_cc//toolchains:make_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    ]),
 )
 
 def pkgconfig_tool(name, srcs, **kwargs):

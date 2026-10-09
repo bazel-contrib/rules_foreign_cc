@@ -1,8 +1,7 @@
 """ Rule for building Boost from sources. """
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
-load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str", "get_flags_info", "get_tools_info")
+load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str", "find_cpp_toolchain", "get_flags_info", "get_tools_info")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load(
     "//foreign_cc/private:framework.bzl",
@@ -12,6 +11,7 @@ load(
     "create_attrs",
     "expand_locations_and_make_variables",
 )
+load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
 load("//foreign_cc/private/framework:helpers.bzl", "escape_dquote_bash")
 
 def _boost_build_impl(ctx):
@@ -143,8 +143,8 @@ boost_build = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _boost_build_impl,
-    toolchains = [
+    exec_groups = foreign_cc_exec_groups([
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    ]),
 )

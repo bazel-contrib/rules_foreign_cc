@@ -7,7 +7,6 @@ building their own make keeps working -- but unexercised by rfcc's tests and
 toolchains, and not updated as make's build requirements move upstream.
 """
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "//foreign_cc/built_tools/private:built_tools_framework.bzl",
     "FOREIGN_CC_BUILT_TOOLS_ATTRS",
@@ -17,13 +16,9 @@ load(
     "built_tool_rule_impl",
     "split_system_include_flags",
 )
-load(
-    "//foreign_cc/private:cc_toolchain_util.bzl",
-    "get_env_vars",
-    "get_flags_info",
-    "get_tools_info",
-)
+load("//foreign_cc/private:cc_toolchain_util.bzl", "find_cpp_toolchain", "get_env_vars", "get_flags_info", "get_tools_info")
 load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
+load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
 load(
     "//foreign_cc/private/framework:helpers.bzl",
     "escape_dquote_bash",
@@ -147,10 +142,10 @@ make_tool = rule(
     fragments = FOREIGN_CC_BUILT_TOOLS_FRAGMENTS,
     output_to_genfiles = True,
     implementation = _make_tool_impl,
-    toolchains = [
+    exec_groups = foreign_cc_exec_groups([
         "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
         "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    ]),
 )
 
 def _join_flags_list(workspace_name, flags):

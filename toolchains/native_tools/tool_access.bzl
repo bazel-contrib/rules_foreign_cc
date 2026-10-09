@@ -2,6 +2,8 @@
 rules_foreign_cc toolchains
 """
 
+# buildifier: disable=bzl-visibility
+load("//foreign_cc/private/framework:exec_groups.bzl", "get_toolchains")
 load(":native_tools_toolchain.bzl", "tool_targets")
 
 def access_tool(toolchain_type_, ctx):
@@ -14,7 +16,7 @@ def access_tool(toolchain_type_, ctx):
     Returns:
         ToolInfo: A provider containing information about the toolchain's executable
     """
-    tool_toolchain = ctx.toolchains[toolchain_type_]
+    tool_toolchain = get_toolchains(ctx)[toolchain_type_]
     if tool_toolchain:
         return tool_toolchain.data
     fail("No toolchain found for " + toolchain_type_)
@@ -50,7 +52,7 @@ def get_meson_data(ctx):
     """
     toolchain_type = Label("//toolchains:meson_toolchain")
     tool = _access_and_expect_label_copied(toolchain_type, ctx)
-    meson = getattr(ctx.toolchains[toolchain_type], "meson", None)
+    meson = getattr(get_toolchains(ctx)[toolchain_type], "meson", None)
 
     env = dict(tool.env)
     if meson != None:
