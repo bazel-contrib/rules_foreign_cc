@@ -4,7 +4,12 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:framework.bzl", "FOREIGN_CC_FRAMEWORK_COMMON_ATTRS", "get_env_prelude", "wrap_outputs")
-load("//foreign_cc/private:resource_sets.bzl", "get_resource_env_vars")
+load(
+    "//foreign_cc/private:resource_sets.bzl",
+    "get_resource_env_vars",
+    "get_resource_exec_group",
+    "get_resource_set",
+)
 load("//foreign_cc/private/framework:helpers.bzl", "convert_shell_script", "shebang")
 
 # Common attributes for all built_tool rules
@@ -124,11 +129,13 @@ def built_tool_rule_impl(ctx, script_lines, out_dir, mnemonic, additional_tools 
         tools = depset(transitive = [tools, additional_tools])
 
     resource_set, env = get_resource_env_vars(ctx.attr)
+    exec_group = get_resource_exec_group(ctx.label, ctx.attr, get_resource_set(ctx.attr))
 
     # The use of `run_shell` here is intended to ensure bash is correctly setup on windows
     # environments. This should not be replaced with `run` until a cross platform implementation
     # is found that guarantees bash exists or appropriately errors out.
     ctx.actions.run_shell(
+        exec_group = exec_group,
         mnemonic = mnemonic,
         inputs = ctx.attr.srcs.files,
         outputs = [out_dir, wrapped_outputs.log_file],

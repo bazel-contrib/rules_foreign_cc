@@ -99,6 +99,7 @@ load(
     "get_foreign_cc_dep",
 )
 load("//foreign_cc/private:msbuild_script.bzl", "create_msbuild_script")
+load("//foreign_cc/private:resource_sets.bzl", "size_exec_groups")
 load("//toolchains/native_tools:tool_access.bzl", "get_msbuild_data")
 
 def _msbuild(ctx):
@@ -211,6 +212,12 @@ def _attrs():
     })
     return attrs
 
+_MSBUILD_TOOLCHAINS = [
+    "@rules_foreign_cc//toolchains:msbuild_toolchain",
+    "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
+    "@bazel_tools//tools/cpp:toolchain_type",
+]
+
 msbuild = rule(
     doc = "Rule for building external library with MSBuild.",
     attrs = _attrs(),
@@ -218,11 +225,8 @@ msbuild = rule(
     output_to_genfiles = True,
     provides = [CcInfo],
     implementation = _msbuild,
-    toolchains = [
-        "@rules_foreign_cc//toolchains:msbuild_toolchain",
-        "@rules_foreign_cc//foreign_cc/private/framework:shell_toolchain",
-        "@bazel_tools//tools/cpp:toolchain_type",
-    ],
+    exec_groups = size_exec_groups(_MSBUILD_TOOLCHAINS),
+    toolchains = _MSBUILD_TOOLCHAINS,
 )
 
 def _properties_to_args(properties):
