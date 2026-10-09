@@ -42,6 +42,23 @@ use_repo(
     "build_bazel_bazel_.bazelversion",
 )
 
+# RBE toolchain config for Buildkite's rbe_* platforms (see .bazelci/config.yaml).
+# bazelci passes @buildkite_config//... labels on the command line, so the repo
+# has to be visible from the root module. WORKSPACE.bazel declares the same
+# repo for the WORKSPACE lanes; bazel 9 reads neither WORKSPACE file, so the
+# bzlmod lanes get it from here. The pinned 1.0.0 downloads a config generated
+# for whichever Bazel the manifest lists first when there is no exact match,
+# which is what every lane (7.x, 8.x and 9.x alike) ends up using today.
+bazel_dep(name = "bazel_ci_rules", version = "1.0.0", dev_dependency = True)
+
+rbe_preconfig = use_repo_rule("@bazel_ci_rules//:rbe_repo.bzl", "rbe_preconfig")
+
+rbe_preconfig(
+    name = "buildkite_config",
+    dev_dependency = True,
+    toolchain = "ubuntu2204",
+)
+
 tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 
 # rfcc's own default toolchain registrations. These are the bzlmod-path

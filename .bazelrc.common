@@ -18,10 +18,14 @@ build:windows --action_env=MSYS=winsymlinks:nativestrict
 test:windows --action_env=MSYS=winsymlinks:nativestrict
 build:windows --@rules_foreign_cc//foreign_cc/settings:allow_building_in_tmp=True
 
-# Enable CC toolchain that supports iOS from https://github.com/bazelbuild/apple_support
-build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain
-build:macos --crosstool_top=@local_config_apple_cc//:toolchain
-build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain
+# Apple toolchains come from toolchain resolution, never from the legacy
+# --crosstool_top / --apple_crosstool_top path (which Bazel 9 removed). With
+# this on, rules_apple's transitions set --platforms to apple_support's
+# platforms and the apple_support cc toolchains (registered by its MODULE.bazel
+# and by apple_support_dependencies() in WORKSPACE mode) resolve for them, so
+# no platform_mappings file is needed. Bazel 9 behaves this way regardless;
+# bazel 7 and 8 need the flag.
+build:macos --incompatible_enable_apple_toolchain_resolution
 
 common:ci --keep_going
 
@@ -62,6 +66,30 @@ common --experimental_ui_max_stdouterr_bytes=10485760
 # `${{ bazel_rc_config }}`, so this wins.
 common:bazel-7.x --lockfile_mode=off
 common:bazel-8.x --incompatible_disable_autoloads_in_main_repo
+
+# Bazel 9 can't read the v24 lockfile either ("The version of MODULE.bazel.lock
+# is not supported by this version of Bazel"), so it gets the same opt-out as
+# bazel 7. It also needs no autoload flag: 9.x has no autoloads to disable.
+common:bazel-9.x --lockfile_mode=off
+
+# Bazel 9's built-in bazel_tools module depends on apple_support 2.5.2 and
+# protobuf 33.4, above what examples/ and docs/ pin (1.24.5 and 29.3, the
+# newest versions that still work in bazel 7 WORKSPACE mode), so the
+# --check_direct_dependencies=error guard in common:ci would fail every 9.x
+# lane before loading a single package. Downgrade it to a warning there; the
+# 8.x lanes keep enforcing the pins.
+common:bazel-9.x --check_direct_dependencies=warning
+
+# Bazel 9 drops the native `py` fragments (--incompatible_remove_ctx_py_fragment),
+# so rules_python no longer sees the --nobuild_python_zip in build:windows above
+# and reads its own flag instead, which defaults to on for Windows. A zipped
+# py_binary unpacks into a throwaway C:\temp\Bazel.runfiles_* tree, and meson
+# records those paths as its regenerate command, so the first time ninja decides
+# to regenerate build.ninja the interpreter is gone ("CreateProcess failed: The
+# system cannot find the file specified"). This can't sit in build:windows next
+# to the native flag: the test/integration scenarios import this file and don't
+# depend on rules_python, and a label flag on an unknown repo is a hard error.
+common:bazel-9.x --@rules_python//python/config_settings:build_python_zip=false
 # Remind people to set good test timeouts / sizes
 common --test_verbose_timeout_warnings
 
