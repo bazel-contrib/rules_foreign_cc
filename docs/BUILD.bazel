@@ -20,6 +20,16 @@ bzl_library(
 )
 
 stardoc(
+    name = "boost_build_docs",
+    out = "src/boost_build.md",
+    input = "@rules_foreign_cc//foreign_cc:boost_build.bzl",
+    deps = [
+        ":rules_cc_deps",
+        "@rules_foreign_cc//foreign_cc:boost_build",
+    ],
+)
+
+stardoc(
     name = "cmake_docs",
     out = "src/cmake.md",
     input = "@rules_foreign_cc//foreign_cc:cmake.bzl",
@@ -90,6 +100,7 @@ stardoc(
 )
 
 DOCS_TARGETS = [
+    ":boost_build_docs",
     ":cmake_docs",
     ":ninja_docs",
     ":make_docs",
