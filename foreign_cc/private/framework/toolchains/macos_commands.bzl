@@ -174,7 +174,8 @@ if [[ -f "$source" ]]; then
     ln -s -f "$source" "$target"
   fi
 elif [[ -L "$source" && ! -d "$source" ]]; then
-  cp -pR "$source" "$target"
+  # No `-p`: only dangling symlinks reach here, and `-p` turns an unpreservable mode into a hard error
+  cp -R "$source" "$target"
 elif [[ -d "$source" ]]; then
 
   # If not replacing in files, simply create a symbolic link rather than traversing tree of files, which can result in very slow builds
@@ -280,10 +281,14 @@ def replace_symlink(file):
     # equivilant. As a result, we need another way to fully resolve chaining symlinks.
     # Python is used to do this as it's expected to be available on all systems, just
     # as `readlink` is.
+    #
+    # `cp -a` implies `--preserve=all`, which makes a failed `chmod` of the
+    # destination fatal. Copy the data and restore the timestamp separately
+    # instead, the same way `copy_dir_contents_to_dir` does.
     return """\
 if [[ -L "{file}" ]]; then
   target="$(realpath '{file}')"
-  rm "{file}" && cp -a "${{target}}" "{file}"
+  rm "{file}" && cp -R "${{target}}" "{file}" && touch -r "${{target}}" "{file}"
 fi
 """.format(file = file)
 
