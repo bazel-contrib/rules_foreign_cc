@@ -29,6 +29,15 @@ cmake(
         "@platforms//os:windows": ["zlib.lib"],
         "//conditions:default": ["libz.a"],
     }),
+    # Upstream's zlib.pc is written for Unix: it says `-lz`, but the MSVC build
+    # it ships alongside produces zlib.lib, so a pkg-config consumer (glib's
+    # meson build) links against a z.lib that does not exist. Don't advertise
+    # it on Windows; meson and CMake then find zlib.lib through the library
+    # search path, which is how upstream expects it to be found there.
+    postfix_script = select({
+        "@platforms//os:windows": "rm -f $$INSTALLDIR/share/pkgconfig/zlib.pc",
+        "//conditions:default": "",
+    }),
 )
 
 cc_library(
