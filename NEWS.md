@@ -27,7 +27,8 @@
   Inference had to go because `source` changed meaning underneath it (below):
   an under-specified `tools.pkgconfig(...)` would have resolved to `source` and
   then to pkgconf 3.0.7, a version the pkg-config source table has never
-  contained, failing far from the tag that caused it.
+  contained, failing far from the tag that caused it
+  ([#1596](https://github.com/bazel-contrib/rules_foreign_cc/pull/1596)).
 - **`mode = "source"` builds from source again** for `make`, `ninja` and
   `pkg-config`, reversing the 0.16.0 change below. It fetches the upstream
   release tarball and bootstraps it, as it did before 0.16.0; the registry
@@ -36,22 +37,25 @@
   that explicitly says `mode = "source"` gets the bootstrap. Note the source
   tables are the stale ones 0.16.0 moved away from - source `pkgconfig` is
   **pkg-config 0.29.2**, a different program from the default pkgconf 3.0.7 -
-  so treat a `source` version as pinned rather than tracking.
+  so treat a `source` version as pinned rather than tracking
+  ([#1596](https://github.com/bazel-contrib/rules_foreign_cc/pull/1596)).
 - **Under `bzlmod`, the hub's `make_built`, `make_src_all`, `ninja_built` and
   `ninja_src_all` aliases are back**, pointing at the restored source spokes
   (`@make_src_4.4.1`, `@ninja_src_1.13.2`) rather than at the registry
   modules' `cc_binary` targets. `pkgconfig_built` stays absent: the default
   pkgconf version has no entry in the pkg-config source table, so there is no
   spoke for it to alias. The *registered* make, ninja and pkgconfig toolchains
-  are unaffected.
+  are unaffected ([#1596](https://github.com/bazel-contrib/rules_foreign_cc/pull/1596)).
 - **`tools.m4(version = ...)` is rejected again.** m4 has never had a
   from-source bootstrap, so it gained no `source` mode in this restoration; its
   modes are `custom`, `system` and `noop`, defaulting to `custom` over the
   `@m4` registry module. The default tool is exactly what 0.16.0 shipped - only
-  the mode name and the version attribute changed.
+  the mode name and the version attribute changed
+  ([#1596](https://github.com/bazel-contrib/rules_foreign_cc/pull/1596)).
 - **`WORKSPACE` is unaffected by all of the above.** `custom` and the restored
   `source` bootstrap are tag-driven, so they exist only under `bzlmod`;
-  `rules_foreign_cc_dependencies()` keeps 0.16.0's behavior verbatim.
+  `rules_foreign_cc_dependencies()` keeps 0.16.0's behavior verbatim
+  ([#1596](https://github.com/bazel-contrib/rules_foreign_cc/pull/1596)).
 - **meson toolchains export `PYTHON3` and `MESON_REAL` and pin the Python
   environment.** Every shipped meson toolchain is now a `meson_tool_toolchain`
   (see Added). It runs the same binary as before and additionally exports
@@ -63,7 +67,8 @@
   target's `env`. A `system` meson is untouched. The
   `meson_tool` macro in `foreign_cc/built_tools/meson_build.bzl` and its
   wrapper script are removed; `PYTHONPATH` now does the wrapper's job, and
-  `meson_with_requirements`'s `meson_tool_for_<name>` is a plain `py_binary`.
+  `meson_with_requirements`'s `meson_tool_for_<name>` is a plain `py_binary`
+  ([#1599](https://github.com/bazel-contrib/rules_foreign_cc/pull/1599)).
 
 ### Added
 
@@ -91,7 +96,7 @@
   `tools.make(mode = "custom", target = "@make")` and
   `tools.pkgconfig(mode = "custom", target = "@pkgconf//:pkg-config")`, which
   is what makes the 0.16.0 defaults survive the `source` restoration
-  unchanged.
+  unchanged ([#1596](https://github.com/bazel-contrib/rules_foreign_cc/pull/1596)).
 - **New `meson_tool_toolchain` rule**
   (`//toolchains/native_tools:meson_tool_toolchain.bzl`): a
   `native_tool_toolchain` for meson that takes the Python binary as `meson`
