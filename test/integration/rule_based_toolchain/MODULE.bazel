@@ -1,0 +1,51 @@
+module(
+    name = "rule_based_toolchain_test",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_foreign_cc", version = "0.0.0")
+local_path_override(
+    module_name = "rules_foreign_cc",
+    path = "../../..",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+
+# rules_cc's `sanitize_pwd` feature (//cc/toolchains/args/sanitize_pwd) first
+# shipped in 0.2.19 as part of the standard rule-based feature set that
+# BUILD.bazel's cc_toolchain enables.
+bazel_dep(name = "rules_cc", version = "0.2.25")
+
+# Windows has no host `cc` to wrap. msvc_tools.bzl finds the installed Visual
+# C++ with rules_cc's own detection helpers and exposes cl/lib/link plus the
+# VCVARSALL environment for the Windows rule-based toolchain in BUILD.bazel.
+msvc_tools = use_repo_rule("//:msvc_tools.bzl", "msvc_tools")
+
+msvc_tools(name = "msvc_tools")
+
+# Rule-based toolchains are the only cc toolchains for the target platform, so
+# keep Bazel from compiling anything with them in the exec configuration:
+# binary cmake + ninja, and noop for the tools rfcc would otherwise build from
+# source (the cmake target passes -GNinja, so make is never invoked).
+tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
+tools.explicit()
+tools.cmake(
+    mode = "binary",
+    version = "3.31.12",
+)
+tools.ninja(
+    mode = "binary",
+    version = "1.13.2",
+)
+tools.make(mode = "noop")
+tools.m4(mode = "noop")
+tools.pkgconfig(mode = "noop")
+
+# Registered from the root module so they win over the autoconfigured host
+# toolchain, which never surfaces PWD. Each is pinned to one OS, so exactly one
+# applies per CI platform.
+register_toolchains(
+    "//:host_cc_toolchain_linux",
+    "//:host_cc_toolchain_macos",
+    "//:host_cc_toolchain_windows",
+)

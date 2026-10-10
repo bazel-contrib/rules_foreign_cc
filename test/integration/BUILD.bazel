@@ -233,3 +233,30 @@ scenario(
         "//conditions:default": [],
     }),
 )
+
+# A rule-based cc toolchain (rules_cc's `cc_toolchain` from //cc/toolchains)
+# on rules_cc >= 0.2.19. The standard
+# `experimental_replace_legacy_action_config_features` set such toolchains
+# enable includes `sanitize_pwd`, which puts PWD=/proc/self/cwd in the env of
+# link and archive actions. rfcc exports every cc toolchain env var in its
+# wrapper script, and the build script the wrapper then spawns inherits PWD:
+# bash keeps it because /proc/self/cwd does resolve to the cwd, so `$(pwd)` and
+# with it EXT_BUILD_ROOT, INSTALLDIR and BUILD_TMPDIR all end up rooted at
+# /proc/self/cwd. Before get_env_vars dropped PWD the build died at its first
+# step:
+#   mkdir: cannot create directory '/proc/self/cwd/bazel-out': No such file or directory
+#
+# The scenario wraps the host compiler in such a toolchain: cc/c++/ar on Linux
+# and macOS, the installed Visual C++ on Windows (located with rules_cc's own
+# detection helpers, see its msvc_tools.bzl), in every case for the target
+# platform only (see its BUILD.bazel). Only Linux and Windows can show the bug,
+# since rules_cc omits the PWD entry on Apple; macOS still proves rfcc drives a
+# cmake build through a rule-based toolchain. Legacy-config toolchains -- the
+# autoconfigured one, toolchains_llvm, rules_cc_autoconf -- never surface PWD
+# at all (rules_cc injects it when it builds its own link actions, not through
+# the toolchain env), and hermetic-llvm declares `sanitize_pwd` by name without
+# the env entry, so no other setup can catch this.
+scenario(
+    name = "rule_based_toolchain",
+    env = {"EXPECT_BUILD": "//:hello_cmake"},
+)

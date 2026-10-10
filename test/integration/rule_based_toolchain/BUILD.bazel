@@ -1,0 +1,167 @@
+load("@msvc_tools//:env.bzl", "MSVC_ENV")
+load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
+load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
+load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
+load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
+load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+# rules_cc's standard rule-based feature set. Since 0.2.19 it includes
+# `sanitize_pwd`, and with it PWD=/proc/self/cwd on link and archive actions
+# (everywhere but Apple, where rules_cc leaves the entry out).
+RULES_CC_FEATURES = "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"
+
+# Same shape as //:hello_cmake in the `basic` scenario; what differs is the cc
+# toolchain MODULE.bazel registers. See the scenario comment in
+# //test/integration:BUILD.bazel.
+cmake(
+    name = "hello_cmake",
+    generate_args = ["-GNinja"],
+    lib_source = ":all_srcs",
+    # MSVC-style toolchains name the static lib hello.lib; everyone else libhello.a.
+    out_static_libs = select({
+        "@platforms//os:windows": ["hello.lib"],
+        "//conditions:default": ["libhello.a"],
+    }),
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = [
+        "CMakeLists.txt",
+        "example.cc",
+    ],
+)
+
+# Linux and macOS: a rule-based cc toolchain over the host compiler, built the
+# way rules_cc's own examples/rule_based_toolchain does it.
+
+cc_tool(
+    name = "host_cc",
+    src = "host_cc.sh",
+)
+
+cc_tool(
+    name = "host_cxx",
+    src = "host_cxx.sh",
+)
+
+cc_tool(
+    name = "host_ar",
+    src = "host_ar.sh",
+)
+
+cc_tool_map(
+    name = "host_tools",
+    tools = {
+        "@rules_cc//cc/toolchains/actions:ar_actions": ":host_ar",
+        "@rules_cc//cc/toolchains/actions:assembly_actions": ":host_cc",
+        "@rules_cc//cc/toolchains/actions:c_compile": ":host_cc",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":host_cxx",
+        "@rules_cc//cc/toolchains/actions:link_actions": ":host_cxx",
+    },
+)
+
+cc_toolchain(
+    name = "host_cc_toolchain_impl",
+    compiler = "gcc",
+    enabled_features = [RULES_CC_FEATURES],
+    known_features = [RULES_CC_FEATURES],
+    tool_map = ":host_tools",
+)
+
+# Windows: the same idea over the installed Visual C++, which @msvc_tools
+# locates with rules_cc's own detection (see msvc_tools.bzl). The VCVARSALL
+# environment rides along as a feature so rfcc receives INCLUDE/LIB/PATH through
+# the toolchain env exactly as it does from the autoconfigured MSVC toolchain,
+# and `compiler = "msvc-cl"` keeps rfcc on its MSVC code paths.
+
+cc_tool(
+    name = "msvc_cl",
+    src = "@msvc_tools//:bin/cl.exe",
+)
+
+cc_tool(
+    name = "msvc_lib",
+    src = "@msvc_tools//:bin/lib.exe",
+)
+
+cc_tool(
+    name = "msvc_link",
+    src = "@msvc_tools//:bin/link.exe",
+)
+
+cc_tool_map(
+    name = "msvc_host_tools",
+    tools = {
+        "@rules_cc//cc/toolchains/actions:ar_actions": ":msvc_lib",
+        "@rules_cc//cc/toolchains/actions:assembly_actions": ":msvc_cl",
+        "@rules_cc//cc/toolchains/actions:c_compile": ":msvc_cl",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":msvc_cl",
+        "@rules_cc//cc/toolchains/actions:link_actions": ":msvc_link",
+    },
+)
+
+cc_args(
+    name = "msvc_env_args",
+    actions = ["@rules_cc//cc/toolchains/actions:all_actions"],
+    env = MSVC_ENV,
+)
+
+cc_feature(
+    name = "msvc_env",
+    args = [":msvc_env_args"],
+    feature_name = "msvc_env",
+)
+
+cc_toolchain(
+    name = "msvc_cc_toolchain_impl",
+    compiler = "msvc-cl",
+    enabled_features = [
+        RULES_CC_FEATURES,
+        ":msvc_env",
+    ],
+    known_features = [
+        RULES_CC_FEATURES,
+        ":msvc_env",
+    ],
+    tool_map = ":msvc_host_tools",
+)
+
+# Only offer these toolchains for the target configuration. The bare cc_tools
+# above declare no builtin include directories, so anything Bazel compiled with
+# them in the exec configuration (rfcc's ninja launcher, for one) would fail the
+# absolute-path inclusion check. Tools keep using the autoconfigured host
+# toolchain; `--platforms=//:rule_based_host` (see .bazelrc) routes the cmake
+# target through these, which is also how this bites real cross setups:
+# a rule-based target toolchain beside a host exec toolchain.
+constraint_setting(name = "cc_toolchain_kind")
+
+constraint_value(
+    name = "rule_based_cc",
+    constraint_setting = ":cc_toolchain_kind",
+)
+
+platform(
+    name = "rule_based_host",
+    constraint_values = [":rule_based_cc"],
+    parents = ["@platforms//host"],
+)
+
+[
+    toolchain(
+        name = "host_cc_toolchain_" + os,
+        exec_compatible_with = ["@platforms//os:" + os],
+        target_compatible_with = [
+            "@platforms//os:" + os,
+            ":rule_based_cc",
+        ],
+        toolchain = impl,
+        toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    )
+    for os, impl in [
+        ("linux", ":host_cc_toolchain_impl"),
+        ("macos", ":host_cc_toolchain_impl"),
+        ("windows", ":msvc_cc_toolchain_impl"),
+    ]
+]

@@ -208,6 +208,10 @@ def get_env_vars(ctx):
                 user_compile_flags = copts,
             ),
         ))
+
+    # rules_cc's `sanitize_pwd` sets PWD=/proc/self/cwd, but rules_foreign_cc
+    # builds in build_tmpdir. Remove PWD so its path handling still works.
+    vars.pop("PWD", None)
     return vars
 
 def is_debug_mode(ctx):

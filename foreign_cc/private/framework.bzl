@@ -27,6 +27,7 @@ load(
     "create_linking_info",
     "find_cpp_toolchain",
     "get_env_vars",
+    "get_tools_info",
     "targets_windows",
 )
 load(
@@ -393,8 +394,12 @@ def get_env_prelude(ctx, installdir, data_dependencies, tools_env):
 
     if cc_toolchain.compiler == "msvc-cl":
         # Prepend PATH environment variable with the path to the toolchain linker, which prevents MSYS using its linker (/usr/bin/link.exe) rather than the MSVC linker (both are named "link.exe")
-        linker_path = paths.dirname(cc_toolchain.ld_executable)
-        if linker_path[1] != ":":
+        # Take it from the link action rather than `ld_executable`: that legacy
+        # tool path is empty on rule-based toolchains (rules_cc's
+        # `cc_toolchain`), while the autoconfigured toolchain points both at
+        # the same link.exe.
+        linker_path = paths.dirname(get_tools_info(ctx).cxx_linker_executable)
+        if linker_path[1:2] != ":":
             linker_path = "${EXT_BUILD_ROOT/$(printf '\072')/}/" + linker_path
 
         env.update({"PATH": _normalize_path(linker_path) + ":" + env.get("PATH")})
