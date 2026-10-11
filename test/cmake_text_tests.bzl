@@ -482,6 +482,87 @@ cmake -DNOFORTRAN="on" -DCMAKE_TOOLCHAIN_FILE="$$BUILD_TMPDIR$$/crosstool_bazel.
 
     return unittest.end(env)
 
+def _create_min_cmake_script_user_ranlib_toolchain_file_test(ctx):
+    # Regression test: a user-supplied CMAKE_RANLIB must survive into both
+    # the generated toolchain file and the -D on the cmake invocation, not
+    # get silently clobbered back to "" by the empty-CMAKE_RANLIB fallback
+    # in create_cmake_script (a command-line -D always wins over a
+    # toolchain file's set(), so losing the -D effectively drops the value).
+    env = unittest.begin(ctx)
+
+    tools = CxxToolsInfo(
+        cc = "/usr/bin/gcc",
+        cxx = "/usr/bin/gcc",
+        cxx_linker_static = "/usr/bin/ar",
+        cxx_linker_executable = "/usr/bin/gcc",
+    )
+    flags = CxxFlagsInfo(
+        cc = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
+        cxx = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
+        cxx_linker_shared = ["-shared", "-fuse-ld=gold"],
+        cxx_linker_dynamic_module = ["-shared", "-fuse-ld=gold"],
+        cxx_linker_static = ["static"],
+        cxx_linker_executable = ["-fuse-ld=gold", "-Wl", "-no-as-needed"],
+        assemble = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall"],
+    )
+    user_env = {}
+    user_cache = {
+        "CMAKE_RANLIB": "/usr/bin/ranlib",
+        "NOFORTRAN": "on",
+    }
+
+    script = create_cmake_script(
+        "ws",
+        ctx.label,
+        "linux",
+        "x86_64",
+        "linux",
+        "x86_64",
+        "Ninja",
+        "cmake",
+        tools,
+        flags,
+        "test_rule",
+        "external/test_rule",
+        False,
+        user_cache,
+        user_env,
+        ["--debug-output", "-Wdev"],
+        cmake_commands = [],
+    )
+    expected = r"""__var_CMAKE_AR="/usr/bin/ar"
+__var_CMAKE_ASM_FLAGS_INIT="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+__var_CMAKE_CXX_COMPILER="/usr/bin/gcc"
+__var_CMAKE_CXX_FLAGS_INIT="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+__var_CMAKE_C_COMPILER="/usr/bin/gcc"
+__var_CMAKE_C_FLAGS_INIT="-U_FORTIFY_SOURCE -fstack-protector -Wall"
+__var_CMAKE_EXE_LINKER_FLAGS_INIT="-fuse-ld=gold -Wl -no-as-needed"
+__var_CMAKE_MODULE_LINKER_FLAGS_INIT="-shared -fuse-ld=gold"
+__var_CMAKE_RANLIB="/usr/bin/ranlib"
+__var_CMAKE_SHARED_LINKER_FLAGS_INIT="-shared -fuse-ld=gold"
+cat > crosstool_bazel.cmake << EOF
+set(CMAKE_AR "$$__var_CMAKE_AR$$" CACHE FILEPATH "Archiver")
+set(CMAKE_ASM_FLAGS_INIT "$$__var_CMAKE_ASM_FLAGS_INIT$$")
+set(CMAKE_CXX_COMPILER "$$__var_CMAKE_CXX_COMPILER$$")
+set(CMAKE_CXX_FLAGS_INIT "$$__var_CMAKE_CXX_FLAGS_INIT$$")
+set(CMAKE_C_COMPILER "$$__var_CMAKE_C_COMPILER$$")
+set(CMAKE_C_FLAGS_INIT "$$__var_CMAKE_C_FLAGS_INIT$$")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "$$__var_CMAKE_EXE_LINKER_FLAGS_INIT$$")
+set(CMAKE_MODULE_LINKER_FLAGS_INIT "$$__var_CMAKE_MODULE_LINKER_FLAGS_INIT$$")
+set(CMAKE_RANLIB "$$__var_CMAKE_RANLIB$$")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "$$__var_CMAKE_SHARED_LINKER_FLAGS_INIT$$")
+EOF
+
+##define_absolute_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_DEPS$$
+##define_sandbox_paths## $$EXT_BUILD_DEPS$$ $$EXT_BUILD_ROOT$$
+##enable_tracing##
+cmake -DNOFORTRAN="on" -DCMAKE_RANLIB="/usr/bin/ranlib" -DCMAKE_TOOLCHAIN_FILE="$$BUILD_TMPDIR$$/crosstool_bazel.cmake" -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_INSTALL_PREFIX="test_rule" -DCMAKE_PREFIX_PATH="$$EXT_BUILD_DEPS$$" -DPKG_CONFIG_ARGN="--define-variable=EXT_BUILD_DEPS=$$EXT_BUILD_DEPS$$" --debug-output -Wdev -G 'Ninja' $$EXT_BUILD_ROOT$$/external/test_rule
+##disable_tracing##
+"""
+    asserts.equals(env, expected.splitlines(), script)
+
+    return unittest.end(env)
+
 def _create_cmake_script_no_toolchain_file_test(ctx):
     env = unittest.begin(ctx)
 
@@ -952,6 +1033,7 @@ reverse_descriptor_dict_test = unittest.make(_reverse_descriptor_dict_test)
 merge_toolchain_and_user_values_test = unittest.make(_merge_toolchain_and_user_values_test)
 create_min_cmake_script_no_toolchain_file_test = unittest.make(_create_min_cmake_script_no_toolchain_file_test)
 create_min_cmake_script_toolchain_file_test = unittest.make(_create_min_cmake_script_toolchain_file_test)
+create_min_cmake_script_user_ranlib_toolchain_file_test = unittest.make(_create_min_cmake_script_user_ranlib_toolchain_file_test)
 create_cmake_script_no_toolchain_file_test = unittest.make(_create_cmake_script_no_toolchain_file_test)
 create_cmake_script_toolchain_file_test = unittest.make(_create_cmake_script_toolchain_file_test)
 create_cmake_script_android_test = unittest.make(_create_cmake_script_android_test)
@@ -974,6 +1056,7 @@ def cmake_script_test_suite():
         partial.make(merge_toolchain_and_user_values_test, size = "small"),
         partial.make(create_min_cmake_script_no_toolchain_file_test, size = "small"),
         partial.make(create_min_cmake_script_toolchain_file_test, size = "small"),
+        partial.make(create_min_cmake_script_user_ranlib_toolchain_file_test, size = "small"),
         partial.make(create_cmake_script_no_toolchain_file_test, size = "small"),
         partial.make(create_cmake_script_toolchain_file_test, size = "small"),
         partial.make(create_cmake_script_android_test, size = "small"),

@@ -285,8 +285,16 @@ _CMAKE_CACHE_ENTRIES_CROSSTOOL = {
 def _create_crosstool_file_text(toolchain_dict, user_cache, user_env, target_os):
     cache_entries = _dict_copy(user_cache)
     env_vars = _dict_copy(user_env)
+
+    # Preserve a user-supplied CMAKE_RANLIB: the -D flag below always wins over
+    # the toolchain file's set(), but the caller re-adds an empty CMAKE_RANLIB
+    # whenever it's absent from cache_entries, which would otherwise silently
+    # clobber it once _move_dict_values() moves it into toolchain_dict.
+    user_ranlib = cache_entries.get("CMAKE_RANLIB")
     _move_dict_values(toolchain_dict, env_vars, _CMAKE_ENV_VARS_FOR_CROSSTOOL)
     _move_dict_values(toolchain_dict, cache_entries, _CMAKE_CACHE_ENTRIES_CROSSTOOL)
+    if user_ranlib:
+        cache_entries["CMAKE_RANLIB"] = user_ranlib
 
     lines = []
     crosstool_vars = []
