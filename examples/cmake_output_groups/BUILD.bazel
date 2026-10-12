@@ -1,0 +1,109 @@
+"""
+Example demonstrating output groups usage with rules_foreign_cc.
+This example shows how to access different build outputs using output groups
+and how to package them using rules_pkg.
+"""
+
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+
+# Build a cmake project that produces multiple outputs
+cmake(
+    name = "example_project",
+    lib_source = ":srcs",
+    # Install everything to get the complete install tree
+    install = True,
+    out_static_libs = select({
+        "@bazel_tools//src/conditions:windows": ["example_lib.lib"],
+        "//conditions:default": ["libexample_lib.a"],
+    }),
+    out_binaries = select({
+        "@bazel_tools//src/conditions:windows": ["example_tool.exe"],
+        "//conditions:default": ["example_tool"],
+    }),
+)
+
+# Example 1: Access the complete install directory tree
+# This is the most important use case - getting everything the build produces
+filegroup(
+    name = "complete_install",
+    srcs = [":example_project"],
+    output_group = "gen_dir",
+    visibility = ["//visibility:public"],
+)
+
+# Example 2: Access specific output files by their basename
+filegroup(
+    name = "static_library",
+    srcs = [":example_project"],
+    output_group = select({
+        "@bazel_tools//src/conditions:windows": "example_lib.lib",
+        "//conditions:default": "libexample_lib.a",
+    }),
+)
+
+filegroup(
+    name = "executable_tool",
+    srcs = [":example_project"],
+    output_group = select({
+        "@bazel_tools//src/conditions:windows": "example_tool.exe",
+        "//conditions:default": "example_tool",
+    }),
+)
+
+# Example 3: Access build logs for debugging
+filegroup(
+    name = "build_logs",
+    srcs = [":example_project"],
+    output_group = "CMake_logs",
+)
+
+# Example 4: Packaging with rules_pkg (when available)
+# Uncomment the following rules if you have rules_pkg available:
+#
+# load("@rules_pkg//pkg:pkg.bzl", "pkg_tar")
+#
+# # Package the complete install tree
+# pkg_tar(
+#     name = "example_package",
+#     srcs = [":complete_install"],
+#     package_dir = "/usr/local",
+#     strip_prefix = "example_project",
+# )
+#
+# # Package just the binary
+# pkg_tar(
+#     name = "example_bin_package",
+#     srcs = [":executable_tool"],
+#     package_dir = "/usr/bin",
+# )
+#
+# # Package just the library
+# pkg_tar(
+#     name = "example_lib_package",
+#     srcs = [":static_library"],
+#     package_dir = "/usr/lib",
+# )
+
+# Example 5: Create a test that uses the executable
+genrule(
+    name = "test_executable",
+    srcs = [],
+    outs = ["test_output.txt"],
+    cmd = "./$(location :executable_tool) > $(location test_output.txt)",
+    tools = [":executable_tool"],
+)
+
+# Example 6: Show how to access multiple outputs in a single target
+filegroup(
+    name = "all_outputs",
+    srcs = [
+        ":static_library",
+        ":executable_tool",
+    ],
+)
