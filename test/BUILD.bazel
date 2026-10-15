@@ -1,7 +1,8 @@
 load("@bazel_lib//lib:diff_test.bzl", "diff_test")
 load("@rules_shell//shell:sh_library.bzl", "sh_library")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load("//tools/lint:linters.bzl", "shellcheck_test")
+load("@rules_shellcheck//shellcheck:shellcheck_test.bzl", "shellcheck_test")
+load("//test/integration:bzlmod_enabled.bzl", "BZLMOD_ENABLED")
 load(":built_tools_flags_test.bzl", "built_tools_flags_test_suite")
 load(":cmake_text_tests.bzl", "cmake_script_test_suite")
 load(":convert_shell_script_test.bzl", "shell_script_conversion_suite")
@@ -55,17 +56,25 @@ sh_library(
         ":build_scripts",
         ":wrapper_scripts",
     ],
-    tags = ["lint-genfiles"],
 )
 
+# Every source here is generated, which shellcheck_test skips by default;
+# `check_generated = 1` opts them in.
+#
+# Without bzlmod the filegroups above are empty: the WORKSPACE registrations
+# alias `make_built` / `meson_built` / `ninja_built` to the plain
+# `cc_binary` / `py_binary` targets of the `@make`, `@meson` and `@ninja`
+# repos, which have no `script_file` output group. shellcheck rejects an empty
+# file list, so skip the test there rather than lint nothing.
 shellcheck_test(
     name = "shellcheck",
     size = "small",
-    srcs = [":tool_build_scripts"],
+    check_generated = 1,
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
-    }),
+    }) + ([] if BZLMOD_ENABLED else ["@platforms//:incompatible"]),
+    targets = [":tool_build_scripts"],
 )
 
 cmake_script_test_suite()
