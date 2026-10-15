@@ -1,4 +1,6 @@
 import %workspace%/.bazelrc.common
 import %workspace%/.bazelrc.deleted_packages
 
-common:ci --@aspect_rules_lint//lint:fail_on_violation
+# Lint against the repo's own .shellcheckrc (the same file the pre-commit
+# shellcheck hook reads) rather than rules_shellcheck's bundled default.
+common --@rules_shellcheck//shellcheck:rc=//:.shellcheckrc
