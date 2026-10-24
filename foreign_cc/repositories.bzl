@@ -19,9 +19,9 @@ DEFAULT_TOOL_VERSIONS = {
     "cmake": "3.31.12",
     "m4": "1.4.21",
     "make": "4.4.1",
-    "meson": "1.10.1",
+    "meson": "1.12.1",
     "ninja": "1.13.2",
-    "pkgconfig": "3.0.7",
+    "pkgconfig": "3.0.10",
 }
 
 # buildifier: disable=unnamed-macro

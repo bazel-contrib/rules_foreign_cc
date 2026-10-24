@@ -32,7 +32,7 @@ tools.make(
 )
 tools.meson(
     mode = "source",
-    version = "1.5.1",  # rfcc: 1.10.1
+    version = "1.5.1",  # rfcc: 1.12.1
 )
 tools.ninja(
     mode = "source",
@@ -40,7 +40,7 @@ tools.ninja(
 )
 
 # The source table holds only freedesktop pkg-config 0.29.2; rfcc defaults to
-# the pkgconf 3.0.7 registry module, which is a different program and not a
+# the pkgconf 3.0.10 registry module, which is a different program and not a
 # source version at all. So there is no "one behind" here -- any source pin
 # diverges, and rfcc's default publishes no pkgconfig_src_all to compare
 # against.

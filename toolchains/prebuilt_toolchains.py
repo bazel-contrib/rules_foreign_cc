@@ -242,6 +242,7 @@ MAKE_VERSIONS = {
 MESON_URL_TEMPLATE = "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/{version}/meson-{version}.tar.gz"
 MESON_URL_FALLBACK = "https://github.com/mesonbuild/meson/releases/download/{version}/meson-{version}.tar.gz"
 MESON_VERSIONS = {
+    "1.12.1": [],
     "1.10.1": [],
     "1.5.1": [],
     "1.1.1": [],

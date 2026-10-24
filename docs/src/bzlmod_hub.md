@@ -28,7 +28,7 @@ predict a spoke's name rather than look it up:
   constraint), and its arch token is `universal` -
   `@cmake-3.31.12-macos-universal`.
 - **Source spokes** are named `@<tool>_src_<version>`, e.g.
-  `@cmake_src_3.31.12`, `@make_src_4.4.1`, `@meson_src_1.10.1` (target
+  `@cmake_src_3.31.12`, `@make_src_4.4.1`, `@meson_src_1.12.1` (target
   `:<tool>_tool`). These hold the upstream release tarball, which
   `rules_foreign_cc` bootstraps into a working tool. m4 has no source spoke:
   it has never had a bootstrap, so `custom` is the only way to point it at a
@@ -272,7 +272,7 @@ build files for, which is **not** the same set as the registry modules rfcc
 defaults to:
 
 - **pkgconfig** source mode is **pkg-config 0.29.2** - a different, long
-  unmaintained program from the **pkgconf 3.0.7** that `custom` mode
+  unmaintained program from the **pkgconf 3.0.10** that `custom` mode
   defaults to.
 - **ninja** and **make** source tables trail their prebuilt/registry
   counterparts.

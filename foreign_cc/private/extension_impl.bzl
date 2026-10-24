@@ -676,7 +676,7 @@ def build_hub_aliases(tagset):
     `pick_source_version` finds a version -- these aliases point *into* a
     source spoke, so a tool whose source table lacks its default version (m4
     has no source mode at all; pkgconfig's table is pkg-config 0.29.2 against
-    a pkgconf 3.0.7 default) publishes nothing here. A `custom`-mode tag is
+    a pkgconf 3.0.10 default) publishes nothing here. A `custom`-mode tag is
     likewise invisible to this: the target it names is one the consumer
     already has a label for.
 

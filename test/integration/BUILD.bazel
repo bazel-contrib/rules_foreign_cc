@@ -56,10 +56,10 @@ scenario(
 # from-source tool builds.
 #
 # pkgconfig is the odd pin: its source table holds only freedesktop
-# pkg-config 0.29.2, a different program from the pkgconf 3.0.7 module rfcc
+# pkg-config 0.29.2, a different program from the pkgconf 3.0.10 module rfcc
 # defaults to, so "one behind" isn't available and any source pin diverges.
 # That it gets a hub alias at all is the point -- rfcc's default emits no
-# pkgconfig_src_all, because 3.0.7 is not a source version.
+# pkgconfig_src_all, because 3.0.10 is not a source version.
 scenario(
     name = "all_source_pinned",
     env = {

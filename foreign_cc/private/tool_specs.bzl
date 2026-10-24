@@ -236,7 +236,7 @@ TOOL_SPECS = {
         # registry module the default `custom` registration wraps, and the
         # `@meson_src_<version>` archive `mode = "source"` and the hub's
         # `meson_src_*` aliases still use.
-        default_version = "1.10.1",
+        default_version = "1.12.1",
         known_versions = exact_versions(MESON_SRCS),
         wildcards = _wildcards_for(exact_versions(MESON_SRCS)),
         binary_versions = None,
@@ -328,9 +328,9 @@ TOOL_SPECS = {
         # repositories.bzl by default_versions_in_sync_test. Deliberately not a
         # key of `known_versions`: source mode builds freedesktop pkg-config,
         # a different program from pkgconf, and the two do not share a version
-        # line. `tools.pkgconfig(mode = "source", version = "3.0.7")` is
+        # line. `tools.pkgconfig(mode = "source", version = "3.0.10")` is
         # rejected, which is the honest answer.
-        default_version = "3.0.7",
+        default_version = "3.0.10",
         known_versions = exact_versions(PKGCONFIG_SRCS),
         wildcards = _wildcards_for(exact_versions(PKGCONFIG_SRCS)),
         binary_versions = None,
