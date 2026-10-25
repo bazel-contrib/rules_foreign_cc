@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+
+prefix=
+for arg in "$@"; do
+    case "$arg" in
+        --prefix=*) prefix=${arg#--prefix=} ;;
+    esac
+done
+test -n "$prefix"
+
+# Configure probes receive the same dependency classifications as Make.
+# Compiler commands and flag lists intentionally undergo word splitting.
+# shellcheck disable=SC2086
+$CXX $CPPFLAGS $CXXFLAGS -Werror -Wunused-parameter -c system.cc -o configure-probe.o
+
+printf 'PREFIX := %s\nCXX := %s\nCPPFLAGS := %s\nCXXFLAGS := %s\n' \
+    "$prefix" "$CXX" "$CPPFLAGS" "$CXXFLAGS" >config.mk
