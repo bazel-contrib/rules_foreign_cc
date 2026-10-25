@@ -76,14 +76,7 @@ def _define_deps_flags(deps, inputs, is_msvc):
             gen_dirs_set[dir_] = 1
             lib_dirs.append(lib_flag + "$$EXT_BUILD_ROOT$$/" + dir_)
 
-    include_dirs_set = {}
-    for include_dir in inputs.include_dirs:
-        include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
-    for header in inputs.headers:
-        include_dir = header.dirname
-        if not include_dirs_set.get(include_dir):
-            include_dirs_set[include_dir] = "-I$$EXT_BUILD_ROOT$$/" + include_dir
-    include_dirs = include_dirs_set.values()
+    include_dirs = _get_include_flags(deps, inputs, is_msvc)
 
     # For the external libraries, we need to refer to the places where
     # we copied the dependencies ($EXT_BUILD_DEPS/<lib_name>), because
@@ -100,13 +93,107 @@ def _define_deps_flags(deps, inputs, is_msvc):
                     gen_dirs_set[artifact.gen_dir] = 1
 
                     dir_name = artifact.gen_dir.basename
-                    include_dirs.append("-I$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.include_dir_name))
                     lib_dirs.append(lib_flag + "$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name))
 
     return struct(
         libs = lib_dirs,
         flags = include_dirs,
     )
+
+def _get_include_flags(deps, inputs, is_msvc):
+    # MSVC does not support GCC's -iquote/-isystem distinction. Keep its
+    # existing include order and header-directory fallback unchanged.
+    if is_msvc:
+        return _get_msvc_include_flags(deps, inputs)
+
+    # InputFiles.include_dirs deliberately combines categories for staging and
+    # CMake. Keep that contract; recover compiler classes from the merged CcInfo.
+    compilation = inputs.deps_compilation_info
+    ordinary = compilation.includes.to_list()
+    system = compilation.system_includes.to_list() + getattr(compilation, "external_includes", depset()).to_list()
+    quote = compilation.quote_includes.to_list()
+    foreign_roots = {}
+    foreign_includes = []
+    for dep in deps:
+        external_deps = get_foreign_cc_dep(dep)
+        if external_deps:
+            for artifact in external_deps.artifacts.to_list():
+                staged = "$$EXT_BUILD_DEPS$$/" + artifact.gen_dir.basename
+                foreign_roots[artifact.gen_dir.path] = staged
+
+                # framework._define_outputs publishes CcInfo's individual
+                # headers beside copy_<lib>/<lib>, the complete install tree.
+                published = artifact.gen_dir.dirname.rsplit("/", 1)[0] + "/" + artifact.gen_dir.basename
+                foreign_roots[published] = staged
+                foreign_includes.append((published + "/" + artifact.include_dir_name).rstrip("/"))
+
+    classified = [_include_path(directory, foreign_roots) for directory in ordinary + system + quote]
+    paths = []
+    seen = {}
+
+    # GCC searches quote, ordinary, then system directories, preserving order
+    # within each class.
+    for flag, directories in [
+        ("-iquote", quote),
+        ("-I", ordinary),
+        ("-isystem", system),
+    ]:
+        for directory in directories:
+            path = _include_path(directory, foreign_roots)
+            key = (flag, path)
+            if key not in seen:
+                seen[key] = True
+                paths.append(flag + path)
+
+    # Retain the legacy fallback for genuinely unclassified headers, without
+    # turning quote-only or system headers back into ordinary -I search roots.
+    for directory in inputs.include_dirs + foreign_includes:
+        path = _include_path(directory, foreign_roots)
+        if path not in classified and ("-I", path) not in seen:
+            seen[("-I", path)] = True
+            paths.append("-I" + path)
+    for header in inputs.headers:
+        header_path = _include_path(header.path, foreign_roots)
+        if not any([_under_include(header_path, directory) for directory in classified]):
+            directory = _include_path(header.dirname, foreign_roots)
+            if ("-I", directory) not in seen:
+                seen[("-I", directory)] = True
+                paths.append("-I" + directory)
+    return paths
+
+def _get_msvc_include_flags(deps, inputs):
+    include_dirs = {}
+    for directory in inputs.include_dirs:
+        include_dirs[directory] = "-I$$EXT_BUILD_ROOT$$/" + directory
+    for header in inputs.headers:
+        if header.dirname not in include_dirs:
+            include_dirs[header.dirname] = "-I$$EXT_BUILD_ROOT$$/" + header.dirname
+    flags = include_dirs.values()
+    seen = {}
+    for dep in deps:
+        external_deps = get_foreign_cc_dep(dep)
+        if external_deps:
+            for artifact in external_deps.artifacts.to_list():
+                if artifact.gen_dir not in seen:
+                    seen[artifact.gen_dir] = True
+                    flags.append("-I$$EXT_BUILD_DEPS$$/{}/{}".format(artifact.gen_dir.basename, artifact.include_dir_name))
+    return flags
+
+def _under_include(path, directory):
+    if directory in ["", "."]:
+        return not path.startswith("/")
+    return path == directory or path.startswith(directory.rstrip("/") + "/")
+
+def _include_path(directory, foreign_roots):
+    # Foreign outputs are staged under EXT_BUILD_DEPS. Preserve any additional
+    # include subdirectories exported by their CcInfo as well as the root.
+    best = ""
+    for root in foreign_roots:
+        if _under_include(directory, root) and len(root) > len(best):
+            best = root
+    if best:
+        return foreign_roots[best] + directory[len(best):]
+    return "$$EXT_BUILD_ROOT$$" if directory in ["", "."] else "$$EXT_BUILD_ROOT$$/" + directory
 
 # See https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
 _MAKE_FLAGS = {

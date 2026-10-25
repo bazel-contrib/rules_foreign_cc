@@ -1,0 +1,84 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("//foreign_cc:defs.bzl", "configure_make", "make")
+load(":headers.bzl", "classified_headers")
+
+package(default_testonly = True)
+
+_NOT_WINDOWS = select({
+    "@platforms//os:windows": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
+[
+    classified_headers(
+        name = kind + "_headers",
+        hdrs = glob([kind + "/*.h"]),
+        kind = kind,
+    )
+    for kind in [
+        "ordinary",
+        "quote",
+        "system",
+    ]
+]
+
+filegroup(
+    name = "sdk_sources",
+    srcs = [
+        "sdk/Makefile",
+        "sdk/sdk_warning.h",
+    ],
+)
+
+make(
+    name = "sdk_headers",
+    lib_source = ":sdk_sources",
+    out_headers_only = True,
+    target_compatible_with = _NOT_WINDOWS,
+)
+
+filegroup(
+    name = "sources",
+    srcs = glob(["code/*"]),
+)
+
+_DEPS = [
+    ":ordinary_headers",
+    ":quote_headers",
+    ":system_headers",
+    ":sdk_headers",
+]
+
+make(
+    name = "make_headers",
+    lib_source = ":sources",
+    out_data_files = ["checks.txt"],
+    out_headers_only = True,
+    out_include_dir = "",
+    target_compatible_with = _NOT_WINDOWS,
+    deps = _DEPS,
+)
+
+configure_make(
+    name = "configure_make_headers",
+    configure_in_place = True,
+    lib_source = ":sources",
+    out_data_files = ["checks.txt"],
+    out_headers_only = True,
+    out_include_dir = "",
+    target_compatible_with = _NOT_WINDOWS,
+    deps = _DEPS,
+)
+
+[
+    build_test(
+        name = name + "_test",
+        size = "small",
+        target_compatible_with = _NOT_WINDOWS,
+        targets = [":" + name + "_headers"],
+    )
+    for name in [
+        "make",
+        "configure_make",
+    ]
+]
