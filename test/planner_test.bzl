@@ -414,7 +414,7 @@ def _build_hub_aliases_test(ctx):
     # different version than the registered toolchain (they both flow from
     # spec.default_version, and must agree with the WORKSPACE path).
     #
-    # pkgconfig is not among them. Its default version is pkgconf 3.0.7 --
+    # pkgconfig is not among them. Its default version is pkgconf 3.0.10 --
     # the registry module rfcc registers by default -- while its source table
     # holds pkg-config 0.29.2, a different program. pick_source_version finds
     # no match, so the bzlmod hub publishes nothing for it. (The WORKSPACE hub

@@ -67,6 +67,26 @@ MESON_SRCS = {
         integrity = "sha256-xCKW8S2zFqRRW5N1pd8zDy51HM3U9ghDDUHX1iEOQxc=",
         patches = [],
     ),
+    "1.12.1": struct(
+        urls = [
+            "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/1.12.1/meson-1.12.1.tar.gz",
+            "https://github.com/mesonbuild/meson/releases/download/1.12.1/meson-1.12.1.tar.gz",
+        ],
+        strip_prefix = "meson-1.12.1",
+        sha256 = "",
+        integrity = "sha256-qwpsoJ+O9wxWTIJB+1ojlXiGoLU/tYQSteB+rwfbp0M=",
+        patches = [],
+    ),
+    "1.12.x": struct(
+        urls = [
+            "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/1.12.1/meson-1.12.1.tar.gz",
+            "https://github.com/mesonbuild/meson/releases/download/1.12.1/meson-1.12.1.tar.gz",
+        ],
+        strip_prefix = "meson-1.12.1",
+        sha256 = "",
+        integrity = "sha256-qwpsoJ+O9wxWTIJB+1ojlXiGoLU/tYQSteB+rwfbp0M=",
+        patches = [],
+    ),
     "1.5.1": struct(
         urls = [
             "https://mirror.bazel.build/github.com/mesonbuild/meson/releases/download/1.5.1/meson-1.5.1.tar.gz",

@@ -26,7 +26,7 @@ load(":wildcard_resolution_test.bzl", "wildcard_resolution_test_suite")
 #
 # pkgconfig is absent. Its alias exists only when the hub picks a source
 # version for the tool, and pkgconfig's default is the pkgconf registry module
-# (3.0.7), which its source table -- pkg-config 0.29.2 -- does not contain. The
+# (3.0.10), which its source table -- pkg-config 0.29.2 -- does not contain. The
 # four below exercise the same script generator regardless.
 TOOL_TARGETS = [
     "@rules_foreign_cc_toolchains//:cmake_built",

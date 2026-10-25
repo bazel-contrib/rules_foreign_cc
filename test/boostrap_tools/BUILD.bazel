@@ -10,7 +10,7 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 #
 # pkgconfig is absent for the same reason it is absent from `TOOL_TARGETS` in
 # //test: the hub publishes a `pkgconfig_built` alias only when it picks a
-# source version, and the default is the pkgconf registry module (3.0.7), which
+# source version, and the default is the pkgconf registry module (3.0.10), which
 # the source table -- pkg-config 0.29.2 -- does not contain. Building that
 # bootstrap needs a module that pins `mode = "source"`, which is what
 # //test/integration:all_source_pinned sets up.
