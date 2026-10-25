@@ -184,7 +184,7 @@ resolves for both <code>x86_64</code> and <code>aarch64</code> (so the toolchain
 constraint), and its arch token is <code>universal</code> -
 <code>@cmake-3.31.12-macos-universal</code>.</li>
 <li><strong>Source spokes</strong> are named <code>@&lt;tool&gt;_src_&lt;version&gt;</code>, e.g.
-<code>@cmake_src_3.31.12</code>, <code>@make_src_4.4.1</code>, <code>@meson_src_1.10.1</code> (target
+<code>@cmake_src_3.31.12</code>, <code>@make_src_4.4.1</code>, <code>@meson_src_1.12.1</code> (target
 <code>:&lt;tool&gt;_tool</code>). These hold the upstream release tarball, which
 <code>rules_foreign_cc</code> bootstraps into a working tool. m4 has no source spoke:
 it has never had a bootstrap, so <code>custom</code> is the only way to point it at a
@@ -385,7 +385,7 @@ build files for, which is <strong>not</strong> the same set as the registry modu
 defaults to:</p>
 <ul>
 <li><strong>pkgconfig</strong> source mode is <strong>pkg-config 0.29.2</strong> - a different, long
-unmaintained program from the <strong>pkgconf 3.0.7</strong> that <code>custom</code> mode
+unmaintained program from the <strong>pkgconf 3.0.10</strong> that <code>custom</code> mode
 defaults to.</li>
 <li><strong>ninja</strong> and <strong>make</strong> source tables trail their prebuilt/registry
 counterparts.</li>

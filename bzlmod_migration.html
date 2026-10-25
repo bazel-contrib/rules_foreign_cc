@@ -190,8 +190,8 @@ goes under bzlmod:</p>
 <tr><td><code>ninja_version = "1.13.2"</code></td><td><code>tools.ninja(mode = "binary", version = "1.13.2")</code></td></tr>
 <tr><td><code>m4_version = "1.4.21"</code></td><td>nothing - m4 has no versioned mode; <code>tools.m4(mode = "custom", target = "@m4")</code> to point it elsewhere</td></tr>
 <tr><td><code>make_version = "4.4.1"</code></td><td><code>tools.make(mode = "source", version = "4.4.1")</code></td></tr>
-<tr><td><code>meson_version = "1.10.1"</code></td><td>nothing - rfcc's default is the <code>meson</code> registry module at this version, reached via <code>tools.meson(mode = "custom", target = "@meson")</code>; <code>tools.meson(mode = "source", version = "1.10.1")</code> builds the same version from its archive</td></tr>
-<tr><td><code>pkgconfig_version = "3.0.7"</code></td><td>nothing - 3.0.7 is pkgconf, reached via <code>tools.pkgconfig(mode = "custom", target = "@pkgconf//:pkg-config")</code>; source mode is pkg-config 0.29.2</td></tr>
+<tr><td><code>meson_version = "1.12.1"</code></td><td>nothing - rfcc's default is the <code>meson</code> registry module at this version, reached via <code>tools.meson(mode = "custom", target = "@meson")</code>; <code>tools.meson(mode = "source", version = "1.12.1")</code> builds the same version from its archive</td></tr>
+<tr><td><code>pkgconfig_version = "3.0.10"</code></td><td>nothing - 3.0.10 is pkgconf, reached via <code>tools.pkgconfig(mode = "custom", target = "@pkgconf//:pkg-config")</code>; source mode is pkg-config 0.29.2</td></tr>
 <tr><td><code>register_toolchains = False</code></td><td>omit <code>register_toolchains(...)</code>; register manually</td></tr>
 <tr><td><code>native_tools_toolchains = [...]</code></td><td><code>tools.&lt;tool&gt;(mode = "custom", target = "//your:binary")</code>, or <code>tools.&lt;tool&gt;(..., register_toolchain = False)</code> + your own <code>toolchain(...)</code></td></tr>
 </tbody></table>
@@ -279,7 +279,7 @@ entries in place. Remove them by hand.</p>
 <p>Renamed source repos (singleton → version-suffixed at default versions):</p>
 <div class="table-wrapper"><table><thead><tr><th>Before</th><th>After</th></tr></thead><tbody>
 <tr><td><code>@cmake_src</code></td><td><code>@cmake_src_3.31.12</code></td></tr>
-<tr><td><code>@meson_src</code></td><td><code>@meson_src_1.10.1</code></td></tr>
+<tr><td><code>@meson_src</code></td><td><code>@meson_src_1.12.1</code></td></tr>
 <tr><td><code>@gnumake_src</code></td><td><code>@make</code> (see below)</td></tr>
 <tr><td><code>@ninja_build_src</code></td><td><code>@ninja</code> (see below)</td></tr>
 <tr><td><code>@pkgconfig_src</code></td><td><code>@pkgconf</code> (see below)</td></tr>
@@ -312,7 +312,7 @@ per-version spokes registered through the hub:</p>
 <tr><td><code>@rules_foreign_cc//toolchains:built_cmake_toolchain</code></td><td><code>tools.cmake(mode = "source", version = "3.31.12")</code> → hub registration</td></tr>
 <tr><td><code>@rules_foreign_cc//toolchains:built_ninja_toolchain</code></td><td><code>tools.ninja(mode = "source", version = "1.13.2")</code> → hub registration</td></tr>
 <tr><td><code>@rules_foreign_cc//toolchains:built_make_toolchain</code></td><td><code>tools.make(mode = "source", version = "4.4.1")</code> → hub registration</td></tr>
-<tr><td><code>@rules_foreign_cc//toolchains:built_meson_toolchain</code></td><td><code>tools.meson(mode = "source", version = "1.10.1")</code> → hub registration</td></tr>
+<tr><td><code>@rules_foreign_cc//toolchains:built_meson_toolchain</code></td><td><code>tools.meson(mode = "source", version = "1.12.1")</code> → hub registration</td></tr>
 <tr><td><code>@rules_foreign_cc//toolchains:built_pkgconfig_toolchain</code></td><td><code>tools.pkgconfig(mode = "source", version = "0.29.2")</code> → hub registration</td></tr>
 </tbody></table>
 </div>
@@ -324,7 +324,7 @@ let the hub register a source-built default through
 <code>tools.&lt;tool&gt;(mode = "source", version = "...")</code> tag if you need a non-default
 version), or keep registering by label and point at the source spoke's own
 <code>toolchain(...)</code> target:
-<code>register_toolchains("@meson_src_1.10.1//:meson_toolchain")</code>, and so on
+<code>register_toolchains("@meson_src_1.12.1//:meson_toolchain")</code>, and so on
 (<code>@&lt;tool&gt;_src_&lt;version&gt;//:&lt;tool&gt;_toolchain</code>). The source spoke ships that
 registerable <code>toolchain(...)</code> rule directly, unlike the binary per-platform
 spokes, which expose only a <code>native_tool_toolchain</code> you have to wrap yourself
@@ -352,7 +352,7 @@ either way. For make and ninja they point at rfcc's own bootstrap
 default toolchain uses - by default both tools resolve to their Bazel Central
 Registry module instead.</p>
 <p>m4 and pkgconfig publish nothing under bzlmod. m4 has no source mode at all,
-and pkgconfig's default version (3.0.7, which is pkgconf) is absent from the
+and pkgconfig's default version (3.0.10, which is pkgconf) is absent from the
 source table, whose only entry is pkg-config 0.29.2 - a different program, and
 a stale one. Reach either through its registry module, <code>@m4//:m4</code> and
 <code>@pkgconf//:pkg-config</code>, adding <code>bazel_dep(name = "pkgconf", ...)</code> and so on to
@@ -421,7 +421,7 @@ build-from-source toolchains are now per-version spokes registered through the
 hub. Declare a <code>tools.&lt;tool&gt;(mode = "source", version = "...")</code> tag (bzlmod) -- an
 explicit version is required in <code>source</code>/<code>binary</code> mode -- so the hub registers
 the source toolchain, or register the spoke's <code>:&lt;tool&gt;_toolchain</code> target by
-label yourself: <code>register_toolchains("@meson_src_1.10.1//:meson_toolchain")</code>
+label yourself: <code>register_toolchains("@meson_src_1.12.1//:meson_toolchain")</code>
 (<code>@&lt;tool&gt;_src_&lt;version&gt;//:&lt;tool&gt;_toolchain</code> -- the source spoke ships a
 registerable <code>toolchain(...)</code>; see
 <a href="bzlmod_hub.html#register_toolchain--false"><code>register_toolchain = False</code></a>).</p>
