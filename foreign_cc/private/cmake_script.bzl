@@ -2,12 +2,7 @@
 
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
 load(":cc_toolchain_util.bzl", "absolutize_path_in_str")
-
-def _escape_dquote_bash(text):
-    """ Escape double quotes in flag lists for use in bash strings that set environment variables """
-
-    # We use a starlark raw string to prevent the need to escape backslashes for starlark as well.
-    return text.replace('"', r'\\\"')
+load(":flag_utils.bzl", "escape_dquote_bash")
 
 def _escape_dquote_bash_crosstool(text):
     """ Escape double quotes in flag lists for use in bash strings to be passed to a HEREDOC.
@@ -204,7 +199,7 @@ def create_cmake_script(
         params.cache.update({"CMAKE_RANLIB": ""})
 
     set_env_vars = [
-        "export {}=\"{}\"".format(key, _escape_dquote_bash(params.env[key]))
+        "export {}=\"{}\"".format(key, escape_dquote_bash(params.env[key]))
         for key in params.env
     ]
     str_cmake_cache_entries = " ".join([
