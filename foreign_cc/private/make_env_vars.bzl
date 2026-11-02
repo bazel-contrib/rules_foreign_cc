@@ -1,6 +1,11 @@
 """Helper methods to assemble make env variables from Bazel information."""
 
-load(":flag_utils.bzl", "absolutize_path_for_build_root", _join_flags_list = "join_flags_list")
+load(
+    ":flag_utils.bzl",
+    "absolutize_path_for_build_root",
+    "escape_dquote_bash",
+    _join_flags_list = "join_flags_list",
+)
 load(":framework.bzl", "get_foreign_cc_dep")
 
 # buildifier: disable=function-docstring
@@ -186,7 +191,10 @@ def _merge_env_vars(flags, make_flags, user_env_vars):
     vars = {}
 
     for flag in make_flags:
-        toolchain_flags = getattr(flags, make_flags[flag], [])
+        toolchain_flags = [
+            escape_dquote_bash(toolchain_flag)
+            for toolchain_flag in getattr(flags, make_flags[flag], [])
+        ]
         user_flags = [
             user_flag
             for user_flag in user_env_vars.get(flag, "").split(" ")
