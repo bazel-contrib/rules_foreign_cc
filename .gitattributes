@@ -6,3 +6,13 @@ WORKSPACE.bzlmod linguist-language=Starlark
 # .bazelrc are mostly a collection of the CLI arguments, so highlighting them
 # as shell scripts looks quite alright and makes them quite readable
 .bazelrc linguist-language=Shell
+
+# Keep development-only packages out of the release archive: they load
+# dev_dependency modules that downstream modules can't see. test/integration/basic
+# stays for the BCR presubmit; git archive prunes ignored directories, so its
+# parents are un-ignored too.
+/test/** export-ignore
+/test/integration -export-ignore
+/test/integration/basic -export-ignore
+/test/integration/basic/** -export-ignore
+/tools/gazelle/** export-ignore

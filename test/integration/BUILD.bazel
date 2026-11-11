@@ -23,6 +23,13 @@ scenario(
     env = {"EXPECT_BUILD": "//:hello_cmake"},
 )
 
+# A downstream module can load every package rules_foreign_cc ships, without
+# its dev dependencies.
+scenario(
+    name = "downstream_query",
+    env = {"EXPECT_QUERY": "@rules_foreign_cc//..."},
+)
+
 # Default case: no `tools` tags at all -> rfcc registers its default toolchains.
 # Also the suite's only end-to-end ninja run: the cmake target asks for `-GNinja`
 # so the default ninja toolchain is actually invoked rather than merely resolved.

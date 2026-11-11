@@ -21,12 +21,13 @@
 #   ENFORCE_LOCK - "1" to pass --lockfile_mode=error on the bzlmod inner build,
 #                  enforcing a committed MODULE.bazel.lock (same as parent CI).
 # Assertion env (at least one of EXPECT_BUILD / EXPECT_BUILD_FAIL /
-# EXPECT_CQUERY is REQUIRED; the runner fails if none ran):
+# EXPECT_QUERY / EXPECT_CQUERY is REQUIRED; the runner fails if none ran):
 #   EXPECT_BUILD             - target to build (must succeed)
 #   EXPECT_BUILD_FAIL        - target whose build must fail (non-zero exit);
 #                              requires EXPECT_BUILD_FAIL_PATTERN
 #   EXPECT_BUILD_FAIL_PATTERN- regex the failing build's output must match
 #                              (asserts the failure reason, not just exit code)
+#   EXPECT_QUERY             - unconfigured query expression to run
 #   EXPECT_CQUERY            - cquery expression to run; output is captured
 #   EXPECT_STDOUT_PATTERN    - regex that EXPECT_CQUERY's output must match
 set -euo pipefail
@@ -127,6 +128,12 @@ if [[ -n "${EXPECT_BUILD_FAIL:-}" ]]; then
   assertions=$((assertions + 1))
 fi
 
+if [[ -n "${EXPECT_QUERY:-}" ]]; then
+  echo ">> ${SCENARIO}: bazel query ${EXPECT_QUERY}"
+  "${BAZEL}" ${STARTUP_FLAGS[@]+"${STARTUP_FLAGS[@]}"} query "${MODE_FLAGS[@]}" "${EXPECT_QUERY}"
+  assertions=$((assertions + 1))
+fi
+
 if [[ -n "${EXPECT_CQUERY:-}" ]]; then
   echo ">> ${SCENARIO}: bazel cquery ${MODE_FLAGS[*]} ${EXPECT_CQUERY}"
   output="$("${BAZEL}" ${STARTUP_FLAGS[@]+"${STARTUP_FLAGS[@]}"} cquery "${MODE_FLAGS[@]}" "${EXPECT_CQUERY}" 2>&1)"
@@ -139,7 +146,7 @@ if [[ -n "${EXPECT_CQUERY:-}" ]]; then
 fi
 
 if [[ ${assertions} -eq 0 ]]; then
-  echo "FAIL: ${SCENARIO} ran no assertions -- set EXPECT_BUILD, EXPECT_BUILD_FAIL, or EXPECT_CQUERY (check for a typo'd env key)"
+  echo "FAIL: ${SCENARIO} ran no assertions -- set EXPECT_BUILD, EXPECT_BUILD_FAIL, EXPECT_QUERY, or EXPECT_CQUERY (check for a typo'd env key)"
   exit 1
 fi
 
