@@ -104,7 +104,17 @@
   binary may be a rules_python `py_binary` or one from another Python ruleset
   that provides `PyInfo` and `PyExecutableInfo`.
 
+### Bug fixes
+
+- The release archive no longer ships the development-only packages under
+  `test/` (except the BCR test module) or the gazelle targets, so a downstream
+  `bazel query '@rules_foreign_cc//...'` loads every package without
+  rules_foreign_cc's dev dependencies.
+
 ### Internal
+
+- The gazelle targets moved from the root package to `//tools/gazelle`; run
+  `bazel run //tools/gazelle`.
 
 - CI now runs the full platform matrix (Linux, RBE, macOS, Windows) on Bazel
   9.3.0 as well as 7.x and 8.x, in bzlmod mode. The RBE toolchain config repo
