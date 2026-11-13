@@ -37,6 +37,9 @@ load(
 load("//foreign_cc/private/framework:platform.bzl", "os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data")
 
+# Deliberately does not exist, see its use below.
+_UNUSED_LIBDIR = "/nonexistent/rules_foreign_cc/pkgconfig/lib"
+
 def _pkgconfig_tool_impl(ctx):
     env = get_env_vars(ctx)
     flags_info = get_flags_info(ctx)
@@ -84,6 +87,8 @@ def _pkgconfig_tool_impl(ctx):
     configure_options = [
         "--with-internal-glib",
         "--prefix=\"$$INSTALLDIR$$\"",
+        "--libdir=" + _UNUSED_LIBDIR,
+        "--with-pc-path=" + _UNUSED_LIBDIR + "/pkgconfig",
     ]
 
     xcompile_options = detect_xcompile(ctx)
