@@ -2,8 +2,9 @@
 build tool
 """
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
-load("//foreign_cc/private:cc_toolchain_util.bzl", "find_cpp_toolchain", "get_flags_info", "get_tools_info")
+load("//foreign_cc/private:cc_toolchain_util.bzl", "find_cpp_toolchain", "get_flags_info", "get_runtime_files", "get_tools_info")
 load("//foreign_cc/private:configure_script.bzl", "create_configure_script")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load("//foreign_cc/private:detect_xcompile.bzl", "detect_xcompile")
@@ -18,6 +19,7 @@ load(
 load("//foreign_cc/private:regen_stubs.bzl", "REGEN_STUBS")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
+load("//foreign_cc/private/framework:platform.bzl", "arch_name", "os_name", "target_arch_name", "target_os_name")
 load(
     "//toolchains/native_tools:tool_access.bzl",
     "get_autoconf_data",
@@ -89,12 +91,16 @@ def _configure_make(ctx):
             ctx.label,
         ))
 
+    runtime_selection = ctx.attr._configure_make_cc_runtime_libraries[BuildSettingInfo].value
+    runtime_files = depset() if runtime_selection == "none" else get_runtime_files(ctx, runtime_selection)
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Configure",
         create_configure_script = _create_configure_script,
         tools_data = tools_data,
         make_path = make_data.path,
+        runtime_inputs = runtime_files,
+        runtime_runfiles = runtime_files if runtime_selection == "dynamic" else depset(),
     )
     return cc_external_rule_impl(ctx, attrs)
 
@@ -134,6 +140,11 @@ def _create_configure_script(configureParameters):
     cc_toolchain = find_cpp_toolchain(ctx)
     is_msvc = cc_toolchain.compiler == "msvc-cl"
 
+    runtime_dirs = []
+    dynamic_runtimes = attrs.runtime_runfiles.to_list()
+    if dynamic_runtimes and os_name(ctx) == "linux" and target_os_name(ctx) == "linux" and arch_name(ctx) == target_arch_name(ctx):
+        runtime_dirs = {file.dirname: None for file in dynamic_runtimes}.keys()
+
     configure = create_configure_script(
         workspace_name = ctx.workspace_name,
         tools = tools,
@@ -163,6 +174,8 @@ def _create_configure_script(configureParameters):
         shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
         dynamic_module_ldflags_vars = ctx.attr.dynamic_module_ldflags_vars,
         is_msvc = is_msvc,
+        runtime_paths = [file.path for file in attrs.runtime_inputs.to_list()],
+        runtime_dirs = runtime_dirs,
     )
     return define_install_prefix + configure
 
@@ -176,6 +189,10 @@ def _get_install_prefix(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
+        "_configure_make_cc_runtime_libraries": attr.label(
+            default = Label("@rules_foreign_cc//foreign_cc/settings:configure_make_cc_runtime_libraries"),
+            providers = [BuildSettingInfo],
+        ),
         "args": attr.string_list(
             doc = "A list of arguments to pass to the call to `make`",
         ),
