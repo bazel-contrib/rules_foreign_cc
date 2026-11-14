@@ -672,7 +672,10 @@ def cc_external_rule_impl(ctx, attrs):
             if lib.dynamic_library:
                 transitive_shared_libraries.append(lib.dynamic_library)
 
-    runfiles = ctx.runfiles(files = ctx.files.data + transitive_shared_libraries)
+    runfiles = ctx.runfiles(
+        files = ctx.files.data + transitive_shared_libraries,
+        transitive_files = getattr(attrs, "runtime_runfiles", depset()),
+    )
     for target in [ctx.attr.lib_source] + ctx.attr.deps + ctx.attr.data:
         runfiles = runfiles.merge(target[DefaultInfo].default_runfiles)
 

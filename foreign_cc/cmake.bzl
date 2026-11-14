@@ -185,8 +185,8 @@ def _cmake_impl(ctx):
         generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(ninja_data.path))
 
     runtime_selection = ctx.attr._cmake_cc_runtime_libraries[BuildSettingInfo].value
-    if runtime_selection == "static":
-        runtime_files = get_runtime_files(ctx)
+    if runtime_selection in ["static", "dynamic"]:
+        runtime_files = get_runtime_files(ctx, runtime_selection)
     elif runtime_selection == "none":
         runtime_files = depset()
     else:
@@ -201,6 +201,7 @@ def _cmake_impl(ctx):
         tools_data = tools_data,
         cmake_path = cmake_data.path,
         runtime_inputs = runtime_files,
+        runtime_runfiles = runtime_files if runtime_selection == "dynamic" else depset(),
     )
 
     return cc_external_rule_impl(ctx, attrs)
@@ -281,6 +282,7 @@ def _create_configure_script(configureParameters):
         tools = tools,
         flags = flags,
         runtime_paths = [f.path for f in attrs.runtime_inputs.to_list()],
+        dynamic_runtime_paths = [f.path for f in attrs.runtime_runfiles.to_list()],
         install_prefix = "$$INSTALLDIR$$",
         root = root,
         no_toolchain_file = no_toolchain_file,

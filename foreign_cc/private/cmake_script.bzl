@@ -115,7 +115,8 @@ def create_cmake_script(
         cmake_prefix = None,
         is_debug_mode = True,
         ext_build_dirs = [],
-        runtime_paths = []):
+        runtime_paths = [],
+        dynamic_runtime_paths = []):
     """Constructs CMake script to be passed to cc_external_rule_impl.
 
     Args:
@@ -140,13 +141,30 @@ def create_cmake_script(
         cmake_prefix: Optional prefix before the cmake command (without the trailing space).
         is_debug_mode: If the compilation mode is `debug`. Defaults to True.
         ext_build_dirs: A list of gen_dirs for each foreign_cc dep.
-        runtime_paths: Ordered static runtime paths from the C++ toolchain.
+        runtime_paths: Ordered runtime paths from the C++ toolchain.
+        dynamic_runtime_paths: Shared runtime paths needed by CMake's build-tree executables.
 
     Returns:
         list: Lines of bash which make up the build script
     """
 
     runtime_commands = []
+    dynamic_rpath_commands = []
+    if dynamic_runtime_paths:
+        runtime_dirs = []
+        for path in dynamic_runtime_paths:
+            directory = "$ENV{EXT_BUILD_ROOT}/" + path.rsplit("/", 1)[0]
+            if directory not in runtime_dirs:
+                runtime_dirs.append(directory)
+                dynamic_rpath_commands += [
+                    'set(_rfcc_runtime_dir "' + directory + '")',
+                    'list(FIND CMAKE_BUILD_RPATH "${_rfcc_runtime_dir}" _rfcc_runtime_index)',
+                    "if(_rfcc_runtime_index EQUAL -1)",
+                    '  list(APPEND CMAKE_BUILD_RPATH "${_rfcc_runtime_dir}")',
+                    "endif()",
+                ]
+        dynamic_rpath_commands += ["unset(_rfcc_runtime_dir)", "unset(_rfcc_runtime_index)"]
+
     if runtime_paths:
         # CMake normally forwards the global override only when a language
         # override is absent. Preserve it explicitly when installing ours.
@@ -179,6 +197,10 @@ def create_cmake_script(
             if previous:
                 previous = previous.replace("$$EXT_BUILD_ROOT$$", "$ENV{EXT_BUILD_ROOT}").replace("$$BUILD_TMPDIR$$", "$ENV{BUILD_TMPDIR}").replace("$$EXT_BUILD_DEPS$$", "$ENV{EXT_BUILD_DEPS}")
                 runtime_commands.append('include("' + previous + '")')
+
+            # The language hook also runs in try_run scratch projects when
+            # CMAKE_TRY_COMPILE_NO_PLATFORM_VARIABLES suppresses cache forwarding.
+            runtime_commands += dynamic_rpath_commands
             runtime_commands += [
                 "if(DEFINED CMAKE_{}_STANDARD_LIBRARIES)".format(lang),
                 '  set(_rfcc_base "${CMAKE_' + lang + '_STANDARD_LIBRARIES}")',

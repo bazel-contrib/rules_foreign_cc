@@ -401,6 +401,58 @@ def _runtime_standard_libraries_test(ctx):
 
 runtime_standard_libraries_test = unittest.make(_runtime_standard_libraries_test)
 
+def _dynamic_runtime_build_rpath_test(ctx):
+    env = unittest.begin(ctx)
+    script = create_cmake_script(
+        "ws",
+        ctx.label,
+        "linux",
+        "x86_64",
+        "linux",
+        "x86_64",
+        "Unix Makefiles",
+        "cmake",
+        CxxToolsInfo(
+            cc = "/usr/bin/cc",
+            cxx = "/usr/bin/c++",
+            cxx_linker_static = "/usr/bin/ar",
+            cxx_linker_executable = "/usr/bin/c++",
+        ),
+        CxxFlagsInfo(
+            cc = [],
+            cxx = [],
+            cxx_linker_shared = [],
+            cxx_linker_dynamic_module = [],
+            cxx_linker_static = [],
+            cxx_linker_executable = [],
+            assemble = [],
+        ),
+        "test_rule",
+        "external/test_rule",
+        True,
+        {
+            "CMAKE_BUILD_RPATH": "/user/lib",
+            "CMAKE_TRY_COMPILE_NO_PLATFORM_VARIABLES": "TRUE",
+            "CMAKE_TRY_COMPILE_PLATFORM_VARIABLES": "USER_VALUE",
+        },
+        {},
+        [],
+        cmake_commands = [],
+        runtime_paths = ["external/runtime/libc++.so.1", "external/runtime/libunwind.so.1"],
+        dynamic_runtime_paths = ["external/runtime/libc++.so.1", "external/runtime/libunwind.so.1"],
+    )
+    joined = "\n".join(script)
+    asserts.true(env, 'CMAKE_BUILD_RPATH="/user/lib"' in joined)
+    asserts.true(env, 'CMAKE_TRY_COMPILE_NO_PLATFORM_VARIABLES="TRUE"' in joined)
+    asserts.true(env, 'set(_rfcc_runtime_dir "$ENV{EXT_BUILD_ROOT}/external/runtime")' in joined)
+    asserts.true(env, 'list(APPEND CMAKE_BUILD_RPATH "${_rfcc_runtime_dir}")' in joined)
+    asserts.true(env, 'CMAKE_TRY_COMPILE_PLATFORM_VARIABLES="USER_VALUE;CMAKE_USER_MAKE_RULES_OVERRIDE"' in joined)
+    asserts.true(env, joined.find("external/runtime/libc++.so.1") < joined.find("external/runtime/libunwind.so.1"))
+    asserts.false(env, "CMAKE_INSTALL_RPATH" in joined)
+    return unittest.end(env)
+
+dynamic_runtime_build_rpath_test = unittest.make(_dynamic_runtime_build_rpath_test)
+
 def _create_min_cmake_script_wipe_toolchain_test(ctx):
     env = unittest.begin(ctx)
 
@@ -1030,6 +1082,7 @@ def cmake_script_test_suite():
         partial.make(merge_toolchain_and_user_values_test, size = "small"),
         partial.make(create_min_cmake_script_no_toolchain_file_test, size = "small"),
         partial.make(runtime_standard_libraries_test, size = "small"),
+        partial.make(dynamic_runtime_build_rpath_test, size = "small"),
         partial.make(create_min_cmake_script_toolchain_file_test, size = "small"),
         partial.make(create_cmake_script_no_toolchain_file_test, size = "small"),
         partial.make(create_cmake_script_toolchain_file_test, size = "small"),
