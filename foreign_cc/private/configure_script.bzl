@@ -32,7 +32,9 @@ def create_configure_script(
         executable_ldflags_vars,
         shared_ldflags_vars,
         dynamic_module_ldflags_vars,
-        is_msvc):
+        is_msvc,
+        runtime_paths = [],
+        runtime_dirs = []):
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -93,9 +95,24 @@ def create_configure_script(
     if regen_stub_prefix:
         regen_stub_prefix += " "
 
+    if runtime_dirs:
+        # Configure probes and build-time executables may need the selected
+        # shared libraries. Keep this search path in the build action.
+        library_path = ":".join(["$$EXT_BUILD_ROOT$$/" + directory for directory in runtime_dirs])
+        script.append('export LD_LIBRARY_PATH="' + library_path + '${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"')
+
+    runtime_libs_prefix = ""
+    if runtime_paths:
+        # Autoconf appends LIBS after its test sources. Automake substitutes it
+        # and uses it after project objects and LDADD. Passing LIBS to make
+        # again would override any libraries discovered by configure.
+        runtime_libs = " ".join(["$$EXT_BUILD_ROOT$$/" + path for path in runtime_paths])
+        runtime_libs_prefix = 'LIBS="${LIBS:+$LIBS }' + runtime_libs + '" '
+
     make_commands = []
-    script.append("{regen_stubs}{env_vars} {prefix}\"{configure}\" {prefix_flag}$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
+    script.append("{regen_stubs}{runtime_libs}{env_vars} {prefix}\"{configure}\" {prefix_flag}$$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ {user_options}".format(
         regen_stubs = regen_stub_prefix,
+        runtime_libs = runtime_libs_prefix,
         env_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, is_msvc, make_commands),
         prefix = configure_prefix,
         configure = configure_path,
