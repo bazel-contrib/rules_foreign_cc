@@ -1,7 +1,8 @@
 """A rule for building projects using the [GNU Make](https://www.gnu.org/software/make/) build tool"""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
-load("//foreign_cc/private:cc_toolchain_util.bzl", "find_cpp_toolchain", "get_flags_info", "get_tools_info")
+load("//foreign_cc/private:cc_toolchain_util.bzl", "find_cpp_toolchain", "get_flags_info", "get_runtime_files", "get_tools_info")
 load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",
@@ -24,12 +25,17 @@ def _make(ctx):
 
     tools_data = [make_data]
 
+    runtime_selection = ctx.attr._make_cc_runtime_libraries[BuildSettingInfo].value
+    runtime_files = depset() if runtime_selection == "none" else get_runtime_files(ctx, runtime_selection)
+
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Make",
         create_configure_script = _create_make_script,
         tools_data = tools_data,
         make_path = make_data.path,
+        runtime_inputs = runtime_files,
+        runtime_runfiles = runtime_files if runtime_selection == "dynamic" else depset(),
     )
     return cc_external_rule_impl(ctx, attrs)
 
@@ -84,11 +90,16 @@ def _create_make_script(configureParameters):
         shared_ldflags_vars = ctx.attr.shared_ldflags_vars,
         dynamic_module_ldflags_vars = ctx.attr.dynamic_module_ldflags_vars,
         is_msvc = is_msvc,
+        runtime_paths = [file.path for file in attrs.runtime_inputs.to_list()],
+        dynamic_runtime_paths = [file.path for file in attrs.runtime_runfiles.to_list()],
     )
 
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
+        "_make_cc_runtime_libraries": attr.label(
+            default = Label("@rules_foreign_cc//foreign_cc/settings:make_cc_runtime_libraries"),
+        ),
         "args": attr.string_list(
             doc = "A list of arguments to pass to the call to `make`",
         ),
@@ -156,7 +167,9 @@ make = rule(
         "to pick up any build outputs. Finally, your make install rule must dereference symlinks " +
         "to ensure that the installed files don't end up being symlinks to files in the sandbox. " +
         "For example, installation lines like `cp $SOURCE $DEST` must become `cp -L $SOURCE $DEST`, " +
-        "as the -L will ensure that symlinks are dereferenced."
+        "as the -L will ensure that symlinks are dereferenced. " +
+        "To use toolchain runtime libraries, set `make_cc_runtime_libraries` to `static` or `dynamic` " +
+        "and expand `$(RULES_FOREIGN_CC_RUNTIME_LIBS)` after the objects and project libraries in your link recipes."
     ),
     attrs = _attrs(),
     fragments = CC_EXTERNAL_RULE_FRAGMENTS,
