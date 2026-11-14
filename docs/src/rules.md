@@ -127,3 +127,39 @@ In dynamic mode, the action prepends the selected libraries' directories to
 probes that execute. The foreign target includes the shared runtimes in its
 runfiles. Use `runnable_binary` or supply a loader search path when running
 installed executables. The adapter adds no installed RPATH.
+
+## Ninja runtime libraries
+
+Set `--@rules_foreign_cc//foreign_cc/settings:ninja_cc_runtime_libraries=static`
+or `=dynamic` on the direct `ninja` rule to select `CcToolchainInfo.static_runtime_lib`
+or `dynamic_runtime_lib`, respectively. The selected files are declared build
+inputs. The default `none` and empty selected sets preserve existing behavior.
+
+The project controls its Ninja link commands. For a POSIX shell and a compiler
+driver that accepts `@file`, place the response file after the project objects
+and libraries. For example, use this link rule with the project libraries in
+`$in`.
+
+```ninja
+rule link
+  command = "$$CXX" $$LDFLAGS -o $out $in $${RFCC_CC_RUNTIME_RESPONSE_FILE:+@"$$RFCC_CC_RUNTIME_RESPONSE_FILE"}
+```
+
+The `$$` escapes pass shell variable references through Ninja. The response
+file contains absolute library paths in toolchain order. Manifests that omit
+the expansion keep their own link commands.
+
+With `dynamic`, rfcc also adds the runtime files to the target's runfiles and
+exports `RFCC_CC_RUNTIME_LIBRARY_DIRS`. The directories are separated by `:`
+on Unix and `;` for Windows targets. A native Linux build-time probe can
+set its loader path for the probe command.
+
+```ninja
+rule probe
+  command = LD_LIBRARY_PATH="$${RFCC_CC_RUNTIME_LIBRARY_DIRS:+$$RFCC_CC_RUNTIME_LIBRARY_DIRS$${LD_LIBRARY_PATH:+:}}$$LD_LIBRARY_PATH" ./$in
+```
+
+Use `runnable_binary` or the project's own loader configuration for installed
+executables. The link and loader examples were tested on Linux x86_64 with
+Clang and LLD. Native Windows and macOS runtime linking and loading remain
+unverified. CMake projects using the Ninja generator use the CMake setting.

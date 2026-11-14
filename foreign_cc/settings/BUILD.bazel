@@ -92,6 +92,17 @@ string_flag(
     visibility = ["//visibility:public"],
 )
 
+string_flag(
+    name = "ninja_cc_runtime_libraries",
+    build_setting_default = "none",
+    values = [
+        "none",
+        "static",
+        "dynamic",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # `bazel run //foreign_cc/settings` prints every public build setting in
 # bazelrc form so users can copy them verbatim into their own bazelrc.
 _settings_script(
@@ -130,6 +141,11 @@ _settings_script(
         (
             (2, 6),
             "boost_build_cc_runtime_libraries",
+            "none",
+        ),
+        (
+            (2, 7),
+            "ninja_cc_runtime_libraries",
             "none",
         ),
     ],
