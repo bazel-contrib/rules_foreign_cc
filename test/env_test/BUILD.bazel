@@ -74,6 +74,8 @@ env_test_ninja(
     name = "ninja_default",
     check_shellvars = STANDARD_VARS | {
         "NINJA_JOBS": "",
+        "RFCC_CC_RUNTIME_LIBRARY_DIRS": "",
+        "RFCC_CC_RUNTIME_RESPONSE_FILE": "",
     },
 )
 

@@ -2,6 +2,9 @@ load("@bazel_lib//lib:diff_test.bzl", "diff_test")
 load("@rules_shell//shell:sh_library.bzl", "sh_library")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@rules_shellcheck//shellcheck:shellcheck_test.bzl", "shellcheck_test")
+
+# buildifier: disable=bzl-visibility
+load("//foreign_cc/private:ninja_script.bzl", ninja_test_api = "export_for_test")
 load("//test/integration:bzlmod_enabled.bzl", "BZLMOD_ENABLED")
 load(":built_tools_flags_test.bzl", "built_tools_flags_test_suite")
 load(":cmake_text_tests.bzl", "cmake_script_test_suite")
@@ -144,3 +147,27 @@ sh_test(
 )
 
 built_tools_flags_test_suite()
+
+shell_script_helper_test_rule(
+    name = "ninja_runtime_setup",
+    out = "ninja_runtime_setup.sh",
+    script = ninja_test_api.runtime_setup(
+        [
+            'z first/lib"first$$.so',
+            "a second/libsecond.so",
+        ],
+        [
+            "z first",
+            "a second",
+        ],
+        ":",
+    ),
+)
+
+sh_test(
+    name = "ninja_runtime_setup_test",
+    size = "small",
+    srcs = ["ninja_runtime_setup_test.sh"],
+    args = ["$(rootpath :ninja_runtime_setup)"],
+    data = [":ninja_runtime_setup"],
+)

@@ -1,7 +1,8 @@
 """A rule for building projects using the [Ninja](https://ninja-build.org/) build tool"""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
-load("//foreign_cc/private:cc_toolchain_util.bzl", "find_cpp_toolchain", "get_flags_info", "get_tools_info")
+load("//foreign_cc/private:cc_toolchain_util.bzl", "find_cpp_toolchain", "get_flags_info", "get_runtime_files", "get_tools_info")
 load(
     "//foreign_cc/private:detect_root.bzl",
     "detect_root",
@@ -16,6 +17,7 @@ load(
 )
 load("//foreign_cc/private:ninja_script.bzl", "create_ninja_script")
 load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
+load("//foreign_cc/private/framework:platform.bzl", "target_os_name")
 load("//toolchains/native_tools:tool_access.bzl", "get_ninja_data")
 
 def _ninja_impl(ctx):
@@ -30,6 +32,8 @@ def _ninja_impl(ctx):
     ninja_data = get_ninja_data(ctx)
 
     tools_data = [ninja_data]
+    runtime_selection = ctx.attr._ninja_cc_runtime_libraries[BuildSettingInfo].value
+    runtime_files = get_runtime_files(ctx, runtime_selection) if runtime_selection != "none" else depset()
 
     attrs = create_attrs(
         ctx.attr,
@@ -37,6 +41,8 @@ def _ninja_impl(ctx):
         create_configure_script = _create_ninja_script,
         tools_data = tools_data,
         ninja_path = ninja_data.path,
+        runtime_inputs = runtime_files,
+        runtime_runfiles = runtime_files if runtime_selection == "dynamic" else depset(),
     )
     return cc_external_rule_impl(ctx, attrs)
 
@@ -94,6 +100,9 @@ def _create_ninja_script(configureParameters):
         ninja_args = args,
         ninja_directory = directory,
         is_msvc = is_msvc,
+        runtime_paths = [file.path for file in attrs.runtime_inputs.to_list()],
+        runtime_dirs = {file.dirname: None for file in attrs.runtime_runfiles.to_list()}.keys(),
+        runtime_dir_separator = ";" if target_os_name(ctx) == "windows" else ":",
     )
 
 def _attrs():
@@ -105,6 +114,9 @@ def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
 
     attrs.update({
+        "_ninja_cc_runtime_libraries": attr.label(
+            default = Label("@rules_foreign_cc//foreign_cc/settings:ninja_cc_runtime_libraries"),
+        ),
         "args": attr.string_list(
             doc = "A list of arguments to pass to the call to `ninja`",
         ),
