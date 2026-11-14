@@ -10,11 +10,14 @@ For additional rules/macros/providers, see the [full API in one page](./flatten.
 
 ## CMake runtime libraries
 
-When the selected C++ toolchain provides static runtime libraries through
-`CcToolchainInfo.static_runtime_lib`, the `cmake` rule passes them to C and C++
-links automatically. This includes CMake compiler checks and places the runtime
-libraries after project objects and libraries. The files are declared inputs
-to the foreign build action; no opt-in attribute is needed.
+By default, `cmake` does not add libraries from the C++ toolchain's runtime
+file sets. Set
+`--@rules_foreign_cc//foreign_cc/settings:cmake_cc_runtime_libraries=static`
+to add `CcToolchainInfo.static_runtime_lib` to C and C++ links. This includes
+CMake compiler checks and places the runtime libraries after project objects
+and libraries. The files are declared inputs to the foreign build action.
+The default `none` preserves existing compiler-driver and user-supplied
+runtime behavior; it does not mean the resulting links have no runtimes.
 
 This covers the `cmake` rule and static runtime libraries only. Other foreign
 build rules do not receive these libraries. Dynamic runtime libraries,

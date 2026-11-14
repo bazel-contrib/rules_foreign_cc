@@ -128,6 +128,7 @@ cmake(
 [cct]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain
 """
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
@@ -183,7 +184,13 @@ def _cmake_impl(ctx):
         tools_data.append(ninja_data)
         generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(ninja_data.path))
 
-    runtime_files = get_runtime_files(ctx)
+    runtime_selection = ctx.attr._cmake_cc_runtime_libraries[BuildSettingInfo].value
+    if runtime_selection == "static":
+        runtime_files = get_runtime_files(ctx)
+    elif runtime_selection == "none":
+        runtime_files = depset()
+    else:
+        fail("Unsupported CMake C++ toolchain runtime selection: {}".format(runtime_selection))
     attrs = create_attrs(
         ctx.attr,
         env = env,
@@ -364,6 +371,9 @@ def _get_generator_target(ctx):
 def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.update({
+        "_cmake_cc_runtime_libraries": attr.label(
+            default = Label("@rules_foreign_cc//foreign_cc/settings:cmake_cc_runtime_libraries"),
+        ),
         "build_args": attr.string_list(
             doc = "Arguments for the CMake build command",
             mandatory = False,

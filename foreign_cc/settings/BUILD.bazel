@@ -1,4 +1,4 @@
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 load(
     "//foreign_cc/private:resource_sets.bzl",
     _create_resource_set_settings = "create_resource_set_settings",
@@ -33,6 +33,18 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
+# Select which C++ toolchain runtime file set CMake adds to its links.
+# "none" preserves the compiler driver's existing runtime behavior.
+string_flag(
+    name = "cmake_cc_runtime_libraries",
+    build_setting_default = "none",
+    values = [
+        "none",
+        "static",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # `bazel run //foreign_cc/settings` prints every public build setting in
 # bazelrc form so users can copy them verbatim into their own bazelrc.
 _settings_script(
@@ -47,6 +59,11 @@ _settings_script(
             (2, 1),
             "set_file_prefix_map_default",
             False,
+        ),
+        (
+            (2, 2),
+            "cmake_cc_runtime_libraries",
+            "none",
         ),
     ],
 )
