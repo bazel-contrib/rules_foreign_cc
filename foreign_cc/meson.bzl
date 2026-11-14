@@ -1,5 +1,6 @@
 """A rule for building projects using the [Meson](https://mesonbuild.com/) build system"""
 
+load("@bazel_skylib//lib:shell.bzl", "shell")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
 load("@rules_python//python:py_binary.bzl", "py_binary")
@@ -7,7 +8,9 @@ load("//foreign_cc:utils.bzl", "full_label")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "absolutize_path_in_str",
+    "find_cpp_toolchain",
     "get_flags_info",
+    "get_runtime_files",
     "get_tools_info",
 )
 load(
@@ -25,7 +28,7 @@ load(
 load("//foreign_cc/private:make_script.bzl", "pkgconfig_script")
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
-load("//foreign_cc/private/framework:platform.bzl", "os_name")
+load("//foreign_cc/private/framework:platform.bzl", "arch_name", "os_name", "target_arch_name", "target_os_name")
 load("//toolchains/native_tools:meson_tool_toolchain.bzl", "meson_tool_toolchain")
 load("//toolchains/native_tools:tool_access.bzl", "get_cmake_data", "get_make_data", "get_meson_data", "get_ninja_data", "get_pkgconfig_data")
 
@@ -47,6 +50,8 @@ def _meson_impl(ctx):
 
     tools_data = [meson_data, cmake_data, ninja_data, pkg_config_data, make_data]
 
+    runtime_selection = ctx.attr._meson_cc_runtime_libraries[BuildSettingInfo].value
+    runtime_files = depset() if runtime_selection == "none" else get_runtime_files(ctx, runtime_selection)
     attrs = create_attrs(
         ctx.attr,
         configure_name = "Meson",
@@ -59,6 +64,8 @@ def _meson_impl(ctx):
         ninja_path = ninja_data.path,
         make_path = make_data.path,
         pkg_config_path = pkg_config_data.path,
+        runtime_inputs = runtime_files,
+        runtime_runfiles = runtime_files if runtime_selection == "dynamic" else depset(),
     )
     return cc_external_rule_impl(ctx, attrs)
 
@@ -79,15 +86,14 @@ def _create_meson_script(configureParameters):
     flags = get_flags_info(ctx)
     script = pkgconfig_script(inputs.ext_build_dirs)
     build_options = ctx.attr.options
+    runtime_files = attrs.runtime_inputs.to_list()
 
-    # CFLAGS and CXXFLAGS are also set in foreign_cc/private/cmake_script.bzl, so that meson
-    # can use the intended tools.
-    # However, they are split by meson on whitespace. For Windows it's common to have spaces in path
+    # Meson splits CC and CXX on whitespace. On Windows it's common to have spaces in paths.
     # https://github.com/mesonbuild/meson/issues/3565
     # Skip setting them in this case.
-    if " " not in tools.cc:
+    if not runtime_files and " " not in tools.cc:
         script.append("##export_var## CC {}".format(_absolutize(ctx.workspace_name, tools.cc)))
-    if " " not in tools.cxx:
+    if not runtime_files and " " not in tools.cxx:
         script.append("##export_var## CXX {}".format(_absolutize(ctx.workspace_name, tools.cxx)))
     if " " not in tools.cxx_linker_static and tools.cxx_linker_static.endswith("ar"):
         script.append("##export_var## AR {}".format(_absolutize(ctx.workspace_name, tools.cxx_linker_static)))
@@ -163,6 +169,17 @@ def _create_meson_script(configureParameters):
 
         target_args[target_name] = args
 
+    setup_args = target_args.get("setup", [])
+    if runtime_files:
+        if os_name(ctx) != "linux" or target_os_name(ctx) != "linux" or arch_name(ctx) != target_arch_name(ctx):
+            fail("meson_cc_runtime_libraries requires a native Linux build")
+        if find_cpp_toolchain(ctx).compiler != "clang":
+            fail("meson_cc_runtime_libraries requires a GNU-style Clang toolchain")
+        if any([arg.strip().split("=", 1)[0].split(" ", 1)[0] == "--cross-file" for arg in setup_args]):
+            fail("meson_cc_runtime_libraries does not support Meson cross files")
+        script.extend(_runtime_script(tools, runtime_files, attrs.runtime_runfiles.to_list()))
+        setup_args = setup_args + ['--native-file="' + _RUNTIME_DIR + '/native.ini"']
+
     # Append shared flags to build options
     if flags.cxx_linker_shared and ctx.attr.shared_ldflags_option:
         if ctx.attr.shared_ldflags_option in build_options:
@@ -177,7 +194,7 @@ def _create_meson_script(configureParameters):
     script.append("{meson} setup --prefix={install_dir} {setup_args} {options} {source_dir}".format(
         meson = meson_path,
         install_dir = "$$INSTALLDIR$$",
-        setup_args = " ".join(target_args.get("setup", [])),
+        setup_args = " ".join(setup_args),
         options = " ".join([
             "\"-D{}={}\"".format(key, build_options[key])
             for key in build_options
@@ -227,6 +244,49 @@ def _create_meson_script(configureParameters):
         ))
 
     return script
+
+_RUNTIME_DIR = "$$EXT_BUILD_DEPS$$/.rfcc_meson_runtime"
+
+def _runtime_script(tools, runtime_files, runtime_runfiles):
+    # Meson places c_link_args and cpp_link_args before project libraries.
+    # Clang's link-only config entries follow the command-line linker inputs,
+    # including for sanity checks, compiler.run() and Ninja response files.
+    script = [
+        "##mkdirs## " + _RUNTIME_DIR,
+        "_rfcc_meson_cc=" + _shell_tool_path(tools.cc),
+        "_rfcc_meson_cpp=" + _shell_tool_path(tools.cxx),
+        r'''for _rfcc_meson_driver in "$_rfcc_meson_cc" "$_rfcc_meson_cpp"; do
+  _rfcc_meson_version=$("$_rfcc_meson_driver" --version)
+  if ! [[ "$_rfcc_meson_version" =~ [Cc]lang\ version\ ([0-9]+) && ${BASH_REMATCH[1]} -ge 20 ]]; then
+    echo "meson_cc_runtime_libraries requires GNU-style Clang 20 or newer: $_rfcc_meson_driver" >&2
+    exit 1
+  fi
+done''',
+        "for _rfcc_meson_lib in {}; do".format(" ".join([
+            '"$$EXT_BUILD_ROOT$$/"' + shell.quote(file.path)
+            for file in runtime_files
+        ])),
+        r"  _rfcc_meson_lib=${_rfcc_meson_lib//\\/\\\\}",
+        r'  _rfcc_meson_lib=${_rfcc_meson_lib//\"/\\\"}',
+        '''  printf '$"%s"\\n' "$_rfcc_meson_lib"''',
+        'done > "{}/runtime.cfg"'.format(_RUNTIME_DIR),
+        'cat > "{}/native.ini" <<RFCC_MESON_NATIVE_EOF'.format(_RUNTIME_DIR),
+        "[binaries]",
+        "c = ['''$_rfcc_meson_cc''', '''--config={}/runtime.cfg''']".format(_RUNTIME_DIR),
+        "cpp = ['''$_rfcc_meson_cpp''', '''--config={}/runtime.cfg''']".format(_RUNTIME_DIR),
+        "RFCC_MESON_NATIVE_EOF",
+    ]
+    if runtime_runfiles:
+        runtime_dirs = {file.dirname: None for file in runtime_runfiles}
+        script.append("export LD_LIBRARY_PATH={}${{LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}}".format(
+            ":".join(['"$$EXT_BUILD_ROOT$$/"' + shell.quote(path) for path in runtime_dirs]),
+        ))
+    return script
+
+def _shell_tool_path(path):
+    if not path.startswith("/") and "/" in path:
+        return '"$$EXT_BUILD_ROOT$$/"' + shell.quote(path)
+    return shell.quote(path)
 
 # Where launchers that build a venv at run time put it, see
 # _python_env_script. Dot-prefixed and short on purpose: EXT_BUILD_DEPS also
@@ -312,6 +372,9 @@ def _attrs():
         "_meson_pythonpath": attr.label(
             default = Label("@rules_foreign_cc//foreign_cc/settings:meson_pythonpath"),
         ),
+        "_meson_cc_runtime_libraries": attr.label(
+            default = Label("@rules_foreign_cc//foreign_cc/settings:meson_cc_runtime_libraries"),
+        ),
     })
     return attrs
 
@@ -395,4 +458,5 @@ def _list_to_str_repr(lst):
 
 export_for_test = struct(
     list_to_str_repr = _list_to_str_repr,
+    runtime_script = _runtime_script,
 )
