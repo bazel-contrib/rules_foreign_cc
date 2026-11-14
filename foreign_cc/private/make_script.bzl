@@ -1,5 +1,6 @@
 """A module for creating the build script for `make` builds"""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load(":make_env_vars.bzl", "get_ldflags_make_vars", "get_make_env_vars")
 
 # buildifier: disable=function-docstring
@@ -19,7 +20,9 @@ def create_make_script(
         executable_ldflags_vars,
         shared_ldflags_vars,
         dynamic_module_ldflags_vars,
-        is_msvc):
+        is_msvc,
+        runtime_paths = [],
+        dynamic_runtime_paths = []):
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -29,6 +32,16 @@ def create_make_script(
     script.append("##enable_tracing##")
 
     ldflags_make_vars = get_ldflags_make_vars(executable_ldflags_vars, shared_ldflags_vars, dynamic_module_ldflags_vars, workspace_name, flags, env_vars, deps, inputs, is_msvc)
+
+    if runtime_paths:
+        # Keep the quotes through Make expansion into the recipe shell. The
+        # recipe uses this variable after its objects and project libraries.
+        runtime_libs = " ".join([r'\"$$EXT_BUILD_ROOT$$/{}\"'.format(path) for path in runtime_paths])
+        make_args += ' RULES_FOREIGN_CC_RUNTIME_LIBS="{}"'.format(runtime_libs)
+    if dynamic_runtime_paths:
+        runtime_dirs = {paths.dirname(path): None for path in dynamic_runtime_paths}
+        runtime_library_path = ":".join(["$$EXT_BUILD_ROOT$$/" + directory for directory in runtime_dirs])
+        make_args += ' RULES_FOREIGN_CC_RUNTIME_LIBRARY_PATH="{}"'.format(runtime_library_path)
 
     make_commands = []
     for target in make_targets:

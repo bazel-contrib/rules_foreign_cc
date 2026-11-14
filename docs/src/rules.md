@@ -26,8 +26,44 @@ native `try_run` checks can execute. This does not add an RPATH to installed
 outputs. Run foreign-built executables with `runnable_binary`, as for other
 shared-library dependencies, or arrange a project-specific loader path.
 
-This covers the `cmake` rule only; other foreign build rules do not receive
-these libraries. An empty selected runtime set retains the existing CMake link
-behavior. The end-to-end regressions are qualified on Linux x86_64 with a
-GNU-style Clang/LLD toolchain. Native Windows, macOS, and custom CMake
-toolchain files have not been tested with toolchain-provided runtime files.
+This setting applies to the `cmake` rule. An empty selected runtime set retains
+the existing CMake link behavior. The end-to-end regressions are qualified on
+Linux x86_64 with a GNU-style Clang/LLD toolchain. Native Windows, macOS, and
+custom CMake toolchain files have not been tested with toolchain-provided
+runtime files.
+
+## Make runtime libraries
+
+To pass the C++ toolchain's complete static or dynamic runtime file set to a
+direct `make` build, set
+`--@rules_foreign_cc//foreign_cc/settings:make_cc_runtime_libraries=static`
+or `=dynamic`. The selected files are build action inputs. The default `none`
+and empty runtime file sets preserve the existing Make invocation.
+
+The Makefile must expand `$(RULES_FOREIGN_CC_RUNTIME_LIBS)` after all objects
+and project libraries in each link recipe that needs the runtimes. The
+variable contains shell-quoted paths to the selected files in toolchain
+order. GNU Make passes the command-line variable to recursive `$(MAKE)`
+invocations.
+
+```make
+app: main.o libproject.a
+	$(CXX) $(LDFLAGS) $^ $(LDLIBS) $(RULES_FOREIGN_CC_RUNTIME_LIBS) -o $@
+```
+
+When `dynamic` selects files, `RULES_FOREIGN_CC_RUNTIME_LIBRARY_PATH`
+contains their colon-separated directories in the build action. A native
+Linux probe can use this variable to set its loader path for its own invocation.
+
+```make
+check: app
+	$(if $(RULES_FOREIGN_CC_RUNTIME_LIBRARY_PATH),LD_LIBRARY_PATH="$(RULES_FOREIGN_CC_RUNTIME_LIBRARY_PATH)$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}") ./app
+```
+
+For installed executables, use `runnable_binary` to load the dynamic runtimes
+from the foreign target's runfiles, or arrange a loader path when packaging
+the executable. The Makefile controls execution of build-time probes and must
+account for the target platform when cross-compiling.
+
+The selected files must be valid inputs for the recipe's linker. Both modes
+were tested with GNU Make and Clang/LLD on Linux x86_64.
