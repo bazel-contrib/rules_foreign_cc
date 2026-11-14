@@ -89,3 +89,19 @@ account for the target platform when cross-compiling.
 
 The selected files must be valid inputs for the recipe's linker. Both modes
 were tested with GNU Make and Clang/LLD on Linux x86_64.
+
+## Boost.Build runtime libraries
+
+Set `--@rules_foreign_cc//foreign_cc/settings:boost_build_cc_runtime_libraries=static`
+or `=dynamic` to add the corresponding C++ toolchain runtime file set to
+`boost_build` links. The default `none` and empty runtime sets retain existing
+behavior. The selected libraries are declared action inputs. B2's GCC and
+Clang toolsets place these libraries after project objects and dependencies
+in executable and shared-library links, including B2 configuration checks.
+`bootstrap.sh` builds B2 separately.
+
+Runtime injection requires Linux execution and target platforms and the rule's
+generated GCC or Clang configuration. With `dynamic`, rfcc also adds the files
+to runfiles and their directories to the loader path for the B2 invocation.
+Use `runnable_binary` for installed executables or provide a loader path when
+running them outside Bazel.

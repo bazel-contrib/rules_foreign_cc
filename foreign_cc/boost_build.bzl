@@ -1,7 +1,8 @@
 """ Rule for building Boost from sources. """
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_cc//cc:defs.bzl", "CcInfo")
-load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str", "find_cpp_toolchain", "get_flags_info", "get_tools_info")
+load("//foreign_cc/private:cc_toolchain_util.bzl", "absolutize_path_in_str", "find_cpp_toolchain", "get_flags_info", "get_runtime_files", "get_tools_info")
 load("//foreign_cc/private:detect_root.bzl", "detect_root")
 load(
     "//foreign_cc/private:framework.bzl",
@@ -13,13 +14,18 @@ load(
 )
 load("//foreign_cc/private/framework:exec_groups.bzl", "foreign_cc_exec_groups")
 load("//foreign_cc/private/framework:helpers.bzl", "escape_dquote_bash")
+load("//foreign_cc/private/framework:platform.bzl", "os_name", "target_os_name")
 
 def _boost_build_impl(ctx):
+    runtime_selection = ctx.attr._boost_build_cc_runtime_libraries[BuildSettingInfo].value
+    runtime_files = depset() if runtime_selection == "none" else get_runtime_files(ctx, runtime_selection)
     attrs = create_attrs(
         ctx.attr,
         configure_name = "BoostBuild",
         create_configure_script = _create_configure_script,
         tools_data = [],
+        runtime_inputs = runtime_files,
+        runtime_runfiles = runtime_files if runtime_selection == "dynamic" else depset(),
     )
     return cc_external_rule_impl(ctx, attrs)
 
@@ -75,6 +81,12 @@ def _create_configure_script(configureParameters):
 
     toolset = _b2_toolset(cc_toolchain.compiler)
     pin_compiler = toolset and not _user_supplied_toolset(user_options)
+    runtime_inputs = configureParameters.attrs.runtime_inputs.to_list()
+    if runtime_inputs:
+        if os_name(ctx) != "linux" or target_os_name(ctx) != "linux" or toolset not in ["clang", "gcc"]:
+            fail("boost_build runtime injection requires Linux execution and target platforms and a GCC or Clang toolchain")
+        if not pin_compiler or any([opt.split("=", 1)[0] in ["--config", "--test-config"] for opt in user_options]):
+            fail("boost_build runtime injection requires the generated B2 toolset configuration. Remove the toolset or configuration override in user_options.")
 
     script = [
         "cd $INSTALLDIR",
@@ -93,9 +105,20 @@ def _create_configure_script(configureParameters):
         # because apple_support's `wrapped_clang` shim never runs.
         absolute_cxx = _absolutize(ctx.workspace_name, tools.cxx, True)
         jam_lines = ["using {} : : \"{}\" :".format(toolset, absolute_cxx)]
-        for flag in flags.cxx:
+        cxxflags = flags.cxx
+        linkflags = flags.cxx_linker_executable
+        if runtime_inputs:
+            # B2 runs from the install tree. Rebase Bazel headers, sysroots and
+            # other toolchain flag paths to the execroot along with the runtimes.
+            cxxflags = [_absolutize(ctx.workspace_name, flag) for flag in cxxflags]
+            linkflags = [_absolutize(ctx.workspace_name, flag) for flag in linkflags]
+
+            # B2's gcc.link and gcc.link.dll actions use these options after
+            # objects and project libraries. clang-linux inherits both actions.
+            linkflags += ['"$$EXT_BUILD_ROOT$$/{}"'.format(file.path) for file in runtime_inputs]
+        for flag in cxxflags:
             jam_lines.append(_jam_property_line("cxxflags", flag))
-        for flag in flags.cxx_linker_executable:
+        for flag in linkflags:
             jam_lines.append(_jam_property_line("linkflags", flag))
         jam_lines.append("    ;")
 
@@ -117,7 +140,14 @@ def _create_configure_script(configureParameters):
             if opt
         ])
 
-    script.append("./b2 install {} {} --prefix=.".format(" ".join(b2_extra_args), " ".join(user_options)))
+    b2_command = "./b2 install {} {} --prefix=.".format(" ".join(b2_extra_args), " ".join(user_options))
+    runtime_dirs = {file.dirname: None for file in configureParameters.attrs.runtime_runfiles.to_list()}
+    if runtime_dirs:
+        # Allow B2 to run native test binaries without embedding sandbox paths
+        # as RPATH in the installed programs or affecting bootstrap.sh.
+        loader_path = ":".join(["$$EXT_BUILD_ROOT$$/" + directory for directory in runtime_dirs])
+        b2_command = 'LD_LIBRARY_PATH="{}${{LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}}" {}'.format(loader_path, b2_command)
+    script.append(b2_command)
     script.append("##disable_tracing##")
     return script
 
@@ -125,6 +155,10 @@ def _attrs():
     attrs = dict(CC_EXTERNAL_RULE_ATTRIBUTES)
     attrs.pop("targets")
     attrs.update({
+        "_boost_build_cc_runtime_libraries": attr.label(
+            default = Label("@rules_foreign_cc//foreign_cc/settings:boost_build_cc_runtime_libraries"),
+            providers = [BuildSettingInfo],
+        ),
         "bootstrap_options": attr.string_list(
             doc = "any additional flags to pass to bootstrap.sh",
             mandatory = False,
