@@ -345,6 +345,62 @@ cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -fuse-ld=gol
 
     return unittest.end(env)
 
+def _runtime_standard_libraries_test(ctx):
+    env = unittest.begin(ctx)
+    tools = CxxToolsInfo(
+        cc = "/usr/bin/cc",
+        cxx = "/usr/bin/c++",
+        cxx_linker_static = "/usr/bin/ar",
+        cxx_linker_executable = "/usr/bin/c++",
+    )
+    flags = CxxFlagsInfo(
+        cc = [],
+        cxx = [],
+        cxx_linker_shared = [],
+        cxx_linker_dynamic_module = [],
+        cxx_linker_static = [],
+        cxx_linker_executable = [],
+        assemble = [],
+    )
+    script = create_cmake_script(
+        "ws",
+        ctx.label,
+        "linux",
+        "x86_64",
+        "linux",
+        "x86_64",
+        "Unix Makefiles",
+        "cmake",
+        tools,
+        flags,
+        "test_rule",
+        "external/test_rule",
+        True,
+        {
+            "CMAKE_C_STANDARD_LIBRARIES": "-lm",
+            "CMAKE_TRY_COMPILE_PLATFORM_VARIABLES": "USER_VALUE",
+            "CMAKE_USER_MAKE_RULES_OVERRIDE": "$$EXT_BUILD_ROOT$$/user/global.cmake",
+            "CMAKE_USER_MAKE_RULES_OVERRIDE_C": "$$EXT_BUILD_ROOT$$/user/c.cmake",
+        },
+        {},
+        [],
+        cmake_commands = [],
+        runtime_paths = ["external/runtime/libc++.a", "external/runtime/libunwind.a"],
+    )
+    joined = "\n".join(script)
+    asserts.true(env, 'include("$ENV{EXT_BUILD_ROOT}/user/c.cmake")' in joined)
+    asserts.true(env, 'if(NOT CMAKE_USER_MAKE_RULES_OVERRIDE)\n  include("$ENV{EXT_BUILD_ROOT}/user/global.cmake")\nendif()' in joined)
+    asserts.true(env, 'set(_rfcc_base "${CMAKE_C_STANDARD_LIBRARIES}")' in joined)
+    asserts.true(env, 'set(_rfcc_base "${CMAKE_C_STANDARD_LIBRARIES_INIT}")' in joined)
+    asserts.true(env, 'set(CMAKE_C_STANDARD_LIBRARIES "${_rfcc_base}" CACHE STRING "Platform/user libraries")' in joined)
+    asserts.true(env, joined.find("external/runtime/libc++.a") < joined.find("external/runtime/libunwind.a"))
+    asserts.true(env, 'CMAKE_TRY_COMPILE_PLATFORM_VARIABLES="USER_VALUE;CMAKE_USER_MAKE_RULES_OVERRIDE"' in joined)
+    asserts.true(env, 'CMAKE_USER_MAKE_RULES_OVERRIDE_C="$$BUILD_TMPDIR$$/rfcc_runtime_C.cmake"' in joined)
+    asserts.true(env, 'CMAKE_C_STANDARD_LIBRARIES="-lm"' in joined)
+    return unittest.end(env)
+
+runtime_standard_libraries_test = unittest.make(_runtime_standard_libraries_test)
+
 def _create_min_cmake_script_wipe_toolchain_test(ctx):
     env = unittest.begin(ctx)
 
@@ -973,6 +1029,7 @@ def cmake_script_test_suite():
         partial.make(reverse_descriptor_dict_test, size = "small"),
         partial.make(merge_toolchain_and_user_values_test, size = "small"),
         partial.make(create_min_cmake_script_no_toolchain_file_test, size = "small"),
+        partial.make(runtime_standard_libraries_test, size = "small"),
         partial.make(create_min_cmake_script_toolchain_file_test, size = "small"),
         partial.make(create_cmake_script_no_toolchain_file_test, size = "small"),
         partial.make(create_cmake_script_toolchain_file_test, size = "small"),

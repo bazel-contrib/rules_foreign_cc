@@ -114,7 +114,8 @@ def create_cmake_script(
         include_dirs = [],
         cmake_prefix = None,
         is_debug_mode = True,
-        ext_build_dirs = []):
+        ext_build_dirs = [],
+        runtime_paths = []):
     """Constructs CMake script to be passed to cc_external_rule_impl.
 
     Args:
@@ -139,10 +140,58 @@ def create_cmake_script(
         cmake_prefix: Optional prefix before the cmake command (without the trailing space).
         is_debug_mode: If the compilation mode is `debug`. Defaults to True.
         ext_build_dirs: A list of gen_dirs for each foreign_cc dep.
+        runtime_paths: Ordered static runtime paths from the C++ toolchain.
 
     Returns:
         list: Lines of bash which make up the build script
     """
+
+    runtime_commands = []
+    if runtime_paths:
+        # CMake normally forwards the global override only when a language
+        # override is absent. Preserve it explicitly when installing ours.
+        key = "CMAKE_TRY_COMPILE_PLATFORM_VARIABLES"
+        forwarded = user_cache.get(key, "").split(";")
+        if "CMAKE_USER_MAKE_RULES_OVERRIDE" not in forwarded:
+            forwarded.append("CMAKE_USER_MAKE_RULES_OVERRIDE")
+        user_cache[key] = ";".join([name for name in forwarded if name])
+        global_override = user_cache.get("CMAKE_USER_MAKE_RULES_OVERRIDE", "")
+        global_override = global_override.replace("$$EXT_BUILD_ROOT$$", "$ENV{EXT_BUILD_ROOT}").replace("$$BUILD_TMPDIR$$", "$ENV{BUILD_TMPDIR}").replace("$$EXT_BUILD_DEPS$$", "$ENV{EXT_BUILD_DEPS}")
+
+        # Evaluate this separately inside each compiler probe. Its standard
+        # library cache can deliberately be empty during ABI detection.
+        runtime_flags = " ".join(['\\"$ENV{EXT_BUILD_ROOT}/' + path + '\\"' for path in runtime_paths])
+        for lang in ["C", "CXX"]:
+            key = "CMAKE_USER_MAKE_RULES_OVERRIDE_" + lang
+            previous = user_cache.pop(key, "")
+            filename = "rfcc_runtime_" + lang + ".cmake"
+            user_cache[key] = "$$BUILD_TMPDIR$$/" + filename
+            runtime_commands.append("cat > " + filename + " << 'RFCC_RUNTIME_EOF'")
+            if global_override:
+                # CMake forwards the language hook directly into try_compile,
+                # but can omit the global hook when platform variables are off.
+                # The global hook already ran when its variable is present.
+                runtime_commands += [
+                    "if(NOT CMAKE_USER_MAKE_RULES_OVERRIDE)",
+                    '  include("' + global_override + '")',
+                    "endif()",
+                ]
+            if previous:
+                previous = previous.replace("$$EXT_BUILD_ROOT$$", "$ENV{EXT_BUILD_ROOT}").replace("$$BUILD_TMPDIR$$", "$ENV{BUILD_TMPDIR}").replace("$$EXT_BUILD_DEPS$$", "$ENV{EXT_BUILD_DEPS}")
+                runtime_commands.append('include("' + previous + '")')
+            runtime_commands += [
+                "if(DEFINED CMAKE_{}_STANDARD_LIBRARIES)".format(lang),
+                '  set(_rfcc_base "${CMAKE_' + lang + '_STANDARD_LIBRARIES}")',
+                "else()",
+                '  set(_rfcc_base "${CMAKE_' + lang + '_STANDARD_LIBRARIES_INIT}")',
+                "endif()",
+                # Typing the unchanged cache value first keeps CMP0126 OLD
+                # from discarding the normal variable during initialization.
+                "set(CMAKE_" + lang + '_STANDARD_LIBRARIES "${_rfcc_base}" CACHE STRING "Platform/user libraries")',
+                "set(CMAKE_" + lang + '_STANDARD_LIBRARIES "${_rfcc_base} ' + runtime_flags + '")',
+                "unset(_rfcc_base)",
+                "RFCC_RUNTIME_EOF",
+            ]
 
     merged_prefix_path = _merge_prefix_path(user_cache, include_dirs, ext_build_dirs)
 
@@ -236,7 +285,7 @@ def create_cmake_script(
 
     script.append("##disable_tracing##")
 
-    return params.commands + script
+    return runtime_commands + params.commands + script
 
 def _wipe_empty_values(cache, keys_with_empty_values_in_user_cache):
     for key in keys_with_empty_values_in_user_cache:

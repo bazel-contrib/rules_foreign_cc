@@ -641,7 +641,7 @@ def cc_external_rule_impl(ctx, attrs):
     ctx.actions.run_shell(
         exec_group = FOREIGN_CC_EXEC_GROUP,
         mnemonic = "Cc" + attrs.configure_name.capitalize() + "MakeRule",
-        inputs = depset(inputs.declared_inputs),
+        inputs = depset(inputs.declared_inputs, transitive = [getattr(attrs, "runtime_inputs", depset())]),
         outputs = rule_outputs + [wrapped_outputs.log_file],
         tools =
             [wrapped_outputs.script_file, wrapped_outputs.wrapper_script_file] +

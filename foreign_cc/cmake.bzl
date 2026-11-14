@@ -132,6 +132,7 @@ load("@rules_cc//cc:defs.bzl", "CcInfo")
 load(
     "//foreign_cc/private:cc_toolchain_util.bzl",
     "get_flags_info",
+    "get_runtime_files",
     "get_tools_info",
     "is_debug_mode",
 )
@@ -182,6 +183,7 @@ def _cmake_impl(ctx):
         tools_data.append(ninja_data)
         generate_args.append("-DCMAKE_MAKE_PROGRAM={}".format(ninja_data.path))
 
+    runtime_files = get_runtime_files(ctx)
     attrs = create_attrs(
         ctx.attr,
         env = env,
@@ -191,6 +193,7 @@ def _cmake_impl(ctx):
         create_configure_script = _create_configure_script,
         tools_data = tools_data,
         cmake_path = cmake_data.path,
+        runtime_inputs = runtime_files,
     )
 
     return cc_external_rule_impl(ctx, attrs)
@@ -270,6 +273,7 @@ def _create_configure_script(configureParameters):
         cmake_path = attrs.cmake_path,
         tools = tools,
         flags = flags,
+        runtime_paths = [f.path for f in attrs.runtime_inputs.to_list()],
         install_prefix = "$$INSTALLDIR$$",
         root = root,
         no_toolchain_file = no_toolchain_file,

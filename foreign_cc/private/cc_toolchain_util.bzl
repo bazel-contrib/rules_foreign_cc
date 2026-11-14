@@ -269,6 +269,13 @@ def _set_file_prefix_map_enabled(ctx, cc_toolchain):
         return True
     return False
 
+def get_runtime_files(ctx):
+    """Returns the C++ toolchain's configured static runtime libraries."""
+    cc_toolchain = find_cpp_toolchain(ctx)
+    return cc_toolchain.static_runtime_lib(
+        feature_configuration = _configure_features(ctx, cc_toolchain),
+    )
+
 def get_flags_info(ctx, link_output_file = None):
     """Takes information about flags from cc_toolchain, returns CxxFlagsInfo
 
