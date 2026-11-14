@@ -26,8 +26,23 @@ native `try_run` checks can execute. This does not add an RPATH to installed
 outputs. Run foreign-built executables with `runnable_binary`, as for other
 shared-library dependencies, or arrange a project-specific loader path.
 
-This covers the `cmake` rule only; other foreign build rules do not receive
-these libraries. An empty selected runtime set retains the existing CMake link
-behavior. The end-to-end regressions are qualified on Linux x86_64 with a
-GNU-style Clang/LLD toolchain. Native Windows, macOS, and custom CMake
-toolchain files have not been tested with toolchain-provided runtime files.
+The CMake setting applies to `cmake` targets. An empty selected runtime set
+retains the existing CMake link behavior. The regressions were run on Linux
+x86_64 with a GNU-style Clang/LLD toolchain. Native Windows, macOS, and custom
+CMake toolchain files have not been tested with toolchain-provided runtime files.
+
+## Boost.Build runtime libraries
+
+Set `--@rules_foreign_cc//foreign_cc/settings:boost_build_cc_runtime_libraries=static`
+or `=dynamic` to add the corresponding C++ toolchain runtime file set to
+`boost_build` links. The default `none` and empty runtime sets retain existing
+behavior. The selected libraries are declared action inputs. B2's GCC and
+Clang toolsets place these libraries after project objects and dependencies
+in executable and shared-library links, including B2 configuration checks.
+`bootstrap.sh` builds B2 separately.
+
+Runtime injection requires Linux execution and target platforms and the rule's
+generated GCC or Clang configuration. With `dynamic`, rfcc also adds the files
+to runfiles and their directories to the loader path for the B2 invocation.
+Use `runnable_binary` for installed executables or provide a loader path when
+running them outside Bazel.

@@ -33,6 +33,18 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
+# Select which C++ toolchain runtime file set B2 adds to its links.
+string_flag(
+    name = "boost_build_cc_runtime_libraries",
+    build_setting_default = "none",
+    values = [
+        "none",
+        "static",
+        "dynamic",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Select which C++ toolchain runtime file set CMake adds to its links.
 # "none" preserves the compiler driver's existing runtime behavior.
 string_flag(
@@ -64,6 +76,11 @@ _settings_script(
         (
             (2, 2),
             "cmake_cc_runtime_libraries",
+            "none",
+        ),
+        (
+            (2, 3),
+            "boost_build_cc_runtime_libraries",
             "none",
         ),
     ],
