@@ -105,3 +105,25 @@ generated GCC or Clang configuration. With `dynamic`, rfcc also adds the files
 to runfiles and their directories to the loader path for the B2 invocation.
 Use `runnable_binary` for installed executables or provide a loader path when
 running them outside Bazel.
+
+## Meson runtime libraries
+
+Set `--@rules_foreign_cc//foreign_cc/settings:meson_cc_runtime_libraries=static`
+or `=dynamic` on native Linux builds using GNU-style Clang 20 or newer with
+`compiler = "clang"` in the Bazel C++ toolchain. The default `none` preserves
+the existing build. An empty
+selected runtime set also leaves the build unchanged.
+
+Meson declares the complete selected `CcToolchainInfo.static_runtime_lib` or
+`dynamic_runtime_lib` set as action inputs. Both C and C++ compiler commands
+use a native file entry with a [Clang configuration file](https://clang.llvm.org/docs/UsersManual.html#configuration-files)
+that adds those libraries after the project objects and libraries. It applies
+to compiler link checks and target links. The generated native file takes
+precedence over `c` and `cpp` entries in user native files. Meson cross files
+are unsupported with a nonempty runtime set.
+
+In dynamic mode, the action prepends the selected libraries' directories to
+`LD_LIBRARY_PATH` for Meson and its child processes, including native compiler
+probes that execute. The foreign target includes the shared runtimes in its
+runfiles. Use `runnable_binary` or supply a loader search path when running
+installed executables. The adapter adds no installed RPATH.

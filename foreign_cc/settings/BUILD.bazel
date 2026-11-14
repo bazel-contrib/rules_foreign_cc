@@ -80,6 +80,18 @@ string_flag(
     visibility = ["//visibility:public"],
 )
 
+# Select which C++ toolchain runtime file set Meson adds to its links.
+string_flag(
+    name = "meson_cc_runtime_libraries",
+    build_setting_default = "none",
+    values = [
+        "none",
+        "static",
+        "dynamic",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # `bazel run //foreign_cc/settings` prints every public build setting in
 # bazelrc form so users can copy them verbatim into their own bazelrc.
 _settings_script(
@@ -108,6 +120,11 @@ _settings_script(
         (
             (2, 4),
             "make_cc_runtime_libraries",
+            "none",
+        ),
+        (
+            (2, 5),
+            "meson_cc_runtime_libraries",
             "none",
         ),
         (
