@@ -123,6 +123,10 @@ cmake(
 )
 ```
 
+** Finding Dependencies **
+Any package listed in @deps will be linked under a directory. This directory may be referenced in cache variables as `$$EXT_BUILD_DEPS$$`. This may be useful when setting `xxx_ROOT_DIR` cache variables to help CMake find package modules locate particular dependencies
+
+
 [ccb]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_binary
 [ccl]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library
 [cct]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain
